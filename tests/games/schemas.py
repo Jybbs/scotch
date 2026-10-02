@@ -11,7 +11,7 @@ from hypothesis            import given
 from hypothesis.strategies import DrawFn, composite, integers, sampled_from
 from pathlib               import Path
 from pydantic              import ValidationError
-from pytest                import LogCaptureFixture, TempPathFactory, mark, raises
+from pytest                import LogCaptureFixture, TempPathFactory, mark, param, raises
 
 from scotch.games.schemas import Game
 
@@ -163,21 +163,18 @@ def test_an_illegal_move_ends_the_mainline_and_records_an_error(tmp_path: Path):
 @mark.parametrize(
     ("variant", "errors", "problems"),
     [
-        ("Standard", (), ()),
-        ("standard", (), ()),
-        ("From Position", (), ()),
-        ("Atomic", (), ("unsupported variant: Atomic",)),
-        ("Chess960", (), ("unsupported variant: Chess960",)),
-        (
+        param("Standard", (), (), id="standard"),
+        param("standard", (), (), id="lowercase"),
+        param("From Position", (), (), id="from-position"),
+        param("Atomic", (), ("unsupported variant: Atomic",), id="atomic"),
+        param("Chess960", (), ("unsupported variant: Chess960",), id="chess960"),
+        param(
             "Bughouse",
             ("unsupported variant: Bughouse",),
-            ("unsupported variant: Bughouse",)
+            ("unsupported variant: Bughouse",),
+            id = "bughouse"
         ),
-        ("", ("unsupported variant: ",), ("unsupported variant: ",))
-    ],
-    ids = [
-        "standard", "lowercase", "from-position", "atomic",
-        "chess960", "bughouse", "empty"
+        param("", ("unsupported variant: ",), ("unsupported variant: ",), id="empty")
     ]
 )
 def test_a_variant_tag_naming_anything_but_standard_chess_is_a_problem(
