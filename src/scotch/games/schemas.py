@@ -24,7 +24,7 @@ class Game(BaseModel, frozen=True, use_attribute_docstrings=True):
     """
     The message of each error python-chess's reader recorded reading the tags
     and the mainline, such as a move illegal in the position it was played
-    from, after which the reader keeps no later move of the mainline.
+    from.
     """
 
     moves: tuple[Move, ...]
@@ -65,9 +65,9 @@ class Game(BaseModel, frozen=True, use_attribute_docstrings=True):
         file holds them.
 
         Decodes the file as UTF-8, one of the two encodings python-chess's
-        reader names as usual for a PGN file, and reads each sequence
-        UTF-8 cannot decode as one U+FFFD. A file another code page wrote
-        therefore still yields every move, since every move is ASCII.
+        reader names as usual for a PGN file, and replaces what UTF-8 cannot
+        decode with U+FFFD. A file another code page wrote therefore still
+        yields every move, since every move is ASCII.
         """
         with path.open(encoding="utf-8", errors="replace") as handle:
             for game in iter(partial(read_game, handle, Visitor=MainlineBuilder), None):

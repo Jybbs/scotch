@@ -1,6 +1,7 @@
 """
-Pins what the `scotch` command itself defines, meaning the help text the
-package's summary renders and the version its metadata carries.
+Pins what the `scotch` command itself defines, meaning the script
+`[project.scripts]` declares, the help text the package's summary renders,
+and the version its metadata carries.
 """
 
 from importlib.metadata import entry_points, version
