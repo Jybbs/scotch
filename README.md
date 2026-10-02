@@ -24,7 +24,7 @@ The program processes a large dataset containing over 7 million chess positions 
 
 ## Setup and Usage
 
-[mise](https://mise.jdx.dev) installs the Python interpreter and [uv](https://docs.astral.sh/uv/) at the versions `.mise/config.toml` pins, and uv builds the environment from `uv.lock`. After installing mise and [activating it in your shell](https://mise.jdx.dev/installing-mise.html), a fresh clone reaches a passing suite through the commands below:
+[mise](https://mise.jdx.dev) installs the Python interpreter and [uv](https://docs.astral.sh/uv/) at the versions `.mise/config.toml` pins, and uv builds the environment from `uv.lock`. After [installing mise](https://mise.jdx.dev/installing-mise.html), a fresh clone reaches a passing suite through the commands below:
 
 ```bash
 git clone --filter=blob:none https://github.com/Jybbs/scotch.git
@@ -41,7 +41,7 @@ mise test
 | **Command** | **What It Does** |
 |---|---|
 | `mise test` | *Runs the test suite, passing any further arguments to pytest* |
-| `mise coverage` | *Runs the suite under coverage, failing when the total falls below **95%*** |
+| `mise coverage` | *Runs the suite under coverage, failing when the total falls below the `fail_under` threshold `pyproject.toml` sets* |
 | `mise check` | *Reports every rewrite the formatter would make and every lint finding* |
 | `mise format` | *Rewrites the Python source to the house style* |
 | `mise relock` | *Re-resolves `uv.lock` and `.mise/mise.lock` against their manifests* |
