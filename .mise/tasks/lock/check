@@ -2,10 +2,15 @@
 #MISE alias       = "lockfile"
 #MISE description = "Verify both lockfiles are in sync with their manifests"
 
+restore() {
+  cmp -s "$snapshot" .mise/mise.lock || mv -f "$snapshot" .mise/mise.lock
+  rm -f "$snapshot"
+}
+
 uv lock --check
 snapshot=$(mktemp)
 cp -p .mise/mise.lock "$snapshot"
-trap 'cmp -s "$snapshot" .mise/mise.lock || mv -f "$snapshot" .mise/mise.lock; rm -f "$snapshot"' EXIT
+trap restore EXIT
 log=$(mise lock 2>&1) || { printf '%s\n' "$log" >&2; exit 1; }
 printf '%s\n' "$log" >&2
 if grep -q "failed to resolve" <<<"$log"; then
