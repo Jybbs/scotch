@@ -64,11 +64,6 @@ def name(request: FixtureRequest) -> Iterator[str]:
 
 def test_the_shell_carries_no_variable_that_changes_a_result(name: str):
     """
-    Asserts that none of these variables reaches a test, covering the ones
-    that set whether a console prints color, whether it counts as a terminal
-    and as interactive, and how many columns and lines it lays out, the
-    files a GitHub Actions runner collects a workflow step's outputs and a
-    workflow run's summary page from, and the ones naming where a tool keeps
-    its configuration, data, and state.
+    Asserts that no variable `CLEARED` names reaches a test.
     """
     assert name not in environ

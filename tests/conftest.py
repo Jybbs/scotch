@@ -45,17 +45,11 @@ class PlainFile(SingleFileSnapshotExtension):
 @fixture(autouse=True)
 def environment(monkeypatch: MonkeyPatch, tmp_path_factory: TempPathFactory):
     """
-    Clears every shell variable `CLEARED` names, any of which would
-    let the machine running the suite change a result. Some of them set
-    whether a console prints color, whether it counts as a terminal and as
-    interactive, and how many columns and lines it lays out, `GITHUB_OUTPUT`
-    and `GITHUB_STEP_SUMMARY` name the files a GitHub Actions runner
-    collects a workflow step's outputs and a workflow run's summary
-    page from, and the rest name the directories where a tool keeps its
-    configuration, data, and state, which the XDG convention defines.
+    Points `HOME` at an empty directory and clears what `CLEARED` names:
 
-    Points `HOME` at an empty directory the test owns, so a tool that falls
-    back to `~` finds none of the developer's files there.
+    - The color, terminal, and size settings a console reads
+    - The files a GitHub Actions step writes its outputs and summary to
+    - The directories the XDG convention names for configuration, data, and state
     """
     for name in CLEARED:
         monkeypatch.delenv(name, raising=False)
