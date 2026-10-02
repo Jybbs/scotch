@@ -1,7 +1,8 @@
 """
 Pins what `Game` reads out of a PGN file through python-chess's reader,
 meaning each game's tags, the moves of its mainline, the errors the reader
-recorded, and the problems those errors and a `Variant` tag add up to.
+recorded without logging them, and the problems those errors and a `Variant`
+tag add up to.
 """
 
 from chess                 import Board, Move
@@ -10,7 +11,7 @@ from hypothesis            import given
 from hypothesis.strategies import DrawFn, composite, integers, sampled_from
 from pathlib               import Path
 from pydantic              import ValidationError
-from pytest                import TempPathFactory, mark, raises
+from pytest                import LogCaptureFixture, TempPathFactory, mark, raises
 
 from scotch.games.schemas import Game
 
@@ -113,6 +114,20 @@ def test_a_fen_tag_the_reader_cannot_read_leaves_no_move(tmp_path: Path):
     assert game.moves == ()
 
 
+def test_a_game_refuses_a_field_it_does_not_declare():
+    """
+    Asserts that building a game with a keyword its record does not declare
+    raises `ValidationError`, so a misspelled field never reads as unset.
+    """
+    with raises(ValidationError):
+        Game(
+            errors  = (),
+            moves   = (),
+            tags    = {},
+            unknown = 1
+        )
+
+
 def test_a_game_refuses_a_new_value_for_a_field(tmp_path: Path):
     """
     Asserts that a game read from a file is frozen, so assigning its moves
@@ -187,16 +202,19 @@ def test_a_variant_tag_naming_anything_but_standard_chess_is_a_problem(
     assert game.problems == problems
 
 
-def test_an_illegal_move_inside_a_variation_leaves_the_mainline_whole(tmp_path: Path):
+def test_an_illegal_move_is_recorded_without_being_logged(
+    caplog   : LogCaptureFixture,
+    tmp_path : Path
+):
     """
-    Asserts that a move illegal inside a variation leaves every move of the
-    mainline after that variation read from the mainline's own position,
-    with no error recorded.
+    Asserts that reading a game holding an illegal move records the error on
+    the game and writes nothing to any logger, so the error reaches a caller
+    through `errors` alone.
     """
-    [game] = read(tmp_path, "1. e4 (1. d4 Qxf7) 1... e5 2. Qh5 Nc6 *\n")
+    [game] = read(tmp_path, "1. e4 e5 2. Qxf7 *\n")
 
-    assert game.errors == ()
-    assert game.moves == moves("e2e4", "e7e5", "d1h5", "b8c6")
+    assert len(game.errors) == 1
+    assert caplog.records == []
 
 
 def test_every_game_reads_in_file_order(tmp_path: Path):
@@ -263,13 +281,3 @@ def test_the_variant_problem_follows_the_errors_the_reader_recorded(tmp_path: Pa
 
     assert error.startswith("illegal san: 'Qxf7'")
     assert game.problems == (error, "unsupported variant: Atomic")
-
-
-def test_variations_stay_out_of_the_moves(tmp_path: Path):
-    """
-    Asserts that the moves hold the mainline alone, leaving out a variation
-    the file records beside it.
-    """
-    [game] = read(tmp_path, "1. e4 (1. d4 d5) 1... e5 *\n")
-
-    assert game.moves == moves("e2e4", "e7e5")

@@ -1,19 +1,20 @@
 """
 Holds the `Game` record each game in a Portable Game Notation (PGN) file is
-read into, and the `MainlineBuilder` python-chess's own reader builds each
-game through.
+read into.
 """
 
 from chess           import Board, Move
-from chess.pgn       import GameBuilder, SKIP, SkipType, read_game
+from chess.pgn       import read_game
 from collections.abc import Iterator
 from functools       import partial
 from pathlib         import Path
 from pydantic        import BaseModel
 from typing          import Self
 
+from scotch.games.builders import MainlineBuilder
 
-class Game(BaseModel, frozen=True, use_attribute_docstrings=True):
+
+class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     One game a PGN file carries, meaning its tags, the moves of its
     mainline, and each error python-chess's reader recorded while reading
@@ -48,8 +49,10 @@ class Game(BaseModel, frozen=True, use_attribute_docstrings=True):
         other variants under their own rules without recording that message.
 
         Returns:
-            Each error in the order the reader recorded it, with the variant's
-            message last and never twice.
+            Each error in the order the reader recorded it, followed by the
+            variant's message wherever the reader did not record it already.
+            A `[Variant "Bughouse"]` game puts that message first, since the
+            reader records it before reading the position or any move.
         """
         variant = self.tags.get("Variant", "Standard")
 
@@ -77,24 +80,3 @@ class Game(BaseModel, frozen=True, use_attribute_docstrings=True):
                     tags   = game.headers
                 )
 
-
-class MainlineBuilder(GameBuilder):
-    """
-    Builds a game from its mainline alone, skipping every variation, since
-    `read_game` in python-chess 1.11.2 keeps the board of a variation
-    holding an illegal move once that variation closes and reads every later
-    move of the mainline against that board.
-    """
-
-    def begin_variation(self) -> SkipType:
-        """
-        Skips the variation opening here, so the reader pushes no board
-        for it.
-        """
-        return SKIP
-
-    def end_variation(self):
-        """
-        Leaves the game as it stands, since the builder entered no
-        variation.
-        """
