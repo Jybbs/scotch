@@ -1,0 +1,9 @@
+Usage: scotch
+
+Finds the grandmaster game sharing the longest run of positions with a submitted
+chess game and shows how that game continued.
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ --help (-h)  Display this message and exit.                                  │
+│ --version    Display application version.                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯

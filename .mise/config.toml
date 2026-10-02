@@ -1,0 +1,17 @@
+min_version = "2026.9.18"
+
+[env]
+HYPOTHESIS_STORAGE_DIRECTORY = "{{config_root}}/.cache/hypothesis"
+PROSE_CACHE_DIR              = "{{config_root}}/.cache/prose"
+PYTHONPYCACHEPREFIX          = "{{config_root}}/.cache/pycache"
+UV_LOCKED                    = "1"
+
+[settings]
+auto_install = false
+
+[tool_config]
+locked = true
+
+[tools]
+python = "3.14.6"
+uv     = "0.12.13"

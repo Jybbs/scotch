@@ -1,0 +1,8 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "check"
+#MISE description = "Report every formatting rewrite and lint finding, as annotations under GitHub Actions, passing any further arguments to the formatter"
+
+format=text
+[[ -z "${GITHUB_ACTIONS:-}" ]] || format=github
+
+uv run --exact --locked prose check --output-format "$format" "$@" .mise/tasks src tests

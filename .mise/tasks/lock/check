@@ -1,0 +1,13 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "lockfile"
+#MISE description = "Verify both lockfiles are in sync with their manifests"
+
+snapshot=$(mktemp)
+trap 'rm -f "$snapshot"' EXIT
+cp .mise/mise.lock "$snapshot"
+mise lock
+diff -u "$snapshot" .mise/mise.lock >&2 || {
+  mv "$snapshot" .mise/mise.lock
+  exit 1
+}
+uv lock --check

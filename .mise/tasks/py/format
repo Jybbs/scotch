@@ -1,0 +1,5 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "format"
+#MISE description = "Rewrite the Python source to the house style, passing any further arguments to the formatter"
+
+uv run --exact --locked prose format "$@" .mise/tasks src tests
