@@ -3,7 +3,7 @@ Pins what the `scotch` command itself defines, meaning the help text the
 package's summary renders and the version its metadata carries.
 """
 
-from importlib.metadata import version
+from importlib.metadata import entry_points, version
 from pytest             import CaptureFixture, MonkeyPatch, raises
 from syrupy.assertion   import SnapshotAssertion
 
@@ -36,6 +36,16 @@ def test_help_text(
 
     assert invoke("--help") == 0
     assert capsys.readouterr().out == snapshot
+
+
+def test_the_scotch_script_loads_the_app():
+    """
+    Asserts that the `scotch` script `[project.scripts]` declares loads the
+    `App` this package defines, so the installed command runs it.
+    """
+    [script] = entry_points(group="console_scripts", name="scotch")
+
+    assert script.load() is app
 
 
 def test_version_reports_installed_package(capsys: CaptureFixture[str]):

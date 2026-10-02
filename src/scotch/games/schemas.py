@@ -1,10 +1,11 @@
 """
 Holds the `Game` record each game in a Portable Game Notation (PGN) file is
-read into through python-chess's own reader.
+read into, and the `MainlineBuilder` python-chess's own reader builds each
+game through.
 """
 
 from chess           import Board, Move
-from chess.pgn       import read_game
+from chess.pgn       import GameBuilder, SKIP, SkipType, read_game
 from collections.abc import Iterator
 from functools       import partial
 from pathlib         import Path
@@ -21,9 +22,9 @@ class Game(BaseModel, frozen=True, use_attribute_docstrings=True):
 
     errors: tuple[str, ...]
     """
-    The message of each error python-chess's reader recorded, such as a move
-    illegal in the position it was played from, after which the reader keeps
-    no later move of the mainline.
+    The message of each error python-chess's reader recorded reading the tags
+    and the mainline, such as a move illegal in the position it was played
+    from, after which the reader keeps no later move of the mainline.
     """
 
     moves: tuple[Move, ...]
@@ -63,15 +64,37 @@ class Game(BaseModel, frozen=True, use_attribute_docstrings=True):
         Reads every game the PGN file at `path` carries, in the order the
         file holds them.
 
-        Decodes the file as UTF-8, the encoding python-chess's reader
-        documents, and reads each byte UTF-8 cannot decode as U+FFFD. Every
-        move is ASCII, so a file another code page wrote still yields every
-        move.
+        Decodes the file as UTF-8, one of the two encodings python-chess's
+        reader names as usual for a PGN file, and reads each sequence
+        UTF-8 cannot decode as one U+FFFD. A file another code page wrote
+        therefore still yields every move, since every move is ASCII.
         """
         with path.open(encoding="utf-8", errors="replace") as handle:
-            for game in iter(partial(read_game, handle), None):
+            for game in iter(partial(read_game, handle, Visitor=MainlineBuilder), None):
                 yield cls(
                     errors = map(str, game.errors),
                     moves  = game.mainline_moves(),
                     tags   = game.headers
                 )
+
+
+class MainlineBuilder(GameBuilder):
+    """
+    Builds a game from its mainline alone, skipping every variation, since
+    `read_game` in python-chess 1.11.2 keeps the board of a variation
+    holding an illegal move once that variation closes and reads every later
+    move of the mainline against that board.
+    """
+
+    def begin_variation(self) -> SkipType:
+        """
+        Skips the variation opening here, so the reader pushes no board
+        for it.
+        """
+        return SKIP
+
+    def end_variation(self):
+        """
+        Leaves the game as it stands, since the builder entered no
+        variation.
+        """

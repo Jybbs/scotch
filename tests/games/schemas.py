@@ -9,7 +9,8 @@ from chess.pgn             import Game as PgnGame
 from hypothesis            import given
 from hypothesis.strategies import DrawFn, composite, integers, sampled_from
 from pathlib               import Path
-from pytest                import TempPathFactory, mark
+from pydantic              import ValidationError
+from pytest                import TempPathFactory, mark, raises
 
 from scotch.games.schemas import Game
 
@@ -36,7 +37,7 @@ def read(directory: Path, text: str, encoding: str = "utf-8") -> list[Game]:
 def played(draw: DrawFn) -> PgnGame:
     """
     Draws a game python-chess builds from up to sixty legal moves played
-    from the starting position, stopping early where a move ends the game.
+    from the starting position, stopping early once no move is legal.
     """
     board = Board()
 
@@ -56,7 +57,7 @@ def test_a_game_python_chess_writes_reads_back_whole(
     Asserts that any legal game python-chess exports reads back with the
     same tags and the same moves and with no error.
     """
-    [read_back] = read(tmp_path_factory.getbasetemp(), str(game))
+    [read_back] = read(tmp_path_factory.mktemp("played"), str(game))
 
     assert read_back.errors == ()
     assert read_back.moves == tuple(game.mainline_moves())
@@ -112,6 +113,17 @@ def test_a_fen_tag_the_reader_cannot_read_leaves_no_move(tmp_path: Path):
     assert game.moves == ()
 
 
+def test_a_game_refuses_a_new_value_for_a_field(tmp_path: Path):
+    """
+    Asserts that a game read from a file is frozen, so assigning its moves
+    raises `ValidationError` rather than replacing them.
+    """
+    [game] = read(tmp_path, "1. e4 *\n")
+
+    with raises(ValidationError):
+        game.moves = ()
+
+
 def test_an_empty_file_holds_no_game(tmp_path: Path):
     """
     Asserts that a file holding no text yields no game.
@@ -131,20 +143,6 @@ def test_an_illegal_move_ends_the_mainline_and_records_an_error(tmp_path: Path):
     [error] = game.errors
 
     assert error.startswith("illegal san: 'Qxf7'")
-
-
-def test_every_game_reads_in_file_order(tmp_path: Path):
-    """
-    Asserts that a file holding two games yields both, in the order the file
-    holds them, each with its own tags and moves.
-    """
-    games = read(
-        directory = tmp_path,
-        text      = '[Event "First"]\n\n1. e4 e5 *\n\n[Event "Second"]\n\n1. d4 *\n'
-    )
-
-    assert [game.tags["Event"] for game in games] == ["First", "Second"]
-    assert [game.moves for game in games] == [moves("e2e4", "e7e5"), moves("d2d4")]
 
 
 @mark.parametrize(
@@ -189,6 +187,32 @@ def test_a_variant_tag_naming_anything_but_standard_chess_is_a_problem(
     assert game.problems == problems
 
 
+def test_an_illegal_move_inside_a_variation_leaves_the_mainline_whole(tmp_path: Path):
+    """
+    Asserts that a move illegal inside a variation leaves every move of the
+    mainline after that variation read from the mainline's own position,
+    with no error recorded.
+    """
+    [game] = read(tmp_path, "1. e4 (1. d4 Qxf7) 1... e5 2. Qh5 Nc6 *\n")
+
+    assert game.errors == ()
+    assert game.moves == moves("e2e4", "e7e5", "d1h5", "b8c6")
+
+
+def test_every_game_reads_in_file_order(tmp_path: Path):
+    """
+    Asserts that a file holding two games yields both, in the order the file
+    holds them, each with its own tags and moves.
+    """
+    games = read(
+        directory = tmp_path,
+        text      = '[Event "First"]\n\n1. e4 e5 *\n\n[Event "Second"]\n\n1. d4 *\n'
+    )
+
+    assert [game.tags["Event"] for game in games] == ["First", "Second"]
+    assert [game.moves for game in games] == [moves("e2e4", "e7e5"), moves("d2d4")]
+
+
 def test_no_variant_tag_adds_no_problem(tmp_path: Path):
     """
     Asserts that a game carrying no `Variant` tag reads as standard chess.
@@ -220,7 +244,7 @@ def test_text_holding_no_movetext_reads_as_one_game_without_moves(tmp_path: Path
     """
     Asserts that a file holding text python-chess finds neither a tag nor
     a move in reads as one game with no move and no error, since the reader
-    skips every token it cannot parse.
+    skips text matching none of the tokens movetext holds.
     """
     [game] = read(tmp_path, "hello world\n")
 

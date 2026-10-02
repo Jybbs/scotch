@@ -29,12 +29,12 @@ The program processes a large dataset containing over 7 million chess positions 
 ```bash
 git clone --filter=blob:none https://github.com/Jybbs/scotch.git
 mise trust scotch
-mise -C scotch install
+mise -C scotch install --locked
 cd scotch
 mise test
 ```
 
-`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout needs it. `mise trust scotch` marks the clone's `.mise/config.toml` as a file mise may read, and `mise -C scotch install` installs the tools it pins. `mise test` runs the suite through `uv run --exact --locked`, which builds `.venv` from `uv.lock` on its first run and refuses a lockfile that lags `pyproject.toml`.
+`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout needs it. `mise trust scotch` marks the clone's `.mise/config.toml` as a file mise may read, and `mise -C scotch install --locked` installs the tools it pins at the checksums `.mise/mise.lock` records. `mise test` runs the suite through `uv run --exact --locked`, which builds `.venv` from `uv.lock` on its first run and refuses a lockfile that lags `pyproject.toml`.
 
 `mise tasks` lists every task, and the table below names the ones used most often.
 
