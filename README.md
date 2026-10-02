@@ -14,7 +14,7 @@
 
 ## Introduction
 
-*Scotch* is an innovative chess analytics tool designed to help users study and improve their chess gameplay by comparing their games to a database of Grandmaster-level games. The tool processes a large dataset of over 7 million chess positions from professional tournament games, sourced from [PGN Mentor](https://www.pgnmentor.com). By submitting their own chess game, users can have it matched against the database, enabling them to follow and study a closely resembling game played by a Grandmaster. This unique approach provides users with a deeper understanding of their own gameplay and offers insights on how to learn from the best of the best.
+*Scotch* is an innovative chess analytics tool designed to help users study and improve their chess gameplay by comparing their games to a database of Grandmaster-level games. The tool processes a large dataset of over 7 million chess positions from professional tournament games, sourced from [PGN Mentor](https://www.pgnmentor.com).
 
 ## Data & Parquet
 
