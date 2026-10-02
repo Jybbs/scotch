@@ -1,7 +1,7 @@
 """
-Pins the verdict `lock:check` reaches for each answer `uv lock --check` and
-`mise lock` give it, and that `.mise/mise.lock` keeps its bytes and its mode
-whatever the verdict.
+Pins the verdict `lock:check` reaches for each answer `uv lock --check`,
+`mise lock`, and the locked install's dry run give it, and that
+`.mise/mise.lock` keeps its bytes and its mode whatever the verdict.
 
 Each case runs the task through its own shebang inside a scratch checkout,
 with stand-in `mise`, `mktemp`, and `uv` executables first on `PATH`, so
@@ -11,7 +11,7 @@ every file the task writes lands in a directory the case owns.
 from os         import environ, pathsep
 from pathlib    import Path
 from pydantic   import BaseModel
-from pytest     import Config, fixture, mark
+from pytest     import Config, fixture, mark, param
 from stat       import S_IMODE
 from subprocess import CompletedProcess, run
 
@@ -132,15 +132,19 @@ def test_a_lockfile_matching_its_manifest_passes(checkout: Checkout):
     leaving no snapshot behind.
     """
     assert checkout.check().returncode == 0
-    assert checkout.calls == ["uv lock --check", "mise lock"]
+    assert checkout.calls == [
+        "uv lock --check", "mise lock", "mise install --dry-run --force --locked"
+    ]
     assert checkout.lockfile.read_text() == checkout.text
     assert list(checkout.scratch.iterdir()) == []
 
 
 @mark.parametrize(
     "mise",
-    ["echo drifted > .mise/mise.lock", "echo partial > .mise/mise.lock; exit 1"],
-    ids = ["rewritten", "written-then-failed"]
+    [
+        param("echo drifted > .mise/mise.lock", id="rewritten"),
+        param("echo partial > .mise/mise.lock; exit 1", id="written-then-failed")
+    ]
 )
 def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
     checkout : Checkout,
@@ -169,6 +173,17 @@ def test_a_tool_mise_lock_cannot_resolve_fails(checkout: Checkout):
 
     assert result.returncode == 1
     assert "failed to resolve python for windows-x64" in result.stderr
+    assert checkout.lockfile.read_text() == checkout.text
+
+
+def test_a_tool_the_locked_install_cannot_find_fails(checkout: Checkout):
+    """
+    Asserts that the check exits one where `mise lock` leaves the lockfile
+    as it stood but the locked install's dry run finds no entry for a tool
+    on this platform, leaving `.mise/mise.lock` as it stood.
+    """
+    assert checkout.check(mise='[ "$1" = install ] && exit 1 || exit 0').returncode == 1
+    assert checkout.calls[-1] == "mise install --dry-run --force --locked"
     assert checkout.lockfile.read_text() == checkout.text
 
 
