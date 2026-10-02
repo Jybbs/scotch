@@ -6,12 +6,12 @@ connection, and the mark that lets a `network` test open one.
 """
 
 from collections.abc import Iterator
-from conftest        import CLEARED, pytest_collection_modifyitems
 from os              import environ
 from pathlib         import Path
 from pytest          import FixtureRequest, fixture, mark, raises, warns
 from pytest_socket   import SocketBlockedError
 from socket          import create_connection
+from tests.conftest  import CLEARED, pytest_collection_modifyitems
 from unittest.mock   import patch
 
 
