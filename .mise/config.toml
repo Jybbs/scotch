@@ -1,5 +1,11 @@
 min_version = "2026.9.18"
 
+[doctor.checks.venv]
+description = "`.venv` exists and runs on the Python interpreter mise pins"
+hint        = "mise x -- uv venv --clear .venv && mise x -- uv sync"
+run         = 'test -d .venv && test "$(.venv/bin/python -c "import sys; print(sys.base_prefix)")" = "$(python -c "import sys; print(sys.prefix)")"'
+timeout     = "5s"
+
 [env]
 HYPOTHESIS_STORAGE_DIRECTORY = "{{config_root}}/.cache/hypothesis"
 PROSE_CACHE_DIR              = "{{config_root}}/.cache/prose"

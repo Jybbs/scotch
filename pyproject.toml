@@ -34,14 +34,18 @@ dev = [
 directory = ".cache/coverage/html"
 
 [tool.coverage.report]
-fail_under   = 95
-precision    = 2
-show_missing = true
+fail_under                 = 95
+include_namespace_packages = true
+precision                  = 2
+show_missing               = true
 
 [tool.coverage.run]
 branch    = true
 data_file = ".cache/coverage/data"
 source    = ["src/scotch"]
+
+[tool.hatch.build.targets.sdist]
+only-include = [".mise", "src", "tests", "uv.lock"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scotch"]
@@ -83,6 +87,7 @@ build-constraint-dependencies = [
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
+    "setuptools==84.0.0",
     "tomlkit==0.15.1",
     "trove-classifiers==2026.9.21.13"
 ]

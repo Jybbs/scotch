@@ -7,6 +7,7 @@ build-constraints = [
     { name = "packaging", specifier = "==26.3" },
     { name = "pathspec", specifier = "==1.1.1" },
     { name = "pluggy", specifier = "==1.6.0" },
+    { name = "setuptools", specifier = "==84.0.0" },
     { name = "tomlkit", specifier = "==0.15.1" },
     { name = "trove-classifiers", specifier = "==2026.9.21.13" },
 ]
