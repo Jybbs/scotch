@@ -2,6 +2,4 @@
 #MISE alias       = "format"
 #MISE description = "Rewrite the Python source to the house style, passing any further arguments to the formatter"
 
-source "$MISE_PROJECT_ROOT/.mise/lib/prose.bash"
-
-run_prose format "$@"
+prose format "$@" .mise/tasks src tests

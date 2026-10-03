@@ -2,4 +2,4 @@
 #MISE alias       = "test"
 #MISE description = "Run the test suite, passing any further arguments to pytest"
 
-uv run --exact --locked pytest "$@"
+pytest "$@"

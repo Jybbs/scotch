@@ -7,6 +7,7 @@ run         = 'test -d .venv && test "$(.venv/bin/python -c "import sys; print(s
 timeout     = "5s"
 
 [env]
+_.path                       = ".mise/bin"
 HYPOTHESIS_STORAGE_DIRECTORY = "{{config_root}}/.cache/hypothesis"
 PROSE_CACHE_DIR              = "{{config_root}}/.cache/prose"
 PYTHONPYCACHEPREFIX          = "{{config_root}}/.cache/pycache"
