@@ -1,0 +1,6 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "relock"
+#MISE description = "Re-resolve both lockfiles against their manifests"
+
+mise lock
+uv lock --no-locked

@@ -1,15 +1,11 @@
 <!-- omit in toc -->
-# Project Scotch
+# Scotch
 *Matching User Chess Games with GM Games to Learn Stronger Continuations*
-
-This repository contains a series of classes, a Cython implementation of the Longest Common Sequence (LCS) algorithm, and a partition Parquet directory full of Grandmaster chess games, which work in tandem to help users understand how their games would've been continued by the most notable players in chess. 
 
 <!-- omit in toc -->
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Classes](#classes)
-- [Cython Implementation of LCS](#cython-implementation-of-lcs)
 - [Data \& Parquet](#data--parquet)
 - [Setup and Usage](#setup-and-usage)
 - [Authors and Acknowledgements](#authors-and-acknowledgements)
@@ -18,32 +14,7 @@ This repository contains a series of classes, a Cython implementation of the Lon
 
 ## Introduction
 
-Project Scotch is an innovative chess analytics tool designed to help users study and improve their chess gameplay by comparing their games to a database of Grandmaster-level games. The tool processes a large dataset of over 7 million chess positions from professional tournament games, sourced from [PGN Mentor](https://www.pgnmentor.com). By submitting their own chess game, users can have it matched against the database, enabling them to follow and study a closely resembling game played by a Grandmaster. This unique approach provides users with a deeper understanding of their own gameplay and offers insights on how to learn from the best of the best.
-
-The project is built on a range of carefully crafted and documented components, which are designed to create an informative and interactive experience for chess learners. Its Position class, utilizing efficient bitboards, serves as the foundation for analyzing chess positions. These positions are generated through a Parser class, which bridges the user's game and the tool by processing PGN files and extracting necessary metadata for integration with other components. From there, the submitted game is run through Matcher, which identifies the best matching games from the database based on the longest sequence of matching moves, offering users the opportunity to learn from top-level players. The Navigator class then handles the visual representation of the match, allowing users to step through positions and gain insights into their gameplay.
-
-These components work together to form a cohesive system that helps users explore and learn from a wealth of Grandmaster-level chess games, enhancing their understanding of the game and supporting their progress towards mastery. 
-
-In short, this program's methodologies include:
-- Efficient data storage using the [Parquet](https://parquet.apache.org) file format
-- Longest Common Subsequence (LCS) algorithm optimized with [Cython](https://cython.readthedocs.io)
-- User-friendly game navigation and visualization using [tkinter](https://docs.python.org/3/library/tkinter.html)
-
-## Classes
-
-- **Parser**: Serves as a bridge between the user's game and the internal workings of the tool. It ingests the PGN file provided by the user and extracts crucial information, such as positions and metadata.
-- **Position**: At the heart of the program, it takes minimal information supplied by chess programs and extends that format with as much context about legal moves as possible. Utilizes bitboards for more efficient operations and game state visualization.
-- **Matcher**: Draws meaningful connections between the user's game and the vast database of existing GM games. Identifies the best matching game based on the longest sequence of matching moves.
-- **Navigator**: Provides a visual representation of the game, allowing users to walk through each position step by step with key bindings and dynamic labels.
-- **Utilities**: Sits in the background and provides essential functions that facilitate smooth operation across all components.
-
-Each class file in this project contains a docstring outlining the attributes and methods that the class requires and handles.
-
-## Cython Implementation of LCS
-
-This module contains an optimized implementation of the Longest Common Subsequence (LCS) algorithm using [Cython](https://cython.readthedocs.io). The purpose of this optimization is to improve the performance of the LCS calculation when working with large sequences. Cython is a powerful tool that allows us to generate C code from Python-like source code, leading to faster execution times. This is achieved through the use of Cython's cpdef function declaration, typed memory views, and native C data types, reudcing Python's overhead.
-
-The Cython implementation is meant to be used as an imported module in other Python scripts that require an efficient LCS algorithm. To use this module, simply import it into your script and call the `lcs_indices` function with your input sequences as NumPy arrays with `dtype = np.int64`. The function will return a tuple containing the length of the LCS and a list of two tuples, where each tuple contains the start and end indices of the LCS in the short and long sequences.
+*Scotch* is an innovative chess analytics tool designed to help users study and improve their chess gameplay by comparing their games to a database of Grandmaster-level games. The tool processes a large dataset of over 7 million chess positions from professional tournament games, sourced from [PGN Mentor](https://www.pgnmentor.com).
 
 ## Data & Parquet
 
@@ -53,28 +24,30 @@ The program processes a large dataset containing over 7 million chess positions 
 
 ## Setup and Usage
 
-Project Scotch is a Python implementation that utilizes five classes, an Application file, and a Cython module. It is designed to be run directly from the terminal. To set up the project and use it, follow these steps:
+[mise](https://mise.jdx.dev) installs the Python interpreter and [uv](https://docs.astral.sh/uv/) at the versions `.mise/config.toml` pins, and uv builds the environment from `uv.lock`. After [installing mise](https://mise.jdx.dev/installing-mise.html), a fresh clone reaches a passing suite through the commands below:
 
-1. Install [Python](https://www.python.org/downloads/).
-2. Clone this repository to your local machine.
-3. In the terminal, navigate to the repository's directory.
-4. Install [Poetry](https://python-poetry.org/docs/#installation), a tool for dependency management in Python projects.
-5. Install the required packages by running the following command in your terminal: `poetry install`
-   - **Note**: This command will create a virtual environment and install the dependencies specified in the `pyproject.toml` file. You might need to install [tkinter](https://docs.python.org/3/library/tkinter.html) separately based on your system. For example, in Ubuntu, you can run `sudo apt-get install python3-tk`.
-6. To activate the Poetry-created virtual environment, run: `poetry shell`
-7. Run the main Application file using Python, with the following options:
-
-Supply a PGN game as a command-line argument:
-```
-python Application.py /path/to/your/game.pgn
+```bash
+git clone --filter=blob:none https://github.com/Jybbs/scotch.git
+mise trust scotch
+mise -C scotch install --locked
+cd scotch
+mise test
 ```
 
-Run the application without any arguments to open a file dialog for submitting your own game:
-```
-python Application.py
-```
+`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout needs it. `mise trust scotch` marks the clone's `.mise/config.toml` as a file mise may read, and `mise -C scotch install --locked` installs the tools it pins at the checksums `.mise/mise.lock` records. `mise test` runs the suite through `uv run --exact --locked`, which builds `.venv` from `uv.lock` on its first run and refuses a lockfile that lags `pyproject.toml`.
 
-If no game is submitted, a demo will run.
+`mise tasks` lists every task, and the table below names the ones used most often.
+
+| **Command** | **What It Does** |
+|---|---|
+| `mise test` | *Runs the test suite, passing any further arguments to pytest* |
+| `mise coverage` | *Runs the suite under coverage, failing when the total falls below the `fail_under` threshold `pyproject.toml` sets* |
+| `mise check` | *Reports every rewrite the formatter would make and every lint finding* |
+| `mise format` | *Rewrites the Python source to the house style* |
+| `mise relock` | *Re-resolves `uv.lock` and `.mise/mise.lock` against their manifests* |
+| `mise ci` | *Runs the lockfile check, the formatter's check, and the suite under coverage* |
+
+`mise x -- uv run scotch --help` prints the help of the `scotch` command, and `mise x -- uv run scotch --version` prints the version it carries.
 
 ## Authors and Acknowledgements
 
@@ -86,13 +59,10 @@ I would like to express my gratitude to Professor Jamieson for her guidance and 
 
 ## License
 
-This project is not subject to any specific licensing. The data provided, PGN Mentor, has its own terms of use, which can be found on their website.
+*Scotch* is released under the MIT license, whose text `LICENSE.md` carries. The data provided, PGN Mentor, has its own terms of use, which can be found on their website.
 
 ## References
 
 - [PGN Mentor](https://www.pgnmentor.com/)
-- [Cython Documentation](https://cython.readthedocs.io/)
 - [Parquet File Format](https://parquet.apache.org/)
-- [Tkinter Documentation](https://docs.python.org/3/library/tkinter.html)
 - [Chess Library for Python](https://python-chess.readthedocs.io/en/latest/)
-- [Alive Progress Bar](https://github.com/rsalmei/alive-progress#readme)

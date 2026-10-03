@@ -1,0 +1,5 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "coverage"
+#MISE description = "Run the test suite under coverage, failing below `fail_under`, writing the HTML report, and passing any further arguments to pytest"
+
+pytest --cov --cov-report html --cov-report term "$@"

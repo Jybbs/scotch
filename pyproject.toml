@@ -1,21 +1,96 @@
-[tool.poetry]
-name           = "project scotch"
-version        = "1.0.0"
-description    = "A chess analytics tool that compares user-submitted games to a database of GM games, helping users learn stronger continuations by studying closest matches."
-authors        = ["James Parkington <pongs.acreage.0o@icloud.com>"]
-readme         = "README.md"
-
-[tool.poetry.dependencies]
-python         = "^3.11"
-numpy          = "^1.24.3"
-pandas         = "^2.0.1"
-pyarrow        = "^14.0.1"
-chess          = "^1.9.4"
-alive-progress = "^3.1.2"
-
-[tool.poetry.dev-dependencies]
-cython         = "^0.29.34"
-
 [build-system]
-requires       = ["poetry-core"]
-build-backend  = "poetry.core.masonry.api"
+build-backend = "hatchling.build"
+requires      = ["hatchling==1.32.4"]
+
+[project]
+authors         = [{ name = "James Parkington" }]
+dependencies    = ["chess", "cyclopts", "pydantic"]
+description     = "Finds the grandmaster game sharing the longest run of positions with a submitted chess game and shows how that game continued."
+license         = "MIT"
+license-files   = ["LICENSE.md"]
+name            = "scotch"
+readme          = "README.md"
+requires-python = ">=3.14"
+version         = "0.1.0"
+
+[project.scripts]
+scotch = "scotch.cli:app"
+
+[project.urls]
+Repository = "https://github.com/Jybbs/scotch"
+
+[dependency-groups]
+dev = [
+    "hypothesis",
+    "prose-formatter",
+    "pytest",
+    "pytest-cov",
+    "pytest-randomly",
+    "pytest-socket",
+    "syrupy"
+]
+
+[tool.coverage.html]
+directory = ".cache/coverage/html"
+
+[tool.coverage.report]
+fail_under                 = 95
+include_namespace_packages = true
+precision                  = 2
+show_missing               = true
+
+[tool.coverage.run]
+branch    = true
+data_file = ".cache/coverage/data"
+source    = ["src/scotch"]
+
+[tool.hatch.build.targets.sdist]
+only-include = [".mise", "src", "tests", "uv.lock"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scotch"]
+
+[tool.prose]
+target-version = "3.14"
+
+[tool.prose.imports]
+first-party = ["scotch"]
+
+[tool.pytest]
+addopts                  = [
+    "--allow-unix-socket",
+    "--disable-socket",
+    "--import-mode=importlib",
+    "-m",
+    "not network",
+    "-ra",
+    "--snapshot-dirname=fixtures"
+]
+cache_dir                = ".cache/pytest"
+empty_parameter_set_mark = "fail_at_collect"
+filterwarnings           = [
+    "error",
+    "ignore:'asyncio.DefaultEventLoopPolicy' is deprecated:DeprecationWarning:chess.engine"
+]
+markers                  = [
+    "network: reaches a service over the network, so the default run deselects it and a selected run lets it open a connection",
+    "slow: runs longer than a few seconds, so a fast local run deselects it"
+]
+norecursedirs            = ["common", "fixtures"]
+python_files             = ["*.py"]
+pythonpath               = ["tests"]
+strict                   = true
+testpaths                = ["tests"]
+
+[tool.uv]
+build-constraint-dependencies = [
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.6.0",
+    "setuptools==84.0.0",
+    "tomlkit==0.15.1",
+    "trove-classifiers==2026.9.21.13"
+]
+python-downloads              = "never"
+python-preference             = "only-system"
+required-version              = "==0.12.13"
