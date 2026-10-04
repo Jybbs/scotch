@@ -91,13 +91,20 @@ def test_a_game_that_leaves_a_stored_game_and_returns_matches_the_longer_run(
     assert match.span == Span(length=9, offset=-4, start=10)
 
 
-def test_a_stored_game_reaching_a_position_twice_ties_with_no_other_game():
+def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
     """
-    Asserts that a stored game holding the starting position at plies 0 and
-    4 matches at its earlier ply and counts as one game among the ties.
+    Asserts that a stored game holding the starting position at plies 0,
+    4, 8, and 12 ranks its four runs by ply, matches at the earliest, and
+    counts as one game among the ties.
     """
-    match = PositionIndex.build([line("Nf3", "Nf6", "Ng1", "Ng8")]).match(line("h4"))
+    index = PositionIndex.build([line(*["Nf3", "Nf6", "Ng1", "Ng8"] * 3)])
+    match = index.match(line("h4"))
 
+    assert (
+        index.runs(line("h4"))
+             .get_column("offset")
+             .to_list()
+    ) == [0, 4, 8, 12]
     assert match.span == Span(length=1, offset=0, start=0)
     assert match.ties == 0
 
