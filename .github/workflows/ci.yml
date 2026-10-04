@@ -1,0 +1,77 @@
+concurrency:
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  check:
+    name: ${{ matrix.name }}
+    outputs:
+      coverage: ${{ steps.coverage.outputs.artifact-url }}
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: ${{ matrix.tools }}
+      - name: Run the task
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: mise run ${{ matrix.task }}
+      - name: Read the coverage report's folder
+        id: report
+        if: ${{ !cancelled() && matrix.task == 'py:coverage' }}
+        shell: bash
+        run: |
+          python3 -c 'import tomllib; print("path=" + tomllib.load(open("pyproject.toml", "rb"))["tool"]["coverage"]["html"]["directory"])' >> "$GITHUB_OUTPUT"
+      - name: Attach the coverage report
+        id: coverage
+        if: ${{ !cancelled() && steps.report.outputs.path }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: coverage
+          path: ${{ steps.report.outputs.path }}
+          retention-days: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 🩺 Advisories
+            task: lock:audit
+            tools: python uv
+          - name: 🔐 Lockfiles
+            task: lock:check
+            tools: python uv
+          - name: 🖋️ Prose
+            task: py:check
+            tools: python uv
+          - name: 🎯 Coverage
+            task: py:coverage
+            tools: python uv
+          - name: 📋 Audit
+            task: repo:audit
+            tools: python uv
+          - name: 🔦 Workflows
+            task: repo:lint
+            tools: zizmor
+    timeout-minutes: 15
+  brief:
+    if: always()
+    name: ⏱️ Brief
+    needs: check
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: python uv
+      - name: Write the summary
+        env:
+          COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          NEEDS: ${{ toJSON(needs) }}
+        run: mise run gha:brief
+    timeout-minutes: 5
+name: ♟️ CI
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read

@@ -10,10 +10,13 @@ running it, and the collection hook lets a test open a network connection
 only when it carries the `network` mark.
 """
 
-from hypothesis       import settings
-from pytest           import Item, MonkeyPatch, TempPathFactory, fixture, mark
-from syrupy.assertion import SnapshotAssertion
-from syrupy.extensions.single_file import SingleFileSnapshotExtension, WriteMode
+from common.sample import Sample
+from hypothesis    import settings
+from pathlib       import Path
+from pytest        import Item, MonkeyPatch, TempPathFactory, fixture, mark
+from pytest_subprocess.fake_process import FakeProcess
+from syrupy.assertion               import SnapshotAssertion
+from syrupy.extensions.single_file  import SingleFileSnapshotExtension, WriteMode
 
 CLEARED = (
     "CLICOLOR", "COLORTERM", "COLUMNS", "FORCE_COLOR", "GITHUB_OUTPUT",
@@ -57,6 +60,17 @@ def environment(monkeypatch: MonkeyPatch, tmp_path_factory: TempPathFactory):
     monkeypatch.setenv("HOME", str(tmp_path_factory.mktemp("home")))
 
 
+@fixture
+def answered(fp: FakeProcess, sample: Sample) -> Sample:
+    """
+    Copies the sample checkout and registers the answers mise gives it,
+    reporting no problem from `mise tasks validate`.
+    """
+    sample.answer(fp)
+
+    return sample
+
+
 def pytest_collection_modifyitems(items: list[Item]):
     """
     Adds pytest-socket's `enable_socket` mark to every test carrying the
@@ -67,6 +81,15 @@ def pytest_collection_modifyitems(items: list[Item]):
     for item in items:
         if item.get_closest_marker("network"):
             item.add_marker(mark.enable_socket)
+
+
+@fixture
+def sample(tmp_path: Path) -> Sample:
+    """
+    Copies the sample checkout under `tests/repo/fixtures/checkout/` into
+    `tmp_path`.
+    """
+    return Sample.copy(tmp_path)
 
 
 @fixture

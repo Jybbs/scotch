@@ -1,0 +1,9 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `draft` | success |
+
+The cut found `[project].version` still at `0.2.0`, so it created no draft.
+
+The run checked `560c4d8` on `4/ci-gate`.

@@ -1,0 +1,28 @@
+[[tasks]]
+depends = []
+file    = ".mise/tasks/gha/brief"
+name    = "gha:brief"
+
+[[tasks]]
+depends = []
+file    = ".mise/tasks/lock/check"
+name    = "lock:check"
+
+[[tasks]]
+depends = []
+file    = ".mise/tasks/py/coverage"
+name    = "py:coverage"
+
+[[tasks]]
+depends = []
+file    = ".mise/tasks/py/test"
+name    = "py:test"
+
+[[tasks]]
+depends = ["lock:check", "py:coverage"]
+file    = ".mise/tasks/repo/ci"
+name    = "repo:ci"
+
+[[tasks]]
+depends = []
+name    = "repo:inline"

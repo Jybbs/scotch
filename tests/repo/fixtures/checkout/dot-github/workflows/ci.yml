@@ -1,0 +1,38 @@
+jobs:
+  check:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: ${{ matrix.tools }}
+      - name: Run the task
+        run: mise run ${{ matrix.task }}
+    strategy:
+      matrix:
+        include:
+          - name: Lockfiles
+            task: lock:check
+            tools: python uv
+          - name: Coverage
+            task: py:coverage
+            tools: python uv
+  brief:
+    if: always()
+    name: ⏱️ Brief
+    needs: check
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: python uv
+      - name: Write the summary
+        run: mise run gha:brief
+name: CI
+on:
+  pull_request:
+  workflow_dispatch:

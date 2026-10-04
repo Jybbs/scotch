@@ -1,0 +1,6 @@
+{% extends "base.md.j2" %}
+{% block details %}
+{%- if run.needs.check.outputs.coverage %}
+The [coverage report]({{ run.needs.check.outputs.coverage }}) shows each line the suite leaves out.
+{% endif %}
+{%- endblock %}

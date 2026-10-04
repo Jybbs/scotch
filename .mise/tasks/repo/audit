@@ -1,0 +1,8 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "audit"
+#MISE description = "Report every place the repository's configuration drifts from itself, as annotations under GitHub Actions"
+
+format=text
+[[ -z "${GITHUB_ACTIONS:-}" ]] || format=github
+
+scotch audit repo --output-format "$format"

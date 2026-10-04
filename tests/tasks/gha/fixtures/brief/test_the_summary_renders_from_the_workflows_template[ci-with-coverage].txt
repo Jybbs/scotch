@@ -1,0 +1,9 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `check` | failure |
+
+The [coverage report](https://example.test/artifacts/1) shows each line the suite leaves out.
+
+The run checked `560c4d8` on `4/ci-gate`.

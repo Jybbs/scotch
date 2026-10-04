@@ -1,0 +1,7 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Fail on any advisory OSV publishes for a package `uv.lock` or a task script's lockfile resolves, or where OSV cannot be reached"
+
+source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
+
+uv audit --preview-features audit-command
+each_script uv audit --preview-features audit-command

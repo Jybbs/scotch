@@ -22,3 +22,4 @@ locked = true
 [tools]
 python = "3.14.6"
 uv     = "0.12.13"
+zizmor = "1.30.1"

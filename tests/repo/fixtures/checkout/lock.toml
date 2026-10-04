@@ -1,0 +1,7 @@
+[[package]]
+name    = "minijinja"
+version = "2.24.0"
+
+[[package]]
+name   = "sample"
+source = { editable = "." }

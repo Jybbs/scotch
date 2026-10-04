@@ -8,11 +8,10 @@ connection, and the mark that lets a `network` test open one.
 from collections.abc import Iterator
 from os              import environ
 from pathlib         import Path
-from pytest          import FixtureRequest, fixture, mark, raises, warns
+from pytest          import FixtureRequest, MonkeyPatch, fixture, mark, raises, warns
 from pytest_socket   import SocketBlockedError
 from socket          import create_connection
 from tests.conftest  import CLEARED, pytest_collection_modifyitems
-from unittest.mock   import patch
 
 
 def test_a_network_test_gets_the_mark_that_opens_the_socket(request: FixtureRequest):
@@ -58,7 +57,8 @@ def name(request: FixtureRequest) -> Iterator[str]:
     fixture, so the variable is set on every machine by the time
     `environment` clears it, a CI runner that never sets it included.
     """
-    with patch.dict(environ, {request.param: "1"}):
+    with MonkeyPatch.context() as patch:
+        patch.setenv(request.param, "1")
         yield request.param
 
 
