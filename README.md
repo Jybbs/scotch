@@ -44,8 +44,9 @@ mise test
 | `mise coverage` | *Runs the suite under coverage, failing when the total falls below the `fail_under` threshold `pyproject.toml` sets* |
 | `mise check` | *Reports every rewrite the formatter would make and every lint finding* |
 | `mise format` | *Rewrites the Python source to the house style* |
-| `mise relock` | *Re-resolves `uv.lock` and `.mise/mise.lock` against their manifests* |
-| `mise ci` | *Runs the lockfile check, the formatter's check, and the suite under coverage* |
+| `mise relock` | *Re-resolves `uv.lock`, `.mise/mise.lock`, and the lockfile beside each task script against their manifests* |
+| `mise audit` | *Reports where the repository's configuration disagrees with itself, such as a pin two files restate* |
+| `mise ci` | *Runs every check a pull request runs, from the lockfiles and their advisories to the workflows' audit and the suite under coverage* |
 
 `mise x -- uv run scotch --help` prints the help of the `scotch` command, and `mise x -- uv run scotch --version` prints the version it carries.
 

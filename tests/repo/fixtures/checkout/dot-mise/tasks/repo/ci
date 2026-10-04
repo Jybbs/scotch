@@ -1,0 +1,2 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE depends = ["lock:check", "py:coverage"]

@@ -1,0 +1,11 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Audit every workflow and action manifest through zizmor, online wherever a GitHub token is set, as annotations under GitHub Actions"
+
+format=plain
+[[ -z "${GITHUB_ACTIONS:-}" ]] || format=github
+
+if [[ -n "${GITHUB_TOKEN:-}${GH_TOKEN:-}" ]]; then
+  zizmor --cache-dir .cache/zizmor --format "$format" .
+else
+  zizmor --format "$format" --offline .
+fi

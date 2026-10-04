@@ -1,6 +1,8 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "lockfile"
-#MISE description = "Verify both lockfiles are in sync with their manifests"
+#MISE description = "Verify every lockfile is in sync with its manifest"
+
+source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 
 restore() {
   cmp -s "$snapshot" .mise/mise.lock || mv -f "$snapshot" .mise/mise.lock
@@ -8,6 +10,7 @@ restore() {
 }
 
 uv lock --check
+each_script uv lock --check
 snapshot=$(mktemp)
 cp -p .mise/mise.lock "$snapshot"
 trap restore EXIT

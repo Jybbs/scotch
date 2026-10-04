@@ -1,0 +1,14 @@
+Usage: scotch audit repo [OPTIONS]
+
+Reports every divergence the checks in scotch.repo find in the repository the   
+command runs from.                                                              
+
+Prints one line per finding and exits with status 1 where any finding is an     
+error, whereas a warning that mise tasks validate reports is printed and fails  
+nothing.
+
+╭─ Parameters ─────────────────────────────────────────────────────────────────╮
+│ --output-format CHOICE  Whether each finding prints as a line of text or as  │
+│                         the workflow command GitHub Actions turns into an    │
+│                         annotation. [choices: github, text] [default: text]  │
+╰──────────────────────────────────────────────────────────────────────────────╯

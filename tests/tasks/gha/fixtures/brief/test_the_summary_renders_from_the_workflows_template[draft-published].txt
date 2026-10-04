@@ -1,0 +1,9 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `draft` | success |
+
+The cut left the [published release](https://example.test/0.2.0) already carrying `0.2.0` as it stands.
+
+The run checked `560c4d8` on `4/ci-gate`.

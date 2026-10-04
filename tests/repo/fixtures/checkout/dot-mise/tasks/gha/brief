@@ -1,0 +1,7 @@
+#!/usr/bin/env -S uv run --exact --locked --script
+# /// script
+# dependencies = ["minijinja==2.24.0"]
+# requires-python = ">=3.14"
+# ///
+from os import environ
+open(environ["GITHUB_STEP_SUMMARY"], "a")

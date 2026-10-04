@@ -1,0 +1,8 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `kit` | success |
+| `prune` | success |
+
+The run checked `560c4d8` on `4/ci-gate`.

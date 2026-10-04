@@ -1,0 +1,2 @@
+#!/usr/bin/env -S bash -euo pipefail
+uv run --exact --locked pytest
