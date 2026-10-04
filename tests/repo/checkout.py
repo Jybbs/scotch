@@ -5,7 +5,11 @@ steps it pairs with the file declaring each one.
 
 from common.sample import Sample
 from pathlib       import Path
+from pytest        import MonkeyPatch
 from pytest_subprocess.fake_process import FakeProcess
+
+from scotch.repo.checkout import Checkout
+from scotch.repo.schemas  import Step
 
 
 def test_a_step_finds_the_action_its_self_repository_path_names(sample: Sample):
@@ -30,6 +34,7 @@ def test_a_step_summarizes_through_its_script_or_a_task_it_runs(answered: Sample
     gate, row = checkout.workflows[0].jobs[1].steps[1], checkout.workflows[0].jobs[0]
 
     assert checkout.summarizes(gate)
+    assert checkout.summarizes(Step(run='echo >> "$GITHUB_STEP_SUMMARY"'))
     assert not any(checkout.summarizes(step) for step in row.instances)
 
 
@@ -67,17 +72,19 @@ def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
 
 
 def test_the_tasks_join_each_file_mise_prints_onto_the_root(
-    answered : Sample,
-    fp       : FakeProcess
+    answered    : Sample,
+    fp          : FakeProcess,
+    monkeypatch : MonkeyPatch
 ):
     """
     Asserts that each task's file, which mise prints resolved and absolute,
-    joins back onto the checkout's root, and that a task declared inline
-    keeps no file.
+    joins back onto the checkout's root, the relative root `scotch audit
+    repo` reads included, and that a task declared inline keeps no file.
     """
-    tasks = {task.name: task for task in answered.checkout.tasks}
+    monkeypatch.chdir(answered.root)
+    tasks = {task.name: task for task in Checkout(root=Path()).tasks}
 
-    assert tasks["repo:ci"].file == answered.root / ".mise" / "tasks" / "repo" / "ci"
+    assert tasks["repo:ci"].file == Path(".mise") / "tasks" / "repo" / "ci"
     assert tasks["repo:ci"].depends == ("lock:check", "py:coverage")
     assert tasks["repo:inline"].file is None
     assert fp.calls[0] == ["mise", "tasks", "ls", "--json", "--local"]

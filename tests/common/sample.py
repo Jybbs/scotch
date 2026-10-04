@@ -21,10 +21,11 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     """
     A copy of the sample checkout written into a directory the test owns.
 
-    The fixture keeps the files GitHub's dependency graph,
-    `jdx/mise-action`, and zizmor read under other names, which each copy
-    renames, a `dot-` folder taking its leading dot and `manifest.toml` and
-    `lock.toml` landing as `pyproject.toml` and `uv.lock`.
+    The fixture keeps the files GitHub's dependency graph and
+    `jdx/mise-action` read, and the workflows zizmor reads, under other
+    names, which each copy renames, a `dot-` folder taking its leading dot
+    and `manifest.toml` and `lock.toml` landing as `pyproject.toml` and
+    `uv.lock`.
     """
 
     root: Path

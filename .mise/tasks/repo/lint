@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Audit the workflows and the composite action through zizmor, as annotations under GitHub Actions"
+#MISE description = "Audit every workflow and action manifest in the repository through zizmor, as annotations under GitHub Actions"
 
 format=plain
 [[ -z "${GITHUB_ACTIONS:-}" ]] || format=github

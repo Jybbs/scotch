@@ -317,6 +317,19 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "rows-and-ci-apart"
         ),
         param(
+            RowCheck,
+            [
+                (
+                    ".github/workflows/warm.yml",
+                    "      - name: Install the tools and save",
+                    "      - name: Test\n        run: mise run py:test\n"
+                    "      - name: Install the tools and save"
+                )
+            ],
+            [],
+            id = "row-outside-pull-requests"
+        ),
+        param(
             RunnerCheck,
             [
                 (
@@ -395,6 +408,26 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "summary-writers"
         ),
         param(
+            SummaryCheck,
+            [
+                (
+                    ".mise/tasks/py/test", "--locked pytest",
+                    '--locked pytest >> "$GITHUB_STEP_SUMMARY"'
+                ),
+                (
+                    ".github/workflows/warm.yml",
+                    "      - name: Install the tools and save",
+                    "      - name: Test\n        run: .mise/tasks/py/test\n"
+                    "      - name: Install the tools and save"
+                )
+            ],
+            [(
+                ".github/workflows/warm.yml", None,
+                "`kit` writes the step summary, which only the gate writes"
+            )],
+            id = "summary-writer-run-by-path"
+        ),
+        param(
             WarmCheck,
             [(".github/workflows/warm.yml", "      - .mise/mise.lock\n", "")],
             [
@@ -402,10 +435,22 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                     ".github/workflows/warm.yml",
                     None,
                     "The `push` filter leaves out `.mise/mise.lock`, which the cache "
-                    "key reads"
+                    "key depends on"
                 )
             ],
             id = "push-filter"
+        ),
+        param(
+            WarmCheck,
+            [
+                (
+                    ".github/workflows/warm.yml",
+                    "      - .mise/config.toml\n      - .mise/mise.lock\n",
+                    "      - .mise/**\n"
+                )
+            ],
+            [],
+            id = "push-filter-glob"
         ),
         param(
             WrapperCheck,

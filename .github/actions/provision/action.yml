@@ -2,7 +2,7 @@ description: Checks out the repository and installs the tools a job runs through
 inputs:
   save:
     default: 'false'
-    description: Whether to write the tool cache back once the job succeeds, which only ♟️ Warm does
+    description: Whether to write the tool cache back once the install finishes on a cache miss, which only ♟️ Warm does
   tools:
     description: The tools to install, a space-separated subset of the ones `.mise/config.toml` pins
     required: true

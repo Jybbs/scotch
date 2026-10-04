@@ -38,8 +38,9 @@ def test_each_entry_a_newer_one_replaced_is_deleted(
     task    : ModuleType
 ):
     """
-    Asserts that every entry but the newest of its ref and key prefix is
-    deleted, in the order the listing gives them, while a key prefix or a
+    Asserts that every entry but the newest of its ref and tool subset is
+    deleted, in the order the listing gives them, an older entry naming
+    another mise version or runner image included, while a tool subset or a
     ref of its own keeps its one entry.
     """
     listing(
@@ -62,9 +63,13 @@ def test_each_entry_a_newer_one_replaced_is_deleted(
         (
             5, "mise-v1-linux-x64-ubuntu26-2026.9.18-aaa-old",
             "refs/heads/4/ci-gate", "2026-09-29T12:00:00Z"
+        ),
+        (
+            6, "mise-v1-linux-x64-ubuntu24-2026.9.10-aaa-old",
+            "refs/heads/main", "2026-09-20T12:00:00Z"
         )
     )
-    fp.register(["gh", "cache", "delete", fp.any()], occurrences=2)
+    fp.register(["gh", "cache", "delete", fp.any()], occurrences=3)
 
     task.Store.from_gh().prune()
 
@@ -74,5 +79,6 @@ def test_each_entry_a_newer_one_replaced_is_deleted(
             "--json", "createdAt,id,key,ref", "--limit", "1000"
         ],
         ["gh", "cache", "delete", "2"],
-        ["gh", "cache", "delete", "1"]
+        ["gh", "cache", "delete", "1"],
+        ["gh", "cache", "delete", "6"]
     ]

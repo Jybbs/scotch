@@ -195,10 +195,15 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     def summarizes(self, step: Step) -> bool:
         """
         Reads whether `step` writes the workflow step summary, either from
-        its own script or from a task its script runs through `mise run`.
+        its own script, from a task its script runs through `mise run`, or
+        from a task file its script runs by its path.
         """
+        started = {self.root / command for command in step.commands}
+
         return step.writes_summary or any(
-            task.writes_summary for task in self.tasks if task.name in step.tasks
+            task.writes_summary
+            for task in self.tasks
+            if task.name in step.tasks or task.file in started
         )
 
     def task(self, name: str) -> Task | None:

@@ -188,6 +188,16 @@ class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         return self.uses.partition("@")[0]
 
     @property
+    def commands(self) -> tuple[str, ...]:
+        """
+        Lists the command each line of the step's script opens on, such as a
+        task file the script runs by its path.
+        """
+        return tuple(
+            words[0] for line in self.run.splitlines() if (words := line.split())
+        )
+
+    @property
     def pin(self) -> str:
         """
         Cuts the action off `uses`, leaving the ref it is pinned to, empty
@@ -199,7 +209,8 @@ class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     def saves(self) -> bool:
         """
         Reads whether the step passes the provisioning action `save:
-        'true'`, which writes the tool cache back once the job succeeds.
+        'true'`, which writes the tool cache back once the install finishes
+        on a cache miss.
         """
         return self.inputs.get("save") == "true"
 
@@ -819,13 +830,16 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
 
     def unfiltered(self, paths: Iterable[Path], root: Path) -> list[Path]:
         """
-        Lists each of `paths`, and the workflow's own file, that the `push`
-        filter leaves out, each relative to `root`, the directory the
-        filter's entries are relative to.
+        Lists each of `paths`, and the workflow's own file, that no pattern
+        of the `push` filter matches, each relative to `root`, the directory
+        the patterns are relative to. Each pattern matches the way GitHub
+        reads a path filter, where `*` stops at a `/` and `**` crosses one.
         """
-        filtered = {root / entry for entry in self.paths}
+        relative = {path.relative_to(root) for path in {*paths, self.path}}
 
-        return sorted(path.relative_to(root) for path in {*paths, self.path} - filtered)
+        return sorted(
+            path for path in relative if not any(map(path.full_match, self.paths))
+        )
 
 
 def pinned(requirement: str) -> Match[str] | None:

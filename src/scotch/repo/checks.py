@@ -43,7 +43,7 @@ class ActionPinCheck(Check):
         Yields a finding at each step whose pin differs from the one most
         steps using that action carry.
         """
-        steps = [(path, step) for path, step in self.checkout.steps if step.pin]
+        steps = self.checkout.steps
 
         for path, step in steps:
             if step.pin != (usual := mode(
@@ -452,8 +452,10 @@ class TaskCheck(Check):
 class WarmCheck(Check):
     """
     Fails where the `push` filter of a workflow saving the tool cache
-    leaves out a file the cache key reads, meaning the provisioning action's
-    manifest, the workflow itself, and the mise config and lockfile.
+    leaves out a file the cache key depends on, meaning the mise config
+    and lockfile `jdx/mise-action` hashes, and the provisioning action's
+    manifest and the workflow itself, which set the mise version and the
+    tools the key carries.
     """
 
     def scan(self) -> Iterator[Finding]:
@@ -473,7 +475,7 @@ class WarmCheck(Check):
                     yield Finding(
                         message = (
                             f"The `push` filter leaves out `{path}`, "
-                            "which the cache key reads"
+                            "which the cache key depends on"
                         ),
                         path = workflow.path
                     )

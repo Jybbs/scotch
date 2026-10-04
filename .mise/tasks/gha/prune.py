@@ -2,7 +2,7 @@
 # MISE description = "Delete each tool cache a newer one replaced"
 """
 Deletes each Actions cache entry a newer entry replaced, which the `🧹
-Prune` job of `♟️ Warm` runs once every Kit job has saved its archive.
+Prune` job of `♟️ Warm` runs once every Kit job has finished.
 
 The job runs this script on the runner's own `python3` and the `gh` it
 carries, so it imports the standard library alone.
@@ -34,23 +34,26 @@ class Entry:
 
     key: str
     """
-    The key the entry was saved under, ending on the hash of the files the
-    key reads.
+    The key the entry was saved under, ending on the hash of the tool subset
+    and then the hash of the mise config and lockfile.
     """
 
     ref: str
     """
-    The ref the entry was saved from, whose workflow runs alone restore it.
+    The ref the entry was saved from, whose runs restore it beside the runs
+    of every pull request based on it and, for the default branch, every run
+    in the repository.
     """
 
     @property
     def lineage(self) -> tuple[str, str]:
         """
-        Pairs the ref with the key cut short of its last `-`, which drops
-        the hash of the files the key reads, so each newer save of one tool
-        subset shares a lineage with the saves it replaced.
+        Pairs the ref with the hash of the tool subset, the second-to-last
+        field of the key `jdx/mise-action` writes, so each newer save of one
+        tool subset shares a lineage with the saves it replaced, whichever
+        mise version or runner image an older key names.
         """
-        return self.ref, self.key.rpartition("-")[0]
+        return self.ref, self.key.split("-")[-2]
 
 
 @dataclass(frozen=True, kw_only=True)

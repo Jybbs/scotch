@@ -268,8 +268,9 @@ def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
 def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     """
     Asserts that a workflow lists, relative to the root, each file and its
-    own file that its `push` filter leaves out, and reads no filter where it
-    fires on no push.
+    own file that no pattern of its `push` filter matches, where `*` stops
+    at a `/` and `**` crosses one, and reads no filter where it fires on
+    no push.
     """
     root = sample.root
     warm = Workflow.read(root / ".github" / "workflows" / "warm.yml")
@@ -281,6 +282,18 @@ def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     assert warm.unfiltered([root / "uv.lock"], root) == [Path("uv.lock")]
     assert ci.paths == ()
     assert ci.unfiltered([], root) == [Path(".github/workflows/ci.yml")]
+
+    sample.edit(
+        ".github/workflows/warm.yml",
+        new = "      - .mise/*.toml\n",
+        old = "      - .mise/config.toml\n"
+    )
+    globbed = Workflow.read(root / ".github" / "workflows" / "warm.yml")
+
+    assert globbed.unfiltered([root / ".mise" / "config.toml"], root) == []
+    assert globbed.unfiltered([root / ".mise" / "tasks" / "py" / "test"], root) == [
+        Path(".mise/tasks/py/test")
+    ]
 
 
 @mark.parametrize(
