@@ -19,6 +19,7 @@ from pytest_subprocess.fake_process import FakeProcess
 from syrupy.assertion               import SnapshotAssertion
 from syrupy.extensions.single_file  import SingleFileSnapshotExtension, WriteMode
 
+# `pytest_plugins` stays lowercase, the only name pytest reads the plugin list under.
 pytest_plugins = ["common.isolation"]  # prose: ignore[miscased-constants]
 
 settings.register_profile("ci", settings.get_profile("ci"), max_examples=200)
