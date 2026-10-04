@@ -4,23 +4,12 @@ Pins what the `scotch` command itself defines, meaning the script
 and the version its metadata carries.
 """
 
+from common.app         import invoke
 from importlib.metadata import entry_points, version
-from pytest             import CaptureFixture, MonkeyPatch, raises
+from pytest             import CaptureFixture, MonkeyPatch
 from syrupy.assertion   import SnapshotAssertion
 
 from scotch.cli import app
-
-
-def invoke(*argv: str) -> int:
-    """
-    Runs `scotch` with `argv`, reading the exit status from the `SystemExit`
-    the app raises after every invocation, whether it printed the help or
-    the version or refused a token.
-    """
-    with raises(SystemExit) as exit:
-        app(argv)
-
-    return exit.value.code
 
 
 def test_help_text(
