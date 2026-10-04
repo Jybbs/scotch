@@ -12,21 +12,20 @@ every file the task writes lands in a directory the case owns.
 
 from common.stand_ins import Scratch
 from pytest           import mark, param
-from stat             import S_IMODE
 
 
 def test_a_lockfile_matching_its_manifest_passes(scratch: Scratch):
     """
     Asserts that the check exits zero where `uv lock --check` passes and
     `mise lock` leaves `.mise/mise.lock` as it stood, running both and
-    leaving no snapshot behind.
+    leaving the lockfile's bytes and mode as they stood and no snapshot
+    behind.
     """
     assert scratch.run().returncode == 0
     assert scratch.calls == [
         "uv lock --check", "mise lock", "mise install --dry-run --force --locked"
     ]
-    assert scratch.lockfile.read_text() == scratch.text
-    assert list(scratch.scratch.iterdir()) == []
+    assert scratch.residue == scratch.pristine
 
 
 @mark.parametrize(
@@ -43,12 +42,10 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
     """
     Asserts that the check exits one where `mise lock` changes
     `.mise/mise.lock`, whether `mise lock` exits zero or not, and puts the
-    lockfile's bytes and its mode back.
+    lockfile's bytes and its mode back, leaving no snapshot behind.
     """
     assert scratch.run(mise=mise).returncode == 1
-    assert scratch.lockfile.read_text() == scratch.text
-    assert S_IMODE(scratch.lockfile.stat().st_mode) == 0o644
-    assert list(scratch.scratch.iterdir()) == []
+    assert scratch.residue == scratch.pristine
 
 
 @mark.parametrize(
@@ -90,12 +87,12 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     uv      : str
 ):
     """
-    Asserts that the check exits one, stopping after the call that found
-    the drift and leaving `.mise/mise.lock` as it stood, where `uv.lock`
-    or a task script's lockfile would change, `mise lock` reports a tool it
-    failed to resolve while exiting zero, or the locked install's dry run
-    finds no entry for a tool on this platform, with the report reaching
-    standard error.
+    Asserts that the check exits one, stopping after the call that found the
+    drift and leaving `.mise/mise.lock`'s bytes and mode as they stood and
+    no snapshot behind, where `uv.lock` or a task script's lockfile would
+    change, `mise lock` reports a tool it failed to resolve while exiting
+    zero, or the locked install's dry run finds no entry for a tool on this
+    platform, with the report reaching standard error.
     """
     if script:
         scratch.add_script()
@@ -105,7 +102,7 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     assert result.returncode == 1
     assert scratch.calls == calls
     assert stderr in result.stderr
-    assert scratch.lockfile.read_text() == scratch.text
+    assert scratch.residue == scratch.pristine
 
 
 def test_audit_reads_the_project_and_each_script(scratch: Scratch):

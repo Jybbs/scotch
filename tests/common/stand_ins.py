@@ -7,6 +7,7 @@ wrapper against, and the `Scratch` checkout `tests/tasks/lock.py` runs each
 
 from pathlib    import Path
 from pydantic   import BaseModel
+from stat       import S_IMODE
 from subprocess import CompletedProcess, run
 
 
@@ -29,6 +30,11 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     directory.
     """
 
+    mode: int = 0o644
+    """
+    The permission bits the checkout's `.mise/mise.lock` starts with.
+    """
+
     text: str = '[[tools.python]]\nversion = "3.14.6"\n'
     """
     The text the checkout's `.mise/mise.lock` starts with.
@@ -48,6 +54,28 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         Locates `.mise/mise.lock` inside the checkout.
         """
         return self.root / "checkout" / ".mise" / "mise.lock"
+
+    @property
+    def pristine(self) -> tuple[str, int, tuple[str, ...]]:
+        """
+        Pairs the lockfile's starting text and permission bits with an empty
+        scratch directory, the residue every `lock:check` run leaves.
+        """
+        return self.text, self.mode, ()
+
+    @property
+    def residue(self) -> tuple[str, int, tuple[str, ...]]:
+        """
+        Reads the text and the permission bits of the checkout's
+        `.mise/mise.lock` beside the name of each file the scratch directory
+        still holds, which a run leaves at `pristine` wherever it keeps the
+        lockfile whole and cleans its snapshot away.
+        """
+        return (
+            self.lockfile.read_text(),
+            S_IMODE(self.lockfile.stat().st_mode),
+            tuple(path.name for path in self.scratch.iterdir())
+        )
 
     @property
     def scratch(self) -> Path:

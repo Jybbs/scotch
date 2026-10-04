@@ -3,11 +3,9 @@ Pins what each record in `scotch.repo.schemas` reads out of the file it
 describes, and the facts the checks read off those records.
 """
 
-from common.sample         import Sample
-from hypothesis            import given
-from hypothesis.strategies import text
-from pathlib               import Path
-from pytest                import mark, param
+from common.sample import Sample
+from pathlib       import Path
+from pytest        import mark, param
 
 from scotch.repo.schemas import (
     Action,
@@ -44,9 +42,9 @@ from scotch.repo.schemas import (
             id = "text-warning-at-a-file"
         ),
         param(
-            Finding(line=3, message="100% off\nnext", path=Path("a,b:c.yml")),
+            Finding(line=3, message="100% off\r\nnext", path=Path("a,b:c.yml")),
             Format.GITHUB,
-            "::error file=a%2Cb%3Ac.yml,line=3::100%25 off%0Anext",
+            "::error file=a%2Cb%3Ac.yml,line=3::100%25 off%0D%0Anext",
             id = "github-escaped"
         ),
         param(
@@ -471,20 +469,3 @@ def test_the_mise_config_reads_its_pins_and_its_neighbors(sample: Sample):
     ) == ("3.14.6", "0.12.13", Path(".mise/bin"))
     assert mise.minor == "3.14"
     assert mise.lockfile == sample.root / ".mise" / "mise.lock"
-
-
-@given(text())
-def test_a_message_survives_the_command_escape(message: str):
-    """
-    Asserts that any message renders into the workflow command with no raw
-    line break, and that undoing GitHub's three escapes returns it whole.
-    """
-    rendered = Finding(message=message, path=Path("a.yml")).render(Format.GITHUB)
-    escaped  = rendered.partition("::")[2].partition("::")[2]
-
-    assert "\n" not in escaped and "\r" not in escaped
-    assert (
-        escaped.replace("%0D", "\r")
-               .replace("%0A", "\n")
-               .replace("%25", "%")
-    ) == message

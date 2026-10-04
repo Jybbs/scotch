@@ -5,18 +5,18 @@ the block that stops a test without the `network` mark from opening a
 connection, and the mark that lets a `network` test open one.
 """
 
-from collections.abc import Iterator
-from os              import environ
-from pathlib         import Path
-from pytest          import FixtureRequest, MonkeyPatch, fixture, mark, raises, warns
-from pytest_socket   import SocketBlockedError
-from socket          import create_connection
-from tests.conftest  import CLEARED, pytest_collection_modifyitems
+from collections.abc  import Iterator
+from common.isolation import CLEARED, pytest_collection_modifyitems
+from os               import environ
+from pathlib          import Path
+from pytest           import FixtureRequest, MonkeyPatch, fixture, mark, raises, warns
+from pytest_socket    import SocketBlockedError
+from socket           import create_connection
 
 
 def test_a_network_test_gets_the_mark_that_opens_the_socket(request: FixtureRequest):
     """
-    Asserts that the collection hook in `tests/conftest.py` gives a test
+    Asserts that the collection hook in `common.isolation` gives a test
     carrying the `network` mark pytest-socket's `enable_socket` mark, which
     lets that test open a connection.
     """
