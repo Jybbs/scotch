@@ -60,7 +60,8 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         """
         Reads the piece placement of each position of the mainline, the
         first field of its Forsyth–Edwards Notation (FEN), from the starting
-        position to the one after the last move.
+        position to the one after the last move, or none where `boards`
+        yields no board.
         """
         return tuple(map(Board.board_fen, self.boards()))
 
@@ -100,9 +101,16 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         game carries none, to the one after the last move.
 
         Each step yields the one board the next move is then pushed onto, so
-        a caller reads each position before drawing the next.
+        a caller reads each position before drawing the next. A game whose
+        `FEN` tag python-chess cannot read, or whose `Variant` tag names a
+        variant it does not know, yields no board, since python-chess raises
+        `ValueError` setting either up and its reader records that error.
         """
-        board = Headers(self.tags).board()
+        try:
+            board = Headers(self.tags).board()
+        except ValueError:
+            return
+
         yield board
 
         for move in self.moves:

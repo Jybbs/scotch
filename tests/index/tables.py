@@ -4,6 +4,7 @@ from the three games in `fixtures/stored.pgn`, and that a store reads back
 from Parquet as it was built.
 """
 
+from collections.abc       import Callable
 from common.games          import line
 from common.strategies     import games
 from dataclasses           import fields
@@ -252,3 +253,29 @@ def test_the_demo_game_matches_the_game_it_follows(
     assert match.span == Span(length=43, offset=0, start=0)
     assert match.parting == "22. Bc2"
     assert match.ties == 0
+
+
+@mark.parametrize(
+    "tag",
+    [
+        param('[FEN "garbage"]', id="unreadable-fen"),
+        param('[Variant "Bughouse"]', id="unknown-variant")
+    ]
+)
+def test_a_game_python_chess_cannot_set_up_is_stored_without_positions(
+    pgn    : Callable[..., Path],
+    stored : list[Game],
+    tag    : str
+):
+    """
+    Asserts that a game whose `FEN` or `Variant` tag python-chess rejects
+    builds into the games table with the error its reader recorded and into
+    no row of the positions table, so no match returns it.
+    """
+    [rejected] = Game.read(pgn(f"{tag}\n\n1. e4 *\n"))
+    index      = PositionIndex.build([rejected, *stored])
+
+    assert rejected.errors
+    assert index.game(0) == rejected
+    assert 0 not in index.positions.collect().get_column("game")
+    assert index.match(line("e4")).game == stored[0]

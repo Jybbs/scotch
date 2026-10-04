@@ -63,7 +63,9 @@ class PositionIndex:
         """
         Builds both tables from `games`, holding them in the order `games`
         yields them, each game carrying the `Result` tag python-chess's
-        reader fills where a file leaves it out.
+        reader fills where a file leaves it out. A game whose `boards`
+        yields no board keeps its row in `games`, its errors included, and
+        holds no row in `positions`.
         """
         frame = DataFrame(
             [
@@ -94,8 +96,10 @@ class PositionIndex:
             positions = frame.lazy().select(
                 "game",
                 key  = col("keys"),
-                move = concat_list("moves", lit(None, dtype=String)),
-                ply  = int_ranges(0, col("keys").list.len(), dtype=UInt16)
+                move = concat_list("moves", lit(None, dtype=String)).list.head(
+                    col("keys").list.len()
+                ),
+                ply = int_ranges(0, col("keys").list.len(), dtype=UInt16)
             ).explode("key", "move", "ply", empty_as_null=False)
         )
 
