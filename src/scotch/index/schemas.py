@@ -128,7 +128,7 @@ class Match(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                 )
                 if self.span.length > 1
                 else (
-                    f"Shares 1 position, ply {self.span.start} of the submitted"
+                    f"Shares 1 position, ply {self.span.submitted[0]} of the submitted"
                     f" game and ply {self.span.stored[0]} of the stored game"
                 ),
                 f"Parts where the stored game played {parting}"

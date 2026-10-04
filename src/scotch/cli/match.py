@@ -39,8 +39,9 @@ def game(
     variable moves it.
 
     Exits nonzero naming the problem where the file holds no game, where
-    python-chess recorded errors reading the game or its `Variant` tag names
-    a variant other than standard chess, or where no index has been built.
+    python-chess recorded errors reading the game, where its `Variant` tag
+    names a variant other than standard chess, or where no index has been
+    built.
     """
     if (submitted := next(Game.read(pgn), None)) is None:
         raise SystemExit(f"Found no game in {pgn}")

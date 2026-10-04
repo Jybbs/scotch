@@ -8,6 +8,7 @@ of the mainline yields.
 
 from chess             import Board, Move
 from chess.pgn         import Game as PgnGame
+from chess.variant     import VARIANTS
 from collections.abc   import Callable
 from common.games      import line
 from common.strategies import games, played
@@ -145,10 +146,17 @@ def test_a_move_from_a_fen_position_reads_behind_the_fen_move_number():
 @mark.parametrize(
     ("variant", "errors", "problems"),
     [
-        param("Standard", (), (), id="standard"),
-        param("standard", (), (), id="lowercase"),
-        param("From Position", (), (), id="from-position"),
-        param("Atomic", (), ("unsupported variant: Atomic",), id="atomic"),
+        param(None, (), (), id="no-variant-tag"),
+        *(
+            param(
+                board.aliases[0],
+                (),
+                (f"unsupported variant: {board.aliases[0]}",),
+                id = board.uci_variant
+            )
+            for board in VARIANTS
+            if board is not Board
+        ),
         param("Chess960", (), ("unsupported variant: Chess960",), id="chess960"),
         param(
             "Bughouse",
@@ -159,26 +167,51 @@ def test_a_move_from_a_fen_position_reads_behind_the_fen_move_number():
         param("", ("unsupported variant: ",), ("unsupported variant: ",), id="empty")
     ]
 )
-def test_a_variant_tag_naming_anything_but_standard_chess_is_a_problem(
+def test_a_variant_tag_adds_the_problems_its_variant_raises(
     errors   : tuple[str, ...],
     problems : tuple[str, ...],
     read     : Callable[..., list[Game]],
-    variant  : str
+    variant  : str | None
 ):
     """
     Asserts what a `Variant` tag adds to the problems:
 
-    - Nothing where it names standard chess under any alias python-chess
-      gives it
+    - Nothing where the game carries no `Variant` tag
     - One problem where it names a variant python-chess reads under its own
-      rules
+      rules, each named by the first alias its board class declares
     - The error the reader already recorded, once rather than twice, where
       it names a variant python-chess cannot read
+
+    Each game holds no move, since a Racing Kings or a Horde board refuses
+    `1. e4` from its own starting position.
     """
-    [game] = read(f'[Variant "{variant}"]\n\n1. e4 *\n')
+    [game] = read(("" if variant is None else f'[Variant "{variant}"]\n\n') + "*\n")
 
     assert game.errors == errors
     assert game.problems == problems
+
+
+@mark.parametrize(
+    "casing",
+    [
+        param(str, id="as-declared"),
+        param(str.lower, id="lower"),
+        param(str.upper, id="upper")
+    ]
+)
+@mark.parametrize("alias", [param(alias, id=alias) for alias in Board.aliases])
+def test_a_variant_tag_naming_standard_chess_adds_no_problem(
+    alias  : str,
+    casing : Callable[[str], str],
+    read   : Callable[..., list[Game]]
+):
+    """
+    Asserts that a `Variant` tag naming standard chess under any alias
+    python-chess's `Board` declares, in any casing, adds no problem.
+    """
+    [game] = read(f'[Variant "{casing(alias)}"]\n\n1. e4 *\n')
+
+    assert game.problems == ()
 
 
 def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
@@ -296,15 +329,6 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     https://hgm.nubati.net/book_format.html.
     """
     assert line(*sans.split()).keys[-1] == key
-
-
-def test_no_variant_tag_adds_no_problem(read: Callable[..., list[Game]]):
-    """
-    Asserts that a game carrying no `Variant` tag reads as standard chess.
-    """
-    [game] = read("1. e4 *\n")
-
-    assert game.problems == ()
 
 
 def test_tags_fill_the_seven_tag_roster(read: Callable[..., list[Game]]):
