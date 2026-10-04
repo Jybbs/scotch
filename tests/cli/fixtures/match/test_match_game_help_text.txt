@@ -10,7 +10,8 @@ Reads the index from the folder named index inside the data directory, which is
 pyproject.toml or the SCOTCH_DATA variable moves it.                            
 
 Exits nonzero naming the problem where the file holds no game, where            
-python-chess recorded errors reading the game, or where no index has been built.
+python-chess recorded errors reading the game or its Variant tag names a variant
+other than standard chess, or where no index has been built.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ *  PGN --pgn    The PGN file whose first game is matched. [required]         │

@@ -90,6 +90,17 @@ def test_a_game_that_leaves_a_stored_game_and_returns_matches_the_longer_run(
     assert match.span == Span(length=9, offset=-4, start=10)
 
 
+def test_a_stored_game_reaching_a_position_twice_ties_with_no_other_game():
+    """
+    Asserts that a stored game holding the starting position at plies 0 and
+    4 matches at its earlier ply and counts as one game among the ties.
+    """
+    match = PositionIndex.build([line("Nf3", "Nf6", "Ng1", "Ng8")]).match(line("h4"))
+
+    assert match.span == Span(length=1, offset=0, start=0)
+    assert match.ties == 0
+
+
 def test_a_tie_goes_to_the_game_the_index_holds_first(
     index  : PositionIndex,
     stored : list[Game]
@@ -111,14 +122,15 @@ def test_a_tie_goes_to_the_run_starting_earliest(
     stored : list[Game]
 ):
     """
-    Asserts that a game sharing only the starting position with every stored
-    game matches the first stored game there and counts the other two as
-    sharing a run as long.
+    Asserts that a game sharing its first three positions with both of
+    Pachman's games, and three more with Kasparov–Sosonko once its knights
+    return home, matches the 1965 game, whose run starts earlier, although
+    the index holds Kasparov–Sosonko first.
     """
-    match = index.match(line("h4"))
+    match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
 
-    assert match.game == stored[0]
-    assert match.span == Span(length=1, offset=0, start=0)
+    assert match.game == stored[1]
+    assert match.span == Span(length=3, offset=0, start=0)
     assert match.ties == 2
 
 
@@ -130,6 +142,31 @@ def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
     PositionIndex.build([]).write(tmp_path)
 
     assert PositionIndex.read(tmp_path).match(demo) is None
+
+
+def test_each_position_holds_the_move_played_from_it():
+    """
+    Asserts that the positions table holds one row per position of a stored
+    game, keyed by its Zobrist hash beside the move in UCI played from it,
+    with no move at the game's last position.
+    """
+    game = line("e4", "e5")
+
+    assert (
+        PositionIndex.build([game])
+                     .positions.collect()
+                     .rows(named=True)
+    ) == [
+        {
+            "game" : 0,
+            "key"  : key,
+            "move" : move,
+            "ply"  : ply
+        }
+        for ply, (key, move) in enumerate(
+            zip(game.keys, ("e2e4", "e7e5", None), strict=True)
+        )
+    ]
 
 
 @given(stored=lists(games(plies=12), max_size=4))

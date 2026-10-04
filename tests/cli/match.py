@@ -8,7 +8,7 @@ nonzero.
 from collections.abc  import Callable
 from common.app       import invoke
 from pathlib          import Path
-from pytest           import CaptureFixture, MonkeyPatch
+from pytest           import CaptureFixture, MonkeyPatch, mark, param
 from syrupy.assertion import SnapshotAssertion
 
 from scotch.games.schemas import Game
@@ -42,21 +42,42 @@ def test_a_file_holding_several_games_matches_its_first(
     assert capsys.readouterr().out == snapshot
 
 
-def test_a_game_python_chess_recorded_errors_for_exits_naming_them(
-    data : Path,
-    pgn  : Callable[..., Path]
+@mark.parametrize(
+    ("text", "problem"),
+    [
+        param(
+            "1. e4 e5 2. Qxf7 *",
+            (
+                "illegal san: 'Qxf7' in "
+                "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+            ),
+            id = "illegal-move"
+        ),
+        param(
+            '[Variant "Atomic"]\n\n1. e4 *',
+            "unsupported variant: Atomic",
+            id = "variant"
+        )
+    ]
+)
+def test_a_game_that_cannot_be_matched_exits_naming_its_problem(
+    data    : Path,
+    pgn     : Callable[..., Path],
+    problem : str,
+    text    : str
 ):
     """
-    Asserts that a game python-chess recorded an error reading exits nonzero
-    naming the file and the error.
+    Asserts that a game python-chess recorded an error reading, or one whose
+    `Variant` tag names a variant other than standard chess, exits nonzero
+    naming the file and the problem.
     """
-    path = pgn("1. e4 e5 2. Qxf7 *")
+    path = pgn(text)
 
-    assert invoke("match", "game", str(path)) == (
-        f"python-chess recorded errors reading {path}:\n"
-        "illegal san: 'Qxf7' in "
-        "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
-    )
+    assert invoke(
+        "match",
+        "game",
+        str(path)
+    ) == f"Cannot match the game in {path}:\n{problem}"
 
 
 def test_a_game_sharing_no_position_prints_a_line_saying_so(
@@ -112,10 +133,11 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(
 def test_json_writes_the_export_of_the_match(indexed: Game, pgn: Callable[..., Path]):
     """
     Asserts that `--json` writes the export of the match to the file it
-    names, holding the submitted game beside the stored game.
+    names, creating the folder that holds it, with the submitted game beside
+    the stored game.
     """
     path     = pgn("1. e4 e5 2. Nf3 d6 *")
-    exported = path.with_name("match.json")
+    exported = path.parent / "missing" / "match.json"
 
     assert invoke("match", "game", str(path), "--json", str(exported)) == 0
 

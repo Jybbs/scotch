@@ -1,0 +1,3 @@
+White, W vs. Black, B, Event, 2000.01.02
+Shares 1 position, ply 0 of the submitted game and ply 0 of the stored game
+Parts where the stored game played 1. e4

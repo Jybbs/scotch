@@ -125,6 +125,11 @@ class Match(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                     f" {self.span.submitted[0]} to {self.span.submitted[-1]} of the"
                     f" submitted game and plies {self.span.stored[0]} to"
                     f" {self.span.stored[-1]} of the stored game"
+                )
+                if self.span.length > 1
+                else (
+                    f"Shares 1 position, ply {self.span.start} of the submitted"
+                    f" game and ply {self.span.stored[0]} of the stored game"
                 ),
                 f"Parts where the stored game played {parting}"
                 if (parting := self.parting)

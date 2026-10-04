@@ -293,7 +293,7 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     """
     Asserts that the key of the position each line of moves
     reaches is the one the Polyglot book format lists for it, at
-    http://hgm.nubati.net/book_format.html.
+    https://hgm.nubati.net/book_format.html.
     """
     assert line(*sans.split()).keys[-1] == key
 

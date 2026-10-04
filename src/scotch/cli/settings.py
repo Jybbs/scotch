@@ -62,8 +62,7 @@ class Settings(
         """
         Orders the sources a setting is read from, a keyword argument first,
         then a `SCOTCH_` variable, then the `[tool.scotch]` table of the
-        `pyproject.toml` at the project's root, leaving out the `.env` file
-        and the secrets directory pydantic-settings also reads by default.
+        `pyproject.toml` at the project's root.
         """
         return init_settings, env_settings, PyprojectTomlConfigSettingsSource(
             settings_cls,

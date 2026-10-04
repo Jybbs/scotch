@@ -172,9 +172,9 @@ class PositionIndex:
         the stored game's ply advance together, so their difference stays
         the same and the run never leaves one stored game.
 
-        Sorting the shared positions by game, offset, and ply leaves each
-        run on consecutive rows, where the submitted game's ply less the
-        row's place stays the same along the run.
+        Sorting the shared positions by game, offset, and the submitted
+        game's ply leaves each run on consecutive rows, where that ply less
+        the row's place stays the same along the run.
 
         Returns:
             One row per run, holding its `game`, its `offset`, its `start`,

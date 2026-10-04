@@ -72,7 +72,8 @@ def test_the_parting_move_is_the_stored_games_next_move(
     [
         param(Span(length=4, offset=0, start=0), id="stored-game-goes-on"),
         param(Span(length=5, offset=0, start=0), id="stored-game-ends"),
-        param(Span(length=2, offset=-2, start=2), id="plies-differ")
+        param(Span(length=2, offset=-2, start=2), id="plies-differ"),
+        param(Span(length=1, offset=0, start=0), id="one-position")
     ]
 )
 def test_a_summary_names_the_stored_game_the_span_and_the_parting(
