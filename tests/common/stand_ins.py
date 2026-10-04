@@ -5,10 +5,11 @@ wrapper against, and the `Scratch` checkout `tests/tasks/lock.py` runs each
 `lock` task in.
 """
 
-from pathlib    import Path
-from pydantic   import BaseModel
-from stat       import S_IMODE
-from subprocess import CompletedProcess, run
+from collections.abc import Sequence
+from pathlib         import Path
+from pydantic        import BaseModel
+from stat            import S_IMODE
+from subprocess      import CompletedProcess, run
 
 
 class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -173,8 +174,13 @@ class Wrapper(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
 class StandIn(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    A stand-in `uv` that writes each argument it receives to a log, one per
-    line, and exits zero.
+    A stand-in for the program `program` names that writes each argument it
+    receives to a log, one per line, and exits zero.
+    """
+
+    program: str
+    """
+    The name of the program the stand-in answers for, such as `uv`.
     """
 
     root: Path
@@ -194,10 +200,11 @@ class StandIn(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         """
         Runs `wrapper` with `arguments` from the project's `tests` folder.
         """
-        return run(
-            [wrapper.path, *arguments],
-            capture_output = True,
-            check          = False,
-            cwd            = wrapper.tests,
-            text           = True
-        )
+        return self.start([wrapper.path, *arguments], wrapper.tests)
+
+    def start(self, command: Sequence[str | Path], cwd: Path) -> CompletedProcess[str]:
+        """
+        Starts `command` from `cwd`, where the stand-in answers for
+        `program` wherever the command reaches it by name.
+        """
+        return run(command, capture_output=True, check=False, cwd=cwd, text=True)

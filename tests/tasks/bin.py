@@ -10,6 +10,7 @@ on a line of its own. The `repo:audit` row holds every wrapper to a plain
 file carrying the same bytes as the others.
 """
 
+from collections.abc  import Callable
 from common.stand_ins import StandIn, Wrapper
 from pathlib          import Path
 from pytest           import Metafunc, param
@@ -33,7 +34,7 @@ def pytest_generate_tests(metafunc: Metafunc):
 
 
 def test_a_wrapper_runs_its_program_from_its_project_venv(
-    stand_in : StandIn,
+    stand_in : Callable[[str], StandIn],
     wrapper  : Wrapper
 ):
     """
@@ -42,8 +43,10 @@ def test_a_wrapper_runs_its_program_from_its_project_venv(
     its own name in that project's `.venv`, passing every argument through
     whole.
     """
-    assert stand_in.run(wrapper, "two words", "--flag").returncode == 0
-    assert stand_in.arguments[:4] == ["run", "--exact", "--locked", "--project"]
-    assert Path(stand_in.arguments[4]).resolve() == wrapper.project
-    assert Path(stand_in.arguments[5]).resolve() == wrapper.program
-    assert stand_in.arguments[6:] == ["two words", "--flag"]
+    uv = stand_in("uv")
+
+    assert uv.run(wrapper, "two words", "--flag").returncode == 0
+    assert uv.arguments[:4] == ["run", "--exact", "--locked", "--project"]
+    assert Path(uv.arguments[4]).resolve() == wrapper.project
+    assert Path(uv.arguments[5]).resolve() == wrapper.program
+    assert uv.arguments[6:] == ["two words", "--flag"]

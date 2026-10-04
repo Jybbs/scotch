@@ -2,6 +2,7 @@
 Holds the fixtures the task tests share, each described where it is defined.
 """
 
+from collections.abc  import Callable
 from common.stand_ins import Scratch, StandIn
 from os               import pathsep
 from pathlib          import Path
@@ -9,16 +10,25 @@ from pytest           import Config, MonkeyPatch, fixture
 
 
 @fixture
-def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> StandIn:
+def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> Callable[[str], StandIn]:
     """
-    Writes the stand-in `uv` into `tmp_path` and puts it first on `PATH`.
+    Returns a writer that puts a stand-in for the program it is given into
+    `tmp_path`, first on `PATH`, logging each argument the program receives.
     """
-    uv = tmp_path / "uv"
-    uv.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > "{tmp_path / "arguments.log"}"\n')
-    uv.chmod(0o755)
-    monkeypatch.setenv("PATH", str(tmp_path), prepend=pathsep)
+    def write(program: str) -> StandIn:
+        """
+        Writes the stand-in for `program`.
+        """
+        path = tmp_path / program
+        path.write_text(
+            f'#!/bin/sh\nprintf "%s\\n" "$@" > "{tmp_path / "arguments.log"}"\n'
+        )
+        path.chmod(0o755)
+        monkeypatch.setenv("PATH", str(tmp_path), prepend=pathsep)
 
-    return StandIn(root=tmp_path)
+        return StandIn(program=program, root=tmp_path)
+
+    return write
 
 
 @fixture
