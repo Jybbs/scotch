@@ -1,6 +1,6 @@
 """
 Pins which Actions cache entries `gha:prune` deletes, keeping the newest
-entry of each ref and key prefix, and the commands it sends GitHub.
+entry of each ref and tool subset, and the commands it sends GitHub.
 
 Each case loads the script in the test process and answers each command it
 runs through pytest-subprocess, so no case reaches GitHub.
@@ -75,8 +75,10 @@ def test_each_entry_a_newer_one_replaced_is_deleted(
 
     assert list(fp.calls) == [
         [
-            "gh", "cache", "list", "--jq", "map({created: .createdAt, id, key, ref})",
-            "--json", "createdAt,id,key,ref", "--limit", "1000"
+            "gh", "cache", "list",
+            "--jq", "map({created: .createdAt, id, key, ref})", "--json",
+            "createdAt,id,key,ref", "--key", "mise-v1-",
+            "--limit", "1000"
         ],
         ["gh", "cache", "delete", "2"],
         ["gh", "cache", "delete", "1"],

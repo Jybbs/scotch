@@ -428,6 +428,24 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "summary-writer-run-by-path"
         ),
         param(
+            SummaryCheck,
+            [
+                (
+                    ".github/actions/provision/action.yml",
+                    "  steps:\n",
+                    "  steps:\n    - name: Brief\n"
+                    "      run: mise run gha:brief\n      shell: bash\n"
+                )
+            ],
+            [
+                (
+                    ".github/actions/provision/action.yml", None,
+                    "A step of the composite action writes the step summary"
+                )
+            ],
+            id = "summary-writer-in-the-composite"
+        ),
+        param(
             WarmCheck,
             [(".github/workflows/warm.yml", "      - .mise/mise.lock\n", "")],
             [

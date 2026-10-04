@@ -421,7 +421,7 @@ class SummaryCheck(Check):
                     )
 
         for action in self.checkout.actions:
-            if any(step.writes_summary for step in action.steps):
+            if any(self.checkout.summarizes(step) for step in action.steps):
                 yield Finding(
                     message = "A step of the composite action writes the step summary",
                     path    = action.path

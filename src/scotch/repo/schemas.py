@@ -809,6 +809,20 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
 
         return tuple(job.id for job in self.rows if job.id not in gate.needs)
 
+    def filters(self, path: Path) -> bool:
+        """
+        Reads whether the `push` filter takes `path` in, where the last
+        pattern matching it decides and a pattern opening on `!` leaves
+        it out.
+        """
+        last = next(
+            (pattern for pattern in reversed(self.paths) if path.full_match(
+                pattern.removeprefix("!")
+            )),
+            "!"
+        )
+        return not last.startswith("!")
+
     @classmethod
     def read(cls, path: Path) -> Self:
         """
@@ -830,16 +844,17 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
 
     def unfiltered(self, paths: Iterable[Path], root: Path) -> list[Path]:
         """
-        Lists each of `paths`, and the workflow's own file, that no pattern
-        of the `push` filter matches, each relative to `root`, the directory
-        the patterns are relative to. Each pattern matches the way GitHub
-        reads a path filter, where `*` stops at a `/` and `**` crosses one.
+        Lists each of `paths`, and the workflow's own file, that the `push`
+        filter leaves out, each relative to `root`, the directory the
+        patterns are relative to. The last pattern matching a path decides,
+        as it does for GitHub, so a pattern opening on `!` leaves out a
+        path an earlier pattern took in, and each pattern reads through
+        `PurePath.full_match`, where `*` stops at a `/` and a `**` segment
+        spans any number of folders.
         """
         relative = {path.relative_to(root) for path in {*paths, self.path}}
 
-        return sorted(
-            path for path in relative if not any(map(path.full_match, self.paths))
-        )
+        return sorted(path for path in relative if not self.filters(path))
 
 
 def pinned(requirement: str) -> Match[str] | None:

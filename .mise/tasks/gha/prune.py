@@ -2,7 +2,7 @@
 # MISE description = "Delete each tool cache a newer one replaced"
 """
 Deletes each Actions cache entry a newer entry replaced, which the `🧹
-Prune` job of `♟️ Warm` runs once every Kit job has finished.
+Prune` job of `♟️ Warm` runs once every Kit job has succeeded.
 
 The job runs this script on the runner's own `python3` and the `gh` it
 carries, so it imports the standard library alone.
@@ -84,14 +84,16 @@ class Store:
     @classmethod
     def from_gh(cls) -> Self:
         """
-        Lists the repository's entries through `gh cache list`, whose `--jq`
+        Lists the repository's entries `jdx/mise-action` saved, whose keys
+        open on its `mise-v1-` prefix, through `gh cache list`, whose `--jq`
         filter renames each field to the one `Entry` declares.
         """
         listing = run(
             [
                 "gh", "cache", "list",
                 "--jq", "map({created: .createdAt, id, key, ref})", "--json",
-                "createdAt,id,key,ref", "--limit", "1000"
+                "createdAt,id,key,ref", "--key", "mise-v1-",
+                "--limit", "1000"
             ],
             capture_output = True,
             check          = True,
