@@ -13,7 +13,7 @@ from http      import HTTPStatus
 from io        import BytesIO
 from pathlib   import Path
 from requests  import PreparedRequest
-from responses import GET, RequestsMock
+from responses import CallbackResponse, GET, RequestsMock
 from zipfile   import ZipFile
 
 from scotch.sources.schemas import Source
@@ -46,11 +46,11 @@ def land(directory: Path, path: str, *, body: bytes) -> Source:
 
 def serve(address: str, body: bytes, *, web: RequestsMock, tagged: bool = True):
     """
-    Answers each request `web` meets for `address`, in place of whatever
-    it answered before, with 304 Not Modified where the request's
-    `If-None-Match` header names the entity tag drawn from the digest of
-    `body`, and with `body` otherwise, sent under that tag where `tagged`
-    is set.
+    Registers on `web` the answer to each request for `address`, replacing
+    any answer registered there before. Where `tagged` is set, a request
+    whose `If-None-Match` header names the entity tag drawn from the digest
+    of `body` is answered 304 Not Modified and any other with `body` under
+    that tag, whereas an untagged answer is always `body` with no tag.
     """
     tag = f'"{sha256(body).hexdigest()[:16]}"'
 
@@ -64,8 +64,7 @@ def serve(address: str, body: bytes, *, web: RequestsMock, tagged: bool = True):
 
         return HTTPStatus.OK, {"ETag": tag} if tagged else {}, body
 
-    web.remove(GET, address)
-    web.add_callback(GET, address, callback=answer)
+    web.upsert(CallbackResponse(GET, address, callback=answer))
 
 
 def zipped(*members: tuple[str, str]) -> bytes:

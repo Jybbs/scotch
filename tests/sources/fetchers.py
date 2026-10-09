@@ -217,13 +217,15 @@ def test_a_fetch_lands_the_file_only_where_its_faults_stay_within_the_retries(
     assert source.path(fetcher.directory).is_file() is lands
 
 
-def test_the_session_waits_more_before_each_retry_and_names_scotch(fetcher: Fetcher):
+def test_the_session_caps_and_spaces_its_retries_and_names_scotch(fetcher: Fetcher):
     """
-    Asserts that the session's adapter doubles its wait before each retry
-    from a factor of 1, which `responses` never sleeps for, and sends
+    Asserts that the session's adapter caps every retry, a failed
+    connection's and a read timeout's included, at the fetcher's number,
+    which `responses` sends no request through, doubles its wait before each
+    retry from a factor of 1, which `responses` never sleeps for, and sends
     `scotch` and its version as its user agent.
     """
-    assert fetcher.session.get_adapter(
-        "https://example.com/"
-    ).max_retries.backoff_factor == 1
+    retry = fetcher.session.get_adapter("https://example.com/").max_retries
+
+    assert (retry.total, retry.backoff_factor) == (fetcher.retries, 1)
     assert fetcher.session.headers["User-Agent"] == f"scotch/{version('scotch')}"
