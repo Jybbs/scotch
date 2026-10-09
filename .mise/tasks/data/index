@@ -1,0 +1,4 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Build the index under .cache/data/index from the files data:fetch downloaded"
+
+scotch index games

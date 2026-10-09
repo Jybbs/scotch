@@ -1,19 +1,39 @@
 """
 Holds the `Game` record each game in a Portable Game Notation (PGN) file is
-read into.
+read into, beside the `Origin` naming the file of the store's sources it was
+read from.
 """
 
 from chess           import Board, Move
-from chess.pgn       import Headers, read_game
+from chess.pgn       import Headers, TAG_ROSTER, read_game
 from chess.polyglot  import zobrist_hash
 from collections.abc import Iterator
 from functools       import cached_property, partial
-from itertools       import islice
-from pathlib         import Path
-from pydantic        import BaseModel
-from typing          import Self
+from importlib.resources.abc import Traversable
+from itertools               import islice
+from operator                import itemgetter
+from pydantic                import BaseModel, PositiveInt
+from typing import Self
 
 from scotch.games.builders import MainlineBuilder
+
+
+class Origin(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The file of the store's sources a game was read from and the game's
+    place in it.
+    """
+
+    address: str
+    """
+    The address the file is fetched from.
+    """
+
+    place: PositiveInt
+    """
+    The game's place in the file, 1 being the first game it holds, counted
+    across the members of an archive in the order the archive lists them.
+    """
 
 
 class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -40,6 +60,12 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     tag of the Seven Tag Roster the file leaves out with its placeholder.
     """
 
+    origin: Origin | None = None
+    """
+    The file of the store's sources the game was read from and its place
+    there, or `None` for a game read or built anywhere else.
+    """
+
     @cached_property
     def keys(self) -> tuple[int, ...]:
         """
@@ -60,6 +86,14 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         return tuple(map(Board.board_fen, self.boards()))
 
     @property
+    def players(self) -> str:
+        """
+        Names the player of the white pieces and the player of the black
+        pieces, as the `White` and `Black` tags hold them.
+        """
+        return f"{self.tags['White']} vs. {self.tags['Black']}"
+
+    @property
     def problems(self) -> tuple[str, ...]:
         """
         Adds python-chess's message for a variant it cannot read to the
@@ -74,6 +108,15 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             return self.errors
 
         return tuple(dict.fromkeys((*self.errors, f"unsupported variant: {variant}")))
+
+    @property
+    def roster(self) -> tuple[str, ...]:
+        """
+        Reads the values of the Seven Tag Roster in the order the PGN
+        standard, section 8.1.1, lists its tags, the tags every program is
+        to carry for public data interchange.
+        """
+        return itemgetter(*TAG_ROSTER)(self.tags)
 
     @cached_property
     def sans(self) -> tuple[str, ...]:
@@ -110,12 +153,13 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         return next(islice(self.boards(), ply, None)).variation_san([self.moves[ply]])
 
     @classmethod
-    def read(cls, path: Path) -> Iterator[Self]:
+    def read(cls, path: Traversable) -> Iterator[Self]:
         """
         Reads every game the PGN file at `path` carries, in the order it
-        holds them, decoding the file as UTF-8 and replacing each byte UTF-8
-        cannot decode with U+FFFD, so a file another code page wrote still
-        yields every move, every move being ASCII.
+        holds them, where `path` names a file on disk or the member of a
+        zip archive `zipfile.Path` opens. The file is decoded as UTF-8, each
+        byte UTF-8 cannot decode replaced with U+FFFD, so a file another
+        code page wrote still yields every move, every move being ASCII.
         """
         with path.open(encoding="utf-8", errors="replace") as handle:
             for game in iter(partial(read_game, handle, Visitor=MainlineBuilder), None):
@@ -124,4 +168,3 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
                     moves  = game.mainline_moves(),
                     tags   = game.headers
                 )
-

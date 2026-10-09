@@ -5,7 +5,7 @@ so a heavily loaded machine fails no test a runner passes, and defines the
 fixtures every test module shares, each described where it is defined.
 """
 
-from collections.abc  import Callable
+from collections.abc  import Callable, Iterator
 from common.isolation import CLEARED
 from common.sample    import Sample
 from hypothesis       import settings
@@ -13,6 +13,8 @@ from os               import environ
 from pathlib          import Path
 from pytest           import MonkeyPatch, TempPathFactory, fixture
 from pytest_subprocess.fake_process import FakeProcess
+from responses            import RequestsMock
+from responses.registries import OrderedRegistry
 
 from scotch.cli.settings import Settings
 
@@ -73,7 +75,7 @@ def sample(tmp_path: Path) -> Sample:
 @fixture(scope="session")
 def pgn(tmp_path_factory: TempPathFactory) -> Callable[..., Path]:
     """
-    Returns a writer that saves PGN text, in the encoding it names or UTF-8,
+    Builds a writer that saves PGN text, in the encoding it names or UTF-8,
     to a file in a fresh directory, spanning the session so a Hypothesis
     property draws every file it needs from one writer.
     """
@@ -88,3 +90,28 @@ def pgn(tmp_path_factory: TempPathFactory) -> Callable[..., Path]:
         return path
 
     return write
+
+
+@fixture
+def queued() -> Iterator[RequestsMock]:
+    """
+    Answers each request a `requests` session sends with the next response a
+    test registered on the mock it yields, strictly in the order registered,
+    through the `Retry` of the adapter the session sends through.
+    """
+    with RequestsMock(
+        assert_all_requests_are_fired = False,
+        registry = OrderedRegistry
+    ) as queued:
+        yield queued
+
+
+@fixture
+def web() -> Iterator[RequestsMock]:
+    """
+    Answers each request a `requests` session sends from the responses a
+    test registers on the mock it yields, raising `ConnectionError` for an
+    address no test registered.
+    """
+    with RequestsMock(assert_all_requests_are_fired=False) as web:
+        yield web

@@ -1,12 +1,14 @@
 """
 Pins what `PositionIndex` finds for a submitted game against a store built
-from the three games in `fixtures/stored.pgn`, that a store reads back from
-Parquet as it was built, and that a read holds each file to its table's
-declaration.
+from the three games in `fixtures/stored.pgn`, that a store reads back
+from Parquet as it was built, that a read holds each file to its table's
+declaration, and what a `Batch` keeps of a fetched file and an index merged
+from several keeps of a game they repeat.
 """
 
 from collections.abc       import Callable
 from common.games          import line
+from common.sources        import declare, land
 from common.strategies     import games
 from hypothesis            import given
 from hypothesis.strategies import lists
@@ -17,8 +19,8 @@ from polars.exceptions     import SchemaError
 from pytest                import TempPathFactory, mark, param, raises
 
 from scotch.games.schemas import Game
-from scotch.index.schemas import GAMES, POSITIONS, RUNS, Span, TABLES, Table
-from scotch.index.tables  import PositionIndex
+from scotch.index.schemas import GAMES, POSITIONS, ROWS, RUNS, Span, TABLES, Table
+from scotch.index.tables  import Batch, PositionIndex
 
 
 def shared(first: tuple[int, ...], second: tuple[int, ...]) -> int:
@@ -28,6 +30,31 @@ def shared(first: tuple[int, ...], second: tuple[int, ...]) -> int:
     return sum(
         1 for _ in takewhile(lambda pair: pair[0] == pair[1], zip(first, second))
     )
+
+
+def test_a_batch_leaves_out_each_game_with_a_problem(tmp_path: Path):
+    """
+    Asserts that a batch read from a file lays out each game python-chess
+    reads with no problem, and keeps apart a game holding an illegal move
+    and one whose `Variant` tag names a variant other than standard chess,
+    each with its place in the file.
+    """
+    source = land(
+        tmp_path,
+        "Four.pgn",
+        body = (
+            b'1. e4 *\n\n1. e4 e5 2. Qxf7 *\n\n[Variant "Atomic"]\n\n1. d4 *\n\n'
+            b"1. c4 *\n"
+        )
+    )
+    batch = Batch.read(tmp_path, source)
+
+    assert [game.origin.place for game in batch.left] == [2, 3]
+    assert (
+        batch.rows.get_column("origin")
+             .struct.field("place")
+             .to_list()
+    ) == [1, 4]
 
 
 def test_a_game_reaching_a_stored_game_by_another_move_order_matches_it(
@@ -47,6 +74,18 @@ def test_a_game_reaching_a_stored_game_by_another_move_order_matches_it(
 
     assert match.game == stored[0]
     assert match.span == Span(length=36, offset=0, start=7)
+
+
+def test_a_game_read_from_a_source_reads_back_with_its_origin(tmp_path: Path):
+    """
+    Asserts that a stored game read from a file of the store's sources reads
+    back from the index with the file's address and its place there.
+    """
+    stored = list(
+        land(tmp_path, "Two.pgn", body=b"1. e4 *\n\n1. d4 *\n").games(tmp_path)
+    )
+
+    assert PositionIndex.build(stored).game(1) == stored[1]
 
 
 def test_a_game_sharing_no_position_matches_nothing(index: PositionIndex):
@@ -93,6 +132,32 @@ def test_a_game_that_leaves_a_stored_game_and_returns_matches_the_longer_run(
     assert match.span == Span(length=9, offset=-4, start=10)
 
 
+def test_a_game_two_batches_repeat_is_indexed_once_under_the_first(tmp_path: Path):
+    """
+    Asserts that a game a second file repeats, with the same Seven Tag
+    Roster and moves but other supplemental tags, is indexed once with the
+    first file's origin. A game differing from it in one tag of the roster
+    is indexed beside it.
+    """
+    sources = (
+        land(tmp_path, "First.pgn", body=b'[Round "1"]\n[ECO "C20"]\n\n1. e4 e5 *\n'),
+        land(
+            tmp_path,
+            "Second.pgn",
+            body = b'[Round "1"]\n\n1. e4 e5 *\n\n[Round "2"]\n\n1. e4 e5 *\n'
+        )
+    )
+    index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources)
+
+    assert [
+        (game.tags["Round"], game.origin.address, game.origin.place)
+        for game in map(index.game, range(index.games.collect().height))
+    ] == [
+        ("1", "https://example.com/First.pgn", 1),
+        ("2", "https://example.com/Second.pgn", 2)
+    ]
+
+
 def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
     """
     Asserts that a stored game holding the starting position at plies 0,
@@ -125,43 +190,6 @@ def test_a_tie_goes_to_the_game_the_index_holds_first(
     assert match.game == stored[1]
     assert match.span == Span(length=4, offset=0, start=0)
     assert match.ties == 1
-
-
-def test_a_tie_goes_to_the_run_starting_earliest(
-    index  : PositionIndex,
-    stored : list[Game]
-):
-    """
-    Asserts that a game sharing its first three positions with both of
-    Pachman's games, and three more with Kasparov–Sosonko once its knights
-    return home, matches the 1965 game, whose run starts earlier, although
-    the index holds Kasparov–Sosonko first.
-    """
-    match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
-
-    assert match.game == stored[1]
-    assert match.span == Span(length=3, offset=0, start=0)
-    assert match.ties == 2
-
-
-def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
-    """
-    Asserts that an index built from no game writes, reads back, and finds
-    no match for any submitted game.
-    """
-    PositionIndex.build([]).write(tmp_path)
-
-    assert PositionIndex.read(tmp_path).match(demo) is None
-
-
-def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
-    """
-    Asserts that each table read back and the runs frame carry the columns
-    `GAMES`, `POSITIONS`, and `RUNS` declare, in that order.
-    """
-    assert index.games.collect().schema == GAMES.schema
-    assert index.positions.collect().schema == POSITIONS.schema
-    assert index.runs(line("e4")).schema == RUNS
 
 
 @given(stored=lists(games(plies=12), max_size=4))
@@ -255,6 +283,71 @@ def test_reading_a_table_written_under_another_layout_raises(
         PositionIndex.read(tmp_path)
 
 
+def test_a_tie_goes_to_the_run_starting_earliest(
+    index  : PositionIndex,
+    stored : list[Game]
+):
+    """
+    Asserts that a game sharing its first three positions with both of
+    Pachman's games, and three more with Kasparov–Sosonko once its knights
+    return home, matches the 1965 game, whose run starts earlier, although
+    the index holds Kasparov–Sosonko first.
+    """
+    match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
+
+    assert match.game == stored[1]
+    assert match.span == Span(length=3, offset=0, start=0)
+    assert match.ties == 2
+
+
+def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
+    """
+    Asserts that an index built from no game writes, reads back, and finds
+    no match for any submitted game.
+    """
+    PositionIndex.build([]).write(tmp_path)
+
+    assert PositionIndex.read(tmp_path).match(demo) is None
+
+
+@mark.parametrize(
+    "tag",
+    [
+        param('[FEN "garbage"]', id="unreadable-fen"),
+        param('[Variant "Bughouse"]', id="unknown-variant")
+    ]
+)
+def test_a_game_python_chess_cannot_set_up_is_stored_without_positions(
+    pgn    : Callable[..., Path],
+    stored : list[Game],
+    tag    : str
+):
+    """
+    Asserts that a game whose `FEN` or `Variant` tag python-chess rejects
+    builds into the games table with the error its reader recorded and into
+    no row of the positions table, so no match returns it.
+    """
+    [rejected] = Game.read(pgn(f"{tag}\n\n1. e4 *\n"))
+    index      = PositionIndex.build([rejected, *stored])
+
+    assert rejected.errors
+    assert index.game(0) == rejected
+    assert 0 not in index.positions.collect().get_column("game")
+    assert index.match(line("e4")).game == stored[0]
+
+
+def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
+    """
+    Asserts that each table read back, the runs frame, and the rows laid
+    out before an index numbers them carry the columns `GAMES`, `POSITIONS`,
+    `RUNS`, and `ROWS` declare, in that order.
+    """
+    assert index.games.collect().schema == GAMES.schema
+    assert index.positions.collect().schema == POSITIONS.schema
+    assert index.runs(line("e4")).schema == RUNS
+    assert PositionIndex.rows([line("e4")]).schema == ROWS
+
+
 def test_each_position_holds_the_move_played_from_it():
     """
     Asserts that the positions table holds one row per position of a stored
@@ -298,27 +391,23 @@ def test_the_demo_game_matches_the_game_it_follows(
     assert match.ties == 0
 
 
-@mark.parametrize(
-    "tag",
-    [
-        param('[FEN "garbage"]', id="unreadable-fen"),
-        param('[Variant "Bughouse"]', id="unknown-variant")
-    ]
-)
-def test_a_game_python_chess_cannot_set_up_is_stored_without_positions(
-    pgn    : Callable[..., Path],
-    stored : list[Game],
-    tag    : str
-):
+@given(batches=lists(lists(games(plies=4, width=2), max_size=3), max_size=3))
+def test_a_merge_keeps_the_first_of_each_game_in_order(batches: list[list[Game]]):
     """
-    Asserts that a game whose `FEN` or `Variant` tag python-chess rejects
-    builds into the games table with the error its reader recorded and into
-    no row of the positions table, so no match returns it.
+    Asserts that merging batches of games, which repeat one another within
+    a batch and across batches, indexes exactly the first game of each Seven
+    Tag Roster and line of moves, in the order the batches hold them.
     """
-    [rejected] = Game.read(pgn(f"{tag}\n\n1. e4 *\n"))
-    index      = PositionIndex.build([rejected, *stored])
+    stored = [game for batch in batches for game in batch]
+    index  = PositionIndex.merge(
+        Batch(left=(), rows=PositionIndex.rows(batch), source=declare(f"{number}.pgn"))
+        for number, batch in enumerate(batches)
+    )
 
-    assert rejected.errors
-    assert index.game(0) == rejected
-    assert 0 not in index.positions.collect().get_column("game")
-    assert index.match(line("e4")).game == stored[0]
+    assert list(map(index.game, range(index.games.collect().height))) == [
+        game
+        for number, game in enumerate(stored)
+        if (
+            game.roster, game.moves
+        ) not in {(other.roster, other.moves) for other in stored[:number]}
+    ]

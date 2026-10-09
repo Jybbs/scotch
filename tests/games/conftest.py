@@ -13,7 +13,7 @@ from scotch.games.schemas import Game
 @fixture(scope="session")
 def read(pgn: Callable[..., Path]) -> Callable[..., list[Game]]:
     """
-    Returns a reader that writes PGN text through `pgn` and reads back every
+    Builds a reader that writes PGN text through `pgn` and reads back every
     game the file holds, spanning the session as `pgn` does.
     """
 

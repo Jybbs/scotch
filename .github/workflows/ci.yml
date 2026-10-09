@@ -40,7 +40,7 @@ jobs:
           - name: 🔐 Lockfiles
             task: lock:check
             tools: python uv
-          - name: 🖋️ Prose
+          - name: 🪻 Prose
             task: py:check
             tools: python uv
           - name: 🎯 Coverage

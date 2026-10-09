@@ -4,6 +4,8 @@ Finds the grandmaster game sharing the longest run of positions with a submitted
 chess game and shows how that game continued.
 
 ╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ fetch        Downloads the files the store draws its games from.             │
+│ index        Builds the index of stored games from the fetched files.        │
 │ match        Matches a submitted game against the stored games.              │
 │ --help (-h)  Display this message and exit.                                  │
 │ --version    Display application version.                                    │
