@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from hashlib     import sha256
 from http        import HTTPStatus
 from io          import BytesIO
+from pathlib     import Path
 from requests    import PreparedRequest, Response
 from requests.structures import CaseInsensitiveDict
 from zipfile             import ZipFile

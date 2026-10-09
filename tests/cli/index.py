@@ -31,7 +31,7 @@ def test_a_declared_file_not_yet_fetched_is_left_out_of_the_build(
     assert invoke("index", "games") == 0
     assert capsys.readouterr().out.splitlines() == [
         "Read 1 game from https://example.com/players/A.pgn",
-        f"Indexed 1 games into {data / 'index'}"
+        f"Indexed 1 game into {data / 'index'}"
     ]
 
 

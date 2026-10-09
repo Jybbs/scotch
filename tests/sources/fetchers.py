@@ -5,15 +5,47 @@ meaning when it sends `If-None-Match` and what it keeps on a 304, and the
 session each request goes through.
 """
 
-from common.sources     import Server, declare
-from hashlib            import sha256
-from http               import HTTPStatus
-from importlib.metadata import version
-from pytest             import mark, param, raises
-from requests           import HTTPError
+from collections.abc     import Iterator
+from common.sources      import Server, declare
+from hashlib             import sha256
+from http                import HTTPStatus
+from importlib.metadata  import version
+from pytest              import MonkeyPatch, mark, param, raises
+from requests            import HTTPError, Response
+from requests.exceptions import ChunkedEncodingError
 
 from scotch.sources.fetchers import Fetcher
 from scotch.sources.schemas  import Source
+
+
+def test_a_download_cut_off_partway_leaves_the_file_before_it_as_it_stood(
+    fetcher     : Fetcher,
+    monkeypatch : MonkeyPatch,
+    served      : Source,
+    server      : Server
+):
+    """
+    Asserts that a download whose connection drops partway through raises
+    `ChunkedEncodingError` and leaves the file an earlier fetch wrote at its
+    path holding the bytes it held.
+    """
+    fetcher.fetch(served, known=None)
+    server.files[str(served.address)] = b"more games"
+
+    def cut(response: Response, chunk_size: int) -> Iterator[bytes]:  # prose: ignore[unsorted-positionals]
+        """
+        Yields the first bytes of the body, then raises as a dropped
+        connection does.
+        """
+        yield b"more"
+        raise ChunkedEncodingError("connection dropped")
+
+    monkeypatch.setattr(Response, "iter_content", cut)
+
+    with raises(ChunkedEncodingError):
+        fetcher.fetch(served, known=None)
+
+    assert served.path(fetcher.directory).read_bytes() == b"games"
 
 
 def test_a_file_the_server_changed_is_fetched_again(
@@ -48,25 +80,6 @@ def test_a_file_the_server_lacks_raises_and_writes_nothing(
 
     assert error.value.response.status_code == HTTPStatus.NOT_FOUND
     assert not any(fetcher.directory.iterdir())
-
-
-def test_a_file_the_server_reports_unchanged_keeps_its_download(
-    fetcher : Fetcher,
-    served  : Source,
-    server  : Server
-):
-    """
-    Asserts that fetching a file the manifest records under an entity
-    tag sends that tag through `If-None-Match` and, on a 304, returns the
-    recorded download itself and leaves the file as it stands.
-    """
-    known = fetcher.fetch(served, known=None)
-
-    assert fetcher.fetch(served, known=known) is known
-
-    request, _ = server.sent[-1]
-    assert request.headers["If-None-Match"] == known.etag
-    assert served.path(fetcher.directory).read_bytes() == b"games"
 
 
 @mark.parametrize(
@@ -104,6 +117,25 @@ def test_a_fetch_sends_no_condition_unless_the_recorded_file_stands(
     request, _ = server.sent[-1]
     assert "If-None-Match" not in request.headers
     assert path.read_bytes() == b"games"
+
+
+def test_a_file_the_server_reports_unchanged_keeps_its_download(
+    fetcher : Fetcher,
+    served  : Source,
+    server  : Server
+):
+    """
+    Asserts that fetching a file the manifest records under an entity
+    tag sends that tag through `If-None-Match` and, on a 304, returns the
+    recorded download itself and leaves the file as it stands.
+    """
+    known = fetcher.fetch(served, known=None)
+
+    assert fetcher.fetch(served, known=known) is known
+
+    request, _ = server.sent[-1]
+    assert request.headers["If-None-Match"] == known.etag
+    assert served.path(fetcher.directory).read_bytes() == b"games"
 
 
 def test_a_first_fetch_writes_the_file_and_records_it(

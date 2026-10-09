@@ -14,13 +14,14 @@ from scotch.sources.schemas import Manifest, Sources
 
 def games():
     """
-    Reads the games of every file `scotch fetch games` downloaded into
-    the `downloads` folder of the data directory, one file to a process,
-    and writes the index of them to its `index` folder beside a copy of
-    the manifest the files were read under. Files are read in the order
-    `sources.toml` declares them, a game several files repeat is indexed
-    under the first, and a game python-chess records an error for, or whose
-    `Variant` tag names a variant other than standard chess, is left out.
+    Reads the games of every file `scotch fetch games` downloaded into the
+    `downloads` folder of the data directory, the files spread across a pool
+    of processes one at a time, and writes the index of them to its `index`
+    folder beside a copy of the manifest the files were read under. Files
+    are read in the order `sources.toml` declares them, a game several files
+    repeat is indexed under the first, and a game python-chess records an
+    error for, or whose `Variant` tag names a variant other than standard
+    chess, is left out.
 
     Prints the count of games read from each file, one line for each problem
     of a game left out naming its file, its place there, and its players,
@@ -59,7 +60,7 @@ def games():
     index = PositionIndex.merge(batches)
     index.write(settings.index)
     manifest.write(settings.index)
+    count = index.games.select("game").collect().height
     print(
-        f"Indexed {index.games.select('game').collect().height:,} games into"
-        f" {settings.index}"
+        f"Indexed {count:,} {'game' if count == 1 else 'games'} into {settings.index}"
     )

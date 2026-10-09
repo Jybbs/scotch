@@ -21,8 +21,10 @@ def games():
     with no entity tag to ask about.
 
     Prints one line per file, naming it as fetched or as unchanged, and
-    exits nonzero naming the file and the error where a request fails once
-    every retry has.
+    exits nonzero naming the file and the error where the server answers
+    with an error status, where a request fails once every retry has, or
+    where the connection breaks while the file downloads, which no retry
+    covers.
     """
     settings = Settings()
     fetcher  = Fetcher(

@@ -36,10 +36,10 @@ class Settings(
 
     retries: NonNegativeInt = 5
     """
-    The number of times a request is sent again after it fails to connect or
-    the server answers with a status naming a passing fault, such as 503,
-    the first at once and each later one after a wait doubling from 2
-    seconds.
+    The number of times a request is sent again after it fails to connect,
+    times out before the response's headers arrive, or meets a status naming
+    a passing fault such as 503, the first at once and each later one after
+    a wait doubling from 2 seconds up to 120.
     """
 
     timeout_s: PositiveFloat = 30

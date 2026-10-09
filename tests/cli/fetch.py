@@ -11,7 +11,8 @@ from pathlib          import Path
 from pytest           import CaptureFixture, MonkeyPatch
 from syrupy.assertion import SnapshotAssertion
 
-from scotch.sources.schemas import Manifest, Source
+from scotch.sources.fetchers import Fetcher
+from scotch.sources.schemas  import Manifest, Source
 
 
 def test_a_failed_request_exits_naming_the_file_and_keeps_the_ones_before(
@@ -62,6 +63,37 @@ def test_a_fetch_prints_each_file_and_records_it_beside_them(
     assert [source.path(data / "downloads").read_bytes() for source in sources] == [
         b"a", b"b"
     ]
+
+
+def test_a_fetch_retries_each_request_the_times_the_settings_name(
+    declared    : Callable[..., tuple[Source, ...]],
+    monkeypatch : MonkeyPatch,
+    server      : Server
+):
+    """
+    Asserts that a fetch sends each request through a session retrying it
+    the times the `SCOTCH_RETRIES` variable names.
+    """
+    server.files["https://example.com/players/A.zip"] = b"a"
+    declared("players/A.zip")
+    monkeypatch.setenv("SCOTCH_RETRIES", "2")
+    built: list[Fetcher] = []
+
+    def build(**fields: object) -> Fetcher:
+        """
+        Builds the fetcher the command asks for and keeps it in `built`.
+        """
+        built.append(fetcher := Fetcher(**fields))
+
+        return fetcher
+
+    monkeypatch.setattr("scotch.cli.fetch.Fetcher", build)
+
+    assert invoke("fetch", "games") == 0
+    assert [
+        fetcher.session.get_adapter("https://example.com/").max_retries.total
+        for fetcher in built
+    ] == [2]
 
 
 def test_a_fetch_sends_each_request_under_the_timeout_the_settings_name(

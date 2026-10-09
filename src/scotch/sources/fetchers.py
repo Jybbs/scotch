@@ -42,9 +42,10 @@ class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     def session(self) -> Session:
         """
         Opens the session every request goes through, whose adapter sends
-        a request again where it fails to connect or the server answers
-        429, 500, 502, 503, or 504, waiting 2 seconds before the second
-        retry and doubling the wait before each one after it, or the time
+        a request again where it fails to connect, times out before the
+        response's headers arrive, or meets the status 429, 500, 502, 503,
+        or 504, waiting 2 seconds before the second retry and doubling
+        the wait before each one after it up to 120 seconds, or the time
         a `Retry-After` header names. Each request names `scotch` and
         its version as its user agent, since PGN Mentor answers the one
         `requests` sends by default with status 465.
@@ -82,8 +83,10 @@ class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
         Raises:
             requests.RequestException: Where the request fails once every
-                                       retry has, or the server answers with
-                                       an error status.
+                                       retry has, where the connection
+                                       breaks while the body downloads,
+                                       or where the server answers with an
+                                       error status.
         """
         path    = source.path(self.directory)
         current = known is not None and known.etag is not None and known.matches(path)
