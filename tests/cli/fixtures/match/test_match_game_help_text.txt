@@ -1,0 +1,21 @@
+Usage: scotch match game [OPTIONS] PGN
+
+Finds the stored game sharing the longest unbroken run of positions with the    
+first game of a PGN file, printing the stored game's players, event, and date,  
+the plies the two games share, and the move where they part, or a line saying no
+stored game shares a position with it.                                          
+
+Reads the index from the index folder of the data directory, which is           
+.cache/data under the project's root unless the [tool.scotch] table of its      
+pyproject.toml or the SCOTCH_DATA variable moves it.                            
+
+Exits nonzero naming the problem where the file holds no game, where            
+python-chess recorded errors reading the game, where its Variant tag names a    
+variant other than standard chess, or where no index has been built or the one  
+built holds another layout.
+
+╭─ Parameters ─────────────────────────────────────────────────────────────────╮
+│ *  PGN --pgn    The PGN file whose first game is matched. [required]         │
+│    --json PATH  The file the match is written to as JSON for the site's      │
+│                 viewer.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯

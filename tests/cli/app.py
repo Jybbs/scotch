@@ -4,7 +4,7 @@ Pins what the `scotch` command itself defines, meaning the script
 and the version its metadata carries.
 """
 
-from common.cli         import invoke
+from common.app         import invoke
 from importlib.metadata import entry_points, version
 from pytest             import CaptureFixture, MonkeyPatch
 from syrupy.assertion   import SnapshotAssertion
@@ -18,9 +18,8 @@ def test_help_text(
     snapshot    : SnapshotAssertion
 ):
     """
-    Asserts that `--help` exits zero and prints the help text its fixture
-    file holds at eighty columns, so a change to what the command documents
-    is reviewed as a diff.
+    Asserts that `--help` exits zero and prints the help text its snapshot
+    holds at eighty columns.
     """
     monkeypatch.setenv("COLUMNS", "80")
 
@@ -31,7 +30,7 @@ def test_help_text(
 def test_the_scotch_script_loads_the_app():
     """
     Asserts that the `scotch` script `[project.scripts]` declares loads the
-    `App` this package defines, so the installed command runs it.
+    `App` this package defines.
     """
     [script] = entry_points(group="console_scripts", name="scotch")
 

@@ -78,8 +78,8 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
 ):
     """
     Asserts that each task's file, which mise prints resolved and absolute,
-    joins back onto the checkout's root, the relative root `scotch audit
-    repo` reads included, and that a task declared inline keeps no file.
+    joins back onto the checkout's root, a relative root included, and that
+    a task declared inline keeps no file.
     """
     monkeypatch.chdir(answered.root)
     tasks = {task.name: task for task in Checkout(root=Path()).tasks}

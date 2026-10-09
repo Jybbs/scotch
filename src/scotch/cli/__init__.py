@@ -1,14 +1,14 @@
 """
 Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
-names, beside the `audit` group the repository's own checks run under, which
-the help leaves out.
+names, each subcommand sitting in a group named for the verb it runs.
 """
 
 from cyclopts           import App, Parameter
 from importlib.metadata import metadata
 
 from scotch.cli.audit import repo
+from scotch.cli.match import game
 
 app = App(
     default_parameter = Parameter(negative=()),
@@ -23,3 +23,7 @@ app.command(
     )
 )
 app["audit"].command(repo)
+app.command(
+    App(help="Matches a submitted game against the stored games.", name="match")
+)
+app["match"].command(game)

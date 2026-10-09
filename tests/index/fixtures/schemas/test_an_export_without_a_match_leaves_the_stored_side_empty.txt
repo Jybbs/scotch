@@ -1,0 +1,22 @@
+{
+  "submitted": {
+    "headers": {
+      "Event": "?",
+      "Site": "?",
+      "Date": "????.??.??",
+      "Round": "?",
+      "White": "?",
+      "Black": "?",
+      "Result": "*"
+    },
+    "moves": [
+      "e4"
+    ],
+    "placements": [
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+      "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR"
+    ]
+  },
+  "span": null,
+  "stored": null
+}

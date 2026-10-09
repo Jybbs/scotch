@@ -1,23 +1,20 @@
 """
-Sets the example count on Hypothesis's built-in profiles, two hundred under
-the `ci` profile Hypothesis loads on a CI runner and twenty-five under
-`default`, which also drops the deadline the `ci` profile already drops, so
-a heavily loaded machine fails no test a runner passes. It also defines the
-fixtures the suite shares, each described where it is defined.
-
-The autouse `environment` fixture isolates every test from the machine
-running it, and the plugin `common.isolation` registers lets a test open a
-network connection only when it carries the `network` mark.
+Sets the example count on Hypothesis's built-in profiles, the `ci` one it
+loads on a CI runner and the `default` one, which also drops the deadline
+so a heavily loaded machine fails no test a runner passes, and defines the
+fixtures every test module shares, each described where it is defined.
 """
 
+from collections.abc  import Callable
 from common.isolation import CLEARED
 from common.sample    import Sample
 from hypothesis       import settings
+from os               import environ
 from pathlib          import Path
 from pytest           import MonkeyPatch, TempPathFactory, fixture
 from pytest_subprocess.fake_process import FakeProcess
-from syrupy.assertion               import SnapshotAssertion
-from syrupy.extensions.single_file  import SingleFileSnapshotExtension, WriteMode
+
+from scotch.cli.settings import Settings
 
 # `pytest_plugins` stays lowercase, the only name pytest reads the plugin list under.
 pytest_plugins = ["common.isolation"]  # prose: ignore[miscased-constants]
@@ -31,28 +28,23 @@ settings.register_profile(
 )
 
 
-class PlainFile(SingleFileSnapshotExtension):
-    """
-    Writes each snapshot as a plain text file at
-    `fixtures/<module>/<test>.txt` beside the tests that read it, the
-    `fixtures` directory named by the `--snapshot-dirname` option in
-    `[tool.pytest]`.
-    """
-
-    _write_mode    = WriteMode.TEXT
-    file_extension = "txt"
-
-
 @fixture(autouse=True)
 def environment(monkeypatch: MonkeyPatch, tmp_path_factory: TempPathFactory):
     """
-    Points `HOME` at an empty directory and clears what `CLEARED` names:
-
-    - The color, terminal, and size settings a console reads
-    - The files a GitHub Actions step writes its outputs and summary to
-    - The directories the XDG convention names for configuration, data, and state
+    Points `HOME` at an empty directory and clears each variable `CLEARED`
+    names beside each one `Settings` reads, whose name opens on its
+    `env_prefix` in any case, since pydantic-settings matches a name without
+    regard to case.
     """
-    for name in CLEARED:
+    prefix = Settings.model_config["env_prefix"].casefold()
+
+    for name in (
+        *CLEARED,
+        *(name for name in environ if (
+            name.casefold()
+                .startswith(prefix)
+        ))
+    ):
         monkeypatch.delenv(name, raising=False)
 
     monkeypatch.setenv("HOME", str(tmp_path_factory.mktemp("home")))
@@ -78,9 +70,21 @@ def sample(tmp_path: Path) -> Sample:
     return Sample.copy(tmp_path)
 
 
-@fixture
-def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
+@fixture(scope="session")
+def pgn(tmp_path_factory: TempPathFactory) -> Callable[..., Path]:
     """
-    Routes every snapshot through the plain-file extension.
+    Returns a writer that saves PGN text, in the encoding it names or UTF-8,
+    to a file in a fresh directory, spanning the session so a Hypothesis
+    property draws every file it needs from one writer.
     """
-    return snapshot.use_extension(PlainFile)
+
+    def write(text: str, encoding: str = "utf-8") -> Path:
+        """
+        Writes `text` in `encoding` to `games.pgn` in a fresh directory.
+        """
+        path = tmp_path_factory.mktemp("pgn") / "games.pgn"
+        path.write_text(text, encoding=encoding)
+
+        return path
+
+    return write

@@ -1,11 +1,9 @@
 Usage: scotch audit repo [OPTIONS]
 
-Reports every divergence the checks in scotch.repo find in the repository the   
-command runs from.                                                              
-
-Prints one line per finding and exits with status 1 where any finding is an     
-error, whereas a warning that mise tasks validate reports is printed and fails  
-nothing.
+Reports every divergence the checks in scotch.repo find in the repository at the
+project's root, printing one line per finding that names its file relative to   
+that root, and exits with status 1 where any finding is an error rather than a  
+warning.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ --output-format CHOICE  Whether each finding prints as a line of text or as  │

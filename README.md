@@ -50,6 +50,8 @@ mise test
 
 `mise x -- uv run scotch --help` prints the help of the `scotch` command, and `mise x -- uv run scotch --version` prints the version it carries.
 
+`mise x -- uv run scotch match game <pgn>` matches the first game of a PGN file against the index of stored games under `.cache/data/index` and prints the stored game sharing the longest unbroken run of positions with it, beside the plies the two share and the move where they part. Its `--json <file>` flag writes the match as the JSON the site's viewer reads, and the `data` key of a `[tool.scotch]` table in `pyproject.toml` or the `SCOTCH_DATA` variable moves the directory holding the index.
+
 ## Authors and Acknowledgements
 
 This project was developed by [James Parkington](https://github.com/jparkington).
