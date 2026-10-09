@@ -6,55 +6,25 @@ hash.
 
 from chess           import Move
 from collections.abc import Iterable
-from dataclasses     import dataclass, field, fields
+from dataclasses     import dataclass
 from pathlib         import Path
-from polars          import (
-    DataFrame,
-    Int64,
-    LazyFrame,
-    List,
-    String,
-    Struct,
-    UInt16,
-    UInt32,
-    UInt64,
-    col,
-    concat_list,
-    int_ranges,
-    lit,
-    scan_parquet
-)
+from polars          import DataFrame, LazyFrame, List, col, concat_list, int_ranges, lit
 from typing          import Self
 
 from scotch.games.schemas import Game
-from scotch.index.schemas import Match, Span
+from scotch.index.schemas import GAMES, Match, POSITIONS, RUNS, Span
 
 
 @dataclass(frozen=True, kw_only=True)
 class PositionIndex:
     """
-    Holds the stored games and every position they reach, each table a
-    Polars `LazyFrame` that `read` scans from a Parquet file of its name.
-
-    `games` holds one row per stored game in the order the index holds them:
-
-    - `game`, the game's place in that order, from 0
-    - `errors`, each error python-chess's reader recorded
-    - `moves`, the mainline in Universal Chess Interface (UCI) notation
-    - `result`, the `Result` tag
-    - `tags`, every other tag pair, each as a `name` and a `value`
-
-    `positions` holds one row per position each game reaches:
-
-    - `game`, the stored game reaching it
-    - `key`, the position's Zobrist hash, as `Game.keys` reads it
-    - `move`, the move in UCI played from it, null at the last position
-    - `ply`, its place in the mainline, 0 being the starting position
+    Holds the stored games and every position they reach, one Polars
+    `LazyFrame` per table, under the columns `GAMES` and `POSITIONS`
+    declare.
     """
 
-    positions: LazyFrame
-    # `4096` games to a row group, so a filter on `game` decodes one group alone.
-    games: LazyFrame = field(metadata={"row_group_size": 4096})
+    games     : LazyFrame
+    positions : LazyFrame
 
     @classmethod
     def build(cls, games: Iterable[Game]) -> Self:
@@ -68,6 +38,7 @@ class PositionIndex:
             [
                 {
                     "errors" : game.errors,
+                    "game"   : number,
                     "keys"   : game.keys,
                     "moves"  : [move.uci() for move in game.moves],
                     "result" : game.tags["Result"],
@@ -77,26 +48,25 @@ class PositionIndex:
                         if name != "Result"
                     ]
                 }
-                for game in games
+                for number, game in enumerate(games)
             ],
-            schema = {
-                "errors" : List(String),
-                "keys"   : List(UInt64),
-                "moves"  : List(String),
-                "result" : String,
-                "tags"   : List(Struct({"name": String, "value": String}))
-            }
-        ).with_row_index("game")
+            schema = {**GAMES.schema, "keys": List(POSITIONS.schema["key"])}
+        )
 
         return cls(
             games     = frame.drop("keys").lazy(),
             positions = frame.lazy().select(
                 "game",
                 key  = col("keys"),
-                move = concat_list("moves", lit(None, dtype=String)).list.head(
-                    col("keys").list.len()
-                ),
-                ply = int_ranges(0, col("keys").list.len(), dtype=UInt16)
+                move = concat_list(
+                    "moves",
+                    lit(None, dtype=POSITIONS.schema["move"])
+                ).list.head(col("keys").list.len()),
+                ply = int_ranges(
+                    0,
+                    col("keys").list.len(),
+                    dtype = POSITIONS.schema["ply"]
+                )
             ).explode("key", "move", "ply", empty_as_null=False)
         )
 
@@ -106,7 +76,7 @@ class PositionIndex:
         them.
         """
         row = (
-            self.games.filter(col("game") == lit(number, dtype=UInt32))
+            self.games.filter(col("game") == lit(number, dtype=GAMES.schema["game"]))
                 .collect()
                 .row(0, named=True)
         )
@@ -148,20 +118,10 @@ class PositionIndex:
     @classmethod
     def read(cls, directory: Path) -> Self:
         """
-        Scans each table from the Parquet file in `directory` named for it.
-
-        Raises:
-            FileNotFoundError: Where either file is missing.
+        Scans each table from its file in `directory` through `Table.scan`,
+        which raises where a file is missing or holds other columns.
         """
-        tables = {
-            table.name: scan_parquet(directory / f"{table.name}.parquet")
-            for table in fields(cls)
-        }
-
-        for table in tables.values():
-            table.collect_schema()
-
-        return cls(**tables)
+        return cls(games=GAMES.scan(directory), positions=POSITIONS.scan(directory))
 
     def runs(self, submitted: Game) -> DataFrame:
         """
@@ -172,14 +132,14 @@ class PositionIndex:
         the row's place stays the same.
 
         Returns:
-            One row per run, holding its `game`, `offset`, `start`, and
-            `length`, the longest first, then the earliest in `submitted`,
-            then the one in the game the index holds first, then the earliest
-            in that game.
+            One row per run under the columns `RUNS` declares, its stored
+            `game` beside the fields of its `Span`, the longest first, then
+            the earliest in `submitted`, then the one in the game the index
+            holds first, then the earliest in that game.
         """
         keys = DataFrame(
             {"key": submitted.keys},
-            schema = {"key": UInt64}
+            schema = {"key": POSITIONS.schema["key"]}
         ).with_row_index("start")
 
         return (
@@ -187,8 +147,8 @@ class PositionIndex:
             .filter(col("key").is_in(keys.get_column("key").implode()))
             .join(keys.lazy(), on="key")
             .with_columns(
-                col("start").cast(Int64),
-                offset = col("ply").cast(Int64) - col("start")
+                col("start").cast(RUNS["start"]),
+                offset = col("ply").cast(RUNS["offset"]) - col("start")
             )
             .sort("game", "offset", "start")
             .with_row_index("row")
@@ -207,12 +167,7 @@ class PositionIndex:
 
     def write(self, directory: Path):
         """
-        Writes each table to a Parquet file in `directory` named for it,
-        creating `directory` where it is missing.
+        Writes each table to its file in `directory` through `Table.sink`.
         """
-        for table in fields(self):
-            getattr(self, table.name).sink_parquet(
-                directory / f"{table.name}.parquet",
-                mkdir          = True,
-                row_group_size = table.metadata.get("row_group_size")
-            )
+        GAMES.sink(directory, self.games)
+        POSITIONS.sink(directory, self.positions)

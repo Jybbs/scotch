@@ -1,13 +1,123 @@
 """
 Holds the records a match travels in, meaning the `Span` of positions two
 games share, the `Match` a `PositionIndex` finds for a submitted game, and
-the `Export` that `scotch match game --json` writes for the site's viewer.
+the `Export` that `scotch match game --json` writes for the site's viewer,
+beside the `Table` each of the index's Parquet tables is declared as, the
+declarations `GAMES` and `POSITIONS`, and `RUNS`, the schema of the runs
+`PositionIndex.runs` finds.
 """
 
-from pydantic import BaseModel, NonNegativeInt, PositiveInt
-from typing   import Self
+from dataclasses import dataclass
+from pathlib     import Path
+from polars            import (
+    Int64,
+    LazyFrame,
+    List,
+    Schema,
+    String,
+    Struct,
+    UInt16,
+    UInt32,
+    UInt64,
+    read_parquet_schema,
+    scan_parquet
+)
+from polars.exceptions import SchemaError
+from pydantic          import BaseModel, NonNegativeInt, PositiveInt
+from typing            import Self
 
 from scotch.games.schemas import Game
+
+
+@dataclass(frozen=True, kw_only=True)
+class Table:
+    """
+    One Parquet table of the index, meaning the name of the file `scan`
+    reads and `sink` writes in a directory, the columns it holds, and the
+    number of rows to each row group it is written in.
+    """
+
+    name           : str
+    schema         : Schema
+    row_group_size : int | None = None
+
+    def path(self, directory: Path) -> Path:
+        """
+        Names the table's Parquet file in `directory`.
+        """
+        return directory / f"{self.name}.parquet"
+
+    def scan(self, directory: Path) -> LazyFrame:
+        """
+        Scans the table from its file in `directory` under `schema`, which
+        the file's own columns are held to first.
+
+        Raises:
+            FileNotFoundError : Where the file is missing.
+            SchemaError       : Where the file's columns differ from
+                                `schema`.
+        """
+        path = self.path(directory)
+
+        if (found := read_parquet_schema(path)) != self.schema:
+            raise SchemaError(f"{path} holds {found} rather than {self.schema}")
+
+        return scan_parquet(path, schema=self.schema)
+
+    def sink(self, directory: Path, frame: LazyFrame):
+        """
+        Writes `frame` to the table's file in `directory`, creating the
+        directory where it is missing, with `row_group_size` rows to a
+        group.
+        """
+        frame.sink_parquet(
+            self.path(directory),
+            mkdir          = True,
+            row_group_size = self.row_group_size
+        )
+
+
+GAMES = Table(
+    name           = "games",
+    row_group_size = 4096,  # A filter on `game` then decodes one row group alone.
+    schema         = Schema(
+        [
+            # The game's place in the index's order, from 0
+            ("game", UInt32),
+            # Each error python-chess's reader recorded
+            ("errors", List(String)),
+            # The mainline in Universal Chess Interface (UCI) notation
+            ("moves", List(String)),
+            # The `Result` tag
+            ("result", String),
+            # Every other tag pair, each as a `name` and a `value`
+            ("tags", List(Struct({"name": String, "value": String})))
+        ]
+    )
+)
+POSITIONS = Table(
+    name   = "positions",
+    schema = Schema(
+        [
+            # The stored game reaching the position
+            ("game", GAMES.schema["game"]),
+            # The position's Zobrist hash, as `Game.keys` reads it
+            ("key", UInt64),
+            # The move in UCI played from the position, null at the game's last
+            ("move", String),
+            # The position's place in the mainline, 0 being the starting position
+            ("ply", UInt16)
+        ]
+    )
+)
+RUNS = Schema(
+    [
+        ("game", GAMES.schema["game"]),
+        ("offset", Int64),
+        ("start", Int64),
+        ("length", UInt32)
+    ]
+)
 
 
 class Side(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):

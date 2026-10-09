@@ -1,21 +1,23 @@
 """
 Pins what `PositionIndex` finds for a submitted game against a store built
-from the three games in `fixtures/stored.pgn`, and that a store reads back
-from Parquet as it was built.
+from the three games in `fixtures/stored.pgn`, that a store reads back from
+Parquet as it was built, and that a read holds each file to its table's
+declaration.
 """
 
 from collections.abc       import Callable
 from common.games          import line
 from common.strategies     import games
-from dataclasses           import fields
 from hypothesis            import given
 from hypothesis.strategies import lists
 from itertools             import product, takewhile
 from pathlib               import Path
+from polars                import DataFrame, read_parquet
+from polars.exceptions     import SchemaError
 from pytest                import TempPathFactory, mark, param, raises
 
 from scotch.games.schemas import Game
-from scotch.index.schemas import Span
+from scotch.index.schemas import GAMES, POSITIONS, RUNS, Span, Table
 from scotch.index.tables  import PositionIndex
 
 
@@ -152,29 +154,14 @@ def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
     assert PositionIndex.read(tmp_path).match(demo) is None
 
 
-def test_each_position_holds_the_move_played_from_it():
+def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
     """
-    Asserts that the positions table holds one row per position of a stored
-    game, keyed by its Zobrist hash beside the move in UCI played from it,
-    with no move at the game's last position.
+    Asserts that each table read back and the runs frame carry the columns
+    `GAMES`, `POSITIONS`, and `RUNS` declare, in that order.
     """
-    game = line("e4", "e5")
-
-    assert (
-        PositionIndex.build([game])
-                     .positions.collect()
-                     .rows(named=True)
-    ) == [
-        {
-            "game" : 0,
-            "key"  : key,
-            "move" : move,
-            "ply"  : ply
-        }
-        for ply, (key, move) in enumerate(
-            zip(game.keys, ("e2e4", "e7e5", None), strict=True)
-        )
-    ]
+    assert index.games.collect().schema == GAMES.schema
+    assert index.positions.collect().schema == POSITIONS.schema
+    assert index.runs(line("e4")).schema == RUNS
 
 
 @given(stored=lists(games(plies=12), max_size=4))
@@ -224,11 +211,11 @@ def test_a_match_is_the_longest_run_any_stored_game_shares(
 
 @mark.parametrize(
     "table",
-    [param(table.name, id=table.name) for table in fields(PositionIndex)]
+    [param(table, id=table.name) for table in (GAMES, POSITIONS)]
 )
 def test_reading_an_index_missing_a_table_raises(
     stored   : list[Game],
-    table    : str,
+    table    : Table,
     tmp_path : Path
 ):
     """
@@ -236,10 +223,61 @@ def test_reading_an_index_missing_a_table_raises(
     `FileNotFoundError` at once, although the other table reads.
     """
     PositionIndex.build(stored).write(tmp_path)
-    (tmp_path / f"{table}.parquet").rename(tmp_path / "moved.parquet")
+    table.path(tmp_path).rename(tmp_path / "moved.parquet")
 
     with raises(FileNotFoundError):
         PositionIndex.read(tmp_path)
+
+
+@mark.parametrize(
+    "layout",
+    [
+        param(lambda frame: frame.drop("result"), id="column-missing"),
+        param(lambda frame: frame.with_row_index("row"), id="column-added"),
+        param(lambda frame: frame.cast({"game": str}), id="other-dtype")
+    ]
+)
+def test_reading_a_table_written_under_another_layout_raises(
+    layout   : Callable[[DataFrame], DataFrame],
+    stored   : list[Game],
+    tmp_path : Path
+):
+    """
+    Asserts that scanning an index whose games table lacks a declared
+    column, carries one more, or holds one under another type raises
+    `SchemaError` at the read.
+    """
+    PositionIndex.build(stored).write(tmp_path)
+    path = GAMES.path(tmp_path)
+    layout(read_parquet(path)).write_parquet(path)
+
+    with raises(SchemaError):
+        PositionIndex.read(tmp_path)
+
+
+def test_each_position_holds_the_move_played_from_it():
+    """
+    Asserts that the positions table holds one row per position of a stored
+    game, keyed by its Zobrist hash beside the move in UCI played from it,
+    with no move at the game's last position.
+    """
+    game = line("e4", "e5")
+
+    assert (
+        PositionIndex.build([game])
+                     .positions.collect()
+                     .rows(named=True)
+    ) == [
+        {
+            "game" : 0,
+            "key"  : key,
+            "move" : move,
+            "ply"  : ply
+        }
+        for ply, (key, move) in enumerate(
+            zip(game.keys, ("e2e4", "e7e5", None), strict=True)
+        )
+    ]
 
 
 def test_the_demo_game_matches_the_game_it_follows(
