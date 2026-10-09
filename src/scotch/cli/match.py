@@ -3,10 +3,11 @@ Holds `game`, the `scotch match game` command, which matches the first game
 of a Portable Game Notation (PGN) file against the index of stored games.
 """
 
-from cyclopts       import Parameter
-from cyclopts.types import ExistingFile
-from pathlib        import Path
-from typing         import Annotated
+from cyclopts          import Parameter
+from cyclopts.types    import ExistingFile
+from pathlib           import Path
+from polars.exceptions import SchemaError
+from typing            import Annotated
 
 from scotch.cli.settings  import Settings
 from scotch.games.schemas import Game
@@ -39,7 +40,7 @@ def game(
     Exits nonzero naming the problem where the file holds no game, where
     python-chess recorded errors reading the game, where its `Variant` tag
     names a variant other than standard chess, or where no index has been
-    built.
+    built or the one built holds another layout.
     """
     if (submitted := next(Game.read(pgn), None)) is None:
         raise SystemExit(f"Found no game in {pgn}")
@@ -57,6 +58,8 @@ def game(
         index = PositionIndex.read(settings.index)
     except FileNotFoundError:
         raise SystemExit(f"No index has been built under {settings.index}")
+    except SchemaError:
+        raise SystemExit(f"The index under {settings.index} holds another layout")
 
     match = index.match(submitted)
     print(match.summary if match else "No stored game shares a position with this game")

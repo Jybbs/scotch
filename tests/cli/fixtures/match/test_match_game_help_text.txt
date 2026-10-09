@@ -11,7 +11,8 @@ pyproject.toml or the SCOTCH_DATA variable moves it.
 
 Exits nonzero naming the problem where the file holds no game, where            
 python-chess recorded errors reading the game, where its Variant tag names a    
-variant other than standard chess, or where no index has been built.
+variant other than standard chess, or where no index has been built or the one  
+built holds another layout.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ *  PGN --pgn    The PGN file whose first game is matched. [required]         │

@@ -8,6 +8,7 @@ nonzero.
 from collections.abc  import Callable
 from common.app       import invoke
 from pathlib          import Path
+from polars           import read_parquet
 from pytest           import CaptureFixture, MonkeyPatch, mark, param
 from syrupy.assertion import SnapshotAssertion
 
@@ -128,6 +129,25 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(
         "game",
         str(pgn("1. e4 *"))
     ) == f"No index has been built under {data / 'index'}"
+
+
+@mark.usefixtures("indexed")
+def test_an_index_holding_another_layout_exits_naming_where_it_was_read(
+    data : Path,
+    pgn  : Callable[..., Path]
+):
+    """
+    Asserts that a run against an index whose games table lacks a column
+    exits nonzero naming the directory it read.
+    """
+    games = data / "index" / "games.parquet"
+    read_parquet(games).drop("errors").write_parquet(games)
+
+    assert invoke(
+        "match",
+        "game",
+        str(pgn("1. e4 *"))
+    ) == f"The index under {data / 'index'} holds another layout"
 
 
 def test_json_writes_the_export_of_the_match(indexed: Game, pgn: Callable[..., Path]):
