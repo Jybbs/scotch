@@ -17,7 +17,7 @@ from polars.exceptions     import SchemaError
 from pytest                import TempPathFactory, mark, param, raises
 
 from scotch.games.schemas import Game
-from scotch.index.schemas import GAMES, POSITIONS, RUNS, Span, Table
+from scotch.index.schemas import GAMES, POSITIONS, RUNS, Span, TABLES, Table
 from scotch.index.tables  import PositionIndex
 
 
@@ -209,10 +209,7 @@ def test_a_match_is_the_longest_run_any_stored_game_shares(
     assert match.ties == len({run[2] for run in runs if run[0] == length}) - 1
 
 
-@mark.parametrize(
-    "table",
-    [param(table, id=table.name) for table in (GAMES, POSITIONS)]
-)
+@mark.parametrize("table", [param(table, id=table.name) for table in TABLES])
 def test_reading_an_index_missing_a_table_raises(
     stored   : list[Game],
     table    : Table,
@@ -232,23 +229,26 @@ def test_reading_an_index_missing_a_table_raises(
 @mark.parametrize(
     "layout",
     [
-        param(lambda frame: frame.drop("result"), id="column-missing"),
+        param(lambda frame: frame.drop("game"), id="column-missing"),
         param(lambda frame: frame.with_row_index("row"), id="column-added"),
-        param(lambda frame: frame.cast({"game": str}), id="other-dtype")
+        param(lambda frame: frame.cast({"game": str}), id="other-dtype"),
+        param(lambda frame: frame.select(reversed(frame.columns)), id="other-order")
     ]
 )
+@mark.parametrize("table", [param(table, id=table.name) for table in TABLES])
 def test_reading_a_table_written_under_another_layout_raises(
     layout   : Callable[[DataFrame], DataFrame],
     stored   : list[Game],
+    table    : Table,
     tmp_path : Path
 ):
     """
-    Asserts that scanning an index whose games table lacks a declared
-    column, carries one more, or holds one under another type raises
-    `SchemaError` at the read.
+    Asserts that scanning an index where either table lacks a declared
+    column, carries one more, holds one under another type, or holds its
+    columns in another order raises `SchemaError` at the read.
     """
     PositionIndex.build(stored).write(tmp_path)
-    path = GAMES.path(tmp_path)
+    path = table.path(tmp_path)
     layout(read_parquet(path)).write_parquet(path)
 
     with raises(SchemaError):

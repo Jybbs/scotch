@@ -3,8 +3,8 @@ Holds the records a match travels in, meaning the `Span` of positions two
 games share, the `Match` a `PositionIndex` finds for a submitted game, and
 the `Export` that `scotch match game --json` writes for the site's viewer,
 beside the `Table` each of the index's Parquet tables is declared as, the
-declarations `GAMES` and `POSITIONS`, and `RUNS`, the schema of the runs
-`PositionIndex.runs` finds.
+declarations `GAMES` and `POSITIONS` that `TABLES` lists, and `RUNS`, the
+schema of the runs `PositionIndex.runs` finds.
 """
 
 from dataclasses import dataclass
@@ -103,7 +103,7 @@ POSITIONS = Table(
             ("game", GAMES.schema["game"]),
             # The position's Zobrist hash, as `Game.keys` reads it
             ("key", UInt64),
-            # The move in UCI played from the position, null at the game's last
+            # The move in UCI played from the position, null at the game's last position
             ("move", String),
             # The position's place in the mainline, 0 being the starting position
             ("ply", UInt16)
@@ -118,6 +118,7 @@ RUNS = Schema(
         ("length", UInt32)
     ]
 )
+TABLES = (GAMES, POSITIONS)
 
 
 class Side(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):

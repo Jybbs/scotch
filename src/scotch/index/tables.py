@@ -12,15 +12,14 @@ from polars          import DataFrame, LazyFrame, List, col, concat_list, int_ra
 from typing          import Self
 
 from scotch.games.schemas import Game
-from scotch.index.schemas import GAMES, Match, POSITIONS, RUNS, Span
+from scotch.index.schemas import GAMES, Match, POSITIONS, RUNS, Span, TABLES
 
 
 @dataclass(frozen=True, kw_only=True)
 class PositionIndex:
     """
     Holds the stored games and every position they reach, one Polars
-    `LazyFrame` per table, under the columns `GAMES` and `POSITIONS`
-    declare.
+    `LazyFrame` per `Table` in `TABLES`, each field named for its table.
     """
 
     games     : LazyFrame
@@ -121,7 +120,7 @@ class PositionIndex:
         Scans each table from its file in `directory` through `Table.scan`,
         which raises where a file is missing or holds other columns.
         """
-        return cls(games=GAMES.scan(directory), positions=POSITIONS.scan(directory))
+        return cls(**{table.name: table.scan(directory) for table in TABLES})
 
     def runs(self, submitted: Game) -> DataFrame:
         """
@@ -169,5 +168,5 @@ class PositionIndex:
         """
         Writes each table to its file in `directory` through `Table.sink`.
         """
-        GAMES.sink(directory, self.games)
-        POSITIONS.sink(directory, self.positions)
+        for table in TABLES:
+            table.sink(directory, getattr(self, table.name))
