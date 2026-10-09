@@ -18,7 +18,7 @@ from scotch.sources.fetchers import Fetcher
 from scotch.sources.schemas  import Source
 
 
-def test_a_download_cut_off_partway_leaves_the_file_before_it_as_it_stood(
+def test_a_download_cut_off_partway_leaves_the_earlier_download_as_it_stood(
     fetcher     : Fetcher,
     monkeypatch : MonkeyPatch,
     served      : Source,
@@ -32,7 +32,7 @@ def test_a_download_cut_off_partway_leaves_the_file_before_it_as_it_stood(
     fetcher.fetch(served, known=None)
     server.files[str(served.address)] = b"more games"
 
-    def cut(response: Response, chunk_size: int) -> Iterator[bytes]:  # prose: ignore[unsorted-positionals]
+    def cut(*_: object) -> Iterator[bytes]:
         """
         Yields the first bytes of the body, then raises as a dropped
         connection does.

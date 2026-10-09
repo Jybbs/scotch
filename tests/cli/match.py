@@ -109,8 +109,9 @@ def test_a_match_prints_the_stored_game_the_span_and_the_parting(
 ):
     """
     Asserts that a game sharing its first four positions with the stored
-    game prints the stored game's players, event, and date, the plies the
-    two share, and the move the stored game played where they part.
+    game prints the stored game's players, event, and date, its place in the
+    file it was read from, the plies the two share, and the move the stored
+    game played where they part.
     """
     assert invoke(
         "match",

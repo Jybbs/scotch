@@ -1,3 +1,4 @@
 White, W vs. Black, B, Event, 2000.01.02
+Game 1 of https://example.com/players/White.zip
 Shares 4 positions, plies 0 to 3 of the submitted game and plies 0 to 3 of the stored game
 Parts where the stored game played 2...Nc6

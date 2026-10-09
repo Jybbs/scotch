@@ -15,8 +15,8 @@ from scotch.sources.schemas import Manifest, Sources
 def games():
     """
     Reads the games of every file `scotch fetch games` downloaded into the
-    `downloads` folder of the data directory, the files spread across a pool
-    of processes one at a time, and writes the index of them to its `index`
+    `downloads` folder of the data directory, handing the files one at a
+    time to a pool of processes, and writes the index of them to its `index`
     folder beside a copy of the manifest the files were read under. Files
     are read in the order `sources.toml` declares them, a game several files
     repeat is indexed under the first, and a game python-chess records an

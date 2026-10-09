@@ -10,7 +10,7 @@ from common.sources  import declare, land
 from pathlib         import Path
 from pytest          import MonkeyPatch, fixture
 
-from scotch.games.schemas   import Game
+from scotch.games.schemas   import Game, Origin
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Download, Manifest, Source, Sources
 
@@ -28,7 +28,8 @@ def data(monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
 @fixture
 def indexed(data: Path) -> Game:
     """
-    Builds an index holding one stored game under the data directory.
+    Builds an index holding one stored game under the data directory, read
+    as the first game of a file on `example.com`.
     """
     game = line(
         "e4",
@@ -43,6 +44,10 @@ def indexed(data: Path) -> Game:
         Round  = "1",
         Site   = "Site",
         White  = "White, W"
+    ).model_copy(
+        update = {
+            "origin": Origin(address="https://example.com/players/White.zip", place=1)
+        }
     )
     PositionIndex.build([game]).write(data / "index")
 
