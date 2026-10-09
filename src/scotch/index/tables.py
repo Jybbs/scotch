@@ -34,24 +34,22 @@ from scotch.index.schemas import Match, Span
 class PositionIndex:
     """
     Holds the stored games and every position they reach, each table a
-    Polars `LazyFrame` that `read` scans from a Parquet file of the same
-    name.
+    Polars `LazyFrame` that `read` scans from a Parquet file of its name.
 
-    `games` holds one row per stored game, in the order the index
-    holds them:
+    `games` holds one row per stored game in the order the index holds them:
 
     - `game`, the game's place in that order, from 0
     - `errors`, each error python-chess's reader recorded
     - `moves`, the mainline in Universal Chess Interface (UCI) notation
     - `result`, the `Result` tag
-    - `tags`, every tag pair but `Result`, each as a `name` and a `value`
+    - `tags`, every other tag pair, each as a `name` and a `value`
 
     `positions` holds one row per position each game reaches:
 
     - `game`, the stored game reaching it
     - `key`, the position's Zobrist hash, as `Game.keys` reads it
-    - `move`, the move in UCI played from it, null at the game's last position
-    - `ply`, its place in that game's mainline, 0 being the starting position
+    - `move`, the move in UCI played from it, null at the last position
+    - `ply`, its place in the mainline, 0 being the starting position
     """
 
     positions: LazyFrame
@@ -61,11 +59,10 @@ class PositionIndex:
     @classmethod
     def build(cls, games: Iterable[Game]) -> Self:
         """
-        Builds both tables from `games`, holding them in the order `games`
-        yields them, each game carrying the `Result` tag python-chess's
-        reader fills where a file leaves it out. A game whose `boards`
-        yields no board keeps its row in `games`, its errors included, and
-        holds no row in `positions`.
+        Builds both tables from `games` in the order it yields them, reading
+        the `Result` tag python-chess's reader fills where a file leaves it
+        out. A game whose `boards` yields no board keeps its row in `games`,
+        its errors included, and holds none in `positions`.
         """
         frame = DataFrame(
             [
@@ -125,12 +122,9 @@ class PositionIndex:
     def match(self, submitted: Game) -> Match | None:
         """
         Finds the stored game sharing the longest unbroken run of positions
-        with `submitted`, reading the first of the runs `runs` ranks and
-        counting the other stored games sharing a run as long.
-
-        Returns:
-            The match, or `None` where no stored game holds any position
-            `submitted` reaches.
+        with `submitted`, the first of the runs `runs` ranks, beside the
+        count of other stored games sharing a run as long, or `None` where
+        no stored game holds a position `submitted` reaches.
         """
         if (runs := self.runs(submitted)).is_empty():
             return None
@@ -172,19 +166,16 @@ class PositionIndex:
     def runs(self, submitted: Game) -> DataFrame:
         """
         Finds every unbroken run of positions a stored game shares with
-        `submitted`, meaning a run along which the submitted game's ply and
-        the stored game's ply advance together, so their difference stays
-        the same and the run never leaves one stored game.
-
-        Sorting the shared positions by game, offset, and the submitted
-        game's ply leaves each run on consecutive rows, where that ply less
-        the row's place stays the same along the run.
+        `submitted`, along which the two games' plies advance together,
+        sorting the shared positions by game, offset, and the submitted
+        game's ply so each run holds consecutive rows where that ply less
+        the row's place stays the same.
 
         Returns:
-            One row per run, holding its `game`, its `offset`, its `start`,
-            and its `length`, the longest first, then the one starting
-            earliest in `submitted`, then the one in the stored game the index
-            holds first, then the one starting earliest in that game.
+            One row per run, holding its `game`, `offset`, `start`, and
+            `length`, the longest first, then the earliest in `submitted`,
+            then the one in the game the index holds first, then the earliest
+            in that game.
         """
         keys = DataFrame(
             {"key": submitted.keys},

@@ -18,16 +18,14 @@ from scotch.games.builders import MainlineBuilder
 
 class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    One game a PGN file carries, meaning its tags, the moves of its
-    mainline, and each error python-chess's reader recorded while reading
-    it.
+    One game a PGN file carries, meaning its tags, its mainline's moves, and
+    each error python-chess's reader recorded.
     """
 
     errors: tuple[str, ...]
     """
-    The message of each error python-chess's reader recorded reading the tags
-    and the mainline, such as a move illegal in the position it was played
-    from.
+    The message of each error python-chess's reader recorded, such as a move
+    illegal in the position it was played from.
     """
 
     moves: tuple[Move, ...]
@@ -46,22 +44,18 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     def keys(self) -> tuple[int, ...]:
         """
         Hashes each position of the mainline through python-chess's
-        `zobrist_hash`, which reads the piece placement, the side to
-        move, the castling rights, and the en passant file wherever a pawn
-        stands ready to capture, whether or not that capture is legal. Two
-        positions therefore share a key where FIDE's Laws of Chess, Article
-        9.2.3, count them as the same position, save where that en passant
-        capture would be illegal.
+        `zobrist_hash`, so two positions share a key where FIDE's Laws of
+        Chess, Article 9.2.3, count them as the same position, save that
+        the hash reads the en passant file wherever a pawn stands ready to
+        capture, legal or not.
         """
         return tuple(map(zobrist_hash, self.boards()))
 
     @cached_property
     def placements(self) -> tuple[str, ...]:
         """
-        Reads the piece placement of each position of the mainline, the
-        first field of its Forsyth–Edwards Notation (FEN), from the starting
-        position to the one after the last move, or none where `boards`
-        yields no board.
+        Reads the piece placement of each position `boards` yields, the
+        first field of its Forsyth–Edwards Notation (FEN).
         """
         return tuple(map(Board.board_fen, self.boards()))
 
@@ -70,14 +64,9 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         """
         Adds python-chess's message for a variant it cannot read to the
         errors its reader recorded, wherever the `Variant` tag names
-        anything but standard chess. The reader reads Chess960 and several
-        other variants under their own rules without recording that message.
-
-        Returns:
-            Each error in the order the reader recorded it, followed by the
-            variant's message wherever the reader did not record it already.
-            A `[Variant "Bughouse"]` game puts that message first, since the
-            reader records it before reading the position or any move.
+        anything but standard chess and the message is not among them, since
+        the reader reads Chess960 and several other variants under their own
+        rules without recording it.
         """
         variant = self.tags.get("Variant", "Standard")
 
@@ -96,15 +85,11 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
 
     def boards(self) -> Iterator[Board]:
         """
-        Yields the board at each position of the mainline, from the position
-        the `FEN` tag sets up, or the standard starting position where the
-        game carries none, to the one after the last move.
-
-        Each step yields the one board the next move is then pushed onto, so
-        a caller reads each position before drawing the next. A game whose
-        `FEN` tag python-chess cannot read, or whose `Variant` tag names a
-        variant it does not know, yields no board, since python-chess raises
-        `ValueError` setting either up and its reader records that error.
+        Yields the board at each position of the mainline, from the one the
+        `FEN` tag sets up or the standard starting position to the one after
+        the last move, pushing each move onto the one board it yields, or no
+        board where python-chess raises `ValueError` setting up the `FEN` or
+        `Variant` tag.
         """
         try:
             board = Headers(self.tags).board()
@@ -127,13 +112,10 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     @classmethod
     def read(cls, path: Path) -> Iterator[Self]:
         """
-        Reads every game the PGN file at `path` carries, in the order the
-        file holds them.
-
-        Decodes the file as UTF-8, one of the two encodings python-chess's
-        reader names as usual for a PGN file, and replaces what UTF-8 cannot
-        decode with U+FFFD. A file another code page wrote therefore still
-        yields every move, since every move is ASCII.
+        Reads every game the PGN file at `path` carries, in the order it
+        holds them, decoding the file as UTF-8 and replacing each byte UTF-8
+        cannot decode with U+FFFD, so a file another code page wrote still
+        yields every move, every move being ASCII.
         """
         with path.open(encoding="utf-8", errors="replace") as handle:
             for game in iter(partial(read_game, handle, Visitor=MainlineBuilder), None):

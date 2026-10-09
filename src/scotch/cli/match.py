@@ -30,13 +30,11 @@ def game(
     Finds the stored game sharing the longest unbroken run of positions with
     the first game of a PGN file, printing the stored game's players, event,
     and date, the plies the two games share, and the move where they part,
-    or a line saying no stored game shares a position with the submitted
-    game.
+    or a line saying no stored game shares a position with it.
 
-    Reads the index from the folder named `index` inside the data
-    directory, which is `.cache/data` under the project's root unless the
-    `[tool.scotch]` table of its `pyproject.toml` or the `SCOTCH_DATA`
-    variable moves it.
+    Reads the index from the `index` folder of the data directory, which is
+    `.cache/data` under the project's root unless the `[tool.scotch]` table
+    of its `pyproject.toml` or the `SCOTCH_DATA` variable moves it.
 
     Exits nonzero naming the problem where the file holds no game, where
     python-chess recorded errors reading the game, where its `Variant` tag

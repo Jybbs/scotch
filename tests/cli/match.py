@@ -153,9 +153,8 @@ def test_match_game_help_text(
     snapshot    : SnapshotAssertion
 ):
     """
-    Asserts that `--help` exits zero and prints the help text its fixture
-    file holds at eighty columns, so a change to what the command documents
-    is reviewed as a diff.
+    Asserts that `--help` exits zero and prints the help text its snapshot
+    holds at eighty columns.
     """
     monkeypatch.setenv("COLUMNS", "80")
 

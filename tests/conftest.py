@@ -1,14 +1,8 @@
 """
-Sets the example count on Hypothesis's built-in profiles, two hundred under
-the `ci` profile Hypothesis loads on a CI runner and twenty-five under
-`default`, which also drops the deadline the `ci` profile already drops, so
-a heavily loaded machine fails no test a runner passes.
-
-The autouse `environment` fixture isolates every test from the machine
-running it, and the plugin `common.isolation` registers lets a test open
-a network connection only when it carries the `network` mark. The `sample`
-and `answered` fixtures copy the sample checkout the checks in `scotch.repo`
-read, and the `pgn` fixture writes the PGN text a test reads through a file.
+Sets the example count on Hypothesis's built-in profiles, the `ci` one it
+loads on a CI runner and the `default` one, which also drops the deadline
+so a heavily loaded machine fails no test a runner passes, and defines the
+fixtures every test module shares, each described where it is defined.
 """
 
 from collections.abc  import Callable
@@ -37,13 +31,8 @@ settings.register_profile(
 @fixture(autouse=True)
 def environment(monkeypatch: MonkeyPatch, tmp_path_factory: TempPathFactory):
     """
-    Points `HOME` at an empty directory and clears what `CLEARED` names:
-
-    - The color, terminal, and size settings a console reads
-    - The files a GitHub Actions step writes its outputs and summary to
-    - The directories the XDG convention names for configuration, data, and state
-
-    It also clears every variable `Settings` reads, whose names open on its
+    Points `HOME` at an empty directory and clears each variable `CLEARED`
+    names beside each one `Settings` reads, whose name opens on its
     `env_prefix` in any case, since pydantic-settings matches a name without
     regard to case.
     """

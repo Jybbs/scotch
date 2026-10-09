@@ -101,8 +101,8 @@ class Match(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     def parting(self) -> str | None:
         """
         Writes the move the stored game played from the last position the
-        two games share, behind its move number, or `None` where the stored
-        game ends at that position.
+        two games share behind its move number, or `None` where the stored
+        game ends there.
         """
         if (ply := self.span.stored[-1]) < len(self.game.moves):
             return self.game.numbered(ply)

@@ -22,9 +22,9 @@ class Settings(
     use_attribute_docstrings    = True
 ):
     """
-    The settings a run reads, each taken from a keyword argument, then from
-    a `SCOTCH_` environment variable, then from the `[tool.scotch]` table of
-    the `pyproject.toml` at the project's root, then from its default.
+    The settings a run reads, each from a keyword argument, a `SCOTCH_`
+    variable, the `[tool.scotch]` table of the project's `pyproject.toml`,
+    or its default, in that order.
     """
 
     data: Path = Path(".cache/data")
@@ -62,7 +62,7 @@ class Settings(
         """
         Orders the sources a setting is read from, a keyword argument first,
         then a `SCOTCH_` variable, then the `[tool.scotch]` table of the
-        `pyproject.toml` at the project's root.
+        project's `pyproject.toml`.
         """
         return init_settings, env_settings, PyprojectTomlConfigSettingsSource(
             settings_cls,
@@ -74,7 +74,7 @@ def root() -> Path:
     """
     Reads the directory the `scotch` distribution was installed from, which
     an installer records in the `direct_url.json` PEP 610 specifies, or the
-    working directory where the installer recorded no directory.
+    working directory where it recorded none.
     """
     origin = distribution("scotch").origin
 

@@ -174,16 +174,10 @@ def test_a_variant_tag_adds_the_problems_its_variant_raises(
     variant  : str | None
 ):
     """
-    Asserts what a `Variant` tag adds to the problems:
-
-    - Nothing where the game carries no `Variant` tag
-    - One problem where it names a variant python-chess reads under its own
-      rules, each named by the first alias its board class declares
-    - The error the reader already recorded, once rather than twice, where
-      it names a variant python-chess cannot read
-
-    Each game holds no move, since a Racing Kings or a Horde board refuses
-    `1. e4` from its own starting position.
+    Asserts that a `Variant` tag adds no problem where the game carries
+    none, one problem where it names a variant python-chess reads under its
+    own rules, and the error the reader recorded, once rather than twice,
+    where it names a variant python-chess cannot read.
     """
     [game] = read(("" if variant is None else f'[Variant "{variant}"]\n\n') + "*\n")
 
@@ -223,10 +217,10 @@ def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
 
 def test_an_en_passant_capture_that_would_be_illegal_still_changes_the_key():
     """
-    Asserts that a position where a pawn stands ready to capture en passant
-    but the capture would leave its own king in check carries a key of its
-    own, although FIDE's Laws of Chess, Article 9.2.3, count it as the same
-    position as the one holding the same pieces with no en passant square.
+    Asserts that a position whose en passant capture would leave its own
+    king in check carries a key of its own, although FIDE's Laws of Chess,
+    Article 9.2.3, count it as the same position as the one with no en
+    passant square.
     """
     pushed = line("c5", FEN="8/2p5/8/KP5r/8/8/8/7k b - - 0 1")
     placed = line(FEN="8/8/8/KPp4r/8/8/8/7k w - - 0 2")
@@ -257,8 +251,7 @@ def test_an_illegal_move_is_recorded_without_being_logged(
 ):
     """
     Asserts that reading a game holding an illegal move records the error on
-    the game and writes nothing to any logger, so the error reaches a caller
-    through `errors` alone.
+    the game and writes nothing to any logger.
     """
     [game] = read("1. e4 e5 2. Qxf7 *\n")
 

@@ -14,11 +14,9 @@ from scotch.games.schemas import Game
 def played(draw: DrawFn, plies: int = 60, width: int | None = None) -> Board:
     """
     Draws a board holding up to `plies` legal moves played from the starting
-    position, stopping early once no move is legal.
-
-    Each move is drawn from the first `width` legal moves python-chess
-    generates, or from every legal move where `width` is `None`, so a
-    narrow `width` draws games that share and transpose into one another's
+    position, each drawn from the first `width` legal moves python-chess
+    generates, or from every one where `width` is `None`, so a narrow
+    `width` draws games that share and transpose into one another's
     positions.
     """
     board = Board()

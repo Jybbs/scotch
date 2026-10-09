@@ -205,9 +205,7 @@ def test_a_match_is_the_longest_run_any_stored_game_shares(
     Asserts that the match for any submitted game is the longest run of
     shared positions a search over every pair of plies finds, with ties
     going to the run starting earliest, then to the game the index holds
-    first, then to the run starting earliest in that game. Each move is
-    drawn from the first three legal moves, so the games share and transpose
-    into one another's positions.
+    first, then to the run starting earliest in that game.
     """
     runs = [
         (length, start, number, ply - start)

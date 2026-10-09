@@ -19,8 +19,7 @@ from scotch.cli.settings import Settings
 def test_a_network_test_gets_the_mark_that_opens_the_socket(request: FixtureRequest):
     """
     Asserts that the collection hook in `common.isolation` gives a test
-    carrying the `network` mark pytest-socket's `enable_socket` mark, which
-    lets that test open a connection.
+    carrying the `network` mark pytest-socket's `enable_socket` mark.
     """
     request.node.add_marker(mark.network)
     pytest_collection_modifyitems([request.node])
@@ -31,12 +30,9 @@ def test_a_network_test_gets_the_mark_that_opens_the_socket(request: FixtureRequ
 def test_a_socket_stays_closed_outside_the_network_mark():
     """
     Asserts that a test without the `network` mark cannot open a connection,
-    pytest-socket issuing a warning and then raising `SocketBlockedError` on
-    the attempt.
-
-    `create_connection` looks `getaddrinfo` up on the socket module each
-    time it runs rather than binding it once at import, and that name is the
-    one pytest-socket replaces when a test starts.
+    pytest-socket issuing a warning and then raising `SocketBlockedError`
+    from the `getaddrinfo` it replaces on the socket module, which
+    `create_connection` looks up on each call.
     """
     with warns(UserWarning), raises(SocketBlockedError):
         create_connection(("blocked.invalid", 80))
@@ -63,11 +59,10 @@ def test_home_is_an_empty_directory():
 )
 def name(request: FixtureRequest) -> Iterator[str]:
     """
-    Sets the variable `request.param` names and yields that name.
-
-    A module-scoped fixture runs before the function-scoped `environment`
-    fixture, so the variable is set on every machine by the time
-    `environment` clears it, a CI runner that never sets it included.
+    Sets the variable `request.param` names and yields that name, at module
+    scope so the variable is set on every machine, a CI runner that never
+    sets it included, before the function-scoped `environment` fixture
+    clears it.
     """
     with MonkeyPatch.context() as patch:
         patch.setenv(request.param, "1")

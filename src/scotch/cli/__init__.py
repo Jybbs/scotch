@@ -1,9 +1,7 @@
 """
 Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
-names. Each subcommand sits in a group named for the verb it runs, among
-them the `audit` group the repository's own checks run under, which the help
-leaves out.
+names, each subcommand sitting in a group named for the verb it runs.
 """
 
 from cyclopts           import App, Parameter

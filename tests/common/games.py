@@ -11,9 +11,8 @@ from scotch.games.schemas import Game
 def line(*sans: str, **tags: str) -> Game:
     """
     Builds a game of the moves `sans` names in SAN under the tag pairs
-    `tags` names, beside the Seven Tag Roster python-chess fills with its
-    placeholders, played from the position a `FEN` tag sets up or from the
-    standard starting position where `tags` names none.
+    `tags` names beside the Seven Tag Roster python-chess fills in, played
+    from the position a `FEN` tag sets up or the standard starting position.
     """
     headers = Headers(**tags)
     board   = headers.board()

@@ -12,19 +12,14 @@ from scotch.repo.schemas  import Format, Level
 def repo(*, output_format: Format = Format.TEXT) -> int:
     """
     Reports every divergence the checks in `scotch.repo` find in the
-    repository at the project's root.
-
-    Prints one line per finding, naming its file relative to that root, and
-    exits with status 1 where any finding is an error, whereas a warning
-    that `mise tasks validate` reports is printed and fails nothing.
+    repository at the project's root, printing one line per finding that
+    names its file relative to that root, and exits with status 1 where any
+    finding is an error rather than a warning.
 
     Args:
         output_format: Whether each finding prints as a line of text or
                        as the workflow command GitHub Actions turns into
                        an annotation.
-
-    Returns:
-        The exit status, 1 where any finding is an error and 0 otherwise.
     """
     checkout = Checkout(root=root())
     findings = [
