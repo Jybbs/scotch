@@ -38,6 +38,7 @@ dev = [
     "pytest-randomly",
     "pytest-socket",
     "pytest-subprocess",
+    "responses",
     "syrupy"
 ]
 

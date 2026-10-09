@@ -1,31 +1,33 @@
 """
 Pins what `scotch fetch games` prints and records for the files it is
-declared, against the `Server` the `server` fixture puts in place of the
-network, and the problem it names where it exits nonzero.
+declared, against the answers `responses` registers in place of the network,
+the settings its requests run under, and the problem it names where it exits
+nonzero.
 """
 
 from collections.abc  import Callable
 from common.app       import invoke
-from common.sources   import Server
+from common.sources   import serve
 from pathlib          import Path
 from pytest           import CaptureFixture, MonkeyPatch
+from responses        import RequestsMock
 from syrupy.assertion import SnapshotAssertion
 
-from scotch.sources.fetchers import Fetcher
-from scotch.sources.schemas  import Manifest, Source
+from scotch.sources.schemas import Manifest, Source
 
 
 def test_a_failed_request_exits_naming_the_file_and_keeps_the_ones_before(
     data     : Path,
     declared : Callable[..., tuple[Source, ...]],
-    server   : Server
+    web      : RequestsMock
 ):
     """
     Asserts that a file the server answers 404 Not Found for exits nonzero
     naming its address and the error, while the manifest keeps each file
     fetched before it.
     """
-    server.files["https://example.com/players/A.zip"] = b"a"
+    serve("https://example.com/players/A.zip", b"a", web=web)
+    web.get("https://example.com/players/B.zip", status=404)
     first, _ = declared("players/A.zip", "players/B.zip")
 
     assert invoke("fetch", "games") == (
@@ -39,17 +41,15 @@ def test_a_fetch_prints_each_file_and_records_it_beside_them(
     capsys   : CaptureFixture[str],
     data     : Path,
     declared : Callable[..., tuple[Source, ...]],
-    server   : Server
+    web      : RequestsMock
 ):
     """
     Asserts that a fetch downloads each declared file under the `downloads`
     folder of the data directory, prints one line naming each as fetched,
     and records each in the manifest beside them in the order declared.
     """
-    server.files |= {
-        "https://example.com/players/A.zip" : b"a",
-        "https://example.com/players/B.zip" : b"b"
-    }
+    serve("https://example.com/players/A.zip", b"a", web=web)
+    serve("https://example.com/players/B.zip", b"b", web=web)
     sources = declared("players/A.zip", "players/B.zip")
 
     assert invoke("fetch", "games") == 0
@@ -68,62 +68,55 @@ def test_a_fetch_prints_each_file_and_records_it_beside_them(
 def test_a_fetch_retries_each_request_the_times_the_settings_name(
     declared    : Callable[..., tuple[Source, ...]],
     monkeypatch : MonkeyPatch,
-    server      : Server
+    queued      : RequestsMock
 ):
     """
-    Asserts that a fetch sends each request through a session retrying it
-    the times the `SCOTCH_RETRIES` variable names.
+    Asserts that a fetch under a `SCOTCH_RETRIES` of 1 sends a request the
+    server answers 503 twice no more than twice, exiting nonzero naming the
+    file, although a third answer would have carried it.
     """
-    server.files["https://example.com/players/A.zip"] = b"a"
+    for status in (503, 503, 200):
+        queued.get("https://example.com/players/A.zip", status=status)
+
     declared("players/A.zip")
-    monkeypatch.setenv("SCOTCH_RETRIES", "2")
-    built: list[Fetcher] = []
+    monkeypatch.setenv("SCOTCH_RETRIES", "1")
 
-    def build(**fields: object) -> Fetcher:
-        """
-        Builds the fetcher the command asks for and keeps it in `built`.
-        """
-        built.append(fetcher := Fetcher(**fields))
+    message = invoke("fetch", "games")
 
-        return fetcher
-
-    monkeypatch.setattr("scotch.cli.fetch.Fetcher", build)
-
-    assert invoke("fetch", "games") == 0
-    assert [
-        fetcher.session.get_adapter("https://example.com/").max_retries.total
-        for fetcher in built
-    ] == [2]
+    assert message != 0
+    assert message.startswith("Could not fetch https://example.com/players/A.zip:")
+    assert "too many 503 error responses" in message
+    assert len(queued.calls) == 2
 
 
 def test_a_fetch_sends_each_request_under_the_timeout_the_settings_name(
     declared    : Callable[..., tuple[Source, ...]],
     monkeypatch : MonkeyPatch,
-    server      : Server
+    web         : RequestsMock
 ):
     """
     Asserts that each request a fetch sends waits the seconds the
     `SCOTCH_TIMEOUT_S` variable names.
     """
-    server.files["https://example.com/players/A.zip"] = b"a"
+    serve("https://example.com/players/A.zip", b"a", web=web)
     declared("players/A.zip")
     monkeypatch.setenv("SCOTCH_TIMEOUT_S", "5")
 
     assert invoke("fetch", "games") == 0
-    assert [timeout for _, timeout in server.sent] == [5]
+    assert [call.request.req_kwargs["timeout"] for call in web.calls] == [5]
 
 
 def test_a_second_fetch_prints_each_file_the_server_reports_unchanged(
     capsys   : CaptureFixture[str],
     data     : Path,
     declared : Callable[..., tuple[Source, ...]],
-    server   : Server
+    web      : RequestsMock
 ):
     """
     Asserts that fetching again prints each file the server reports
     unchanged as such and leaves the manifest as the first fetch wrote it.
     """
-    server.files["https://example.com/players/A.zip"] = b"a"
+    serve("https://example.com/players/A.zip", b"a", web=web)
     [source] = declared("players/A.zip")
     invoke("fetch", "games")
     manifest = Manifest.read(data / "downloads")

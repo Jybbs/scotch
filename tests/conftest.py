@@ -5,16 +5,16 @@ so a heavily loaded machine fails no test a runner passes, and defines the
 fixtures every test module shares, each described where it is defined.
 """
 
-from collections.abc  import Callable
+from collections.abc  import Callable, Iterator
 from common.isolation import CLEARED
 from common.sample    import Sample
-from common.sources   import Server
 from hypothesis       import settings
 from os               import environ
 from pathlib          import Path
 from pytest           import MonkeyPatch, TempPathFactory, fixture
 from pytest_subprocess.fake_process import FakeProcess
-from requests.adapters              import HTTPAdapter
+from responses            import RequestsMock
+from responses.registries import OrderedRegistry
 
 from scotch.cli.settings import Settings
 
@@ -93,12 +93,25 @@ def pgn(tmp_path_factory: TempPathFactory) -> Callable[..., Path]:
 
 
 @fixture
-def server(monkeypatch: MonkeyPatch) -> Server:
+def queued() -> Iterator[RequestsMock]:
     """
-    Puts a `Server` holding no file in place of the network, answering each
-    request a `requests` session sends through an `HTTPAdapter`.
+    Answers each request a `requests` session sends with the next response a
+    test registered on the mock it yields, strictly in the order registered,
+    through the `Retry` of the adapter the session sends through.
     """
-    server = Server()
-    monkeypatch.setattr(HTTPAdapter, "send", server.send)
+    with RequestsMock(
+        assert_all_requests_are_fired = False,
+        registry = OrderedRegistry
+    ) as queued:
+        yield queued
 
-    return server
+
+@fixture
+def web() -> Iterator[RequestsMock]:
+    """
+    Answers each request a `requests` session sends from the responses a
+    test registers on the mock it yields, raising `ConnectionError` for an
+    address no test registered.
+    """
+    with RequestsMock(assert_all_requests_are_fired=False) as web:
+        yield web
