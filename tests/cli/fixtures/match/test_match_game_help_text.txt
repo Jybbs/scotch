@@ -7,7 +7,8 @@ stored game shares a position with it.
 
 Reads the index from the index folder of the data directory, which is           
 .cache/data under the project's root unless the [tool.scotch] table of its      
-pyproject.toml or the SCOTCH_DATA variable moves it.                            
+pyproject.toml or the SCOTCH_DATA variable moves it, and warns where the files  
+under its downloads folder have changed since the index was built from them.    
 
 Exits nonzero naming the problem where the file holds no game, where            
 python-chess recorded errors reading the game, where its Variant tag names a    

@@ -3,8 +3,9 @@ Holds the records a match travels in, meaning the `Span` of positions two
 games share, the `Match` a `PositionIndex` finds for a submitted game, and
 the `Export` that `scotch match game --json` writes for the site's viewer,
 beside the `Table` each of the index's Parquet tables is declared as, the
-declarations `GAMES` and `POSITIONS` that `TABLES` lists, and `RUNS`, the
-schema of the runs `PositionIndex.runs` finds.
+declarations `GAMES` and `POSITIONS` that `TABLES` lists, `ROWS`, the schema
+of the games `PositionIndex.rows` lays out before the index numbers them,
+and `RUNS`, the schema of the runs `PositionIndex.runs` finds.
 """
 
 from dataclasses import dataclass
@@ -88,6 +89,8 @@ GAMES = Table(
             ("errors", List(String)),
             # The mainline in Universal Chess Interface (UCI) notation
             ("moves", List(String)),
+            # The file the game was read from and its place there, as `Origin` holds it
+            ("origin", Struct({"address": String, "place": UInt32})),
             # The `Result` tag
             ("result", String),
             # Every other tag pair, each as a `name` and a `value`
@@ -109,6 +112,15 @@ POSITIONS = Table(
             ("ply", UInt16)
         ]
     )
+)
+ROWS = Schema(
+    {
+        **{name: dtype for name, dtype in GAMES.schema.items() if name != "game"},
+        # The keys of the mainline's positions, as `Game.keys` reads them
+        "keys": List(POSITIONS.schema["key"]),
+        # The values of the Seven Tag Roster, as `Game.roster` reads them
+        "roster": List(String)
+    }
 )
 RUNS = Schema(
     [
@@ -223,14 +235,20 @@ class Match(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     @property
     def summary(self) -> str:
         """
-        Writes the stored game's players, event, and date, the plies the two
+        Writes the stored game's players, event, and date, its place in the
+        file it was read from where the index records one, the plies the two
         games share, and the move where they part, one to a line.
         """
         tags = self.game.tags
 
         return "\n".join(
             (
-                f"{tags['White']} vs. {tags['Black']}, {tags['Event']}, {tags['Date']}",
+                f"{self.game.players}, {tags['Event']}, {tags['Date']}",
+                *(
+                    [f"Game {origin.place:,} of {origin.address}"]
+                    if (origin := self.game.origin)
+                    else []
+                ),
                 (
                     f"Shares {self.span.length} positions, plies"
                     f" {self.span.submitted[0]} to {self.span.submitted[-1]} of the"

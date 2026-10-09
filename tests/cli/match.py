@@ -1,20 +1,24 @@
 """
 Pins what `scotch match game` prints and writes for a game read from a
-PGN file, against an index of one stored game built under a directory
-the `SCOTCH_DATA` variable names, and the problem it names where it exits
-nonzero.
+PGN file, against an index of one stored game built under a directory the
+`SCOTCH_DATA` variable names, the problem it names where it exits nonzero,
+and the warning it prints where the fetched files changed since the index
+was built.
 """
 
 from collections.abc  import Callable
 from common.app       import invoke
+from common.sources   import declare
+from io               import StringIO
 from pathlib          import Path
 from polars           import read_parquet
 from pytest           import CaptureFixture, MonkeyPatch, mark, param
 from syrupy.assertion import SnapshotAssertion
 
-from scotch.games.schemas import Game
-from scotch.index.schemas import Export
-from scotch.index.tables  import PositionIndex
+from scotch.games.schemas   import Game
+from scotch.index.schemas   import Export
+from scotch.index.tables    import PositionIndex
+from scotch.sources.schemas import Download, Manifest
 
 
 def test_a_file_holding_no_game_exits_naming_it(data: Path, pgn: Callable[..., Path]):
@@ -180,3 +184,44 @@ def test_match_game_help_text(
 
     assert invoke("match", "game", "--help") == 0
     assert capsys.readouterr().out == snapshot
+
+
+@mark.parametrize(
+    ("recorded", "warned"),
+    [
+        param(b"a", False, id="files-as-indexed"),
+        param(b"b", True, id="files-changed")
+    ]
+)
+def test_a_match_warns_where_the_files_changed_since_the_index_was_built(
+    capsys      : CaptureFixture[str],
+    data        : Path,
+    indexed     : Game,
+    monkeypatch : MonkeyPatch,
+    pgn         : Callable[..., Path],
+    recorded    : bytes,
+    warned      : bool
+):
+    """
+    Asserts that a match prints its summary either way and writes a line
+    naming the `downloads` folder to stderr only where the manifest there
+    records a file the index's copy of the manifest records with other
+    bytes.
+    """
+    for folder, body in (("index", b"a"), ("downloads", recorded)):
+        (data / "file.zip").write_bytes(body)
+        Manifest().recording(
+            declare("file.zip").address,
+            Download.from_file(data / "file.zip", etag=None)
+        ).write(data / folder)
+
+    monkeypatch.setattr("scotch.cli.match.stderr", stderr := StringIO())
+
+    assert invoke("match", "game", str(pgn("1. e4 e5 2. Nf3 d6 *"))) == 0
+    assert capsys.readouterr().out.startswith("White, W vs. Black, B")
+    assert stderr.getvalue() == (
+        f"The files under {data / 'downloads'} have changed since the index was"
+        " built from them, which `scotch index games` rebuilds\n"
+        if warned
+        else ""
+    )

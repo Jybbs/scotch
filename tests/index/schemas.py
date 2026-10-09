@@ -9,6 +9,7 @@ from pydantic         import ValidationError
 from pytest           import mark, param, raises
 from syrupy.assertion import SnapshotAssertion
 
+from scotch.games.schemas import Origin
 from scotch.index.schemas import Export, Match, Side, Span
 
 
@@ -113,6 +114,37 @@ def test_a_span_lists_the_plies_it_covers_in_each_game():
 
     assert span.submitted == range(10, 13)
     assert span.stored == range(6, 9)
+
+
+def test_a_summary_names_the_file_the_stored_game_was_read_from(
+    snapshot: SnapshotAssertion
+):
+    """
+    Asserts that a match whose stored game was read from a file of the
+    store's sources prints the game's place in that file and its address
+    beneath the players, the event, and the date.
+    """
+    match = Match(
+        game = line(
+            "e4",
+            "e5",
+            Black = "Black, B",
+            Date  = "2000.01.02",
+            Event = "Event",
+            White = "White, W"
+        ).model_copy(
+            update = {
+                "origin": Origin(
+                    address = "https://example.com/players/White.zip",
+                    place   = 1234
+                )
+            }
+        ),
+        span = Span(length=2, offset=0, start=0),
+        ties = 0
+    )
+
+    assert match.summary == snapshot
 
 
 def test_an_export_holds_both_sides_beside_the_span(snapshot: SnapshotAssertion):

@@ -8,11 +8,13 @@ fixtures every test module shares, each described where it is defined.
 from collections.abc  import Callable
 from common.isolation import CLEARED
 from common.sample    import Sample
+from common.sources   import Server
 from hypothesis       import settings
 from os               import environ
 from pathlib          import Path
 from pytest           import MonkeyPatch, TempPathFactory, fixture
 from pytest_subprocess.fake_process import FakeProcess
+from requests.adapters              import HTTPAdapter
 
 from scotch.cli.settings import Settings
 
@@ -73,7 +75,7 @@ def sample(tmp_path: Path) -> Sample:
 @fixture(scope="session")
 def pgn(tmp_path_factory: TempPathFactory) -> Callable[..., Path]:
     """
-    Returns a writer that saves PGN text, in the encoding it names or UTF-8,
+    Builds a writer that saves PGN text, in the encoding it names or UTF-8,
     to a file in a fresh directory, spanning the session so a Hypothesis
     property draws every file it needs from one writer.
     """
@@ -88,3 +90,15 @@ def pgn(tmp_path_factory: TempPathFactory) -> Callable[..., Path]:
         return path
 
     return write
+
+
+@fixture
+def server(monkeypatch: MonkeyPatch) -> Server:
+    """
+    Puts a `Server` holding no file in place of the network, answering each
+    request a `requests` session sends through an `HTTPAdapter`.
+    """
+    server = Server()
+    monkeypatch.setattr(HTTPAdapter, "send", server.send)
+
+    return server

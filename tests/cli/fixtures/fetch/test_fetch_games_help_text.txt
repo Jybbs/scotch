@@ -1,0 +1,13 @@
+Usage: scotch fetch games
+
+Downloads each file sources.toml declares into the downloads folder of the data 
+directory, in a folder named for the host of its address, and records each one's
+size, SHA-256 digest, entity tag, and fetch date in the manifest.json beside    
+them. A file the manifest records is fetched again where the server reports it  
+changed since, where the copy on disk no longer holds the bytes recorded, or    
+where the server sent it with no entity tag to ask about.                       
+
+Prints one line per file, naming it as fetched or as unchanged, and exits       
+nonzero naming the file and the error where a request fails once every retry    
+has.
+

@@ -4,7 +4,16 @@ requires      = ["hatchling==1.32.4"]
 
 [project]
 authors         = [{ name = "James Parkington" }]
-dependencies    = ["chess", "cyclopts", "polars", "pydantic", "pydantic-settings", "pyyaml"]
+dependencies    = [
+    "chess",
+    "cyclopts",
+    "polars",
+    "pydantic",
+    "pydantic-settings",
+    "pyyaml",
+    "requests",
+    "urllib3"
+]
 description     = "Finds the grandmaster game sharing the longest run of positions with a submitted chess game and shows how that game continued."
 license         = "MIT"
 license-files   = ["LICENSE.md"]

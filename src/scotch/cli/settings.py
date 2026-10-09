@@ -6,7 +6,7 @@ the project's `pyproject.toml`.
 
 from importlib.metadata import distribution
 from pathlib            import Path
-from pydantic           import field_validator
+from pydantic           import NonNegativeInt, PositiveFloat, field_validator
 from pydantic_settings  import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -29,9 +29,32 @@ class Settings(
 
     data: Path = Path(".cache/data")
     """
-    The directory holding the store's data, with the index under its `index`
-    folder, read against the project's root where relative.
+    The directory holding the store's data, with the fetched files under its
+    `downloads` folder and the index under its `index` folder, read against
+    the project's root where relative.
     """
+
+    retries: NonNegativeInt = 5
+    """
+    The number of times a request is sent again after it fails to connect or
+    the server answers with a status naming a passing fault, such as 503,
+    the first at once and each later one after a wait doubling from 2
+    seconds.
+    """
+
+    timeout_s: PositiveFloat = 30
+    """
+    The seconds a request waits to connect, and then for each read of the
+    response, before it fails.
+    """
+
+    @property
+    def downloads(self) -> Path:
+        """
+        Names the directory `scotch fetch games` downloads the files the
+        store draws from into.
+        """
+        return self.data / "downloads"
 
     @property
     def index(self) -> Path:

@@ -99,6 +99,19 @@ def test_the_data_defaults_under_the_projects_root(pytestconfig: Config):
     )
 
 
+def test_the_fetched_files_sit_beside_the_index(project: Path):
+    """
+    Asserts that the fetched files and the index sit in the `downloads` and
+    `index` folders of one data directory.
+    """
+    settings = Settings()
+
+    assert (settings.downloads, settings.index) == (
+        project / "table" / "downloads",
+        project / "table" / "index"
+    )
+
+
 def test_the_root_falls_back_to_the_working_directory(
     monkeypatch : MonkeyPatch,
     tmp_path    : Path

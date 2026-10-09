@@ -7,6 +7,7 @@ names, each subcommand sitting in a group named for the verb it runs.
 from cyclopts           import App, Parameter
 from importlib.metadata import metadata
 
+from scotch.cli       import fetch, index
 from scotch.cli.audit import repo
 from scotch.cli.match import game
 
@@ -23,6 +24,14 @@ app.command(
     )
 )
 app["audit"].command(repo)
+app.command(
+    App(help="Downloads the files the store draws its games from.", name="fetch")
+)
+app["fetch"].command(fetch.games)
+app.command(
+    App(help="Builds the index of stored games from the fetched files.", name="index")
+)
+app["index"].command(index.games)
 app.command(
     App(help="Matches a submitted game against the stored games.", name="match")
 )

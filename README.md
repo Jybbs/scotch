@@ -14,11 +14,11 @@
 
 ## Introduction
 
-*Scotch* is an innovative chess analytics tool designed to help users study and improve their chess gameplay by comparing their games to a database of Grandmaster-level games. The tool processes a large dataset of over 7 million chess positions from professional tournament games, sourced from [PGN Mentor](https://www.pgnmentor.com).
+*Scotch* is an innovative chess analytics tool designed to help users study and improve their chess gameplay by comparing their games to a database of Grandmaster-level games. The tool matches each game against the grandmaster games [PGN Mentor](https://www.pgnmentor.com/files.html) publishes for every player in its players section.
 
 ## Data & Parquet
 
-The program processes a large dataset containing over 7 million chess positions from professional tournament games as of May 2023. The source material for this dataset comes from [PGN Mentor](https://www.pgnmentor.com), a popular resource for chess games in the PGN (Portable Game Notation) format.
+The games come from the zip archives of Portable Game Notation (PGN) files that [PGN Mentor](https://www.pgnmentor.com/files.html) publishes in its players section, each declared once in `src/scotch/sources/sources.toml` beside its provider, the provider's home page, and the section listing it. `scotch fetch games` downloads them into `.cache/data/downloads` and records each file's address, size, SHA-256 digest, entity tag, and fetch date in the `manifest.json` beside them, so a later fetch downloads only a file the server reports changed. `scotch index games` reads every fetched archive in place into the index under `.cache/data/index`, indexing a game several files repeat under the first file declared, leaving out a game python-chess cannot read with its file and its players named, and copying the manifest beside the index it built.
 
 [Parquet](https://parquet.apache.org) is a columnar storage file format optimized for big data processing frameworks like Apache Spark, Apache Hive, and Apache Impala. It is designed to provide efficient data compression and encoding schemes, enabling fast querying of data stored in a columnar fashion. By using the Parquet format, the program can reduce storage space and improve query performance when working with the large dataset of chess positions.
 
@@ -47,10 +47,14 @@ mise test
 | `mise relock` | *Re-resolves `uv.lock`, `.mise/mise.lock`, and the lockfile beside each task script against their manifests* |
 | `mise audit` | *Reports where the repository's configuration disagrees with itself, such as a pin two files restate* |
 | `mise ci` | *Runs every check a pull request runs, from the lockfiles and their advisories to the workflows' audit and the suite under coverage* |
+| `mise run data:fetch` | *Downloads every file `sources.toml` declares into `.cache/data/downloads`, through `scotch fetch games`* |
+| `mise run data:index` | *Builds the index under `.cache/data/index` from the fetched files, through `scotch index games`* |
 
 `mise x -- uv run scotch --help` prints the help of the `scotch` command, and `mise x -- uv run scotch --version` prints the version it carries.
 
-`mise x -- uv run scotch match game <pgn>` matches the first game of a PGN file against the index of stored games under `.cache/data/index` and prints the stored game sharing the longest unbroken run of positions with it, beside the plies the two share and the move where they part. Its `--json <file>` flag writes the match as the JSON the site's viewer reads, and the `data` key of a `[tool.scotch]` table in `pyproject.toml` or the `SCOTCH_DATA` variable moves the directory holding the index.
+A fresh clone builds its store through two commands, `mise run data:fetch` and then `mise run data:index`, which run `scotch fetch games` and `scotch index games`. A fetch retries a request that fails to connect or meets a passing server fault up to the `retries` setting, five by default, and waits the `timeout_s` setting, 30 seconds by default, to connect and for each read, each moved through a `[tool.scotch]` key of the same name or a `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S` variable.
+
+`mise x -- uv run scotch match game <pgn>` matches the first game of a PGN file against the index of stored games under `.cache/data/index` and prints the stored game sharing the longest unbroken run of positions with it, beside the plies the two share and the move where they part. It warns where the fetched files changed since the index was built from them. Its `--json <file>` flag writes the match as the JSON the site's viewer reads, and the `data` key of a `[tool.scotch]` table in `pyproject.toml` or the `SCOTCH_DATA` variable moves the directory holding the index.
 
 ## Authors and Acknowledgements
 
