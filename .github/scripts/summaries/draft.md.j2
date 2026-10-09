@@ -1,0 +1,14 @@
+{% extends "base.md.j2" %}
+{% block details %}
+{%- with cut = run.needs.draft.outputs %}
+{%- if cut.state == "created" %}
+The cut created the [draft release]({{ cut.url }}) for `{{ cut.version }}`.
+{% elif cut.state == "kept" %}
+The cut left the [draft release]({{ cut.url }}) already carrying `{{ cut.version }}` as it stands.
+{% elif cut.state == "published" %}
+The cut left the [published release]({{ cut.url }}) already carrying `{{ cut.version }}` as it stands.
+{% elif cut.state == "unchanged" %}
+The cut found `[project].version` still at `{{ cut.version }}`, so it created no draft.
+{% endif %}
+{%- endwith %}
+{%- endblock %}

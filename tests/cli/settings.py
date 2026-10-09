@@ -6,12 +6,10 @@ then a `SCOTCH_` environment variable, then the `[tool.scotch]` table of the
 
 from pathlib  import Path
 from pydantic import ValidationError
-from pytest   import MonkeyPatch, mark, param, raises
+from pytest   import Config, MonkeyPatch, mark, param, raises
 from types    import SimpleNamespace
 
 from scotch.cli.settings import Settings, root
-
-PROJECT = Path(__file__).parents[2]
 
 
 @mark.parametrize(
@@ -67,15 +65,20 @@ def test_a_misspelled_key_in_the_table_raises(project: Path):
         Settings()
 
 
-def test_a_run_from_a_subfolder_reads_the_projects_settings(monkeypatch: MonkeyPatch):
+def test_a_run_from_a_subfolder_reads_the_projects_settings(
+    monkeypatch  : MonkeyPatch,
+    pytestconfig : Config
+):
     """
     Asserts that a run from a folder inside the project reads the same
     data directory a run from its root reads, rather than one under the
     subfolder.
     """
-    monkeypatch.chdir(PROJECT / "tests")
+    monkeypatch.chdir(pytestconfig.rootpath / "tests")
 
-    assert Settings().data == PROJECT / Settings.model_fields["data"].default
+    assert Settings().data == (
+        pytestconfig.rootpath / Settings.model_fields["data"].default
+    )
 
 
 def test_an_absolute_data_directory_stands_as_given(project: Path, tmp_path: Path):
@@ -86,12 +89,14 @@ def test_an_absolute_data_directory_stands_as_given(project: Path, tmp_path: Pat
     assert Settings(data=tmp_path / "absolute").data == tmp_path / "absolute"
 
 
-def test_the_data_defaults_under_the_projects_root():
+def test_the_data_defaults_under_the_projects_root(pytestconfig: Config):
     """
     Asserts that a run setting nothing reads the index from the `index`
     folder of the default data directory, read against the project's root.
     """
-    assert Settings().index == PROJECT / Settings.model_fields["data"].default / "index"
+    assert Settings().index == (
+        pytestconfig.rootpath / Settings.model_fields["data"].default / "index"
+    )
 
 
 def test_the_root_falls_back_to_the_working_directory(
@@ -111,12 +116,12 @@ def test_the_root_falls_back_to_the_working_directory(
     assert root() == tmp_path
 
 
-def test_the_root_is_the_directory_the_package_was_installed_from():
+def test_the_root_is_the_directory_the_package_was_installed_from(pytestconfig: Config):
     """
     Asserts that the root is the clone the editable install records in its
     `direct_url.json`, which holds the `pyproject.toml` the settings read.
     """
-    assert root() == PROJECT
+    assert root() == pytestconfig.rootpath
 
 
 def test_the_root_reads_a_clone_whose_path_holds_a_space(

@@ -1,4 +1,11 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "ci"
-#MISE depends     = ["lock:check", "py:check", "py:coverage"]
-#MISE description = "Run every local check, from the lockfiles to the suite under coverage"
+#MISE depends     = [
+#MISE   "lock:audit",
+#MISE   "lock:check",
+#MISE   "py:check",
+#MISE   "py:coverage",
+#MISE   "repo:audit",
+#MISE   "repo:lint"
+#MISE ]
+#MISE description = "Run every check a pull request runs, from the lockfiles to the suite under coverage"

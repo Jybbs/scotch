@@ -4,7 +4,7 @@ requires      = ["hatchling==1.32.4"]
 
 [project]
 authors         = [{ name = "James Parkington" }]
-dependencies    = ["chess", "cyclopts", "polars", "pydantic", "pydantic-settings"]
+dependencies    = ["chess", "cyclopts", "polars", "pydantic", "pydantic-settings", "pyyaml"]
 description     = "Finds the grandmaster game sharing the longest run of positions with a submitted chess game and shows how that game continued."
 license         = "MIT"
 license-files   = ["LICENSE.md"]
@@ -22,11 +22,13 @@ Repository = "https://github.com/Jybbs/scotch"
 [dependency-groups]
 dev = [
     "hypothesis",
+    "minijinja",
     "prose-formatter",
     "pytest",
     "pytest-cov",
     "pytest-randomly",
     "pytest-socket",
+    "pytest-subprocess",
     "syrupy"
 ]
 

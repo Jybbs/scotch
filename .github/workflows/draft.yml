@@ -1,0 +1,51 @@
+concurrency:
+  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  draft:
+    name: ♟️ Draft
+    outputs:
+      state: ${{ steps.cut.outputs.state }}
+      url: ${{ steps.cut.outputs.url }}
+      version: ${{ steps.cut.outputs.version }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out the last two commits
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Cut the draft release
+        id: cut
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: .mise/tasks/gha/cut.py
+    timeout-minutes: 5
+  brief:
+    if: always()
+    name: ⏱️ Brief
+    needs: draft
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: python uv
+      - name: Write the summary
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: mise run gha:brief
+    timeout-minutes: 5
+name: ♟️ Draft
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - pyproject.toml
+  workflow_dispatch:
+permissions:
+  contents: read

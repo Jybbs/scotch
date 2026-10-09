@@ -1,0 +1,9 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `draft` | success |
+
+The cut created the [draft release](https://example.test/0.2.0) for `0.2.0`.
+
+The run checked `560c4d8` on `4/ci-gate`.

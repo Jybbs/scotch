@@ -3,9 +3,10 @@ Defines the fixtures the tests of `scotch.cli` share, each described where
 it is defined.
 """
 
-from common.games import line
-from pathlib      import Path
-from pytest       import MonkeyPatch, fixture
+from common.games  import line
+from common.sample import Sample
+from pathlib       import Path
+from pytest        import MonkeyPatch, fixture
 
 from scotch.games.schemas import Game
 from scotch.index.tables  import PositionIndex
@@ -43,6 +44,17 @@ def indexed(data: Path) -> Game:
     PositionIndex.build([game]).write(data / "index")
 
     return game
+
+
+@fixture
+def inside(monkeypatch: MonkeyPatch, sample: Sample) -> Sample:
+    """
+    Points the project's root `scotch audit repo` reads at the sample
+    checkout.
+    """
+    monkeypatch.setattr("scotch.cli.audit.root", lambda: sample.root)
+
+    return sample
 
 
 @fixture

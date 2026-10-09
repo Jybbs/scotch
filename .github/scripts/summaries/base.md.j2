@@ -1,0 +1,9 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+{% for job, need in run.needs|items -%}
+| `{{ job }}` | {{ need.result }} |
+{% endfor %}
+{%- block details %}{% endblock %}
+The run checked `{{ run.commit[:7] }}` on `{{ run.branch }}`.

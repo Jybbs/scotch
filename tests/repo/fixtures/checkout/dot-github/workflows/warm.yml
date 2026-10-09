@@ -1,0 +1,32 @@
+jobs:
+  kit:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install the tools and save their cache
+        uses: $/.github/actions/provision
+        with:
+          save: 'true'
+          tools: ${{ matrix.tools }}
+    strategy:
+      matrix:
+        tools:
+          - python uv
+  brief:
+    if: ${{ always() }}
+    name: ⏱️ Brief
+    needs:
+      - kit
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Write the summary
+        run: mise run gha:brief
+name: Warm
+on:
+  push:
+    paths:
+      - .github/actions/provision/action.yml
+      - .github/workflows/warm.yml
+      - .mise/config.toml
+      - .mise/mise.lock

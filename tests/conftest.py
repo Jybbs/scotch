@@ -5,24 +5,25 @@ the `ci` profile Hypothesis loads on a CI runner and twenty-five under
 a heavily loaded machine fails no test a runner passes.
 
 The autouse `environment` fixture isolates every test from the machine
-running it, the `pgn` fixture writes the PGN text a test reads through a
-file, and the collection hook lets a test open a network connection only
-when it carries the `network` mark.
+running it, and the plugin `common.isolation` registers lets a test open
+a network connection only when it carries the `network` mark. The `sample`
+and `answered` fixtures copy the sample checkout the checks in `scotch.repo`
+read, and the `pgn` fixture writes the PGN text a test reads through a file.
 """
 
-from collections.abc import Callable
-from hypothesis      import settings
-from os              import environ
-from pathlib         import Path
-from pytest          import Item, MonkeyPatch, TempPathFactory, fixture, mark
+from collections.abc  import Callable
+from common.isolation import CLEARED
+from common.sample    import Sample
+from hypothesis       import settings
+from os               import environ
+from pathlib          import Path
+from pytest           import MonkeyPatch, TempPathFactory, fixture
+from pytest_subprocess.fake_process import FakeProcess
 
 from scotch.cli.settings import Settings
 
-CLEARED = (
-    "CLICOLOR", "COLORTERM", "COLUMNS", "FORCE_COLOR", "GITHUB_OUTPUT",
-    "GITHUB_STEP_SUMMARY", "LINES", "NO_COLOR", "TTY_COMPATIBLE",
-    "TTY_INTERACTIVE", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"
-)
+# `pytest_plugins` stays lowercase, the only name pytest reads the plugin list under.
+pytest_plugins = ["common.isolation"]  # prose: ignore[miscased-constants]
 
 settings.register_profile("ci", settings.get_profile("ci"), max_examples=200)
 settings.register_profile(
@@ -60,16 +61,24 @@ def environment(monkeypatch: MonkeyPatch, tmp_path_factory: TempPathFactory):
     monkeypatch.setenv("HOME", str(tmp_path_factory.mktemp("home")))
 
 
-def pytest_collection_modifyitems(items: list[Item]):
+@fixture
+def answered(fp: FakeProcess, sample: Sample) -> Sample:
     """
-    Adds pytest-socket's `enable_socket` mark to every test carrying the
-    `network` mark. The `--disable-socket` option in `addopts` blocks every
-    test from opening a connection, and a test carrying `enable_socket` can
-    reach a live service again.
+    Copies the sample checkout and registers the answers mise gives it,
+    reporting no problem from `mise tasks validate`.
     """
-    for item in items:
-        if item.get_closest_marker("network"):
-            item.add_marker(mark.enable_socket)
+    sample.answer(fp)
+
+    return sample
+
+
+@fixture
+def sample(tmp_path: Path) -> Sample:
+    """
+    Copies the sample checkout under `tests/repo/fixtures/checkout/` into
+    `tmp_path`.
+    """
+    return Sample.copy(tmp_path)
 
 
 @fixture(scope="session")
