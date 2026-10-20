@@ -1,17 +1,16 @@
 """
-Pins what `scotch fetch games` prints and records for the files it is
-declared, against the answers `responses` registers in place of the network,
-the settings its requests run under, and the problem it names where it exits
+Pins what `scotch fetch games` prints and records for the files declared to
+it, against the answers `responses` registers in place of the network, the
+settings its requests run under, and the problem it names where it exits
 nonzero.
 """
 
-from collections.abc  import Callable
-from common.app       import invoke
-from common.sources   import serve
-from pathlib          import Path
-from pytest           import CaptureFixture, MonkeyPatch
-from responses        import RequestsMock
-from syrupy.assertion import SnapshotAssertion
+from collections.abc import Callable
+from common.app      import invoke
+from common.sources  import serve
+from pathlib         import Path
+from pytest          import CaptureFixture, MonkeyPatch, mark
+from responses       import RequestsMock
 
 from scotch.sources.schemas import Manifest, Source
 
@@ -22,9 +21,9 @@ def test_a_failed_request_exits_naming_the_file_and_keeps_the_ones_before(
     web      : RequestsMock
 ):
     """
-    Asserts that a file the server answers 404 Not Found for exits nonzero
-    naming its address and the error, while the manifest keeps each file
-    fetched before it.
+    Asserts that a fetch reaching a file the server answers 404 Not Found
+    for exits nonzero naming its address and the error, while the manifest
+    keeps each file fetched before it.
     """
     serve("https://example.com/players/A.zip", b"a", web=web)
     web.get("https://example.com/players/B.zip", status=404)
@@ -65,15 +64,16 @@ def test_a_fetch_prints_each_file_and_records_it_beside_them(
     ]
 
 
+@mark.usefixtures("data")
 def test_a_fetch_retries_each_request_the_times_the_settings_name(
     declared    : Callable[..., tuple[Source, ...]],
     monkeypatch : MonkeyPatch,
     queued      : RequestsMock
 ):
     """
-    Asserts that a fetch under a `SCOTCH_RETRIES` of 1 sends a request the
-    server answers 503 twice no more than twice, exiting nonzero naming the
-    file, although a third answer would have carried it.
+    Asserts that a fetch under a `SCOTCH_RETRIES` of 1 sends a request no
+    more than twice, exiting nonzero naming the file once the server answers
+    503 to both, although the answer queued third is a 200.
     """
     for status in (503, 503, 200):
         queued.get("https://example.com/players/A.zip", status=status)
@@ -89,14 +89,15 @@ def test_a_fetch_retries_each_request_the_times_the_settings_name(
     assert len(queued.calls) == 2
 
 
+@mark.usefixtures("data")
 def test_a_fetch_sends_each_request_under_the_timeout_the_settings_name(
     declared    : Callable[..., tuple[Source, ...]],
     monkeypatch : MonkeyPatch,
     web         : RequestsMock
 ):
     """
-    Asserts that each request a fetch sends waits the seconds the
-    `SCOTCH_TIMEOUT_S` variable names.
+    Asserts that each request a fetch sends carries the timeout, in seconds,
+    that the `SCOTCH_TIMEOUT_S` variable names.
     """
     serve("https://example.com/players/A.zip", b"a", web=web)
     declared("players/A.zip")
@@ -126,18 +127,3 @@ def test_a_second_fetch_prints_each_file_the_server_reports_unchanged(
     assert invoke("fetch", "games") == 0
     assert capsys.readouterr().out == "Unchanged https://example.com/players/A.zip\n"
     assert Manifest.read(data / "downloads") == manifest
-
-
-def test_fetch_games_help_text(
-    capsys      : CaptureFixture[str],
-    monkeypatch : MonkeyPatch,
-    snapshot    : SnapshotAssertion
-):
-    """
-    Asserts that `--help` exits zero and prints the help text its snapshot
-    holds at eighty columns.
-    """
-    monkeypatch.setenv("COLUMNS", "80")
-
-    assert invoke("fetch", "games", "--help") == 0
-    assert capsys.readouterr().out == snapshot

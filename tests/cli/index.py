@@ -4,12 +4,11 @@ under the data directory, read across a pool of processes, and the problem
 it names where it exits nonzero.
 """
 
-from collections.abc  import Callable
-from common.app       import invoke
-from common.sources   import zipped
-from pathlib          import Path
-from pytest           import CaptureFixture, MonkeyPatch
-from syrupy.assertion import SnapshotAssertion
+from collections.abc import Callable
+from common.app      import invoke
+from common.sources  import zipped
+from pathlib         import Path
+from pytest          import CaptureFixture
 
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Manifest, Source
@@ -41,8 +40,8 @@ def test_a_file_changed_on_disk_since_its_fetch_exits_naming_it(
 ):
     """
     Asserts that a build where one fetched file was edited and another
-    removed since the fetch exits nonzero naming both, so the index never
-    records a manifest the bytes it read disagree with.
+    removed since the fetch exits nonzero naming both, and not the file left
+    as it was fetched.
     """
     edited, _, removed = fetched(
         ("players/A.pgn", b"1. e4 *\n"),
@@ -68,7 +67,9 @@ def test_an_index_build_reports_each_file_and_each_game_left_out(
     Asserts that a build reads every fetched file in the order declared and
     prints, for each, the games read and a line per problem of a game left
     out naming its file, its place, and its players, then the games indexed.
-    A game the second file repeats is indexed once, under the first.
+    A game the second file repeats is indexed once, under the first, and
+    the index is written beside a copy of the manifest the files were read
+    under.
     """
     fetched(
         ("players/A.zip", zipped(("A.pgn", '[White "A"]\n\n1. e4 *\n'))),
@@ -103,18 +104,3 @@ def test_an_index_build_with_nothing_fetched_exits_naming_the_folder(data: Path)
     assert invoke("index", "games") == (
         f"No file has been fetched under {data / 'downloads'}"
     )
-
-
-def test_index_games_help_text(
-    capsys      : CaptureFixture[str],
-    monkeypatch : MonkeyPatch,
-    snapshot    : SnapshotAssertion
-):
-    """
-    Asserts that `--help` exits zero and prints the help text its snapshot
-    holds at eighty columns.
-    """
-    monkeypatch.setenv("COLUMNS", "80")
-
-    assert invoke("index", "games", "--help") == 0
-    assert capsys.readouterr().out == snapshot

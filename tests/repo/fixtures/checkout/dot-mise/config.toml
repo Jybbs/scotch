@@ -2,5 +2,6 @@
 _.path = ".mise/bin"
 
 [tools]
+node   = "26.11.1"
 python = "3.14.6"
 uv     = "0.12.13"

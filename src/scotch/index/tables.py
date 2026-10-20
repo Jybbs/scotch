@@ -68,11 +68,18 @@ class PositionIndex:
     def match(self, submitted: Game) -> Match | None:
         """
         Finds the stored game sharing the longest unbroken run of positions
-        with `submitted`, the first of the runs `runs` ranks, beside the
-        count of other stored games sharing a run as long, or `None` where
-        no stored game holds a position `submitted` reaches.
+        with `submitted`, through `matched` over the runs `runs` ranks.
         """
-        if (runs := self.runs(submitted)).is_empty():
+        return self.matched(self.runs(submitted))
+
+    def matched(self, runs: DataFrame) -> Match | None:
+        """
+        Reads the match out of the runs `runs` ranks for one submitted game,
+        the first run's stored game beside the count of other stored games
+        sharing a run as long, or `None` where `runs` holds no run, as for a
+        game reaching no position the index holds.
+        """
+        if runs.is_empty():
             return None
 
         best = runs.row(0, named=True)
@@ -84,11 +91,7 @@ class PositionIndex:
                 offset = best["offset"],
                 start  = best["start"]
             ),
-            ties = (
-                runs.filter(col("length") == best["length"])
-                    .get_column("game")
-                    .n_unique()
-            ) - 1
+            ties = self.tied(runs)
         )
 
     @classmethod
@@ -208,6 +211,18 @@ class PositionIndex:
             )
             .collect()
         )
+
+    @staticmethod
+    def tied(runs: DataFrame) -> int:
+        """
+        Counts the stored games other than the first run's sharing a run as
+        long as it, among the runs `runs` ranks for one submitted game.
+        """
+        return (
+            runs.filter(col("length") == runs.item(0, "length"))
+                .get_column("game")
+                .n_unique()
+        ) - 1
 
     def write(self, directory: Path):
         """

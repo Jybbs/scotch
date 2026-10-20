@@ -1,0 +1,11 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `coverage` | success |
+| `deploy` | success |
+| `press` | success |
+
+The deploy published the site at <https://0a1b2c3d.scotch.pages.dev>.
+
+The run checked `560c4d8` on `4/ci-gate`.

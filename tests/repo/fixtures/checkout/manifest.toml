@@ -5,6 +5,7 @@ requires = ["hatchling==1.32.4"]
 authors         = [{ name = "James Parkington" }]
 license         = "MIT"
 license-files   = ["LICENSE.md"]
+readme          = ".github/README.md"
 requires-python = ">=3.14"
 
 [tool.prose]

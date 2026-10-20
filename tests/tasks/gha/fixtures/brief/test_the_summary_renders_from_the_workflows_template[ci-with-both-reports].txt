@@ -1,0 +1,11 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `check` | success |
+
+The [coverage report](https://example.test/artifacts/1) shows each line the suite leaves out.
+
+The [site's coverage report](https://example.test/artifacts/2) shows each line the site's suite leaves out.
+
+The run checked `560c4d8` on `4/ci-gate`.

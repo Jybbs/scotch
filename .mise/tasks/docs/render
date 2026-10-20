@@ -1,0 +1,4 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Write each file a declaration in the repository renders into, and each one the index renders into where one has been built"
+
+scotch render docs

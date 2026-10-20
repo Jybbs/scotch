@@ -110,6 +110,58 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
             {"check": {"result": "cancelled", "outputs": {}}},
             id = "ci-without-coverage"
         ),
+        param(
+            "ci",
+            {
+                "check": {
+                    "result"  : "success",
+                    "outputs" : {
+                        "coverage"      : "https://example.test/artifacts/1",
+                        "site-coverage" : "https://example.test/artifacts/2"
+                    }
+                }
+            },
+            id = "ci-with-both-reports"
+        ),
+        param(
+            "deploy",
+            {
+                "coverage" : {"result": "success", "outputs": {}},
+                "deploy"   : {
+                    "result"  : "success",
+                    "outputs" : {"url": "https://0a1b2c3d.scotch.pages.dev"}
+                },
+                "press"    : {"result": "success", "outputs": {}}
+            },
+            id = "deploy-published"
+        ),
+        param(
+            "deploy",
+            {
+                "coverage" : {"result": "success", "outputs": {}},
+                "deploy"   : {"result": "success", "outputs": {}},
+                "press"    : {"result": "success", "outputs": {}}
+            },
+            id = "deploy-published-without-an-address"
+        ),
+        param(
+            "deploy",
+            {
+                "coverage" : {"result": "success", "outputs": {}},
+                "deploy"   : {"result": "skipped", "outputs": {}},
+                "press"    : {"result": "success", "outputs": {}}
+            },
+            id = "deploy-skipped"
+        ),
+        param(
+            "deploy",
+            {
+                "coverage" : {"result": "success", "outputs": {}},
+                "deploy"   : {"result": "skipped", "outputs": {}},
+                "press"    : {"result": "failure", "outputs": {}}
+            },
+            id = "deploy-press-failed"
+        ),
         *(
             param(
                 "draft",
@@ -145,8 +197,7 @@ def test_the_summary_renders_from_the_workflows_template(
 ):
     """
     Asserts that each workflow's summary renders from the template named for
-    its file, or from `base.md.j2` where none is, as the fixture file holds
-    it, so a change to what a summary says is reviewed as a diff.
+    its file, or from `base.md.j2` where none is, as its snapshot holds it.
     """
     assert task.Run.from_environ(variables(workflow, needs=needs)).render() == snapshot
 

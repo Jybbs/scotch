@@ -1,0 +1,107 @@
+concurrency:
+  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  press:
+    name: 📰 Press
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: bun lychee node
+      - name: Build the site and check its links
+        run: mise run site:links
+      - name: Attach the site
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          if-no-files-found: error
+          name: site
+          path: docs/.vitepress/dist
+          retention-days: 1
+    timeout-minutes: 15
+  coverage:
+    name: 🎯 Coverage
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: python uv
+      - name: Run the suite under coverage
+        run: mise run py:coverage
+      - name: Write the total the badge reads
+        run: mise run gha:total -- "$RUNNER_TEMP/total"
+      - name: Attach the total
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          if-no-files-found: error
+          name: total
+          path: ${{ runner.temp }}/total
+          retention-days: 1
+    timeout-minutes: 15
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    name: 🚀 Deploy
+    needs:
+      - coverage
+      - press
+    outputs:
+      url: ${{ steps.publish.outputs.deployment-url }}
+    permissions: {}
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Download the site and the total
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          merge-multiple: true
+          path: docs/.vitepress/dist
+      - name: Publish the site to Cloudflare Pages
+        id: publish
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0
+        with:
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CLOUDFLARE_TOKEN }}
+          command: pages deploy --branch=main --project-name=scotch docs/.vitepress/dist
+          wranglerVersion: 4.149.0
+    timeout-minutes: 10
+  brief:
+    if: always()
+    name: ⏱️ Brief
+    needs:
+      - coverage
+      - deploy
+      - press
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: python uv
+      - name: Write the summary
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: mise run gha:brief
+    timeout-minutes: 5
+name: ♟️ Deploy
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/actions/provision/action.yml
+      - .github/workflows/deploy.yml
+      - .mise/bin/**
+      - .mise/config.toml
+      - .mise/mise.lock
+      - .mise/tasks/gha/total
+      - .mise/tasks/py/coverage
+      - .mise/tasks/site/**
+      - docs/**
+      - pyproject.toml
+      - src/**
+      - tests/**
+      - uv.lock
+  workflow_dispatch:
+permissions:
+  contents: read

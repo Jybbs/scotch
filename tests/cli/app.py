@@ -1,29 +1,44 @@
 """
 Pins what the `scotch` command itself defines, meaning the script
-`[project.scripts]` declares, the help text the package's summary renders,
-and the version its metadata carries.
+`[project.scripts]` declares, the help text the docstrings of the app and of
+each command it registers render, and the version its metadata carries.
 """
 
 from common.app         import invoke
 from importlib.metadata import entry_points, version
-from pytest             import CaptureFixture, MonkeyPatch
+from pytest             import CaptureFixture, MonkeyPatch, mark, param
 from syrupy.assertion   import SnapshotAssertion
 
 from scotch.cli import app
 
 
+@mark.parametrize(
+    "tokens",
+    [
+        param((), id="scotch"),
+        *(
+            param((verb, noun), id=f"{verb}-{noun}")
+            for verb in app
+            if not verb.startswith("-")
+            for noun in app[verb]
+            if not noun.startswith("-")
+        )
+    ]
+)
 def test_help_text(
     capsys      : CaptureFixture[str],
     monkeypatch : MonkeyPatch,
-    snapshot    : SnapshotAssertion
+    snapshot    : SnapshotAssertion,
+    tokens      : tuple[str, ...]
 ):
     """
     Asserts that `--help` exits zero and prints the help text its snapshot
-    holds at eighty columns.
+    holds at eighty columns, for `scotch` itself and for each command it
+    registers, the hidden ones included.
     """
     monkeypatch.setenv("COLUMNS", "80")
 
-    assert invoke("--help") == 0
+    assert invoke(*tokens, "--help") == 0
     assert capsys.readouterr().out == snapshot
 
 

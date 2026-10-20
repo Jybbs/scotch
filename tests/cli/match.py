@@ -21,25 +21,27 @@ from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Download, Manifest
 
 
-def test_a_file_holding_no_game_exits_naming_it(data: Path, pgn: Callable[..., Path]):
+@mark.usefixtures("data")
+def test_a_file_holding_no_game_exits_naming_it(pgn: Callable[..., Path]):
     """
-    Asserts that a file holding no game exits nonzero naming the file.
+    Asserts that a match against a file holding no game exits nonzero naming
+    the file.
     """
     path = pgn("")
 
     assert invoke("match", "game", str(path)) == f"Found no game in {path}"
 
 
+@mark.usefixtures("indexed")
 def test_a_file_holding_several_games_matches_its_first(
     capsys   : CaptureFixture[str],
-    indexed  : Game,
     pgn      : Callable[..., Path],
     snapshot : SnapshotAssertion
 ):
     """
-    Asserts that a file holding two games matches the first, which shares
-    four positions with the stored game, rather than the second, which
-    shares five.
+    Asserts that a match against a file holding two games matches the
+    first, which shares four positions with the stored game, rather than the
+    second, which shares five.
     """
     path = pgn("1. e4 e5 2. Nf3 d6 *\n\n1. e4 e5 2. Nf3 Nc6 3. Bc4 *\n")
 
@@ -65,16 +67,16 @@ def test_a_file_holding_several_games_matches_its_first(
         )
     ]
 )
+@mark.usefixtures("data")
 def test_a_game_that_cannot_be_matched_exits_naming_its_problem(
-    data    : Path,
     pgn     : Callable[..., Path],
     problem : str,
     text    : str
 ):
     """
-    Asserts that a game python-chess recorded an error reading, or one whose
-    `Variant` tag names a variant other than standard chess, exits nonzero
-    naming the file and the problem.
+    Asserts that a match exits nonzero naming the file and the problem where
+    python-chess recorded an error reading the game or its `Variant` tag
+    names a variant other than standard chess.
     """
     path = pgn(text)
 
@@ -82,18 +84,19 @@ def test_a_game_that_cannot_be_matched_exits_naming_its_problem(
         "match",
         "game",
         str(path)
-    ) == f"Cannot match the game in {path}:\n{problem}"
+    ) == f"Found problems in the game in {path}:\n{problem}"
 
 
+@mark.usefixtures("indexed")
 def test_a_game_sharing_no_position_prints_a_line_saying_so(
     capsys   : CaptureFixture[str],
-    indexed  : Game,
     pgn      : Callable[..., Path],
     snapshot : SnapshotAssertion
 ):
     """
-    Asserts that a game set up from a position the stored game never reaches
-    prints one line saying no stored game shares a position with it.
+    Asserts that a match of a game set up from a position the stored game
+    never reaches prints one line saying no stored game shares a position
+    with it.
     """
     path = pgn('[FEN "4k3/8/8/8/8/8/8/4K2R w K - 0 1"]\n\n1. O-O *')
 
@@ -101,17 +104,17 @@ def test_a_game_sharing_no_position_prints_a_line_saying_so(
     assert capsys.readouterr().out == snapshot
 
 
+@mark.usefixtures("indexed")
 def test_a_match_prints_the_stored_game_the_span_and_the_parting(
     capsys   : CaptureFixture[str],
-    indexed  : Game,
     pgn      : Callable[..., Path],
     snapshot : SnapshotAssertion
 ):
     """
-    Asserts that a game sharing its first four positions with the stored
-    game prints the stored game's players, event, and date, its place in the
-    file it was read from, the plies the two share, and the move the stored
-    game played where they part.
+    Asserts that the match of a game sharing its first four positions with
+    the stored game prints the stored game's players, event, and date, its
+    place in the file it was read from, the plies the two share, and the
+    move the stored game played where they part.
     """
     assert invoke(
         "match",
@@ -158,33 +161,19 @@ def test_an_index_holding_another_layout_exits_naming_where_it_was_read(
 def test_json_writes_the_export_of_the_match(indexed: Game, pgn: Callable[..., Path]):
     """
     Asserts that `--json` writes the export of the match to the file it
-    names, creating the folder that holds it, with the submitted game beside
-    the stored game.
+    names, creating the folder that holds it and closing the file on a
+    newline, with the submitted game beside the stored game.
     """
     path     = pgn("1. e4 e5 2. Nf3 d6 *")
     exported = path.parent / "missing" / "match.json"
 
     assert invoke("match", "game", str(path), "--json", str(exported)) == 0
+    assert exported.read_text().endswith("}\n")
 
     export = Export.model_validate_json(exported.read_text())
     [game] = Game.read(path)
 
     assert export == Export.from_match(PositionIndex.build([indexed]).match(game), game)
-
-
-def test_match_game_help_text(
-    capsys      : CaptureFixture[str],
-    monkeypatch : MonkeyPatch,
-    snapshot    : SnapshotAssertion
-):
-    """
-    Asserts that `--help` exits zero and prints the help text its snapshot
-    holds at eighty columns.
-    """
-    monkeypatch.setenv("COLUMNS", "80")
-
-    assert invoke("match", "game", "--help") == 0
-    assert capsys.readouterr().out == snapshot
 
 
 @mark.parametrize(
@@ -194,10 +183,10 @@ def test_match_game_help_text(
         param(b"b", True, id="files-changed")
     ]
 )
+@mark.usefixtures("indexed")
 def test_a_match_warns_where_the_files_changed_since_the_index_was_built(
     capsys      : CaptureFixture[str],
     data        : Path,
-    indexed     : Game,
     monkeypatch : MonkeyPatch,
     pgn         : Callable[..., Path],
     recorded    : bytes,

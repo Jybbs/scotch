@@ -1,9 +1,14 @@
 """
-Pins what `Game` reads out of a PGN file through python-chess's reader,
-meaning each game's tags, the moves of its mainline, the errors the reader
-recorded without logging them, and the problems those errors and a `Variant`
-tag add up to, along with the keys, placements, and SAN moves each position
-of the mainline yields, the players it names, and its Seven Tag Roster.
+Pins what `Game` reads out of a PGN file through python-chess's reader and
+what it derives from that:
+
+- The tags, the mainline's moves, the errors the reader recorded without
+  logging them, and the problems those errors and a `Variant` tag add up to
+- The first game of a file, or the error naming a file with none to read
+- The key, placement, and SAN each position yields, each move behind its
+  number, and the `Frame` each position is drawn as, every piece under the
+  number it keeps from the first
+- The players a game names and its Seven Tag Roster
 """
 
 from chess             import Board, Move
@@ -19,7 +24,7 @@ from pydantic          import ValidationError
 from pytest            import LogCaptureFixture, mark, param, raises
 from zipfile           import Path as ZipPath, ZipFile
 
-from scotch.games.schemas import Game
+from scotch.games.schemas import Frame, Game
 
 
 def moves(*uci: str) -> tuple[Move, ...]:
@@ -111,6 +116,69 @@ def test_a_fen_tag_the_reader_cannot_read_leaves_no_move(
     assert game.moves == ()
 
 
+def test_a_frame_lists_its_pieces_in_the_order_of_their_numbers():
+    """
+    Asserts that `Frame.drawn` lists the pieces in the order of their
+    numbers, which here matches neither the order of their squares nor the
+    order `piece_map` lists them in, so a drawing that reads the list in
+    order finds each piece at the same index in every frame.
+    """
+    assert Frame.drawn(
+        Board("8/8/8/8/8/8/8/k2Q3K w - - 0 1"),
+        {0: 5, 3: 9, 7: 1}
+    ).pieces == ((1, 7, "K"), (5, 0, "k"), (9, 3, "Q"))
+
+
+@mark.parametrize(
+    ("sans", "tags", "landed"),
+    [
+        param((), {}, None, id="start"),
+        param(("Nf3",), {}, "N", id="knight"),
+        param(
+            ("O-O",),
+            {"FEN": "4k3/8/8/8/8/8/8/4K2R w K - 0 1", "SetUp": "1"},
+            "K",
+            id = "castling"
+        ),
+        param(
+            ("b8=Q",),
+            {"FEN": "8/1P6/8/8/8/8/8/k6K w - - 0 1", "SetUp": "1"},
+            "Q",
+            id = "promotion"
+        )
+    ]
+)
+def test_a_frame_names_the_piece_its_move_sets_down(
+    landed : str | None,
+    sans   : tuple[str, ...],
+    tags   : dict[str, str]
+):
+    """
+    Asserts that the last frame names the piece the move reaching it sets
+    down, the king where the move castles and the new piece where a pawn
+    promotes, and none at the position the mainline starts at.
+    """
+    assert line(*sans, **tags).frames[-1].landed == landed
+
+
+def test_a_frame_numbers_each_piece_by_the_square_it_starts_on():
+    """
+    Asserts that the first frame numbers each of the 32 pieces by the square
+    it stands on and names no move, and that the next frame carries a moved
+    piece's number to its new square beside the move and its SAN.
+    """
+    first, second = line("e4").frames
+
+    assert first.pieces == tuple(
+        (spot, spot, piece.symbol()) for spot, piece in sorted(
+            Board().piece_map().items()
+        )
+    )
+    assert (first.move, first.san) == (None, None)
+    assert (12, 28, "P") in second.pieces
+    assert (second.move, second.san) == ((12, 28), "e4")
+
+
 def test_a_game_reads_from_a_member_of_a_zip_archive(tmp_path: Path):
     """
     Asserts that a PGN file read in place from inside a zip archive, as
@@ -123,31 +191,6 @@ def test_a_game_reads_from_a_member_of_a_zip_archive(tmp_path: Path):
 
     assert [game.moves for game in games] == [moves("e2e4"), moves("d2d4")]
     assert {game.origin for game in games} == {None}
-
-
-def test_a_game_refuses_a_field_it_does_not_declare():
-    """
-    Asserts that building a game with a keyword its record does not declare
-    raises `ValidationError`, so a misspelled field never reads as unset.
-    """
-    with raises(ValidationError):
-        Game(
-            errors  = (),
-            moves   = (),
-            tags    = {},
-            unknown = 1
-        )
-
-
-def test_a_game_refuses_a_new_value_for_a_field(read: Callable[..., list[Game]]):
-    """
-    Asserts that a game read from a file is frozen, so assigning its moves
-    raises `ValidationError` rather than replacing them.
-    """
-    [game] = read("1. e4 *\n")
-
-    with raises(ValidationError):
-        game.moves = ()
 
 
 @mark.parametrize(
@@ -174,7 +217,7 @@ def test_a_game_refuses_a_new_value_for_a_field(read: Callable[..., list[Game]])
         param("", ("unsupported variant: ",), ("unsupported variant: ",), id="empty")
     ]
 )
-def test_a_variant_tag_adds_the_problems_its_variant_raises(
+def test_a_variant_tag_adds_one_problem_for_any_variant_but_standard(
     errors   : tuple[str, ...],
     problems : tuple[str, ...],
     read     : Callable[..., list[Game]],
@@ -182,9 +225,9 @@ def test_a_variant_tag_adds_the_problems_its_variant_raises(
 ):
     """
     Asserts that a `Variant` tag adds no problem where the game carries
-    none, one problem where it names a variant python-chess reads under its
-    own rules, and the error the reader recorded, once rather than twice,
-    where it names a variant python-chess cannot read.
+    no such tag, one problem where it names a variant python-chess reads
+    under its own rules, and the error the reader recorded, once rather than
+    twice, where it names a variant python-chess cannot read.
     """
     [game] = read(("" if variant is None else f'[Variant "{variant}"]\n\n') + "*\n")
 
@@ -215,6 +258,41 @@ def test_a_variant_tag_naming_standard_chess_adds_no_problem(
     assert game.problems == ()
 
 
+def test_a_game_refuses_a_field_it_does_not_declare():
+    """
+    Asserts that building a game with a keyword its record does not declare
+    raises `ValidationError`, so a misspelled field never reads as unset.
+    """
+    with raises(ValidationError):
+        Game(
+            errors  = (),
+            moves   = (),
+            tags    = {},
+            unknown = 1
+        )
+
+
+def test_a_game_refuses_a_new_value_for_a_field(read: Callable[..., list[Game]]):
+    """
+    Asserts that a game read from a file is frozen, so assigning its moves
+    raises `ValidationError` rather than replacing them.
+    """
+    [game] = read("1. e4 *\n")
+
+    with raises(ValidationError):
+        game.moves = ()
+
+
+def test_a_game_whose_position_cannot_be_set_up_draws_no_frame():
+    """
+    Asserts that a game whose `FEN` tag python-chess cannot set up draws no
+    frame, as it yields no board.
+    """
+    game = Game(errors=(), moves=(), tags={"FEN": "not a position", "SetUp": "1"})
+
+    assert game.frames == ()
+
+
 def test_a_move_from_a_fen_position_reads_behind_the_fen_move_number():
     """
     Asserts that a game a `FEN` tag starts numbers its moves from the move
@@ -223,6 +301,42 @@ def test_a_move_from_a_fen_position_reads_behind_the_fen_move_number():
     assert line("Kd7", FEN="4k3/8/8/8/8/8/8/4K3 b - - 0 40").numbered(
         0
     ) == "40...Kd7"
+
+
+def test_a_null_move_leaves_every_piece_under_its_number():
+    """
+    Asserts that a null move draws the frame before it again, every piece on
+    its square under its number, with no move landing anywhere.
+    """
+    before, after = line("e4", "--").frames[1:]
+
+    assert after.pieces == before.pieces
+    assert (after.move, after.san, after.landed) == (None, "--", None)
+
+
+@mark.parametrize(
+    ("text", "problem"),
+    [
+        param("", "Found no game in .*games.pgn$", id="empty"),
+        param(
+            "1. e4 e5 2. Qxh7 *\n",
+            "Found problems in the game in .*games.pgn:\nillegal san",
+            id = "illegal"
+        )
+    ]
+)
+def test_first_raises_naming_a_file_whose_first_game_cannot_be_read(
+    pgn     : Callable[..., Path],
+    problem : str,
+    text    : str
+):
+    """
+    Asserts that reading the first game of a file holding none, or of
+    one whose first game carries a move python-chess cannot read, raises
+    `ValueError` naming the file and each problem.
+    """
+    with raises(ValueError, match=problem):
+        Game.first(pgn(text))
 
 
 def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
@@ -244,48 +358,6 @@ def test_an_en_passant_capture_that_would_be_illegal_still_changes_the_key():
 
     assert pushed.placements[-1] == placed.placements[-1]
     assert pushed.keys[-1] != placed.keys[-1]
-
-
-def test_an_illegal_move_ends_the_mainline_and_records_an_error(
-    read: Callable[..., list[Game]]
-):
-    """
-    Asserts that a move illegal in the position it was played from ends the
-    mainline before it and leaves the error the reader recorded naming it.
-    """
-    [game] = read("1. e4 e5 2. Qxf7 Nc6 *\n")
-
-    assert game.moves == moves("e2e4", "e7e5")
-    assert game.problems == game.errors
-    [error] = game.errors
-
-    assert error.startswith("illegal san: 'Qxf7'")
-
-
-def test_an_illegal_move_is_recorded_without_being_logged(
-    caplog : LogCaptureFixture,
-    read   : Callable[..., list[Game]]
-):
-    """
-    Asserts that reading a game holding an illegal move records the error on
-    the game and writes nothing to any logger.
-    """
-    [game] = read("1. e4 e5 2. Qxf7 *\n")
-
-    assert len(game.errors) == 1
-    assert caplog.records == []
-
-
-def test_boards_yields_each_position_on_one_board():
-    """
-    Asserts that `boards` yields one board per position, pushing each move
-    onto the board it yielded last.
-    """
-    boards = list(line("e4", "e5").boards())
-
-    assert len(boards) == 3
-    assert all(board is boards[0] for board in boards)
-    assert boards[0].move_stack == list(moves("e2e4", "e7e5"))
 
 
 @given(game=games())
@@ -330,25 +402,34 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     assert line(*sans.split()).keys[-1] == key
 
 
-def test_every_game_reads_in_file_order(read: Callable[..., list[Game]]):
+def test_an_illegal_move_ends_the_mainline_and_records_an_error(
+    read: Callable[..., list[Game]]
+):
     """
-    Asserts that a file holding two games yields both, in the order the file
-    holds them, each with its own tags and moves.
+    Asserts that a move illegal in the position it was played from ends the
+    mainline before it and leaves the error the reader recorded naming it.
     """
-    games = read('[Event "First"]\n\n1. e4 e5 *\n\n[Event "Second"]\n\n1. d4 *\n')
+    [game] = read("1. e4 e5 2. Qxf7 Nc6 *\n")
 
-    assert [game.tags["Event"] for game in games] == ["First", "Second"]
-    assert [game.moves for game in games] == [moves("e2e4", "e7e5"), moves("d2d4")]
+    assert game.moves == moves("e2e4", "e7e5")
+    assert game.problems == game.errors
+    [error] = game.errors
+
+    assert error.startswith("illegal san: 'Qxf7'")
 
 
-def test_players_name_white_then_black():
+def test_an_illegal_move_is_recorded_without_being_logged(
+    caplog : LogCaptureFixture,
+    read   : Callable[..., list[Game]]
+):
     """
-    Asserts that a game names its players as the `White` tag, then `vs.`,
-    then the `Black` tag.
+    Asserts that reading a game holding an illegal move records the error on
+    the game and writes nothing to any logger.
     """
-    assert line(Black="Short, Nigel D", White="Adams, Michael").players == (
-        "Adams, Michael vs. Short, Nigel D"
-    )
+    [game] = read("1. e4 e5 2. Qxf7 *\n")
+
+    assert len(game.errors) == 1
+    assert caplog.records == []
 
 
 @mark.parametrize(
@@ -365,6 +446,61 @@ def test_a_move_reads_behind_its_number(numbered: str, ply: int):
     behind its move number, with three dots before a move of Black's.
     """
     assert line("e4", "e5", "Nf3").numbered(ply) == numbered
+
+
+def test_boards_yields_each_position_on_one_board():
+    """
+    Asserts that `boards` yields one board per position, pushing each move
+    onto the board it yielded last.
+    """
+    boards = list(line("e4", "e5").boards())
+
+    assert len(boards) == 3
+    assert all(board is boards[0] for board in boards)
+    assert boards[0].move_stack == list(moves("e2e4", "e7e5"))
+
+
+def test_every_game_reads_in_file_order(read: Callable[..., list[Game]]):
+    """
+    Asserts that a file holding two games yields both, in the order the file
+    holds them, each with its own tags and moves.
+    """
+    games = read('[Event "First"]\n\n1. e4 e5 *\n\n[Event "Second"]\n\n1. d4 *\n')
+
+    assert [game.tags["Event"] for game in games] == ["First", "Second"]
+    assert [game.moves for game in games] == [moves("e2e4", "e7e5"), moves("d2d4")]
+
+
+def test_first_reads_the_first_game_a_file_holds(pgn: Callable[..., Path]):
+    """
+    Asserts that the first game of a file holding two is the one it opens
+    on.
+    """
+    assert Game.first(pgn("1. e4 *\n\n1. d4 *\n")).moves == moves("e2e4")
+
+
+def test_follow_leaves_no_number_on_the_square_of_a_pawn_taken_en_passant():
+    """
+    Asserts that the numbers `Game.follow` carries past an en passant
+    capture sit on exactly the squares the board then holds a piece on, the
+    taken pawn's square dropped beside the square its taker left.
+    """
+    board   = Board("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1")
+    move    = Move.from_uci("e5d6")
+    numbers = Game.follow(board, move, {spot: spot for spot in board.piece_map()})
+    board.push(move)
+
+    assert numbers.keys() == board.piece_map().keys()
+
+
+def test_players_name_white_then_black():
+    """
+    Asserts that a game names its players as the `White` tag, then `vs.`,
+    then the `Black` tag.
+    """
+    assert line(Black="Short, Nigel D", White="Adams, Michael").players == (
+        "Adams, Michael vs. Short, Nigel D"
+    )
 
 
 def test_tags_fill_the_seven_tag_roster(read: Callable[..., list[Game]]):
@@ -385,6 +521,44 @@ def test_tags_fill_the_seven_tag_roster(read: Callable[..., list[Game]]):
     }
 
 
+@mark.parametrize(
+    ("sans", "tags", "kept"),
+    [
+        param(("e4", "d5", "exd5"), {}, {(12, 35, "P")}, id="capture"),
+        param(("e4", "a6", "e5", "d5", "exd6"), {}, {(12, 43, "P")}, id="en-passant"),
+        param(
+            ("e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "O-O"),
+            {},
+            {(4, 6, "K"), (7, 5, "R")},
+            id = "white-castles-kingside"
+        ),
+        param(
+            ("d4", "d5", "Nc3", "Nc6", "Bf4", "Bf5", "Qd2", "Qd7", "e3", "O-O-O"),
+            {},
+            {(56, 59, "r"), (60, 58, "k")},
+            id = "black-castles-queenside"
+        ),
+        param(
+            ("b8=Q",),
+            {"FEN": "8/1P6/8/8/8/8/8/k6K w - - 0 1", "SetUp": "1"},
+            {(49, 57, "Q")},
+            id = "promotion"
+        )
+    ]
+)
+def test_a_piece_keeps_its_number_through_each_kind_of_move(
+    kept : set[tuple[int, int, str]],
+    sans : tuple[str, ...],
+    tags : dict[str, str]
+):
+    """
+    Asserts that the last frame carries each moved piece under the number it
+    started with, a castling rook's beside its king's and a promoted pawn's
+    under its new symbol.
+    """
+    assert kept <= set(line(*sans, **tags).frames[-1].pieces)
+
+
 def test_text_holding_no_movetext_reads_as_one_game_without_moves(
     read: Callable[..., list[Game]]
 ):
@@ -397,6 +571,28 @@ def test_text_holding_no_movetext_reads_as_one_game_without_moves(
 
     assert game.moves == ()
     assert game.problems == ()
+
+
+@given(game=games())
+def test_every_frame_draws_its_position_under_numbers_kept_from_the_first(game: Game):
+    """
+    Asserts that each frame holds the pieces of its position on their
+    squares, each under a number of its own that the first frame already
+    gave out, whatever legal moves the game plays.
+    """
+    numbers = {number for number, _, _ in game.frames[0].pieces}
+
+    assert [
+        {(spot, symbol) for _, spot, symbol in frame.pieces} for frame in game.frames
+    ] == [
+        {(spot, piece.symbol()) for spot, piece in board.piece_map().items()}
+        for board in game.boards()
+    ]
+    assert all(
+        len(numbered := {number for number, _, _ in frame.pieces}) == len(frame.pieces)
+        and numbered <= numbers
+        for frame in game.frames
+    )
 
 
 def test_the_roster_reads_the_seven_tags_in_the_standards_order():

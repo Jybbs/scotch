@@ -1,14 +1,17 @@
 """
 Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
-names, each subcommand sitting in a group named for the verb it runs.
+names, each subcommand sitting in a group named for the verb it runs. The
+hidden `audit` and `render` groups register their commands by import path,
+which cyclopts imports only when one runs, since each reads this module's
+`app` for the help the Guide carries.
 """
 
 from cyclopts           import App, Parameter
 from importlib.metadata import metadata
 
 from scotch.cli       import fetch, index
-from scotch.cli.audit import repo
+from scotch.cli.cite  import source
 from scotch.cli.match import game
 
 app = App(
@@ -23,7 +26,11 @@ app.command(
         show = False
     )
 )
-app["audit"].command(repo)
+app["audit"].command("scotch.cli.audit:repo")
+app.command(
+    App(help="Prints the footnote definition citing a source.", name="cite")
+)
+app["cite"].command(source)
 app.command(
     App(help="Downloads the files the store draws its games from.", name="fetch")
 )
@@ -36,3 +43,11 @@ app.command(
     App(help="Matches a submitted game against the stored games.", name="match")
 )
 app["match"].command(game)
+app.command(
+    App(
+        help = "Writes the files the site and the Markdown restate from a declaration.",
+        name = "render",
+        show = False
+    )
+)
+app["render"].command("scotch.cli.render:docs")

@@ -6,9 +6,8 @@ it exits with, in each shape it prints a finding in.
 from common.app    import invoke
 from common.sample import Sample
 from pathlib       import Path
-from pytest        import CaptureFixture, MonkeyPatch, mark
+from pytest        import CaptureFixture, mark
 from pytest_subprocess.fake_process import FakeProcess
-from syrupy.assertion               import SnapshotAssertion
 
 from scotch.repo.schemas import Finding, Format
 
@@ -20,7 +19,7 @@ def test_a_checkout_keeping_every_rule_exits_zero_and_prints_nothing(
 ):
     """
     Asserts that the audit of a checkout drawing no finding prints nothing
-    and exits zero, asking mise for its tasks and their problems once each.
+    and exits zero, asking mise for its tasks once.
     """
     assert invoke("audit", "repo") == 0
     assert capsys.readouterr().out == ""
@@ -73,18 +72,3 @@ def test_an_error_prints_in_the_format_asked_for_and_exits_one(
 
     assert invoke("audit", "repo", "--output-format", output) == 1
     assert capsys.readouterr().out == finding.render(output) + "\n"
-
-
-def test_audit_repo_help_text(
-    capsys      : CaptureFixture[str],
-    monkeypatch : MonkeyPatch,
-    snapshot    : SnapshotAssertion
-):
-    """
-    Asserts that `scotch audit repo --help` exits zero and prints the help
-    text its snapshot holds at eighty columns.
-    """
-    monkeypatch.setenv("COLUMNS", "80")
-
-    assert invoke("audit", "repo", "--help") == 0
-    assert capsys.readouterr().out == snapshot

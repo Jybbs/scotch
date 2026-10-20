@@ -1,7 +1,8 @@
 """
-Pins the records a match travels in, meaning the plies a `Span` covers in
-each game, what a `Match` prints and names as the move where the two games
-part, and the `Export` the site's viewer reads.
+Pins the records describing a match, meaning the `Side` each game becomes
+for the site's viewer, the plies a `Span` covers in each game, what a
+`Match` prints and names as the move where the two games part, and the
+`Export` the site's viewer reads.
 """
 
 from common.games     import line
@@ -16,7 +17,8 @@ from scotch.index.schemas import Export, Match, Side, Span
 def test_a_side_holds_one_placement_more_than_its_moves():
     """
     Asserts that a side holds the game's tags as its headers, its moves in
-    SAN, and the placement of each position from the start.
+    SAN, and the placement of each position from the start, one more than
+    its moves.
     """
     game = line("e4", "e5")
     side = Side.from_game(game)
@@ -106,9 +108,9 @@ def test_a_summary_names_the_stored_game_the_span_and_the_parting(
 
 def test_a_span_lists_the_plies_it_covers_in_each_game():
     """
-    Asserts that a span starting at the submitted game's tenth ply, four
-    plies past the stored game's, covers plies 10 to 12 of the submitted
-    game and 6 to 8 of the stored game.
+    Asserts that a span starting at ply 10 of the submitted game, four plies
+    past the stored game's, covers plies 10 to 12 of the submitted game and
+    6 to 8 of the stored game.
     """
     span = Span(length=3, offset=-4, start=10)
 
@@ -128,17 +130,11 @@ def test_a_summary_names_the_file_the_stored_game_was_read_from(
         game = line(
             "e4",
             "e5",
-            Black = "Black, B",
-            Date  = "2000.01.02",
-            Event = "Event",
-            White = "White, W"
-        ).model_copy(
-            update = {
-                "origin": Origin(
-                    address = "https://example.com/players/White.zip",
-                    place   = 1234
-                )
-            }
+            Black  = "Black, B",
+            Date   = "2000.01.02",
+            Event  = "Event",
+            White  = "White, W",
+            origin = Origin(address="https://example.com/players/White.zip", place=1234)
         ),
         span = Span(length=2, offset=0, start=0),
         ties = 0

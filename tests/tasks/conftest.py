@@ -1,5 +1,6 @@
 """
-Holds the fixtures the task tests share, each described where it is defined.
+Defines the fixtures the task tests share, each described where it is
+defined.
 """
 
 from collections.abc  import Callable
@@ -10,18 +11,20 @@ from pytest           import Config, MonkeyPatch, fixture
 
 
 @fixture
-def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> Callable[[str], StandIn]:
+def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> Callable[..., StandIn]:
     """
-    Returns a writer that puts a stand-in for the program it is given into
-    `tmp_path`, first on `PATH`, logging each argument the program receives.
+    Builds a writer that puts a stand-in for the program it is given into
+    `tmp_path`, first on `PATH`, logging each argument the program receives
+    and then running the shell line it is given.
     """
-    def write(program: str) -> StandIn:
+    def write(program: str, line: str = "exit 0") -> StandIn:
         """
-        Writes the stand-in for `program`.
+        Writes the stand-in for `program`, which runs `line` once it has
+        logged its arguments.
         """
         path = tmp_path / program
         path.write_text(
-            f'#!/bin/sh\nprintf "%s\\n" "$@" > "{tmp_path / "arguments.log"}"\n'
+            f'#!/bin/sh\nprintf "%s\\n" "$@" > "{tmp_path / "arguments.log"}"\n{line}\n'
         )
         path.chmod(0o755)
         monkeypatch.setenv("PATH", str(tmp_path), prepend=pathsep)
@@ -37,8 +40,8 @@ def scratch(monkeypatch: MonkeyPatch, pytestconfig: Config, tmp_path: Path) -> S
     Writes a checkout whose `.mise/mise.lock` holds `Scratch.text` at
     `Scratch.mode`, beside a stand-in `mktemp` that creates the snapshot
     inside `Scratch.scratch` at mode `0o600`, the mode `mktemp` itself
-    creates a file at, and puts the stand-ins first on `PATH` and names the
-    worktree in `MISE_PROJECT_ROOT`, as `mise run` sets it.
+    creates a file at. It then puts the stand-ins first on `PATH` and names
+    the worktree in `MISE_PROJECT_ROOT`, as `mise run` sets it.
     """
     scratch = Scratch(project=pytestconfig.rootpath, root=tmp_path)
     scratch.lockfile.parent.mkdir(parents=True)

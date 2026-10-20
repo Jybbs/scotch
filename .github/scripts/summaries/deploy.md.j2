@@ -1,0 +1,10 @@
+{% extends "base.md.j2" %}
+{% block details %}
+{%- with url = run.needs.deploy.outputs.url %}
+{%- if url %}
+The deploy published the site at <{{ url }}>.
+{% elif run.passed and run.needs.deploy.result == "skipped" %}
+The run built and checked the site without publishing it, since only `main` publishes.
+{% endif %}
+{%- endwith %}
+{%- endblock %}

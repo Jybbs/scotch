@@ -6,6 +6,7 @@ jobs:
     name: ${{ matrix.name }}
     outputs:
       coverage: ${{ steps.coverage.outputs.artifact-url }}
+      site-coverage: ${{ steps.site-coverage.outputs.artifact-url }}
     runs-on: ubuntu-26.04
     steps:
       - name: Install the tools
@@ -19,7 +20,6 @@ jobs:
       - name: Read the coverage report's folder
         id: report
         if: ${{ !cancelled() && matrix.task == 'py:coverage' }}
-        shell: bash
         run: |
           python3 -c 'import tomllib; print("path=" + tomllib.load(open("pyproject.toml", "rb"))["tool"]["coverage"]["html"]["directory"])' >> "$GITHUB_OUTPUT"
       - name: Attach the coverage report
@@ -30,16 +30,29 @@ jobs:
           name: coverage
           path: ${{ steps.report.outputs.path }}
           retention-days: 14
+      - name: Read the folder of the site's coverage report
+        id: site-report
+        if: ${{ !cancelled() && matrix.task == 'site:coverage' }}
+        run: |
+          node --eval "const { default: config } = await import('./docs/.vitepress/vitest.config.ts'); console.log('path=' + config.test.coverage.reportsDirectory)" --input-type=module >> "$GITHUB_OUTPUT"
+      - name: Attach the site's coverage report
+        id: site-coverage
+        if: ${{ !cancelled() && steps.site-report.outputs.path }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: site-coverage
+          path: ${{ steps.site-report.outputs.path }}
+          retention-days: 14
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: 🩺 Advisories
             task: lock:audit
-            tools: python uv
+            tools: bun python uv
           - name: 🔐 Lockfiles
             task: lock:check
-            tools: python uv
+            tools: bun python uv
           - name: 🪻 Prose
             task: py:check
             tools: python uv
@@ -52,6 +65,24 @@ jobs:
           - name: 🔦 Workflows
             task: repo:lint
             tools: zizmor
+          - name: 🎯 Site Coverage
+            task: site:coverage
+            tools: bun lychee node
+          - name: ✂️ Knip
+            task: site:cruft
+            tools: bun lychee node
+          - name: 🔗 Links
+            task: site:links
+            tools: bun lychee node
+          - name: ⚓ Oxlint
+            task: site:lint
+            tools: bun lychee node
+          - name: 📰 Press
+            task: site:press
+            tools: bun lychee node
+          - name: 🧷 Types
+            task: site:typecheck
+            tools: bun lychee node
     timeout-minutes: 15
   brief:
     if: always()

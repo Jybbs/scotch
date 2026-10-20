@@ -7,12 +7,30 @@ from collections.abc import Callable
 from common.games    import line
 from common.sample   import Sample
 from common.sources  import declare, land
+from cyclopts        import App
 from pathlib         import Path
 from pytest          import MonkeyPatch, fixture
+from shutil          import copyfile
+from typing          import Self
 
+from scotch.docs.inventory  import Outputs
+from scotch.docs.outputs    import Document
 from scotch.games.schemas   import Game, Origin
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Download, Manifest, Source, Sources
+
+
+@fixture
+def bibliography(bibtex: Path, monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
+    """
+    Points the project's root `scotch cite source` reads at a directory
+    whose `docs/references.bib` holds the three sources of `bibtex`.
+    """
+    (tmp_path / "docs").mkdir()
+    copyfile(bibtex, tmp_path / "docs" / "references.bib")
+    monkeypatch.setattr("scotch.cli.cite.root", lambda: tmp_path)
+
+    return tmp_path
 
 
 @fixture
@@ -43,11 +61,8 @@ def indexed(data: Path) -> Game:
         Result = "1-0",
         Round  = "1",
         Site   = "Site",
-        White  = "White, W"
-    ).model_copy(
-        update = {
-            "origin": Origin(address="https://example.com/players/White.zip", place=1)
-        }
+        White  = "White, W",
+        origin = Origin(address="https://example.com/players/White.zip", place=1)
     )
     PositionIndex.build([game]).write(data / "index")
 
@@ -68,13 +83,58 @@ def inside(monkeypatch: MonkeyPatch, sample: Sample) -> Sample:
 @fixture
 def project(monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
     """
-    Points the project's root at an empty directory holding a
-    `pyproject.toml` whose `[tool.scotch]` table moves the data to `table`.
+    Points the project's root at a directory holding only a `pyproject.toml`
+    whose `[tool.scotch]` table moves the data to `table`.
     """
     (tmp_path / "pyproject.toml").write_text('[tool.scotch]\ndata = "table"\n')
     monkeypatch.setattr("scotch.cli.settings.root", lambda: tmp_path)
 
     return tmp_path
+
+
+@fixture
+def shipped(
+    monkeypatch : MonkeyPatch,
+    tmp_path    : Path
+) -> list[tuple[Path, Path, PositionIndex | None]]:
+    """
+    Points the project's root `scotch render docs` reads at a copy of the
+    sample checkout and makes `Outputs.shipped` declare one file written
+    from the declarations and one written from the index where one is given,
+    recording the README, the root, and the index each call was given.
+    """
+    given = []
+    root  = Sample.copy(tmp_path / "root").root
+
+    def record(
+        cls    : type[Outputs],
+        app    : App,
+        readme : Path,
+        root   : Path,
+        index  : PositionIndex | None = None
+    ) -> Self:
+        """
+        Records the README, the root, and the index it is given, and
+        declares `declared.txt`, beside `measured.txt` where an index is
+        given.
+        """
+        given.append((readme, root, index))
+
+        return cls(
+            [
+                Document(path=Path("declared.txt"), render=lambda: "declared\n"),
+                *(
+                    [Document(path=Path("measured.txt"), render=lambda: "m\n")]
+                    if index
+                    else []
+                )
+            ]
+        )
+
+    monkeypatch.setattr("scotch.cli.render.root", lambda: root)
+    monkeypatch.setattr(Outputs, "shipped", classmethod(record))
+
+    return given
 
 
 @fixture
