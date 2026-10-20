@@ -21,8 +21,8 @@ function cards(state: stream.Core): void {
 
 /**
  * Lays out the front page, whose heading and tagline become the hero the theme
- * draws, so the rule drops the first heading and the paragraph after it from
- * the page's body and sets each section after them as a card.
+ * draws, so the rule drops the first heading and the block after it from the
+ * page's body and sets each section after them as a card.
  *
  * Args:
  *   md: The renderer VitePress builds for the site.
@@ -30,9 +30,13 @@ function cards(state: stream.Core): void {
 export function frontPage(md: MarkdownRenderer): void {
   md.core.ruler.push('scotch-front', state => {
     if (state.env?.relativePath !== FRONT) return
-    const heading = state.tokens.findIndex(token => token.type === 'heading_open' && token.tag === 'h1')
-    // Removes the heading's open, inline, and close tokens and the tagline paragraph's three.
-    if (heading !== -1) state.tokens.splice(heading, 6)
+    const tokens  = state.tokens
+    const heading = tokens.findIndex(token => token.type === 'heading_open' && token.tag === 'h1')
+    if (heading !== -1) {
+      // Finds the block after the tagline's, which is a paragraph's three tokens or an HTML block's one.
+      const next = tokens.findIndex((token, index) => index > heading + 3 && token.level === 0 && token.nesting !== -1)
+      tokens.splice(heading, next === -1 ? tokens.length : next - heading)
+    }
     cards(state)
   })
 }

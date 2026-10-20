@@ -245,7 +245,7 @@ def test_an_entry_naming_no_author_opens_on_its_editors_and_their_role(
     )
 
 
-def test_an_entry_naming_no_author_is_refused_at_its_authors(tmp_path: Path):
+def test_an_entry_naming_no_author_or_editor_is_refused_at_its_authors(tmp_path: Path):
     """
     Asserts that an entry carrying neither an `author` field nor an `editor`
     field raises `ValidationError` naming the `authors` field, which needs

@@ -7,7 +7,7 @@ const md   = await createMarkdownRenderer('/tmp', { config: frontPage })
 const PAGE = [
   '# Scotch',
   '',
-  'Find the grandmaster game closest to yours.',
+  '<!-- tagline -->Find the grandmaster game closest to yours.<!-- /tagline -->',
   '',
   'An opening paragraph.',
   '',
@@ -34,7 +34,17 @@ describe('frontPage', () => {
   })
 
   it('keeps the paragraph after the tagline outside every card', () => {
-    expect(html.indexOf('An opening paragraph.')).toBeLessThan(html.indexOf('<article'))
+    expect(html).toMatch(/^<p>An opening paragraph\.<\/p>\n<article /u)
+  })
+
+  it('drops a tagline written as a paragraph as well', () => {
+    expect(md.render('# Scotch\n\nFind it.\n\nAn opening paragraph.\n', { relativePath: FRONT }))
+      .toBe('<p>An opening paragraph.</p>\n')
+  })
+
+  it('leaves nothing of a page ending on its tagline', () => {
+    expect(md.render('# Scotch\n\n<!-- tagline -->Find it.<!-- /tagline -->\n', { relativePath: FRONT }))
+      .toBe('')
   })
 
   it('sets each section whole inside a card of its own, in order', () => {

@@ -145,8 +145,8 @@ class References(BaseModel, extra="forbid", frozen=True, use_attribute_docstring
         """
         Reads every source in the BibTeX file at `path`, decoding the LaTeX
         each field is written in, which drops the braces an entry protects
-        its capitals with, then splitting each entry's authors at each
-        `and`.
+        its capitals with, then splitting each entry's authors and editors
+        at each `and`.
 
         Raises:
             ValueError: Where the file holds a block bibtexparser could not
