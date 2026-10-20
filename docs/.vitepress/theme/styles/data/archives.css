@@ -1,0 +1,42 @@
+.sc-data-archives {
+  display               : grid;
+  grid-template-columns : calc(var(--sc-data-names) * 1ch + 1em) minmax(0, 1fr) max-content max-content;
+  column-gap            : 12px;
+  font                  : 500 0.65rem/24px var(--sc-face-code);
+  letter-spacing        : 0.06em;
+  font-variant-numeric  : tabular-nums;
+}
+
+.sc-data-archive {
+  display               : grid;
+  grid-column           : 1 / -1;
+  grid-template-columns : subgrid;
+  height                : 24px;
+  border-bottom         : var(--sc-data-hairline);
+  white-space           : nowrap;
+}
+
+.sc-data-archive > :nth-child(n + 3) { text-align: right; }
+
+.sc-data-archive-head {
+  border-bottom  : 1.5px solid var(--sc-data-ink);
+  color          : var(--sc-data-quiet);
+  text-transform : uppercase;
+}
+
+.sc-data-archive.sc-data-on { background: color-mix(in oklab, var(--sc-data-link) 8%, transparent); }
+
+.sc-data-bar { position: relative; }
+
+.sc-data-bar i {
+  position      : absolute;
+  top           : 8px;
+  left          : 0;
+  height        : 8px;
+  border-radius : 1px;
+  background    : var(--sc-data-fill);
+}
+
+.sc-data-bar i.sc-data-bar-others {
+  background: repeating-linear-gradient(90deg, var(--sc-data-fill) 0 3px, transparent 3px 5px);
+}

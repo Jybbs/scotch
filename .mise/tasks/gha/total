@@ -1,0 +1,5 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Write the total the package's suite covered as a whole number into `coverage.json` in the folder given, creating the folder where missing, which the published site serves"
+
+mkdir -p "$1"
+coverage report --format=total --precision=0 > "$1/coverage.json"

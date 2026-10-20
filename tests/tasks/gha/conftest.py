@@ -14,7 +14,7 @@ from types import ModuleType
 @fixture
 def listing(fp: FakeProcess) -> Callable[..., None]:
     """
-    Returns a registrar answering `gh cache list` with the entries it is
+    Builds a registrar answering `gh cache list` with the entries it is
     given, each an id, a key, a ref, and the instant it was saved, as the
     command's `--jq` filter prints them.
     """
@@ -51,7 +51,7 @@ def task(request: FixtureRequest) -> ModuleType:
 @fixture
 def versions(fp: FakeProcess) -> Callable[[str, str], None]:
     """
-    Returns a registrar answering `git show` for `pyproject.toml`
+    Builds a registrar answering `git show` for `pyproject.toml`
     at `HEAD` and at `HEAD~1` with the two versions it is given as
     `[project].version`.
     """

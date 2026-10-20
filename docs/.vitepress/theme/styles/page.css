@@ -1,0 +1,99 @@
+.vp-doc :is(h1, h2, h3, h4),
+.VPNavBarTitle .title {
+  font-family : var(--sc-face-display);
+  font-weight : 400;
+}
+
+.vp-doc :is(p, li, td) { text-wrap: pretty; }
+
+.sc-mark {
+  display      : inline-flex;
+  height       : 24px;
+  margin-right : 8px;
+  color        : var(--sc-run);
+}
+
+.sc-mark svg {
+  height : 100%;
+  width  : auto;
+}
+
+.sc-figure { margin: 24px 0; }
+
+.sc-data-plate,
+.sc-run {
+  padding       : 16px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 6px;
+  background    : var(--sc-page);
+}
+
+.vp-doc table {
+  display : table;
+  width   : 100%;
+
+  @media (width < 40rem) {
+    display    : block;
+    overflow-x : auto;
+  }
+}
+
+.vp-doc .footnote-ref a {
+  font-family     : var(--vp-font-family-mono);
+  font-size       : 0.68rem;
+  font-weight     : 500;
+  text-decoration : none;
+}
+
+.vp-doc .sc-cite-after { margin-left: 0.18em; }
+
+.vp-doc .footnotes-sep {
+  width      : 4rem;
+  margin     : 3rem 0 0;
+  border     : 0;
+  border-top : 2px solid var(--sc-rule);
+}
+
+.vp-doc .footnotes {
+  font-size : 0.82rem;
+  color     : var(--vp-c-text-2);
+
+  &::before {
+    content        : 'Sources';
+    display        : block;
+    margin         : 0.9rem 0 0.4rem;
+    font-family    : var(--vp-font-family-mono);
+    font-size      : 0.7rem;
+    letter-spacing : 0.1em;
+    text-transform : uppercase;
+  }
+}
+
+.vp-doc .footnotes-list { padding-left: 1.4rem; }
+
+.vp-doc .footnote-item {
+  margin: 0.45rem 0;
+
+  &::marker {
+    font-family : var(--vp-font-family-mono);
+    font-size   : 0.72rem;
+  }
+
+  p {
+    margin      : 0;
+    line-height : 1.55;
+  }
+}
+
+.vp-doc .footnote-backref {
+  margin-left     : 0.25rem;
+  text-decoration : none;
+}
+
+.Layout .VPFooter.has-sidebar {
+  display: block;
+
+  @media (width >= 60rem) { padding-left: calc(var(--vp-sidebar-width) + 2rem); }
+}
+
+.VPFooter .message { text-wrap: balance; }

@@ -1,0 +1,75 @@
+:root {
+  --vp-font-family-base : var(--sc-face-body);
+  --vp-font-family-mono : var(--sc-face-code);
+
+  --vp-c-bg      : var(--sc-page);
+  --vp-c-bg-alt  : var(--sc-side);
+  --vp-c-bg-elv  : var(--sc-raised);
+  --vp-c-bg-soft : var(--sc-raised);
+
+  --vp-c-border  : var(--sc-rule);
+  --vp-c-divider : var(--sc-rule);
+  --vp-c-gutter  : var(--sc-rule);
+
+  --vp-c-text-1 : var(--sc-ink);
+  --vp-c-text-2 : var(--sc-quiet);
+  --vp-c-text-3 : var(--sc-quiet);
+
+  --vp-c-gray-1    : var(--sc-rule);
+  --vp-c-gray-2    : var(--sc-tint);
+  --vp-c-gray-3    : var(--sc-raised);
+  --vp-c-gray-soft : var(--sc-side);
+
+  --vp-c-brand-1    : var(--sc-run);
+  --vp-c-brand-2    : var(--sc-run);
+  --vp-c-brand-3    : var(--sc-run);
+  --vp-c-brand-soft : var(--sc-tint);
+
+  --vp-c-danger-1    : var(--sc-alert);
+  --vp-c-danger-2    : var(--sc-alert);
+  --vp-c-danger-3    : var(--sc-alert);
+  --vp-c-danger-soft : var(--sc-tint);
+
+  --vp-c-caution-1    : var(--sc-alert);
+  --vp-c-caution-2    : var(--sc-alert);
+  --vp-c-caution-3    : var(--sc-alert);
+  --vp-c-caution-soft : var(--sc-tint);
+
+  --vp-c-warning-1    : var(--sc-alert);
+  --vp-c-warning-2    : var(--sc-alert);
+  --vp-c-warning-3    : var(--sc-alert);
+  --vp-c-warning-soft : var(--sc-tint);
+
+  --vp-c-important-1    : var(--sc-run);
+  --vp-c-important-2    : var(--sc-run);
+  --vp-c-important-3    : var(--sc-run);
+  --vp-c-important-soft : var(--sc-tint);
+
+  --vp-c-success-1    : var(--sc-run);
+  --vp-c-success-2    : var(--sc-run);
+  --vp-c-success-3    : var(--sc-run);
+  --vp-c-success-soft : var(--sc-tint);
+
+  --vp-code-bg       : var(--sc-side);
+  --vp-code-block-bg : var(--sc-side);
+
+  --vp-button-alt-active-bg     : var(--sc-tint);
+  --vp-button-alt-active-border : var(--sc-rule);
+  --vp-button-alt-active-text   : var(--sc-ink);
+  --vp-button-alt-bg            : var(--sc-raised);
+  --vp-button-alt-border        : var(--sc-rule);
+  --vp-button-alt-hover-bg      : var(--sc-tint);
+  --vp-button-alt-hover-border  : var(--sc-rule);
+  --vp-button-alt-hover-text    : var(--sc-ink);
+  --vp-button-alt-text          : var(--sc-ink);
+
+  --vp-button-brand-active-bg     : var(--sc-run);
+  --vp-button-brand-active-border : var(--sc-run);
+  --vp-button-brand-active-text   : var(--sc-page);
+  --vp-button-brand-bg            : var(--sc-run);
+  --vp-button-brand-border        : var(--sc-run);
+  --vp-button-brand-hover-bg      : var(--sc-run);
+  --vp-button-brand-hover-border  : var(--sc-run);
+  --vp-button-brand-hover-text    : var(--sc-page);
+  --vp-button-brand-text          : var(--sc-page);
+}

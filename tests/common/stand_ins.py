@@ -1,8 +1,8 @@
 """
 Holds the records the task tests build around stand-in executables, meaning
-`Wrapper` and the `StandIn` for `uv` that `tests/tasks/bin.py` runs each
-wrapper against, and the `Scratch` checkout `tests/tasks/lock.py` runs each
-`lock` task in.
+`Wrapper`, the `StandIn` a task test puts first on `PATH` for the program
+a wrapper or a task runs, and the `Scratch` checkout `tests/tasks/lock.py`
+runs each `lock` task in.
 """
 
 from collections.abc import Sequence
@@ -44,7 +44,7 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     @property
     def calls(self) -> list[str]:
         """
-        Reads the call each stand-in logged, in the order the task made
+        Reads each call the stand-ins logged, in the order the task made
         them.
         """
         return (self.root / "calls.log").read_text().splitlines()
@@ -59,8 +59,9 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     @property
     def pristine(self) -> tuple[str, int, tuple[str, ...]]:
         """
-        Pairs the lockfile's starting text and permission bits with an empty
-        scratch directory, the residue every `lock:check` run leaves.
+        Pairs the lockfile's starting text and permission bits with an
+        empty scratch directory, the residue a `lock:check` run is held to
+        whatever its verdict.
         """
         return self.text, self.mode, ()
 
@@ -103,8 +104,8 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
     def add_script(self):
         """
-        Writes a task script into the checkout whose inline metadata
-        declares its own dependencies.
+        Writes into the checkout, at the path `script` names, a task script
+        whose inline metadata declares its own dependencies.
         """
         file = self.lockfile.parents[1] / self.script
         file.parent.mkdir(parents=True)
@@ -114,15 +115,16 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         self,
         task : str = "check",
         *,
+        bun  : str = "exit 0",
         mise : str = "exit 0",
         uv   : str = "exit 0"
     ) -> CompletedProcess[str]:
         """
         Runs the `lock` task `task` names from the checkout, against
-        stand-in `mise` and `uv` executables that each log their call and
-        then run the shell line `mise` or `uv` holds.
+        stand-in `bun`, `mise`, and `uv` executables that each log their
+        call and then run the shell line `bun`, `mise`, or `uv` holds.
         """
-        for name, line in {"mise": mise, "uv": uv}.items():
+        for name, line in {"bun": bun, "mise": mise, "uv": uv}.items():
             stand_in = self.stand_ins / name
             stand_in.write_text(
                 f'#!/bin/sh\necho "{name} $*" >> "{self.root / "calls.log"}"\n{line}\n'
@@ -140,7 +142,8 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
 class Wrapper(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    One wrapper, beside the paths it hands `uv run`.
+    One wrapper under `.mise/bin`, beside the project and the program it
+    hands `uv run` and the folder each case calls it from.
     """
 
     path: Path
@@ -175,7 +178,8 @@ class Wrapper(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 class StandIn(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     A stand-in for the program `program` names that writes each argument it
-    receives to a log, one per line, and exits zero.
+    receives to a log, one per line, and then runs the shell line its test
+    gave it, `exit 0` unless the test names another.
     """
 
     program: str

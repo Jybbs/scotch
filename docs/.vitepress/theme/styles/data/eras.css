@@ -1,0 +1,39 @@
+.sc-data-eras {
+  cursor       : crosshair;
+  touch-action : pan-y;
+}
+
+.sc-data-ridge {
+  animation       : sc-data-rise var(--sc-duration-settle) var(--sc-curve-glide) backwards;
+  animation-delay : calc(var(--sc-data-row) * var(--sc-duration-lag));
+  transition      : transform var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-ridge.sc-data-on { transform: translate(0, -3px); }
+
+.sc-data-ridge-fill { fill: color-mix(in oklab, var(--sc-data-link) 9%, var(--sc-data-page)); }
+
+.sc-data-ridge-line {
+  fill         : none;
+  stroke       : color-mix(in oklab, var(--sc-data-ink) 55%, var(--sc-data-page));
+  stroke-width : 1.2;
+}
+
+.sc-data-on .sc-data-ridge-fill { fill: color-mix(in oklab, var(--sc-data-link) 30%, var(--sc-data-page)); }
+
+.sc-data-on .sc-data-ridge-line {
+  stroke       : var(--sc-data-ink);
+  stroke-width : 1.8;
+}
+
+.sc-data-on .sc-data-ridge-name {
+  font-weight : 700;
+  fill        : var(--sc-data-ink);
+}
+
+@keyframes sc-data-rise {
+  from {
+    opacity   : 0;
+    transform : translate(0, 10px);
+  }
+}

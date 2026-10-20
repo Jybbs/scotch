@@ -1,6 +1,9 @@
 /.cache/
 /.venv/
 /dist/
+/docs/.vitepress/.temp/
+/docs/.vitepress/dist/
+/docs/node_modules/
 
 *.pyc
 __pycache__/

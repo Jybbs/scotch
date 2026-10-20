@@ -1,13 +1,12 @@
 """
-Pins what each wrapper in the folder the `_.path` entry in
-`.mise/config.toml` puts on `PATH` hands `uv run`, which runs the program
-the wrapper is named for out of the project's `.venv`, whichever directory
-it is called from.
+Pins the arguments each wrapper hands `uv run`, which starts the program
+the wrapper is named for out of the project's `.venv` whichever directory
+the wrapper is called from. The wrappers are the files in the folder the
+`_.path` entry in `.mise/config.toml` puts on `PATH`.
 
 Each case runs a wrapper through its own shebang from the `tests` folder,
 with a stand-in `uv` first on `PATH` that writes each argument it receives
-on a line of its own. The `repo:audit` row holds every wrapper to a plain
-file carrying the same bytes as the others.
+on a line of its own.
 """
 
 from collections.abc  import Callable
@@ -15,6 +14,7 @@ from common.stand_ins import StandIn, Wrapper
 from pathlib          import Path
 from pytest           import Metafunc, param
 
+from scotch.cli           import app
 from scotch.repo.checkout import Checkout
 
 
@@ -28,7 +28,7 @@ def pytest_generate_tests(metafunc: Metafunc):
             "wrapper",
             [
                 param(Wrapper(path=path), id=path.name)
-                for path in Checkout(root=metafunc.config.rootpath).wrappers
+                for path in Checkout(app=app, root=metafunc.config.rootpath).wrappers
             ]
         )
 

@@ -25,7 +25,7 @@ def game(
     json : Annotated[
         Path | None,
         Parameter(
-            help = "The file the match is written to as JSON for the site's viewer."
+            help = "The file the match is written to as JSON."
         )
     ] = None
 ):
@@ -47,15 +47,10 @@ def game(
     names a variant other than standard chess, or where no index has been
     built or the one built holds another layout.
     """
-    if (submitted := next(Game.read(pgn), None)) is None:
-        raise SystemExit(f"Found no game in {pgn}")
-
-    if submitted.problems:
-        raise SystemExit(
-            "\n".join(
-                (f"Cannot match the game in {pgn}:", *submitted.problems)
-            )
-        )
+    try:
+        submitted = Game.first(pgn)
+    except ValueError as error:
+        raise SystemExit(str(error))
 
     settings = Settings()
 
@@ -82,4 +77,7 @@ def game(
 
     if json:
         json.parent.mkdir(exist_ok=True, parents=True)
-        json.write_text(Export.from_match(match, submitted).model_dump_json(indent=2))
+        json.write_text(
+            Export.from_match(match, submitted).model_dump_json(indent=2) + "\n",
+            encoding = "utf-8"
+        )

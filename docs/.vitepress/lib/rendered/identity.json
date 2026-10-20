@@ -1,0 +1,77 @@
+{
+  "faces": {
+    "body": {
+      "fallbacks": [
+        "Georgia",
+        "serif"
+      ],
+      "family": "Petrona",
+      "stack": "Petrona, Georgia, serif"
+    },
+    "code": {
+      "fallbacks": [
+        "ui-monospace",
+        "SF Mono",
+        "Menlo",
+        "monospace"
+      ],
+      "family": "JetBrains Mono",
+      "stack": "\"JetBrains Mono\", ui-monospace, \"SF Mono\", Menlo, monospace"
+    },
+    "display": {
+      "fallbacks": [
+        "Georgia",
+        "serif"
+      ],
+      "family": "Hedvig Letters Serif",
+      "stack": "\"Hedvig Letters Serif\", Georgia, serif"
+    }
+  },
+  "palette": {
+    "critical": {
+      "name": "Brick Red",
+      "hex": "#c43e47"
+    },
+    "dark": {
+      "name": "Near Black",
+      "hex": "#1a1a1a"
+    },
+    "ground": {
+      "name": "Cararra",
+      "hex": "#f2f1ee"
+    },
+    "light": {
+      "name": "Cashmere",
+      "hex": "#e3c3a3"
+    },
+    "primary": {
+      "name": "Walnut",
+      "hex": "#764017"
+    },
+    "series_1": {
+      "name": "Persian Green",
+      "hex": "#009b98"
+    },
+    "series_2": {
+      "name": "Matisse",
+      "hex": "#1e69a6"
+    },
+    "series_3": {
+      "name": "Buttered Rum",
+      "hex": "#a17b0d"
+    },
+    "series_4": {
+      "name": "Ube",
+      "hex": "#8a80cb"
+    },
+    "series_5": {
+      "name": "Forest Green",
+      "hex": "#1e7634"
+    },
+    "warning": {
+      "name": "Mandarin Pearl",
+      "hex": "#f48241"
+    }
+  },
+  "tagline": "Find the grandmaster game closest to yours."
+}

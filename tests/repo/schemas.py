@@ -22,6 +22,7 @@ from scotch.repo.schemas import (
     Step,
     Task,
     Workflow,
+    exact,
     pinned
 )
 
@@ -159,7 +160,28 @@ def test_a_script_reads_its_inline_metadata(sample: Sample):
 
 
 @mark.parametrize(
-    ("requirement", "exact"),
+    ("version", "matches"),
+    [
+        param("5.0.5", True, id="release"),
+        param("2.0.0-alpha.20", True, id="prerelease"),
+        param("1.0.0+build.5", True, id="build"),
+        param("^5.0.5", False, id="caret"),
+        param("~0.7.5", False, id="tilde"),
+        param("5.0", False, id="short"),
+        param("5.0.5 || 6.0.0", False, id="either")
+    ]
+)
+def test_an_exact_version_names_one_release(matches: bool, version: str):
+    """
+    Asserts that only a major, a minor, and a patch, with an optional
+    prerelease and build, match the shape of one exact version as npm writes
+    it.
+    """
+    assert bool(exact(version)) is matches
+
+
+@mark.parametrize(
+    ("requirement", "matches"),
     [
         param("hatchling==1.32.4", True, id="exact"),
         param("trove-classifiers==2026.9.21.13", True, id="calendar"),
@@ -168,12 +190,12 @@ def test_a_script_reads_its_inline_metadata(sample: Sample):
         param("hatchling", False, id="bare")
     ]
 )
-def test_an_exact_pin_names_one_version(exact: bool, requirement: str):
+def test_an_exact_pin_names_one_version(matches: bool, requirement: str):
     """
     Asserts that only a name, `==`, and one version with no wildcard match
     the shape of an exact pin.
     """
-    assert bool(pinned(requirement)) is exact
+    assert bool(pinned(requirement)) is matches
 
 
 def test_a_step_expands_the_matrix_expressions_in_its_inputs_and_script():
@@ -266,9 +288,12 @@ def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
 def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     """
     Asserts that a workflow lists, relative to the root, each file and its
-    own file that its `push` filter leaves out, where `*` stops at a `/`, a
-    `**` segment spans folders, and a later `!` pattern leaves out what an
-    earlier one took in, and reads no filter where it fires on no push.
+    own file that its `push` filter leaves out, and reads no filter where it
+    fires on no push, matching each pattern of the filter so that:
+
+    - `*` stops at a `/`
+    - A `**` segment spans folders
+    - A later `!` pattern leaves out what an earlier one took in
     """
     root = sample.root
     warm = Workflow.read(root / ".github" / "workflows" / "warm.yml")
@@ -378,8 +403,10 @@ def test_a_job_reads_whether_it_runs_always(always: bool, condition: str):
 def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
     """
     Asserts that a workflow reads its events from the `on` key YAML 1.1
-    loads as `True`, gives each job its key as its id, and finds the gate,
-    its rows, and the tasks each row runs across its matrix.
+    loads as `True`, a pull request among them, and gives each job its key
+    as its id. It also finds the gate, its rows, and the tasks each row runs
+    across its matrix, and lists its steps as declared and once for each
+    leg, none of them saving the tool cache.
     """
     workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
 

@@ -1,21 +1,26 @@
 """
 Holds `Checkout`, the repository `scotch audit repo` reads, which loads each
 file into its record from `scotch.repo.schemas` the first time a check reads
-it and asks mise for the tasks it declares.
+it, asks mise for the tasks it declares, and lists the files `scotch render
+docs` writes from the declarations.
 """
 
-from functools  import cached_property
-from pathlib    import Path
-from pydantic   import BaseModel, TypeAdapter
-from subprocess import run
+from collections.abc import Iterator
+from cyclopts        import App
+from functools       import cached_property
+from pathlib         import Path
+from pydantic        import BaseModel, InstanceOf, TypeAdapter
+from subprocess      import run
 
-from scotch.repo.schemas import (
+from scotch.docs.inventory import Outputs
+from scotch.repo.schemas   import (
     Action,
     License,
     Lock,
     MiseConfig,
     Pyproject,
     Script,
+    Site,
     Step,
     Task,
     Validation,
@@ -27,6 +32,11 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     """
     The repository the checks read, each file loaded the first time a check
     reads it, with every path the records carry joined onto `root`.
+    """
+
+    app: InstanceOf[App]
+    """
+    The command line the repository ships, whose help the Guide carries.
     """
 
     root: Path
@@ -63,6 +73,15 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         Reads `.mise/config.toml`.
         """
         return MiseConfig.read(self.root / ".mise" / "config.toml")
+
+    @cached_property
+    def outputs(self) -> Outputs:
+        """
+        Lists every file `scotch render docs` writes from a declaration
+        in the repository, leaving out the files it writes from the index,
+        which a checkout holds no copy of.
+        """
+        return Outputs.shipped(self.app, self.pyproject.readme, self.root)
 
     @property
     def provisions(self) -> tuple[tuple[Path, Step], ...]:
@@ -105,6 +124,13 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             for task in self.tasks
             if task.file and (script := Script.read(task.file))
         )
+
+    @cached_property
+    def site(self) -> Site:
+        """
+        Reads the site's `docs/package.json`.
+        """
+        return Site.read(self.root / "docs" / "package.json")
 
     @property
     def steps(self) -> tuple[tuple[Path, Step], ...]:
@@ -191,6 +217,18 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         path = self.root / uses.removeprefix("$/") / "action.yml"
 
         return next((action for action in self.actions if action.path == path), None)
+
+    def lines(self) -> Iterator[tuple[Path, int, str]]:
+        """
+        Yields each line of every task file and every wrapper beside the
+        file holding it and its number, counted from one.
+        """
+        for path in (*(task.file for task in self.tasks if task.file), *self.wrappers):
+            for line, text in enumerate(
+                path.read_text(encoding="utf-8").splitlines(),
+                start = 1
+            ):
+                yield path, line, text
 
     def summarizes(self, step: Step) -> bool:
         """

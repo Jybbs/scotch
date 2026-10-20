@@ -1,0 +1,22 @@
+{
+    "$schema": "../node_modules/oxlint/configuration_schema.json",
+
+    "categories": {
+        "correctness" : "deny",
+        "pedantic"    : "deny",
+        "perf"        : "deny",
+        "suspicious"  : "deny"
+    },
+
+    "options" : {"reportUnusedDisableDirectives": "deny"},
+    "plugins" : ["import", "oxc", "promise", "typescript", "unicorn", "vitest", "vue"],
+
+    "rules": {
+        "import/extensions"           : ["error", "always", {"ignorePackages": true}],
+        "import/no-unassigned-import" : ["error", {"allow": ["**/*.css"]}],
+        "vitest/no-standalone-expect" : [
+            "error",
+            {"additionalTestBlockFunctions": ["test", "test.each", "test.for"]}
+        ]
+    }
+}

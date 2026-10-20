@@ -1,18 +1,19 @@
 """
 Holds the records `scotch audit repo` reads out of a checkout, meaning the
-manifest, the mise config, the license, the lockfile, the workflows with
-their jobs and steps, the action manifests, the mise tasks, and the task
-scripts, beside the `Finding` each check reports.
+manifest, the mise config, the license, the lockfile, the site's package
+manifest, the workflows with their jobs and steps, the action manifests, the
+mise tasks, and the task scripts, beside the `Finding` each check reports.
 """
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from enum            import StrEnum, auto
 from itertools       import product
+from json            import loads as from_json
 from pathlib         import Path
 from pydantic        import AliasPath, BaseModel, BeforeValidator, Field
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
 from tomllib         import loads
-from typing          import Annotated, Self, assert_never
+from typing          import Annotated, ClassVar, Self, assert_never
 from yaml            import AliasToken, AnchorToken, CSafeLoader, load, scan
 
 
@@ -25,6 +26,30 @@ class Author(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
     """
     The author's name.
     """
+
+
+class ConfigFile(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    A record read out of one configuration file, parsed as TOML unless
+    a subclass's `parser` reads another format, holding the fields its
+    subclass declares beside the file's path.
+    """
+
+    path: Path
+    """
+    The file.
+    """
+
+    parser: ClassVar[Callable[[str], dict[str, object]]] = staticmethod(loads)
+
+    @classmethod
+    def read(cls, path: Path) -> Self:
+        """
+        Reads the file at `path`.
+        """
+        return cls.model_validate(
+            {**cls.parser(path.read_text(encoding="utf-8")), "path": path}
+        )
 
 
 class Format(StrEnum):
@@ -74,7 +99,7 @@ class License(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         Reads the license file at `path`, splitting the holders on the
         commas and the `and` between them.
         """
-        text   = path.read_text()
+        text   = path.read_text(encoding="utf-8")
         notice = search(r"^Copyright \(c\) [\d, -]+ (.+)$", text, MULTILINE)
 
         return cls(
@@ -146,7 +171,7 @@ class Script(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
         """
         block = search(
             r"(?m)^# /// script$\s(?P<content>(^#(| .*)$\s)+)^# ///$",
-            path.read_text()
+            path.read_text(encoding="utf-8")
         )
 
         if block is None:
@@ -230,6 +255,14 @@ class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         return frozenset(str(self.inputs.get("tools", "")).split())
 
     @property
+    def wrangler(self) -> str:
+        """
+        Reads the version of Wrangler the step's `wranglerVersion` input
+        names, or an empty text where it passes none.
+        """
+        return str(self.inputs.get("wranglerVersion", ""))
+
+    @property
     def writes_summary(self) -> bool:
         """
         Reads whether the step's script names the workflow step summary.
@@ -290,26 +323,9 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         """
         Reads whether the task's file names the workflow step summary.
         """
-        return self.file is not None and "GITHUB_STEP_SUMMARY" in self.file.read_text()
-
-
-class TomlFile(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
-    """
-    A record read out of one TOML file, holding the fields its subclass
-    declares beside the file's path.
-    """
-
-    path: Path
-    """
-    The file.
-    """
-
-    @classmethod
-    def read(cls, path: Path) -> Self:
-        """
-        Reads the file at `path`.
-        """
-        return cls.model_validate({**loads(path.read_text()), "path": path})
+        return self.file is not None and "GITHUB_STEP_SUMMARY" in self.file.read_text(
+            encoding = "utf-8"
+        )
 
 
 class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -364,7 +380,7 @@ class Action(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
         the tokens `yaml.scan` yields, since a load resolves both before any
         record holds the result.
         """
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
 
         return cls.model_validate(
             {
@@ -576,7 +592,7 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
         return frozenset(task for step in self.instances for task in step.tasks)
 
 
-class Lock(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+class Lock(ConfigFile):
     """
     The packages `uv.lock` resolves.
     """
@@ -585,13 +601,6 @@ class Lock(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     """
     Each package the lockfile resolves.
     """
-
-    @classmethod
-    def read(cls, path: Path) -> Self:
-        """
-        Reads the lockfile at `path`.
-        """
-        return cls.model_validate(loads(path.read_text()))
 
     def version(self, name: str) -> str | None:
         """
@@ -607,10 +616,16 @@ class Lock(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         )
 
 
-class MiseConfig(TomlFile):
+class MiseConfig(ConfigFile):
     """
     The fields of `.mise/config.toml` the checks compare against the files
     that restate them.
+    """
+
+    node: str | None = Field(None, validation_alias=AliasPath("tools", "node"))
+    """
+    The Node.js version mise pins for the site, or `None` where it pins
+    none.
     """
 
     python: str = Field(validation_alias=AliasPath("tools", "python"))
@@ -645,7 +660,7 @@ class MiseConfig(TomlFile):
         return ".".join(self.python.split(".")[:2])
 
 
-class Pyproject(TomlFile):
+class Pyproject(ConfigFile):
     """
     The fields of `pyproject.toml` the checks compare against the files that
     restate them.
@@ -690,6 +705,11 @@ class Pyproject(TomlFile):
     The specifier `[project].requires-python` declares.
     """
 
+    readme: Path = Field(validation_alias=AliasPath("project", "readme"))
+    """
+    The README `[project].readme` names, relative to the repository's root.
+    """
+
     target: str = Field(validation_alias=AliasPath("tool", "prose", "target-version"))
     """
     The Python version `[tool.prose]` formats the source for.
@@ -710,6 +730,49 @@ class Pyproject(TomlFile):
             requirement
             for requirement in (*self.builds, *self.constraints)
             if not pinned(requirement)
+        )
+
+
+class Site(ConfigFile):
+    """
+    The fields of the site's `docs/package.json` the checks compare against
+    the pins that restate them.
+    """
+
+    parser = staticmethod(from_json)
+
+    dependencies: dict[str, str] = {}
+    """
+    The version each package the site runs with is pinned to, keyed by its
+    name.
+    """
+
+    overrides: dict[str, str] = {}
+    """
+    The version each package the site's packages depend on is held to in
+    place of the one they ask for, keyed by its name.
+    """
+
+    packages: dict[str, str] = Field({}, validation_alias="devDependencies")
+    """
+    The version each package the site builds and checks with is pinned to,
+    keyed by its name.
+    """
+
+    @property
+    def loose(self) -> tuple[tuple[str, str], ...]:
+        """
+        Lists the name and the version of each dependency, each package, and
+        each override not pinned to one exact version.
+        """
+        return tuple(
+            (name, version)
+            for name, version in (
+                *self.dependencies.items(),
+                *self.packages.items(),
+                *self.overrides.items()
+            )
+            if not exact(version)
         )
 
 
@@ -831,7 +894,7 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         YAML 1.1, which PyYAML follows, reads the bare `on` key as the
         boolean `True`, so the events load from that key into `triggers`.
         """
-        workflow = load(path.read_text(), Loader=CSafeLoader)
+        workflow = load(path.read_text(encoding="utf-8"), Loader=CSafeLoader)
 
         return cls.model_validate(
             {
@@ -855,6 +918,15 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         relative = {path.relative_to(root) for path in {*paths, self.path}}
 
         return sorted(path for path in relative if not self.filters(path))
+
+
+def exact(version: str) -> Match[str] | None:
+    """
+    Matches `version` against the shape of one exact version as npm writes
+    it, meaning a major, a minor, and a patch, with an optional prerelease
+    and build after them, and no range.
+    """
+    return fullmatch(r"\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?", version)
 
 
 def pinned(requirement: str) -> Match[str] | None:

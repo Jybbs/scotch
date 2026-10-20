@@ -1,0 +1,11 @@
+## ⏱️ Brief
+
+| **Job** | **Result** |
+|---|---|
+| `coverage` | success |
+| `deploy` | skipped |
+| `press` | success |
+
+The run built and checked the site without publishing it, since only `main` publishes.
+
+The run checked `560c4d8` on `4/ci-gate`.

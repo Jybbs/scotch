@@ -1,8 +1,10 @@
 """
-Pins the records the store's sources travel in, meaning where a `Source`
-lands under the downloads directory and the games it reads from there, the
-declarations `sources.toml` ships and the rows `Sources` refuses, and what a
-`Download` and the `Manifest` of them record.
+Pins the records describing the store's sources:
+
+- Where a `Source` lands under the downloads directory, the name of its
+  file, and the games it reads from there
+- The declarations `sources.toml` ships and the rows `Sources` refuses
+- What a `Download` and the `Manifest` of them record
 """
 
 from common.sources import declare, land, zipped
@@ -63,8 +65,8 @@ def test_a_download_matches_only_a_file_holding_its_bytes(
 
 def test_a_manifest_reads_back_as_it_was_written(tmp_path: Path):
     """
-    Asserts that a manifest written to a directory reads back from its
-    `manifest.json` with every download under its address.
+    Asserts that a manifest written to a directory it creates reads back
+    from its `manifest.json` with every download under its address.
     """
     (tmp_path / "file.zip").write_bytes(b"games")
     manifest = Manifest().recording(
@@ -159,8 +161,7 @@ def test_an_archive_reads_each_pgn_member_in_order_counting_places_across_them(
 def test_every_declared_file_is_a_pgn_mentor_players_archive():
     """
     Asserts that `sources.toml` declares PGN Mentor's players section, each
-    row a zip archive under its `players` folder named for one player, in
-    the alphabetical order the section lists them.
+    row a zip archive under its `players` folder, in alphabetical order.
     """
     sources   = Sources.read().sources
     addresses = [str(source.address) for source in sources]
@@ -215,3 +216,23 @@ def test_sources_name_a_repeated_address_and_a_provider_with_two_homes(
                 )
             ]
         )
+
+
+@mark.parametrize(
+    ("address", "file"),
+    [
+        param("players/Tal.zip", "Tal.zip", id="zip"),
+        param("files/Anand.pgn", "Anand.pgn", id="pgn"),
+        param("players/Réti.zip", "Réti.zip", id="outside-ascii")
+    ]
+)
+def test_a_source_names_its_file_by_the_last_part_of_its_address(
+    address : str,
+    file    : str
+):
+    """
+    Asserts that a source's file is the last part of the path its address
+    names, extension included, and a name outside ASCII reads as written
+    rather than percent-encoded.
+    """
+    assert declare(address).file == file

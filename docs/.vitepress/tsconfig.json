@@ -1,0 +1,10 @@
+{
+    "extends"         : "@vue/tsconfig/tsconfig.dom.json",
+    "compilerOptions" : {
+        "erasableSyntaxOnly"       : true,
+        "noUncheckedIndexedAccess" : true,
+        "lib"   : ["ESNext", "DOM"],
+        "types" : ["node", "vite/client"]
+    },
+    "include"         : ["**/*.ts"]
+}

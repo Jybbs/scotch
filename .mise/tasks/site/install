@@ -1,0 +1,6 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Install the site's packages from `docs/bun.lock`, pruning any it no longer names"
+#MISE dir         = "docs"
+
+bun install --frozen-lockfile
+bun prune

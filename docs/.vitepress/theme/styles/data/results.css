@@ -1,0 +1,87 @@
+.sc-data-results {
+  cursor       : crosshair;
+  touch-action : pan-y;
+}
+
+.sc-data-toggle {
+  display       : inline-flex;
+  align-items   : center;
+  gap           : 7px;
+  height        : 30px;
+  padding       : 0 12px;
+  border        : 0;
+  border-radius : 15px;
+  background    : var(--sc-raised);
+  box-shadow    : inset 0 0 0 1px var(--sc-data-rule);
+  color         : var(--sc-data-ink);
+  font          : 600 0.78rem/30px var(--sc-face-body);
+  cursor        : pointer;
+  transition    : box-shadow var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-data-toggle:hover { box-shadow: inset 0 0 0 1px var(--sc-data-link); }
+
+.sc-data-toggle[aria-pressed='true'] {
+  background : var(--sc-data-tint);
+  box-shadow : inset 0 0 0 1.5px var(--sc-data-link);
+}
+
+.sc-data-swatch {
+  display       : inline-block;
+  flex          : none;
+  width         : 10px;
+  height        : 10px;
+  border-radius : 2px;
+  box-shadow    : inset 0 0 0 1px var(--sc-data-edge);
+}
+
+.sc-data-swatch-w { background: var(--sc-ground); }
+
+.sc-data-swatch-d { background: var(--sc-data-draw); }
+
+.sc-data-swatch-b { background: var(--sc-data-black); }
+
+.sc-data-band-group { transition: opacity var(--sc-duration-settle) var(--sc-curve-glide); }
+
+.sc-data-band-group.sc-data-off { opacity: 0.16; }
+
+.sc-data-band-w {
+  fill         : color-mix(in oklab, var(--sc-data-ink) 6%, var(--sc-data-page));
+  stroke       : var(--sc-data-edge);
+  stroke-width : 0.6;
+}
+
+.sc-data-band-d { fill: var(--sc-data-draw); }
+
+.sc-data-band-b { fill: color-mix(in oklab, var(--sc-data-black) 78%, var(--sc-data-page)); }
+
+.sc-data-band-name { font: 600 0.7rem var(--sc-face-body); }
+
+.sc-data-band-name-w { fill: var(--sc-data-ink); }
+
+.sc-data-band-name-d { fill: var(--sc-dark); }
+
+.sc-data-band-name-b { fill: var(--sc-ground); }
+
+.sc-data-isolated .sc-data-band-names { opacity: 0.3; }
+
+.sc-data-caption {
+  font-size      : 0.54rem;
+  letter-spacing : 0.1em;
+}
+
+.sc-data-count { fill: color-mix(in oklab, var(--sc-data-ink) 38%, var(--sc-data-page)); }
+
+.sc-data-thumb {
+  position       : absolute;
+  top            : 0;
+  left           : 0;
+  width          : 10px;
+  height         : 10px;
+  margin         : -5px 0 0 -5px;
+  border-radius  : 50%;
+  background     : var(--sc-data-page);
+  box-shadow     : 0 0 0 2px var(--sc-data-ink);
+  pointer-events : none;
+  will-change    : transform;
+}

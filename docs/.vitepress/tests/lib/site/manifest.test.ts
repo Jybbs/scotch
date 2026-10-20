@@ -1,0 +1,35 @@
+import path              from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+import { describe, expect } from 'vitest'
+
+import { projectFacts }   from '../../../lib/site/manifest.ts'
+import { MANIFEST, test } from '../../common/repo.ts'
+
+describe('projectFacts', () => {
+  test('reads the description, the homepage and its host, the version, and the coverage gate', ({ repo }) => {
+    expect(projectFacts(repo.metaUrl)).toEqual({
+      description : 'Finds the closest game.',
+      gate        : 90,
+      homepage    : 'https://example.org',
+      host        : 'example.org',
+      version     : '1.2.3'
+    })
+  })
+
+  test.for([
+    ['description', 'project.description'],
+    ['Homepage', 'project.urls.Homepage'],
+    ['version', 'project.version'],
+    ['fail_under', 'tool.coverage.report.fail_under']
+  ])('fails by name where the manifest leaves out %s', ([key, name], { repo }) => {
+    const kept = MANIFEST.split('\n').filter(line => !line.startsWith(`${key} `))
+    const file = repo.write('pyproject.toml', kept.join('\n'))
+    expect(() => projectFacts(repo.metaUrl)).toThrow(`no ${name} in ${file}`)
+  })
+
+  test('reads the manifest of the repository a module sits in at any depth', ({ repo }) => {
+    const deep = pathToFileURL(path.join(repo.root, 'deep', 'er', 'module.ts')).href
+    expect(projectFacts(deep).version).toBe('1.2.3')
+  })
+})

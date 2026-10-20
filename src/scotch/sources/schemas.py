@@ -12,10 +12,11 @@ from functools           import partial
 from hashlib             import file_digest
 from importlib.resources import read_text
 from itertools           import chain
-from pathlib             import Path
+from pathlib             import Path, PurePosixPath
 from pydantic            import AwareDatetime, BaseModel, Field, HttpUrl, NonNegativeInt, model_validator
 from tomllib             import loads
 from typing              import Self
+from urllib.parse        import unquote
 from zipfile             import Path as ZipPath, ZipFile, is_zipfile
 
 from scotch.games.schemas import Game, Origin
@@ -97,6 +98,14 @@ class Source(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     """
     The section of the provider's site listing the file.
     """
+
+    @property
+    def file(self) -> str:
+        """
+        Reads the file's name from its address without its percent-encoding,
+        such as `Carlsen.zip`.
+        """
+        return unquote(PurePosixPath(self.address.path).name)
 
     def games(self, directory: Path) -> Iterator[Game]:
         """
@@ -235,6 +244,15 @@ class Sources(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     @classmethod
     def read(cls) -> Self:
         """
-        Reads the `sources.toml` the `scotch.sources` package ships.
+        Reads every row of the `sources.toml` the `scotch.sources` package
+        ships.
         """
-        return cls.model_validate(loads(read_text("scotch.sources", "sources.toml")))
+        return cls.model_validate(loads(cls.text()))
+
+    @staticmethod
+    def text() -> str:
+        """
+        Reads the text of the `sources.toml` the `scotch.sources` package
+        ships, as the file writes it.
+        """
+        return read_text("scotch.sources", "sources.toml")

@@ -1,0 +1,392 @@
+.sc-run {
+  display               : grid;
+  grid-template-areas   : 'controls status' 'lanes cells' '. ruler' 'board plies' 'key note';
+  grid-template-columns : minmax(0, 3fr) minmax(0, 5fr);
+  column-gap            : 24px;
+  row-gap               : 16px;
+  align-items           : start;
+}
+
+.sc-run-controls {
+  grid-area   : controls;
+  display     : flex;
+  flex-wrap   : wrap;
+  gap         : 8px;
+  align-items : center;
+}
+
+.sc-run-button {
+  height         : 26px;
+  padding        : 0 12px;
+  border         : 1px solid var(--sc-rule);
+  border-radius  : 999px;
+  background     : var(--sc-raised);
+  color          : var(--sc-run);
+  font           : 600 0.6rem/24px var(--sc-face-code);
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+  cursor         : pointer;
+  transition     : border-color var(--sc-duration-move) var(--sc-curve-glide),
+                   background-color var(--sc-duration-move) var(--sc-curve-glide),
+                   color var(--sc-duration-move) var(--sc-curve-glide);
+}
+
+.sc-run-button:hover { border-color: var(--sc-run); }
+
+.sc-run-button:disabled {
+  border-color : var(--sc-rule);
+  color        : var(--sc-quiet);
+  cursor       : default;
+}
+
+.sc-run-button[aria-pressed='true'] {
+  border-color : var(--sc-run);
+  background   : var(--sc-run);
+  color        : var(--sc-page);
+}
+
+.sc-run-button:focus-visible,
+.sc-run-list:focus-visible {
+  outline        : 2px solid var(--sc-run);
+  outline-offset : 2px;
+}
+
+.sc-run-status {
+  grid-area      : status;
+  align-self     : center;
+  justify-self   : stretch;
+  overflow       : hidden;
+  color          : var(--sc-quiet);
+  font           : 500 0.62rem/16px var(--sc-face-code);
+  letter-spacing : 0.1em;
+  text-align     : right;
+  text-transform : uppercase;
+  white-space    : nowrap;
+}
+
+.sc-run-lanes {
+  grid-area          : lanes;
+  justify-self       : end;
+  display            : grid;
+  grid-template-rows : 10px 10px;
+  row-gap            : 3px;
+}
+
+.sc-run-lanes span,
+.sc-run-heads span {
+  display     : flex;
+  align-items : center;
+  gap         : 8px;
+}
+
+.sc-run-lanes span {
+  justify-content : flex-end;
+  color           : var(--sc-quiet);
+  font            : 500 0.56rem/10px var(--sc-face-code);
+  letter-spacing  : 0.1em;
+  text-transform  : uppercase;
+}
+
+.sc-run-lanes span::after,
+.sc-run-heads [data-game]::before {
+  content       : '';
+  flex          : none;
+  width         : 8px;
+  height        : 8px;
+  border-radius : 2px;
+  background    : var(--sc-run-game);
+}
+
+.sc-run :is([data-game='submitted'], [data-cell='submitted'], [data-kind='submitted']) {
+  --sc-run-game: var(--sc-submitted);
+}
+
+.sc-run :is([data-game='stored'], [data-cell='stored'], [data-kind='stored']) {
+  --sc-run-game: var(--sc-stored);
+}
+
+.sc-run-cells,
+.sc-run-ruler {
+  display               : grid;
+  grid-template-columns : repeat(var(--sc-run-cells), minmax(0, 1fr));
+  column-gap            : var(--sc-run-gap);
+}
+
+.sc-run-cells {
+  grid-area          : cells;
+  position           : relative;
+  grid-template-rows : 10px 10px;
+  row-gap            : 3px;
+}
+
+.sc-run-cell { border-radius: 2px; }
+
+.sc-run-cell[data-cell='start'] { background: color-mix(in oklab, var(--sc-quiet) 28%, var(--sc-page)); }
+
+.sc-run-cell[data-cell='run'] { background: color-mix(in oklab, var(--sc-run) 70%, var(--sc-page)); }
+
+.sc-run-cell:is([data-cell='submitted'], [data-cell='stored']) { background: var(--sc-run-game); }
+
+.sc-run-head {
+  position       : absolute;
+  top            : -4px;
+  bottom         : -4px;
+  left           : 0;
+  width          : calc((100% - (var(--sc-run-cells) - 1) * var(--sc-run-gap)) / var(--sc-run-cells));
+  border-radius  : 4px;
+  box-shadow     : 0 0 0 2px var(--sc-ink);
+  pointer-events : none;
+  will-change    : transform;
+}
+
+.sc-run-ruler {
+  grid-area      : ruler;
+  height         : 12px;
+  margin-top     : -12px;
+  color          : var(--sc-quiet);
+  font           : 500 0.54rem/12px var(--sc-face-code);
+  letter-spacing : 0.08em;
+  text-transform : uppercase;
+}
+
+.sc-run-ruler span { white-space: nowrap; }
+
+.sc-run-ruler [data-end] { justify-self: end; }
+
+.sc-run-board {
+  grid-area     : board;
+  position      : relative;
+  aspect-ratio  : 1;
+  overflow      : hidden;
+  border-radius : 3px;
+}
+
+.sc-run-squares,
+.sc-run-washes {
+  position              : absolute;
+  inset                 : 0;
+  display               : grid;
+  grid-template-columns : repeat(8, 1fr);
+  grid-template-rows    : repeat(8, 1fr);
+}
+
+.sc-run-square[data-shade='light'] { background: var(--sc-light); }
+
+.sc-run-square[data-shade='dark'] { background: var(--sc-primary); }
+
+.sc-run-wash { will-change: opacity; }
+
+.sc-run-wash:is([data-kind='submitted'], [data-kind='stored']) {
+  background : color-mix(in oklab, var(--sc-run-game) 52%, transparent);
+  box-shadow : inset 0 0 0 2px var(--sc-run-game);
+}
+
+.sc-run-wash[data-kind='both'] {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--sc-submitted) 60%, transparent) 0 49.4%,
+    color-mix(in oklab, var(--sc-ground) 70%, transparent) 49.4% 50.6%,
+    color-mix(in oklab, var(--sc-stored) 60%, transparent) 50.6%
+  );
+}
+
+.sc-run-layer {
+  position       : absolute;
+  inset          : 0;
+  pointer-events : none;
+}
+
+.sc-run-piece {
+  position    : absolute;
+  top         : 0;
+  left        : 0;
+  width       : 12.5%;
+  height      : 12.5%;
+  opacity     : 0;
+  will-change : transform, opacity;
+}
+
+.sc-run-piece svg {
+  display : block;
+  width   : 100%;
+  height  : 100%;
+}
+
+.sc-run-halo * {
+  fill         : color-mix(in oklab, var(--sc-light) 85%, transparent) !important;
+  stroke       : color-mix(in oklab, var(--sc-light) 85%, transparent) !important;
+  stroke-width : 3.4 !important;
+}
+
+.sc-run-piece[data-ghost] svg * {
+  fill   : transparent !important;
+  stroke : var(--sc-dark) !important;
+}
+
+.sc-run-piece[data-ghost] .sc-run-halo { display: none; }
+
+.sc-run-stamp {
+  position       : absolute;
+  bottom         : 10px;
+  left           : 50%;
+  translate      : -50% 0;
+  padding        : 3px 9px;
+  border-radius  : 999px;
+  background     : color-mix(in oklab, var(--sc-dark) 80%, transparent);
+  color          : var(--sc-ground);
+  font           : 600 0.54rem/14px var(--sc-face-code);
+  letter-spacing : 0.12em;
+  text-transform : uppercase;
+  white-space    : nowrap;
+  opacity        : 0;
+  pointer-events : none;
+  will-change    : opacity;
+}
+
+.sc-run-plies {
+  grid-area          : plies;
+  align-self         : stretch;
+  display            : grid;
+  grid-template-rows : auto minmax(0, 1fr);
+  contain            : size;
+}
+
+.sc-run-heads,
+.sc-run-list {
+  display               : grid;
+  grid-template-columns : 2.25rem minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.sc-run-heads {
+  border-top    : 1.5px solid var(--sc-ink);
+  border-bottom : 1px solid var(--sc-ink);
+  font          : 600 0.76rem/24px var(--sc-face-body);
+}
+
+.sc-run-heads span { padding: 0 8px 0 12px; }
+
+.sc-run-heads span:first-child {
+  justify-content : flex-end;
+  padding         : 0 8px;
+  color           : var(--sc-quiet);
+  font            : 500 0.56rem/24px var(--sc-face-code);
+  letter-spacing  : 0.1em;
+  text-transform  : uppercase;
+}
+
+.sc-run-list {
+  position            : relative;
+  grid-auto-rows      : 26px;
+  align-content       : start;
+  overflow            : auto;
+  overscroll-behavior : contain;
+  font                : 0.74rem var(--sc-face-code);
+  scrollbar-width     : thin;
+}
+
+.sc-run-option {
+  display               : grid;
+  grid-column           : 1 / -1;
+  grid-template-columns : subgrid;
+  cursor                : pointer;
+}
+
+.sc-run-option > span {
+  display              : flex;
+  align-items          : center;
+  gap                  : 8px;
+  padding              : 0 8px 0 12px;
+  border-bottom        : 1px solid color-mix(in oklab, var(--sc-rule) 60%, transparent);
+  font-variant-numeric : tabular-nums;
+  white-space          : nowrap;
+}
+
+.sc-run-option .sc-run-ply {
+  justify-content : flex-end;
+  padding         : 0 8px;
+  color           : var(--sc-quiet);
+}
+
+.sc-run-option[data-cell='run'] { background: var(--sc-tint); }
+
+.sc-run-option[data-at] { background: color-mix(in oklab, var(--sc-ink) 9%, var(--sc-page)); }
+
+.sc-run-option[data-at][data-cell='run'] {
+  background: color-mix(in oklab, var(--sc-run) 26%, var(--sc-page));
+}
+
+.sc-run-option[data-at] .sc-run-ply {
+  color       : var(--sc-ink);
+  font-weight : 700;
+}
+
+.sc-run-option:not([data-cell='start']) .sc-run-move { box-shadow: inset 3px 0 0 var(--sc-run-game); }
+
+.sc-run-option[data-cell='run'] .sc-run-move { --sc-run-game: var(--sc-run); }
+
+.sc-run-mark {
+  margin-left    : auto;
+  padding        : 0 6px;
+  border-radius  : 999px;
+  box-shadow     : inset 0 0 0 1px var(--sc-run);
+  color          : var(--sc-run);
+  font-size      : 0.48rem;
+  letter-spacing : 0.1em;
+  line-height    : 14px;
+  text-transform : uppercase;
+}
+
+.sc-run-key {
+  grid-area : key;
+  position  : relative;
+  height    : 108px;
+}
+
+.sc-run-leader {
+  position         : absolute;
+  left             : 0;
+  width            : 1px;
+  background       : var(--sc-ink);
+  box-shadow       : 0 0 0 1px color-mix(in oklab, var(--sc-page) 70%, transparent);
+  opacity          : 0;
+  transform-origin : 50% 100%;
+  will-change      : transform, opacity;
+}
+
+.sc-run-tag {
+  position       : absolute;
+  left           : 0;
+  display        : flex;
+  align-items    : center;
+  height         : 14px;
+  margin-top     : -7px;
+  color          : var(--sc-ink);
+  font           : 500 0.65rem/14px var(--sc-face-code);
+  letter-spacing : 0.06em;
+  white-space    : nowrap;
+  opacity        : 0;
+  will-change    : transform, opacity;
+}
+
+.sc-run .sc-run-note {
+  grid-area : note;
+  margin    : 0;
+  color     : var(--sc-quiet);
+  font      : 400 0.8125rem/20px var(--sc-face-body);
+}
+
+@media (width < 40rem) {
+  .sc-run {
+    grid-template-areas   : 'controls' 'status' 'lanes' 'cells' 'ruler' 'board' 'key' 'note' 'plies';
+    grid-template-columns : minmax(0, 1fr);
+  }
+
+  .sc-run-lanes { justify-self: start; }
+
+  .sc-run-status { text-align: left; }
+
+  .sc-run-plies {
+    height  : 15rem;
+    contain : none;
+  }
+}

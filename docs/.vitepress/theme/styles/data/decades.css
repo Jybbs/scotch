@@ -1,0 +1,13 @@
+.sc-data-decades { touch-action: pan-y; }
+
+.sc-data-cursor {
+  position       : absolute;
+  left           : 0;
+  background     : color-mix(in oklab, var(--sc-data-link) 22%, transparent);
+  opacity        : 0;
+  pointer-events : none;
+  will-change    : transform, opacity;
+  transition     : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-data-cursor.sc-data-on { opacity: 1; }

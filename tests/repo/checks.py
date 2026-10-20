@@ -7,29 +7,38 @@ the rule the check holds.
 from collections.abc import Iterable
 from common.sample   import Sample
 from pathlib         import Path
-from pytest          import mark, param
+from pytest          import MonkeyPatch, mark, param
 from pytest_subprocess.fake_process import FakeProcess
 
+from scotch.citations.pages   import Mismatch
+from scotch.citations.schemas import References
+from scotch.docs.inventory    import Outputs
+from scotch.docs.outputs      import Footnotes, Region
+from scotch.repo.checkout     import Checkout
 from scotch.repo.checks  import (
     ActionPinCheck,
     AnchorCheck,
     Check,
+    CommandCheck,
     ExactPinCheck,
     GateCheck,
     InputCheck,
     KitCheck,
     LicenseCheck,
-    LockedRunCheck,
+    NodeTypesCheck,
     PinCheck,
+    RenderCheck,
     RowCheck,
     RunnerCheck,
     ScriptCheck,
+    SitePinCheck,
     SummaryCheck,
     TaskCheck,
+    VitestCheck,
     WarmCheck,
     WrapperCheck
 )
-from scotch.repo.schemas import Level
+from scotch.repo.schemas      import Level
 
 
 def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str]]:
@@ -87,6 +96,98 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 )
             ],
             id = "anchor"
+        ),
+        param(
+            CommandCheck,
+            [(".mise/tasks/site/install", " --frozen-lockfile", "")],
+            [(
+                ".mise/tasks/site/install",
+                2,
+                "`bun install` carries neither `--frozen-lockfile` nor "
+                "`--lockfile-only`"
+            )],
+            id = "unfrozen-install"
+        ),
+        param(
+            CommandCheck,
+            [(".mise/tasks/site/install", "bun install --frozen-lockfile", "bun i")],
+            [(
+                ".mise/tasks/site/install",
+                2,
+                "`bun install` carries neither `--frozen-lockfile` nor "
+                "`--lockfile-only`"
+            )],
+            id = "unfrozen-alias"
+        ),
+        param(
+            CommandCheck,
+            [(".mise/tasks/site/install", "--frozen-lockfile", "--lockfile-only")],
+            [],
+            id = "lockfile-only-install"
+        ),
+        param(
+            CommandCheck,
+            [(".mise/tasks/site/install", "bun install --frozen-lockfile", "bun init")],
+            [],
+            id = "another-command-opening-on-i"
+        ),
+        param(
+            CommandCheck,
+            [(
+                ".mise/tasks/site/install", "bun install --frozen-lockfile",
+                "bunx vitest"
+            )],
+            [(
+                ".mise/tasks/site/install",
+                2,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx"
+        ),
+        param(
+            CommandCheck,
+            [(
+                ".mise/tasks/site/install", "bun install --frozen-lockfile",
+                "bun x vitest"
+            )],
+            [(
+                ".mise/tasks/site/install",
+                2,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bun-x"
+        ),
+        param(
+            CommandCheck,
+            [(".mise/tasks/py/test", "--exact --locked", "--locked --exact")],
+            [(
+                ".mise/tasks/py/test", 2,
+                "`uv run` does not open its arguments on `--exact --locked`"
+            )],
+            id = "unlocked-task"
+        ),
+        param(
+            CommandCheck,
+            [(".mise/bin/prose", "--exact --locked", "--locked --exact")],
+            [(
+                ".mise/bin/prose", 3,
+                "`uv run` does not open its arguments on `--exact --locked`"
+            )],
+            id = "unlocked-wrapper"
+        ),
+        param(
+            CommandCheck,
+            [(
+                ".mise/tasks/py/test", "--exact --locked pytest",
+                "--exact --locked-dry pytest"
+            )],
+            [(
+                ".mise/tasks/py/test", 2,
+                "`uv run` does not open its arguments on `--exact --locked`"
+            )],
+            id = "unlocked-suffix"
         ),
         param(
             ExactPinCheck,
@@ -234,34 +335,30 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "license-without-holder"
         ),
         param(
-            LockedRunCheck,
-            [(".mise/tasks/py/test", "--exact --locked", "--locked --exact")],
+            NodeTypesCheck,
+            [("docs/package.json", '"26.6.5"', '"25.6.5"')],
             [(
-                ".mise/tasks/py/test", 2,
-                "`uv run` does not open its arguments on `--exact --locked`"
+                "docs/package.json",
+                None,
+                "`@types/node` is `25.6.5`, whose major differs from the `node` "
+                "`26.11.1` `.mise/config.toml` pins"
             )],
-            id = "unlocked-task"
+            id = "node-types-major"
         ),
         param(
-            LockedRunCheck,
-            [(".mise/bin/prose", "--exact --locked", "--locked --exact")],
-            [(
-                ".mise/bin/prose", 3,
-                "`uv run` does not open its arguments on `--exact --locked`"
-            )],
-            id = "unlocked-wrapper"
+            NodeTypesCheck,
+            [
+                ("docs/package.json", '"26.6.5"', '"25.6.5"'),
+                (".mise/config.toml", 'node   = "26.11.1"\n', "")
+            ],
+            [],
+            id = "node-unpinned"
         ),
         param(
-            LockedRunCheck,
-            [(
-                ".mise/tasks/py/test", "--exact --locked pytest",
-                "--exact --locked-dry pytest"
-            )],
-            [(
-                ".mise/tasks/py/test", 2,
-                "`uv run` does not open its arguments on `--exact --locked`"
-            )],
-            id = "unlocked-suffix"
+            NodeTypesCheck,
+            [("docs/package.json", '        "@types/node"         : "26.6.5",\n', "")],
+            [],
+            id = "node-types-unpinned"
         ),
         param(
             PinCheck,
@@ -382,6 +479,71 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "script-pin-outside-the-lock"
         ),
         param(
+            SitePinCheck,
+            [(
+                "docs/package.json", '"vitest"              : "5.0.5"',
+                '"vitest"              : "^5.0.5"'
+            )],
+            [(
+                "docs/package.json", None,
+                "`vitest` is `^5.0.5`, which is not one exact version"
+            )],
+            id = "loose-site-pin"
+        ),
+        param(
+            SitePinCheck,
+            [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "overrides"       : {"fflate": "~0.7.5"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`fflate` is `~0.7.5`, which is not one exact version"
+            )],
+            id = "loose-site-override"
+        ),
+        param(
+            SitePinCheck,
+            [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "dependencies"    : {"vue": "^3.5.44"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`vue` is `^3.5.44`, which is not one exact version"
+            )],
+            id = "loose-site-dependency"
+        ),
+        param(
+            SitePinCheck,
+            [(
+                ".github/workflows/warm.yml",
+                "      - name: Install the tools and save their cache\n",
+                "        with:\n          wranglerVersion: ^4.149.0\n"
+                "      - name: Install the tools and save their cache\n"
+            )],
+            [(
+                ".github/workflows/warm.yml", None,
+                "`wranglerVersion` is `^4.149.0`, which is not one exact version"
+            )],
+            id = "loose-wrangler-version"
+        ),
+        param(
+            SitePinCheck,
+            [(
+                ".github/workflows/warm.yml",
+                "      - name: Install the tools and save their cache\n",
+                "        with:\n          wranglerVersion: 4.149.0\n"
+                "      - name: Install the tools and save their cache\n"
+            )],
+            [],
+            id = "exact-wrangler-version"
+        ),
+        param(
             SummaryCheck,
             [
                 (
@@ -446,6 +608,30 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "summary-writer-in-the-composite"
         ),
         param(
+            VitestCheck,
+            [(
+                "docs/package.json", '"@vitest/coverage-v8" : "5.0.5"',
+                '"@vitest/coverage-v8" : "5.0.4"'
+            )],
+            [(
+                "docs/package.json", None,
+                "`@vitest/coverage-v8` is `5.0.4` where `vitest` is `5.0.5`"
+            )],
+            id = "coverage-provider"
+        ),
+        param(
+            VitestCheck,
+            [("docs/package.json", '        "@vitest/coverage-v8" : "5.0.5",\n', "")],
+            [],
+            id = "coverage-provider-unpinned"
+        ),
+        param(
+            VitestCheck,
+            [("docs/package.json", ',\n        "vitest"              : "5.0.5"', "")],
+            [],
+            id = "vitest-unpinned"
+        ),
+        param(
             WarmCheck,
             [(".github/workflows/warm.yml", "      - .mise/mise.lock\n", "")],
             [
@@ -485,8 +671,9 @@ def test_a_departure_draws_the_checks_findings(
     findings : Iterable[tuple[str, int | None, str]]
 ):
     """
-    Asserts that each departure the edits pose draws exactly the findings
-    the check reports for it, at the file and the line each concerns.
+    Asserts that the edits draw exactly the findings listed from the check,
+    each at the file and the line it concerns, and none where the edits keep
+    the rule.
     """
     for path, old, new in edits:
         answered.edit(path, new=new, old=old)
@@ -499,9 +686,8 @@ def test_a_departure_draws_the_checks_findings(
 
 def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
     """
-    Asserts that a wrapper that is a symlink draws a finding, since git
-    checks one out as a plain file holding the link's target wherever
-    `core.symlinks` is off.
+    Asserts that a wrapper that is a symlink draws a finding naming it as
+    one.
     """
     wrapper = sample.root / ".mise" / "bin" / "pytest"
     wrapper.unlink()
@@ -549,5 +735,75 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
         (
             Path(".mise/config.toml"),
             Level.WARNING, "`repo:inline`: Description is empty"
+        )
+    ]
+
+
+def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
+    monkeypatch : MonkeyPatch,
+    references  : References,
+    sample      : Sample
+):
+    """
+    Asserts that each rendered file departing from its declaration is a
+    finding at its page:
+
+    - A region holding other than its declaration's text, naming the task
+      that rewrites it
+    - A footnote definition the page lacks, at its line, naming that task
+    - A page whose markers no longer enclose one region, naming the error
+    - A page citing a source from a bibliography bibtexparser could not
+      read, naming the error
+    """
+    (sample.root / "drifted.md").write_text(
+        "<!-- table -->\n| old |\n<!-- /table -->\n"
+    )
+    (sample.root / "cited.md").write_text("A claim.[^doe2020]\n")
+    (sample.root / "broken.md").write_text("<!-- table -->\n")
+
+    def unreadable() -> References:
+        """
+        Raises the error `References.read` raises for a block it could not
+        read.
+        """
+        raise ValueError(
+            "Line 3 of docs/references.bib holds a block bibtexparser could not read"
+        )
+    monkeypatch.setattr(
+        Checkout,
+        "outputs",
+        Outputs(
+            [
+                Region(name="table", path=Path("drifted.md"), render=lambda: "| new |"),
+                Footnotes(path=Path("cited.md"), references=lambda: references),
+                Region(name="table", path=Path("broken.md"), render=lambda: ""),
+                Footnotes(path=Path("cited.md"), references=unreadable)
+            ]
+        )
+    )
+
+    assert scan(RenderCheck, sample) == [
+        (
+            Path("drifted.md"),
+            None,
+            "The file has drifted from what `scotch render docs` writes, which "
+            "`mise run docs:render` rewrites"
+        ),
+        (
+            Path("cited.md"),
+            1,
+            f"{Mismatch(key='doe2020', line=1).problem}, which `mise run docs:render`"
+            " rewrites"
+        ),
+        (
+            Path("broken.md"),
+            None,
+            "holds other than one <!-- table --> followed by one "
+            "<!-- /table -->"
+        ),
+        (
+            Path("cited.md"),
+            None,
+            "Line 3 of docs/references.bib holds a block bibtexparser could not read"
         )
     ]

@@ -1,0 +1,39 @@
+.VPHome .VPHomeHero.VPHero {
+  position       : relative;
+  z-index        : 1;
+  padding-top    : calc(var(--vp-nav-height) + var(--vp-layout-top-height, 0px) + var(--sc-hero-top, 88px));
+  padding-bottom : var(--sc-hero-bottom, 88px);
+}
+
+.VPHome .VPHomeHero .main { width: 100%; }
+
+.VPHome .VPHomeHero .actions {
+  justify-content : center;
+  padding-top     : 24px;
+}
+
+.sc-lockup {
+  display       : grid;
+  justify-items : center;
+  gap           : 14px;
+  text-align    : center;
+}
+
+.sc-lockup .sc-wordmark {
+  display : block;
+  width   : min(24rem, 76%);
+  color   : var(--sc-run);
+}
+
+.sc-lockup .sc-wordmark svg {
+  display : block;
+  width   : 100%;
+  height  : auto;
+}
+
+.sc-lockup .sc-tagline {
+  margin    : 0;
+  color     : var(--sc-ink);
+  font      : italic 400 clamp(1.1rem, 3vw, 1.45rem) / 1.3 var(--sc-face-body);
+  text-wrap : balance;
+}

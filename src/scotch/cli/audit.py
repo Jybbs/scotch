@@ -3,6 +3,7 @@ Holds the `scotch audit` commands, which report where the repository's own
 configuration has drifted from itself, run by the `repo:audit` task.
 """
 
+from scotch.cli           import app
 from scotch.cli.settings  import root
 from scotch.repo.checkout import Checkout
 from scotch.repo.checks   import Check
@@ -21,7 +22,7 @@ def repo(*, output_format: Format = Format.TEXT) -> int:
                        as the workflow command GitHub Actions turns into
                        an annotation.
     """
-    checkout = Checkout(root=root())
+    checkout = Checkout(app=app, root=root())
     findings = [
         finding.model_copy(update={"path": finding.path.relative_to(checkout.root)})
         for check in Check.__subclasses__()
