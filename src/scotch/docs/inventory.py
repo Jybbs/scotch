@@ -137,18 +137,19 @@ class Outputs(RootModel[list[Output]]):
             index  : The index the measured files read, or `None` to leave
                      them out.
         """
+        identity   = Identity()
         sources    = Sources.read()
-        declared   = {"files": f"{len(sources.sources):,}"}
+        declared   = {"files": f"{len(sources.sources):,}", "tagline": identity.tagline}
         pages      = tracked(root)
         project    = Project.installed()
         references = cache(partial(References.shipped, root))
-        palette    = Identity().palette
+        palette    = identity.palette
 
         return cls(
             [
                 Document.from_value(
                     path  = cls.rendered / "identity.json",
-                    value = lambda: Identity().model_dump(mode="json")
+                    value = lambda: identity.model_dump(mode="json")
                 ),
                 Document.from_value(
                     path  = cls.rendered / "pieces.json",

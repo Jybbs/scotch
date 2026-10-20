@@ -43,4 +43,9 @@ describe('citeMark', () => {
     expect(html).toContain(' <a href="#footnote-ref-zobrist1970:1" class="footnote-backref">')
     expect(html).toContain(' <a href="#footnote-ref-zobrist1970" class="footnote-backref">')
   })
+
+  it('escapes a label for use inside an attribute, as a label may hold a quote', () => {
+    expect(md.render('A claim.[^a"b]\n\n[^a"b]: A source.\n', { relativePath: 'methods/keys.md' }))
+      .toContain('<li id="footnote-a&quot;b" class="footnote-item">')
+  })
 })

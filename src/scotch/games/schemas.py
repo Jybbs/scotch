@@ -291,7 +291,7 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         Reads every game the PGN file at `path` carries, in the order it
         holds them, where `path` names a file on disk or the member of a
         zip archive `zipfile.Path` opens. The file is decoded as UTF-8, each
-        byte UTF-8 cannot decode replaced with U+FFFD, so a file another
+        sequence UTF-8 cannot decode replaced with U+FFFD, so a file another
         code page wrote still yields every move, every move being ASCII.
         """
         with path.open(encoding="utf-8", errors="replace") as handle:

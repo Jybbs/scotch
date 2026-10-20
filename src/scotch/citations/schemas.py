@@ -45,14 +45,22 @@ class Reference(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings
 
     authors: list[str] = Field(min_length=1)
     """
-    Each author's name as the definition writes it, the first author's
-    surname first and every later author's given names first.
+    Each name the definition opens on, an author's or, where the entry
+    names no author, an editor's, the first name surname first and every
+    later one given names first.
     """
 
     note: str | None = None
     """
     The part of the source a citation reaches, such as a section or an
     article, or `None` where it cites the whole source.
+    """
+
+    role: str | None = None
+    """
+    The part the people `authors` names played where they edited the
+    source rather than wrote it, such as a coordinator, or `None` where
+    they wrote it.
     """
 
     key: str = Field(pattern=rf"^{form}$")
@@ -64,18 +72,20 @@ class Reference(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings
     @property
     def definition(self) -> str:
         """
-        Writes the footnote definition citing the source, naming its authors
-        and its year, its title in quotes closing on a comma before the
-        note or on a period where it carries none, and its address. A title
-        ending on a question mark or an exclamation mark keeps its own mark.
+        Writes the footnote definition citing the source, naming its
+        authors, or its editors beside the role they played, and its year,
+        its title in quotes closing on a comma before the note or on a
+        period where it carries none, and its address. A title ending on a
+        question mark or an exclamation mark keeps its own mark.
         """
         *others, last = self.authors
         named         = f"{', '.join(others)}, and {last}" if others else last
+        credited      = f"{named}, {self.role}" if self.role else named
         stop  = "" if self.title.endswith(("?", "!")) else "," if self.note else "."
         noted = f" {self.note.removesuffix('.')}." if self.note else ""
 
         return (
-            f'[^{self.key}]: {named.removesuffix(".")}. {self.year}. '
+            f'[^{self.key}]: {credited.removesuffix(".")}. {self.year}. '
             f'"{self.title}{stop}"{noted} <{self.url}>'
         )
 
@@ -84,24 +94,29 @@ class Reference(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings
     def from_entry(cls, data: object) -> object:
         """
         Reads the fields of a source out of the entry bibtexparser parsed,
-        whose `author` field names each author as a surname, a comma, and
-        the given names, or as an organization holding no comma, and passes
-        any other value through as it stands. The first author keeps that
-        order, and each later one is turned to the given names before the
-        surname.
+        whose `author` field, or `editor` field where it names no author,
+        names each person as a surname, a comma, and the given names, or an
+        organization as a name holding no comma, and passes any other value
+        through as it stands. The first name keeps that order, and each
+        later one is turned to the given names before the surname.
+
+        An entry naming editors takes the role its `editortype` field names,
+        which biblatex reads as `editor` where the field is absent.
         """
         if not isinstance(data, Entry):
             return data
 
         fields = {field.key: field.value for field in data.fields}
-        names  = fields.pop("author", [])
+        edited = "author" not in fields
+        names  = fields.pop("editor" if edited else "author", [])
 
         return fields | {
             "authors" : names[:1] + [
                 parse_single_name_into_parts(name).merge_first_name_first
                 for name in names[1:]
             ],
-            "key"     : data.key
+            "key"     : data.key,
+            "role"    : fields.get("editortype", "editor") if edited else None
         }
 
 

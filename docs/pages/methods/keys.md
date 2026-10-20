@@ -10,7 +10,7 @@ The hash reads the en passant file wherever a pawn of the side to move stands be
 
 Two different positions share a key by accident with a chance of one in 2 to the power of 64. The index holds <!-- positions -->37,039,333<!-- /positions --> positions of its games, <!-- keys -->28,035,106<!-- /keys --> of them distinct, as `mise run docs:render` counts them, so the chance that any two distinct positions it holds share a key comes to about one in <!-- accidents -->47,000<!-- /accidents -->. A match through such a pair would still need the positions after it to agree before its run grew past one ply.
 
-[^zobrist1970]: Zobrist, Albert L. 1970. "A New Hashing Method with Application for Game Playing," Technical Report 88, Computer Sciences Department, University of Wisconsin. <https://minds.wisconsin.edu/handle/1793/57624>
+[^zobrist1970]: Zobrist, Albert L. 1970. "A New Hashing Method with Application for Game Playing," Technical Report 88, Computer Sciences Department, University of Wisconsin. <https://minds.wisc.edu/handle/1793/57624>
 
 [^fiekas2025]: Fiekas, Niklas. 2025. "python-chess 1.11.2 Documentation," Polyglot Opening Book Reading, zobrist_hash. <https://python-chess.readthedocs.io/en/v1.11.2/polyglot.html>
 

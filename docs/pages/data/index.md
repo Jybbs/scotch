@@ -298,4 +298,4 @@ The list below ranks the archives under each initial by the games the store hold
 
 A fresh clone reproduces every count on this page by running `mise run data:fetch` and `mise run data:index`, then `mise run docs:render`, and the counts on [Game Lengths](lengths.md) come from the same index.
 
-[^edwards1994]: Edwards, Steven J. 1994. "Standard: Portable Game Notation Specification and Implementation Guide," Section 8.1.1, Seven Tag Roster. <https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm>
+[^edwards1994]: Edwards, Steven J., coordinator. 1994. "Standard: Portable Game Notation Specification and Implementation Guide," Section 8.1.1, Seven Tag Roster. <https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm>

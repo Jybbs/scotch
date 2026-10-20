@@ -15,15 +15,16 @@ from pathlib         import Path
 from pytest          import CaptureFixture, MonkeyPatch, mark, param
 from tomllib         import loads as from_toml
 
-from scotch.cli             import app
-from scotch.docs.census     import Census
-from scotch.docs.inventory  import Outputs, commands, helped, tracked
-from scotch.docs.outputs    import Document, Figures, Footnotes, Region
-from scotch.docs.project    import Project
-from scotch.docs.tallies    import Tally
-from scotch.games.schemas   import Game, Origin
-from scotch.index.tables    import PositionIndex
-from scotch.sources.schemas import Sources
+from scotch.cli              import app
+from scotch.docs.census      import Census
+from scotch.docs.inventory   import Outputs, commands, helped, tracked
+from scotch.docs.outputs     import Document, Figures, Footnotes, Region
+from scotch.docs.project     import Project
+from scotch.docs.tallies     import Tally
+from scotch.games.schemas    import Game, Origin
+from scotch.identity.schemas import Identity
+from scotch.index.tables     import PositionIndex
+from scotch.sources.schemas  import Sources
 
 
 def test_an_index_adds_the_files_written_from_it(
@@ -217,9 +218,10 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
 ):
     """
     Asserts that each output declared without an index writes into a fresh
-    checkout whose pages hold their markers, and that each then reports no
-    drift, the pieces written in the order of their names and the favicon
-    colored in Walnut on a light ground and Cashmere on a dark one.
+    checkout whose pages hold their markers, and that each then reports
+    no drift, the pieces written in the order of their names, the favicon
+    colored in Walnut on a light ground and Cashmere on a dark one, and the
+    front page's tagline filled in from the identity.
     """
     root = checkout(
         {
@@ -230,6 +232,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
 
             "guide/index.md" : "<!-- install -->\n<!-- /install -->\n",
             "guide/store.md" : "<!-- source -->\n<!-- /source -->\n",
+            "index.md"       : "<!-- tagline --><!-- /tagline -->\n",
 
             "guide/commands.md": "".join(
                 f"<!-- help-{verb}-{noun} -->\n<!-- /help-{verb}-{noun} -->\n\n"
@@ -243,12 +246,14 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
         output.write(root)
 
     data  = (root / "docs/pages/data/index.md").read_text()
+    front = (root / "docs/pages/index.md").read_text()
     help_ = (root / "docs/pages/guide/commands.md").read_text()
     store = (root / "docs/pages/guide/store.md").read_text()
 
     assert [problem for output in outputs for problem in output.problems(root)] == []
     assert f"<!-- files -->{len(Sources.read().sources):,}<!-- /files -->" in data
     assert "|---|---|---|" in data
+    assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
     assert from_toml(store.split("```toml\n")[1].split("\n```")[0]) == {
         "sources": [Sources.read().sources[0].model_dump(mode="json")]
     }

@@ -1,6 +1,6 @@
 # Scotch
 
-Find the grandmaster game closest to yours.
+<!-- tagline -->Find the grandmaster game closest to yours.<!-- /tagline -->
 
 ## The Archives
 

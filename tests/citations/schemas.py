@@ -31,7 +31,7 @@ from scotch.citations.schemas import Reference, References
             "zobrist1970",
             '[^zobrist1970]: Zobrist, Albert L. 1970. "A New Hashing Method with'
             ' Application for Game Playing," Technical Report 88, University of'
-            " Wisconsin. <https://minds.wisconsin.edu/handle/1793/57624>",
+            " Wisconsin. <https://minds.wisc.edu/handle/1793/57624>",
             id = "one-author-closing-on-a-period"
         )
     ]
@@ -204,11 +204,52 @@ def test_a_key_not_shaped_as_a_name_and_a_year_is_refused(key: str):
         )
 
 
+@mark.parametrize(
+    ("people", "opening"),
+    [
+        param(
+            "editor = {Edwards, Steven J.},\n  editortype = {coordinator}",
+            "[^edwards1994]: Edwards, Steven J., coordinator. 1994. ",
+            id = "an-editor-and-the-role"
+        ),
+        param(
+            "editor = {Doe, Jane}",
+            "[^edwards1994]: Doe, Jane, editor. 1994. ",
+            id = "an-editor-and-no-role"
+        ),
+        param(
+            "author = {Doe, Jane},\n  editor = {Edwards, Steven J.}",
+            "[^edwards1994]: Doe, Jane. 1994. ",
+            id = "an-author-beside-an-editor"
+        )
+    ]
+)
+def test_an_entry_naming_no_author_opens_on_its_editors_and_their_role(
+    opening  : str,
+    people   : str,
+    tmp_path : Path
+):
+    """
+    Asserts that an entry naming an editor and no author opens its
+    definition on the editor and the role its `editortype` names, `editor`
+    where it names none, and that an entry naming an author opens on the
+    author alone whatever editor it names.
+    """
+    (path := tmp_path / "references.bib").write_text(
+        f"@misc{{edwards1994,\n  {people},\n  title = {{T}},\n  year = {{1994}},\n"
+        "  url = {https://example.com/},\n  annote = {A.}\n}\n"
+    )
+
+    assert References.read(path).references["edwards1994"].definition.startswith(
+        opening
+    )
+
+
 def test_an_entry_naming_no_author_is_refused_at_its_authors(tmp_path: Path):
     """
-    Asserts that an entry carrying no `author` field raises
-    `ValidationError` naming the `authors` field, which needs at least one
-    name.
+    Asserts that an entry carrying neither an `author` field nor an `editor`
+    field raises `ValidationError` naming the `authors` field, which needs
+    at least one name.
     """
     (path := tmp_path / "references.bib").write_text(
         "@misc{doe2020,\n  title = {T},\n  year = {2020},\n"
@@ -262,9 +303,10 @@ def test_unknown_names_each_key_no_entry_holds_in_the_order_given(
     ("field", "opening"),
     [
         param("annote", "What the source settles", id="annote"),
-        param("authors", "Each author's name", id="authors"),
+        param("authors", "Each name the definition opens on", id="authors"),
         param("key", "The label a footnote cites", id="key"),
         param("note", "The part of the source", id="note"),
+        param("role", "The part the people", id="role"),
         param("title", "The source's title", id="title"),
         param("url", "The address a reader opens", id="url"),
         param("year", "The year the source was published", id="year")

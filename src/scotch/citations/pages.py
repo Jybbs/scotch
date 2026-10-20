@@ -120,8 +120,8 @@ class Page(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         the parser found, such as the opening of a paragraph or a footnote
         marker. The parser runs markdown-it's default rules with HTML
         enabled, as VitePress does, and the footnote plugin mdit-py-plugins
-        ports from markdown-it-footnote, the plugin VitePress's own footnote
-        plugin is forked from.
+        ports from markdown-it-footnote. VitePress renders footnotes through
+        `@mdit/plugin-footnote`, a fork of that same plugin.
 
         The plugin matches every marker whether or not the page defines it,
         and leaves each definition on the lines it spans. A text holding no
