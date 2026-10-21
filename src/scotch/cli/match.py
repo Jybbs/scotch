@@ -1,0 +1,83 @@
+"""
+Holds `game`, the `scotch match game` command, which matches the first game
+of a Portable Game Notation (PGN) file against the index of stored games.
+"""
+
+from cyclopts          import Parameter
+from cyclopts.types    import ExistingFile
+from pathlib           import Path
+from polars.exceptions import SchemaError
+from sys               import stderr
+from typing            import Annotated
+
+from scotch.cli.settings    import Settings
+from scotch.games.schemas   import Game
+from scotch.index.schemas   import Export
+from scotch.index.tables    import PositionIndex
+from scotch.sources.schemas import Manifest
+
+
+def game(
+    pgn  : Annotated[ExistingFile, Parameter(
+        help = "The PGN file whose first game is matched."
+    )],
+    *,
+    json : Annotated[
+        Path | None,
+        Parameter(
+            help = "The file the match is written to as JSON."
+        )
+    ] = None
+):
+    """
+    Finds the stored game sharing the longest unbroken run of positions with
+    the first game of a PGN file, printing the stored game's players, event,
+    and date, its place in the file it was read from, the plies the two
+    games share, and the move where they part, or a line saying no stored
+    game shares a position with it.
+
+    Reads the index from the `index` folder of the data directory, which is
+    `.cache/data` under the project's root unless the `[tool.scotch]` table
+    of its `pyproject.toml` or the `SCOTCH_DATA` variable moves it, and
+    warns where a fetch since the index was built recorded other bytes for
+    the files than the ones the index was read from.
+
+    Exits nonzero naming the problem where the file holds no game, where
+    python-chess recorded errors reading the game, where its `Variant` tag
+    names a variant other than standard chess, or where no index has been
+    built or the one built holds another layout.
+    """
+    try:
+        submitted = Game.first(pgn)
+    except ValueError as error:
+        raise SystemExit(str(error))
+
+    settings = Settings()
+
+    try:
+        index = PositionIndex.read(settings.index)
+    except FileNotFoundError:
+        raise SystemExit(f"No index has been built under {settings.index}")
+    except SchemaError:
+        raise SystemExit(f"The index under {settings.index} holds another layout")
+
+    indexed, fetched = (
+        Manifest.read(folder).digests for folder in (settings.index, settings.downloads)
+    )
+
+    if indexed != fetched:
+        print(
+            f"The files under {settings.downloads} have changed since the index"
+            " was built from them, which `scotch index games` rebuilds",
+            file = stderr
+        )
+
+    match = index.match(submitted)
+    print(match.summary if match else "No stored game shares a position with this game")
+
+    if json:
+        json.parent.mkdir(exist_ok=True, parents=True)
+        json.write_text(
+            Export.from_match(match, submitted).model_dump_json(indent=2) + "\n",
+            encoding = "utf-8"
+        )

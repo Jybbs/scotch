@@ -1,0 +1,5 @@
+[Event "The Methods page's example"]
+[Result "*"]
+
+1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 O-O 5. Bd3 c5 6. d5 d6 7. h3 e6 8. Nf3 Na6
+9. O-O exd5 *

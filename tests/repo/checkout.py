@@ -1,6 +1,7 @@
 """
-Pins what `Checkout` loads from a repository and asks mise for, and the
-steps it pairs with the file declaring each one.
+Pins what `Checkout` reads from a repository and from mise, the steps it
+pairs with the file declaring each one, and the files it lists `scotch
+render docs` writing.
 """
 
 from common.sample import Sample
@@ -8,8 +9,10 @@ from pathlib       import Path
 from pytest        import MonkeyPatch
 from pytest_subprocess.fake_process import FakeProcess
 
-from scotch.repo.checkout import Checkout
-from scotch.repo.schemas  import Step
+from scotch.cli            import app
+from scotch.docs.inventory import Outputs
+from scotch.repo.checkout  import Checkout
+from scotch.repo.schemas   import Step
 
 
 def test_a_step_finds_the_action_its_self_repository_path_names(sample: Sample):
@@ -36,6 +39,28 @@ def test_a_step_summarizes_through_its_script_or_a_task_it_runs(answered: Sample
     assert checkout.summarizes(gate)
     assert checkout.summarizes(Step(run='echo >> "$GITHUB_STEP_SUMMARY"'))
     assert not any(checkout.summarizes(step) for step in row.instances)
+
+
+def test_the_outputs_are_the_ones_its_app_and_readme_render_under_the_root(
+    monkeypatch : MonkeyPatch,
+    tmp_path    : Path
+):
+    """
+    Asserts that a checkout's outputs are the ones `Outputs.shipped` lists
+    for its app, the README its manifest names, and its root, with no index,
+    which a checkout holds no copy of.
+    """
+    calls = []
+    root  = Sample.copy(tmp_path).root
+    monkeypatch.setattr(
+        Outputs,
+        "shipped",
+        classmethod(lambda cls, *arguments: calls.append(arguments) or cls([]))
+    )
+    checkout = Checkout(app=app, root=root)
+
+    assert list(checkout.outputs) == []
+    assert calls == [(app, checkout.pyproject.readme, root)]
 
 
 def test_the_scripts_are_the_tasks_declaring_inline_metadata(answered: Sample):
@@ -78,11 +103,11 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
 ):
     """
     Asserts that each task's file, which mise prints resolved and absolute,
-    joins back onto the checkout's root, the relative root `scotch audit
-    repo` reads included, and that a task declared inline keeps no file.
+    joins back onto the checkout's root, a relative root included, and that
+    a task declared inline keeps no file.
     """
     monkeypatch.chdir(answered.root)
-    tasks = {task.name: task for task in Checkout(root=Path()).tasks}
+    tasks = {task.name: task for task in Checkout(app=app, root=Path()).tasks}
 
     assert tasks["repo:ci"].file == Path(".mise") / "tasks" / "repo" / "ci"
     assert tasks["repo:ci"].depends == ("lock:check", "py:coverage")

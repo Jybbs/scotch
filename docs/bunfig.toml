@@ -1,0 +1,6 @@
+[install]
+exact         = true
+ignoreScripts = true
+
+[install.cache]
+dir = "../.cache/bun"

@@ -26,3 +26,8 @@ name    = "repo:ci"
 [[tasks]]
 depends = []
 name    = "repo:inline"
+
+[[tasks]]
+depends = []
+file    = ".mise/tasks/site/install"
+name    = "site:install"

@@ -1,37 +1,51 @@
 """
 Pins what the `scotch` command itself defines, meaning the script
-`[project.scripts]` declares, the help text the package's summary renders,
-and the version its metadata carries.
+`[project.scripts]` declares, the help text the docstrings of the app and of
+each command it registers render, and the version its metadata carries.
 """
 
-from common.cli         import invoke
+from common.app         import invoke
 from importlib.metadata import entry_points, version
-from pytest             import CaptureFixture, MonkeyPatch
+from pytest             import CaptureFixture, MonkeyPatch, mark, param
 from syrupy.assertion   import SnapshotAssertion
 
 from scotch.cli import app
 
 
+@mark.parametrize(
+    "tokens",
+    [
+        param((), id="scotch"),
+        *(
+            param((verb, noun), id=f"{verb}-{noun}")
+            for verb in app
+            if not verb.startswith("-")
+            for noun in app[verb]
+            if not noun.startswith("-")
+        )
+    ]
+)
 def test_help_text(
     capsys      : CaptureFixture[str],
     monkeypatch : MonkeyPatch,
-    snapshot    : SnapshotAssertion
+    snapshot    : SnapshotAssertion,
+    tokens      : tuple[str, ...]
 ):
     """
-    Asserts that `--help` exits zero and prints the help text its fixture
-    file holds at eighty columns, so a change to what the command documents
-    is reviewed as a diff.
+    Asserts that `--help` exits zero and prints the help text its snapshot
+    holds at eighty columns, for `scotch` itself and for each command it
+    registers, the hidden ones included.
     """
     monkeypatch.setenv("COLUMNS", "80")
 
-    assert invoke("--help") == 0
+    assert invoke(*tokens, "--help") == 0
     assert capsys.readouterr().out == snapshot
 
 
 def test_the_scotch_script_loads_the_app():
     """
     Asserts that the `scotch` script `[project.scripts]` declares loads the
-    `App` this package defines, so the installed command runs it.
+    `App` this package defines.
     """
     [script] = entry_points(group="console_scripts", name="scotch")
 

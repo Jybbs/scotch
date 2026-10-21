@@ -1,0 +1,51 @@
+{
+  "submitted": {
+    "headers": {
+      "Event": "?",
+      "Site": "?",
+      "Date": "????.??.??",
+      "Round": "?",
+      "White": "?",
+      "Black": "?",
+      "Result": "*"
+    },
+    "moves": [
+      "e4",
+      "e5",
+      "Bc4"
+    ],
+    "placements": [
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+      "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR",
+      "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR"
+    ]
+  },
+  "span": {
+    "length": 3,
+    "offset": 0,
+    "start": 0
+  },
+  "stored": {
+    "headers": {
+      "Event": "?",
+      "Site": "?",
+      "Date": "????.??.??",
+      "Round": "?",
+      "White": "?",
+      "Black": "?",
+      "Result": "*"
+    },
+    "moves": [
+      "e4",
+      "e5",
+      "Nf3"
+    ],
+    "placements": [
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+      "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+      "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR",
+      "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R"
+    ]
+  }
+}

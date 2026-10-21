@@ -6,6 +6,12 @@
 #MISE   "py:check",
 #MISE   "py:coverage",
 #MISE   "repo:audit",
-#MISE   "repo:lint"
+#MISE   "repo:lint",
+#MISE   "site:coverage",
+#MISE   "site:cruft",
+#MISE   "site:links",
+#MISE   "site:lint",
+#MISE   "site:press",
+#MISE   "site:typecheck"
 #MISE ]
-#MISE description = "Run every check a pull request runs, from the lockfiles to the suite under coverage"
+#MISE description = "Run every check a pull request runs, from the lockfiles to the site's links"

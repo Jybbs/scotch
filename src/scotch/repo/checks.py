@@ -10,9 +10,10 @@ from collections.abc import Iterator
 from pydantic        import BaseModel
 from re              import search
 from statistics      import mode
+from typing          import ClassVar
 
 from scotch.repo.checkout import Checkout
-from scotch.repo.schemas  import Finding
+from scotch.repo.schemas  import Finding, exact
 
 
 class Check(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -78,6 +79,42 @@ class AnchorCheck(Check):
                     ),
                     path = action.path
                 )
+
+
+class CommandCheck(Check):
+    """
+    Fails on a command in a task or a wrapper that departs from how the
+    repository runs its tools, meaning:
+
+    - A `uv run` that does not open its arguments on `--exact --locked`
+    - A `bun install`, or its alias `bun i`, carrying neither
+      `--frozen-lockfile` nor `--lockfile-only`, which could rewrite
+      `docs/bun.lock` instead of installing from it
+    - A `bunx` or `bun x`, which can run a copy of a tool from outside
+      `docs/node_modules`
+    """
+
+    commands: ClassVar[dict[str, str]] = {
+        r"\bbun ?x\b": (
+            "`bunx` and `bun x` can run a copy of a tool from outside "
+            "`docs/node_modules`"
+        ),
+
+        r"\buv run\b(?! --exact --locked(?:\s|$))":
+            "`uv run` does not open its arguments on `--exact --locked`",
+
+        r"^(?!.*--(?:frozen-lockfile|lockfile-only)\b).*\bbun (?:install|i)\b":
+            "`bun install` carries neither `--frozen-lockfile` nor `--lockfile-only`"
+    }
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at the line of each such command.
+        """
+        for path, line, text in self.checkout.lines():
+            for pattern, message in self.commands.items():
+                if search(pattern, text):
+                    yield Finding(line=line, message=message, path=path)
 
 
 class ExactPinCheck(Check):
@@ -238,32 +275,28 @@ class LicenseCheck(Check):
             )
 
 
-class LockedRunCheck(Check):
+class NodeTypesCheck(Check):
     """
-    Fails on a `uv run` in a task or a wrapper that does not open its
-    arguments on `--exact --locked`.
+    Fails where the major of `@types/node` in `docs/package.json` differs
+    from the major of the `node` `.mise/config.toml` pins, so the types the
+    site checks against describe the runtime it builds on.
     """
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding at the line of each such `uv run`.
+        Yields a finding where both are pinned and their majors differ.
         """
-        files = (
-            *(task.file for task in self.checkout.tasks if task.file),
-            *self.checkout.wrappers
-        )
+        site, node = self.checkout.site, self.checkout.mise.node
+        types      = site.packages.get("@types/node")
 
-        for path in files:
-            for line, text in enumerate(path.read_text().splitlines(), start=1):
-                if search(r"\buv run\b(?! --exact --locked(?:\s|$))", text):
-                    yield Finding(
-                        line    = line,
-                        message = (
-                            "`uv run` does not open its arguments "
-                            "on `--exact --locked`"
-                        ),
-                        path = path
-                    )
+        if types and node and types.split(".")[0] != node.split(".")[0]:
+            yield Finding(
+                message = (
+                    f"`@types/node` is `{types}`, whose major differs from the "
+                    f"`node` `{node}` `.mise/config.toml` pins"
+                ),
+                path = site.path
+            )
 
 
 class PinCheck(Check):
@@ -294,6 +327,40 @@ class PinCheck(Check):
                     ),
                     path = pyproject.path
                 )
+
+
+class RenderCheck(Check):
+    """
+    Fails where a file `scotch render docs` writes from a declaration
+    in the repository has drifted from it, meaning a JSON file the site
+    imports, the favicon or a lockup, a part of a page a declaration fills
+    in, a figure a page sets inside a sentence, or the footnote definitions
+    closing a Markdown file, leaving out the files written from the index,
+    which a checkout holds no copy of.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at each place a file has drifted, naming the task
+        that rewrites it, and a finding naming the error at a page whose
+        markers no longer enclose one region, which cites a key no entry of
+        `docs/references.bib` holds, or which cites a source while the file
+        holds a block bibtexparser could not read or an entry of another
+        shape, none of which the task can rewrite.
+        """
+        root = self.checkout.root
+
+        for output in self.checkout.outputs:
+            try:
+                problems = [
+                    (line, f"{problem}, which `mise run docs:render` rewrites")
+                    for line, problem in output.problems(root)
+                ]
+            except ValueError as error:
+                problems = [(None, str(error))]
+
+            for line, problem in problems:
+                yield Finding(line=line, message=problem, path=root / output.path)
 
 
 class RowCheck(Check):
@@ -399,6 +466,36 @@ class ScriptCheck(Check):
                     )
 
 
+class SitePinCheck(Check):
+    """
+    Fails on a package or an override in the site's `docs/package.json`, or
+    a `wranglerVersion` a step passes, that is not one exact version.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding for each package, override, and `wranglerVersion`
+        that is not one exact version.
+        """
+        site = self.checkout.site
+
+        for name, version in site.loose:
+            yield Finding(
+                message = f"`{name}` is `{version}`, which is not one exact version",
+                path    = site.path
+            )
+
+        for path, step in self.checkout.steps:
+            if (version := step.wrangler) and not exact(version):
+                yield Finding(
+                    message = (
+                        f"`wranglerVersion` is `{version}`, which is not one "
+                        "exact version"
+                    ),
+                    path = path
+                )
+
+
 class SummaryCheck(Check):
     """
     Fails where a job other than a gate, or a step of a composite action,
@@ -446,6 +543,31 @@ class TaskCheck(Check):
                 level   = issue.severity,
                 message = f"`{issue.task}`: {issue.sentence}",
                 path    = task.file if task and task.file else self.checkout.mise.path
+            )
+
+
+class VitestCheck(Check):
+    """
+    Fails where `@vitest/coverage-v8` in `docs/package.json` is pinned to
+    a version other than `vitest`'s, since Vitest takes only the coverage
+    provider of its own release.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding where both are pinned to different versions.
+        """
+        site     = self.checkout.site
+        provider = site.packages.get("@vitest/coverage-v8")
+        runner   = site.packages.get("vitest")
+
+        if provider and runner and provider != runner:
+            yield Finding(
+                message = (
+                    f"`@vitest/coverage-v8` is `{provider}` "
+                    f"where `vitest` is `{runner}`"
+                ),
+                path = site.path
             )
 
 

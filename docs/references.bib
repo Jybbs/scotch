@@ -1,0 +1,72 @@
+@misc{edwards1994,
+    editor     = {Edwards, Steven J.},
+    editortype = {coordinator},
+    title      = {Standard: Portable Game Notation Specification and Implementation Guide},
+    year       = {1994},
+    note       = {Section 8.1.1, Seven Tag Roster},
+    url        = {https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm},
+    annote     = {Names the seven tags every program writes for public data interchange, which the index reads with a game's moves to keep one copy of a game several files repeat.}
+}
+
+@misc{fide2023,
+    author = {International Chess Federation},
+    title  = {{FIDE} Laws of Chess},
+    year   = {2023},
+    note   = {Article 9.2.3},
+    url    = {https://handbook.fide.com/chapter/E012023},
+    annote = {Counts two positions as the same where the same player has the move, the same pieces stand on the same squares, and every piece has the same moves, which is when two games share a position and, save where an en passant capture is ruled out, when their keys agree.}
+}
+
+@misc{fiekas2025,
+    author = {Fiekas, Niklas},
+    title  = {python-chess 1.11.2 Documentation},
+    year   = {2025},
+    note   = {Polyglot Opening Book Reading, zobrist\_hash},
+    url    = {https://python-chess.readthedocs.io/en/v1.11.2/polyglot.html},
+    annote = {Documents the call that hashes a position into the 64-bit key the index stores, from the side to move, the pieces, the castling rights, and the file a pawn could capture en passant on.}
+}
+
+@book{gusfield1997,
+    author = {Gusfield, Dan},
+    title  = {Algorithms on Strings, Trees, and Sequences: Computer Science and Computational Biology},
+    year   = {1997},
+    note   = {Section 7.4},
+    url    = {https://doi.org/10.1017/CBO9780511574931},
+    annote = {Sets out the longest common substring of two strings, the longest stretch of consecutive symbols both hold, which is the run a match takes once each game is read as the string of its positions' keys.}
+}
+
+@article{hirschberg1975,
+    author = {Hirschberg, D. S.},
+    title  = {A Linear Space Algorithm for Computing Maximal Common Subsequences},
+    year   = {1975},
+    note   = {Communications of the ACM, volume 18, number 6, pages 341 to 343},
+    url    = {https://doi.org/10.1145/360825.360861},
+    annote = {Finds a longest common subsequence of two strings in quadratic time and linear space, the reading of closeness that may skip positions in either game, which a match passes over for the unbroken run.}
+}
+
+@misc{w3c2024,
+    author = {World Wide Web Consortium},
+    title  = {Web Content Accessibility Guidelines ({WCAG}) 2.2},
+    year   = {2024},
+    note   = {Success Criterion 1.4.3, Contrast (Minimum)},
+    url    = {https://www.w3.org/TR/WCAG22/#contrast-minimum},
+    annote = {Sets the 4.5:1 contrast every color the site sets text in holds against its ground in both color schemes.}
+}
+
+@article{wagner1974,
+    author = {Wagner, Robert A. and Fischer, Michael J.},
+    title  = {The String-to-String Correction Problem},
+    year   = {1974},
+    note   = {Journal of the ACM, volume 21, number 1, pages 168 to 173},
+    url    = {https://doi.org/10.1145/321796.321811},
+    annote = {Gives the algorithm that edits one string into another in time proportional to the product of their lengths, which finds a longest common subsequence of the two, the reading of closeness that may skip positions in either game, which a match passes over for the unbroken run.}
+}
+
+@techreport{zobrist1970,
+    author = {Zobrist, Albert L.},
+    title  = {A New Hashing Method with Application for Game Playing},
+    year   = {1970},
+    note   = {Technical Report 88, Computer Sciences Department, University of Wisconsin},
+    url    = {https://minds.wisc.edu/handle/1793/57624},
+    annote = {Sets out hashing a position by combining one random number for each piece on each square, which is how a key names a position in the index and why two positions share a key by accident with a chance of one in 2 to the power of 64.}
+}

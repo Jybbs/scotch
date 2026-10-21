@@ -4,12 +4,26 @@ requires      = ["hatchling==1.32.4"]
 
 [project]
 authors         = [{ name = "James Parkington" }]
-dependencies    = ["chess", "cyclopts", "pydantic", "pyyaml"]
+dependencies    = [
+    "bibtexparser",
+    "chess",
+    "cyclopts",
+    "markdown-it-py",
+    "mdit-py-plugins",
+    "more-itertools",
+    "polars",
+    "pydantic",
+    "pydantic-settings",
+    "pyyaml",
+    "requests",
+    "rich",
+    "urllib3"
+]
 description     = "Finds the grandmaster game sharing the longest run of positions with a submitted chess game and shows how that game continued."
 license         = "MIT"
 license-files   = ["LICENSE.md"]
 name            = "scotch"
-readme          = "README.md"
+readme          = ".github/README.md"
 requires-python = ">=3.14"
 version         = "0.1.0"
 
@@ -17,6 +31,7 @@ version         = "0.1.0"
 scotch = "scotch.cli:app"
 
 [project.urls]
+Homepage   = "https://scotch.fyi"
 Repository = "https://github.com/Jybbs/scotch"
 
 [dependency-groups]
@@ -29,6 +44,7 @@ dev = [
     "pytest-randomly",
     "pytest-socket",
     "pytest-subprocess",
+    "responses",
     "syrupy"
 ]
 
@@ -47,7 +63,7 @@ data_file = ".cache/coverage/data"
 source    = ["src/scotch"]
 
 [tool.hatch.build.targets.sdist]
-only-include = [".mise", "src", "tests", "uv.lock"]
+only-include = [".github/scripts", ".mise", "src", "tests", "uv.lock"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scotch"]
@@ -66,6 +82,7 @@ addopts                  = [
     "-m",
     "not network",
     "-ra",
+    "--snapshot-default-extension=common.snapshots.PlainFile",
     "--snapshot-dirname=fixtures"
 ]
 cache_dir                = ".cache/pytest"

@@ -1,0 +1,34 @@
+.VPHome .VPHomeContent {
+  position       : relative;
+  z-index        : 1;
+  padding-bottom : 46vh;
+}
+
+.VPHome .sc-card {
+  display         : grid;
+  gap             : 6px;
+  max-width       : 688px;
+  margin-inline   : auto;
+  padding         : 18px 22px 20px;
+  border-radius   : 12px;
+  background      : color-mix(in oklab, var(--sc-page) 84%, transparent);
+  box-shadow      : 0 0 0 1px color-mix(in oklab, var(--sc-rule) 70%, transparent);
+  backdrop-filter : blur(4px);
+}
+
+.VPHome .sc-card + .sc-card { margin-top: 18px; }
+
+.vp-doc .sc-card h2 {
+  margin      : 0;
+  padding     : 0;
+  border      : 0;
+  font-size   : 1.3rem;
+  line-height : 1.3;
+}
+
+.vp-doc .sc-card p {
+  margin      : 0;
+  color       : var(--sc-ink);
+  font-size   : 0.98rem;
+  line-height : 1.6;
+}

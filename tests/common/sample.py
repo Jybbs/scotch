@@ -14,6 +14,7 @@ from shutil  import copytree
 from tomllib import loads
 from typing  import Self
 
+from scotch.cli           import app
 from scotch.repo.checkout import Checkout
 
 
@@ -23,9 +24,9 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     The fixture keeps the files GitHub's dependency graph and
     `jdx/mise-action` read, and the workflows zizmor reads, under other
-    names, which each copy renames, a `dot-` folder taking its leading dot
-    and `manifest.toml` and `lock.toml` landing as `pyproject.toml` and
-    `uv.lock`.
+    names, which each copy renames, a `dot-` folder taking its leading
+    dot and `manifest.toml`, `lock.toml`, and `manifest.json` landing as
+    `pyproject.toml`, `uv.lock`, and `package.json`.
     """
 
     root: Path
@@ -47,7 +48,7 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         Opens a fresh `Checkout` over the copy, so a file edited since the
         last one is read again.
         """
-        return Checkout(root=self.root)
+        return Checkout(app=app, root=self.root)
 
     def answer(self, fp: FakeProcess, issues: Sequence[Mapping[str, str]] = ()):
         """
@@ -81,23 +82,30 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     @classmethod
     def copy(cls, root: Path) -> Self:
         """
-        Copies the sample checkout into `root`, restoring each file's real
-        name.
+        Copies the sample checkout into `root` and restores each file's real
+        name, renaming each path before the folder holding it, so every path
+        the listing holds still exists when its turn comes.
         """
         sample = cls(root=root)
-        names  = {"lock.toml": "uv.lock", "manifest.toml": "pyproject.toml"}
+        names  = {
+            "lock.toml"     : "uv.lock",
+            "manifest.json" : "package.json",
+            "manifest.toml" : "pyproject.toml"
+        }
         copytree(sample.fixtures / "checkout", root, dirs_exist_ok=True)
 
-        for path in root.iterdir():
-            path.rename(root / names.get(path.name, sub(r"^dot-", ".", path.name)))
+        for path in sorted(root.rglob("*"), reverse=True):
+            path.rename(
+                path.with_name(names.get(path.name, sub(r"^dot-", ".", path.name)))
+            )
 
         return sample
 
     def edit(self, path: str, *, new: str, old: str):
         """
         Replaces `old` with `new` in the file at `path` under the copy,
-        failing where the file does not hold `old`, so an edit that misses
-        its text fails rather than posing no divergence.
+        failing where the file does not hold `old` rather than leaving the
+        copy as it stood.
         """
         file = self.root / path
         text = file.read_text()

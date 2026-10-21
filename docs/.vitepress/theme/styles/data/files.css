@@ -1,0 +1,167 @@
+.sc-data-tabs {
+  display     : flex;
+  flex-wrap   : wrap;
+  gap         : 2px;
+  margin-left : -7px;
+}
+
+.sc-data-tab {
+  height         : 22px;
+  padding        : 0 7px;
+  border         : 0;
+  border-radius  : 999px;
+  background     : transparent;
+  color          : var(--sc-data-quiet);
+  font           : 500 0.65rem/22px var(--sc-face-code);
+  letter-spacing : 0.06em;
+  cursor         : pointer;
+  transition     : color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-data-tab:hover { color: var(--sc-data-ink); }
+
+.sc-data-tab[aria-selected='true'] {
+  background : var(--sc-data-tint);
+  color      : var(--sc-data-ink);
+}
+
+.sc-data-swap { display: grid; }
+
+.sc-data-swap > * {
+  grid-area : 1 / 1;
+  min-width : 0;
+}
+
+.sc-data-swap-enter-active {
+  transition: opacity var(--sc-duration-enter) var(--sc-curve-glide) var(--sc-duration-lag),
+              translate var(--sc-duration-enter) var(--sc-curve-glide) var(--sc-duration-lag);
+}
+
+.sc-data-swap-leave-active {
+  transition: opacity var(--sc-duration-fade) var(--sc-curve-glide),
+              translate var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-data-swap-enter-from {
+  opacity   : 0;
+  translate : 0 -4px;
+}
+
+.sc-data-swap-leave-to {
+  opacity   : 0;
+  translate : 0 4px;
+}
+
+.sc-data-folio {
+  display         : flex;
+  justify-content : space-between;
+  align-items     : baseline;
+  height          : 32px;
+}
+
+.sc-data-folio b { font: 400 1.587rem/32px var(--sc-face-display); }
+
+.sc-data-folio span,
+.sc-data-rows-head,
+.sc-data-years { font-size: 0.65rem; }
+
+.sc-data-rows-head,
+.sc-data-player {
+  display               : grid;
+  grid-template-columns : 28px minmax(0, 1fr) 64px;
+  column-gap            : 12px;
+  align-items           : baseline;
+}
+
+.sc-data-rows-head {
+  height        : 22px;
+  line-height   : 14px;
+  border-bottom : 1.5px solid var(--sc-data-ink);
+}
+
+.sc-data-rows {
+  height              : 364px;
+  overflow-y          : auto;
+  overscroll-behavior : contain;
+  scrollbar-width     : thin;
+}
+
+.sc-data-player {
+  position      : relative;
+  height        : 26px;
+  padding-top   : 5px;
+  border-bottom : var(--sc-data-hairline);
+}
+
+.sc-data-curve {
+  position         : absolute;
+  top              : 3px;
+  left             : 40px;
+  width            : calc(100% - 116px);
+  height           : 22px;
+  transform-origin : 50% 100%;
+  animation        : sc-data-grow var(--sc-duration-settle) var(--sc-curve-glide) backwards;
+  animation-delay  : calc(var(--sc-data-row) * var(--sc-duration-lag) / 3);
+}
+
+.sc-data-curve-fill { fill: color-mix(in oklab, var(--sc-data-link) 14%, transparent); }
+
+.sc-data-curve-line {
+  fill           : none;
+  stroke         : var(--sc-data-link);
+  stroke-width   : 1.2;
+  stroke-opacity : 0.5;
+  vector-effect  : non-scaling-stroke;
+}
+
+.sc-data-player > :not(svg) {
+  position    : relative;
+  line-height : 16px;
+}
+
+.sc-data-number,
+.sc-data-games {
+  font                 : 400 0.8125rem/16px var(--sc-face-body);
+  font-variant-numeric : tabular-nums lining-nums;
+  text-align           : right;
+}
+
+.sc-data-number { color: var(--sc-data-quiet); }
+
+.sc-data-rows-head > :is(:first-child, :last-child) { text-align: right; }
+
+.sc-data-player .sc-data-who {
+  font            : 400 1.016rem/16px var(--sc-face-display);
+  color           : var(--sc-data-ink);
+  text-decoration : none;
+  transition      : color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-data-player .sc-data-who:hover { color: var(--sc-data-link); }
+
+.sc-data-years {
+  position : relative;
+  height   : 16px;
+  margin   : 0 76px 0 40px;
+}
+
+.sc-data-years span {
+  position    : absolute;
+  top         : 4px;
+  line-height : 12px;
+  translate   : -50% 0;
+}
+
+.sc-data-years span::before {
+  position   : absolute;
+  top        : -4px;
+  left       : 50%;
+  width      : 1px;
+  height     : 3px;
+  background : var(--sc-data-rule);
+  content    : '';
+}
+
+@keyframes sc-data-grow {
+  from { scale: 1 0; }
+}

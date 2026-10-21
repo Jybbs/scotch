@@ -7,3 +7,4 @@ source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 mise lock
 uv lock --no-locked
 each_script uv lock --no-locked
+bun install --cwd docs --lockfile-only

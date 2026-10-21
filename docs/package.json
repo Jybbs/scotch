@@ -1,0 +1,32 @@
+{
+    "name"            : "scotch",
+    "private"         : true,
+    "type"            : "module",
+    "devDependencies" : {
+        "@fontsource-variable/hedvig-letters-serif" : "5.3.1",
+        "@fontsource-variable/jetbrains-mono"       : "5.3.0",
+        "@fontsource-variable/petrona"              : "5.3.0",
+        "@fontsource/hedvig-letters-serif"          : "5.3.1",
+        "@fontsource/jetbrains-mono"                : "5.3.0",
+        "@fontsource/petrona"                       : "5.3.0",
+        "@resvg/resvg-js"     : "2.6.2",
+        "@types/node"         : "26.6.5",
+        "@vitest/coverage-v8" : "5.0.5",
+        "@vue/test-utils"     : "2.5.1",
+        "@vue/tsconfig"       : "0.9.1",
+        "@vueuse/core"        : "15.0.0",
+        "happy-dom"  : "21.0.3",
+        "knip"       : "6.41.0",
+        "oxlint"     : "1.88.0",
+        "satori"     : "0.62.0",
+        "smol-toml"  : "1.9.1",
+        "typescript" : "7.0.2",
+        "vite"       : "8.3.4",
+        "vitepress"  : "2.0.0-alpha.20",
+        "vitest"     : "5.0.5",
+        "vue"        : "3.5.44"
+    },
+    "overrides"       : {
+        "fflate" : "0.7.5"
+    }
+}

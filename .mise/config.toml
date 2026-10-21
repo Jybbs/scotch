@@ -9,6 +9,8 @@ timeout     = "5s"
 [env]
 _.path                       = ".mise/bin"
 HYPOTHESIS_STORAGE_DIRECTORY = "{{config_root}}/.cache/hypothesis"
+JITI_FS_CACHE                = "false"
+NODE_COMPILE_CACHE           = "{{config_root}}/.cache/node"
 PROSE_CACHE_DIR              = "{{config_root}}/.cache/prose"
 PYTHONPYCACHEPREFIX          = "{{config_root}}/.cache/pycache"
 UV_LOCKED                    = "1"
@@ -20,6 +22,9 @@ auto_install = false
 locked = true
 
 [tools]
+bun    = "1.4.3"
+lychee = "0.24.2"
+node   = "26.11.1"
 python = "3.14.6"
 uv     = "0.12.13"
 zizmor = "1.30.1"
