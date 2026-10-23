@@ -303,18 +303,20 @@ def test_an_applied_patch_lists_each_file_it_changes(fp: FakeProcess, tree: Tree
     assert tree.apply(b"diff") == ("pyproject.toml", "uv.lock")
 
 
-def test_an_audit_exiting_on_an_error_raises(fp: FakeProcess, tree: Tree):
+@mark.parametrize("status", [param(2, id="unreachable"), param(-9, id="killed")])
+def test_an_audit_exiting_on_an_error_raises(fp: FakeProcess, status: int, tree: Tree):
     """
-    Asserts that an audit exiting with a status past 1, such as the 2 `uv
-    audit` exits with where it cannot reach its advisory service, raises.
+    Asserts that an audit exiting with any status but 0 and 1 raises,
+    such as the 2 `uv audit` exits with where it cannot reach its advisory
+    service and the negative status of an audit a signal killed.
     """
     fp.register(
         ["mise", "-C", tree.root, "exec", "--", "uv", "audit"],
-        returncode = 2,
+        returncode = status,
         stderr     = "unreachable"
     )
 
     with raises(CalledProcessError) as error:
         tree.audit("uv", "audit")
 
-    assert (error.value.returncode, error.value.stderr) == (2, "unreachable")
+    assert (error.value.returncode, error.value.stderr) == (status, "unreachable")

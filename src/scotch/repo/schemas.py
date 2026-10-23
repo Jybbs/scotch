@@ -753,8 +753,9 @@ class Pyproject(ConfigFile):
     @property
     def build_requirements(self) -> tuple[str, ...]:
         """
-        Lists each build requirement and each build constraint, every
-        requirement a build of the package installs.
+        Lists each requirement `[build-system]` builds the package with
+        beside each constraint `[tool.uv]` holds a source distribution's
+        build to.
         """
         return (*self.builds, *self.constraints)
 

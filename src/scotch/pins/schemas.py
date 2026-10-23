@@ -100,9 +100,9 @@ class Published(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings
     reports it.
     """
 
-    published: AwareDatetime | None = Field(None, alias="published_at")
+    published: AwareDatetime = Field(alias="published_at")
     """
-    The instant the release was published, or `None` for a draft.
+    The instant the release was published.
     """
 
     tag: str = Field(alias="tag_name")

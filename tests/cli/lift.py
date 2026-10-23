@@ -158,7 +158,7 @@ def test_a_failing_trial_tries_again_holding_back_each_major_in_turn(
     )
 
     assert invoke("lift", "pins", "--try", "--write", *hold) == (
-        f"The lift fails `mise ci`, logged under {sample.root / '.cache' / 'lift'}"
+        f"The lift fails its trial, logged under {sample.root / '.cache' / 'lift'}"
     )
     assert capsys.readouterr().out.splitlines()[-len(verdicts):] == verdicts
     assert attempts == [(lifted, "trial.log", True), *reruns]

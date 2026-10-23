@@ -129,7 +129,7 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         """
         audit = self.tool(*command, check=False)
 
-        if audit.returncode > 1:
+        if audit.returncode not in (0, 1):
             audit.check_returncode()
 
         return audit.stdout

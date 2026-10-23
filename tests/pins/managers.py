@@ -430,17 +430,27 @@ def test_the_npm_packages_lift_through_bun_with_the_advisories_they_clear(
     ).read_text()
 
 
+@mark.parametrize(
+    ("kept", "expected"),
+    [
+        param((), ("GHSA-brief", "GHSA-minijinja"), id="script-advisory-cleared"),
+        param(("GHSA-brief",), ("GHSA-minijinja",), id="script-advisory-kept")
+    ]
+)
 def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     answered : Sample,
+    expected : tuple[str, ...],
     fp       : FakeProcess,
+    kept     : tuple[str, ...],
     tree     : Tree
 ):
     """
     Asserts that each package `uv lock --upgrade` moves lifts by upgrading
     it, that a task script's pin of a package `uv.lock` resolves follows
     `uv.lock`, that the build requirement lifts to the release a scratch
-    project depending on it resolves, and that each lift carries the
-    advisory the current audit reports and the newest audits do not.
+    project depending on it resolves, and that each lift carries each
+    advisory the audits of the project and its task scripts report and the
+    audits of the upgraded copy and the scratch project do not.
     """
     tool = ["mise", "-C", tree.root, "exec", "--", "uv"]
 
@@ -469,15 +479,16 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
             '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
         )
 
-    def audited(*packages: str) -> str:
+    def audited(*ids: str) -> str:
         """
-        Writes the report `uv audit` prints, flagging each of `packages`.
+        Writes the report `uv audit` prints, flagging `minijinja` under each
+        of `ids`.
         """
         return dumps(
             {
                 "vulnerabilities": [
-                    {"id": f"GHSA-{package}", "dependency": {"name": package}}
-                    for package in packages
+                    {"id": identifier, "dependency": {"name": "minijinja"}}
+                    for identifier in ids
                 ]
             }
         )
@@ -507,20 +518,22 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     fp.register(
         [*audit, "--project", tree.root],
         returncode = 1,
-        stdout     = audited("minijinja")
+        stdout     = audited("GHSA-minijinja")
     )
-    fp.register([*audit, "--script", fp.any(max=1, min=1)], stdout=audited())
     fp.register(
-        [*audit, "--project", fp.any(max=1, min=1)],
-        occurrences = 2,
-        stdout      = audited()
+        [*audit, "--script", fp.any(max=1, min=1)],
+        returncode = 1,
+        stdout     = audited("GHSA-brief")
     )
-    cleared = (
+    fp.register([*audit, "--project", fp.any(max=1, min=1)], stdout=audited())
+    fp.register([*audit, "--project", fp.any(max=1, min=1)], stdout=audited(*kept))
+    cleared = tuple(
         Advisory(
-            id      = "GHSA-minijinja",
-            link    = "https://osv.dev/vulnerability/GHSA-minijinja",
+            id      = identifier,
+            link    = f"https://osv.dev/vulnerability/{identifier}",
             package = "minijinja"
-        ),
+        )
+        for identifier in expected
     )
 
     assert list(UvPins(tree=tree).lifts()) == [

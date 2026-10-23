@@ -521,8 +521,8 @@ def test_the_manifest_lists_each_loose_build_pin(sample: Sample):
 def test_the_manifest_reads_the_fields_the_checks_compare(sample: Sample):
     """
     Asserts that the manifest reads each field a check compares out of the
-    table that declares it, and lists the build requirement and the build
-    constraint together as every requirement a build installs.
+    table that declares it, and lists the build requirement beside the build
+    constraint.
     """
     pyproject = Pyproject.read(sample.root / "pyproject.toml")
 

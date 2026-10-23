@@ -99,7 +99,7 @@ def pins(
                         f"Holding back `{name}` {'passes' if passes else 'still fails'}"
                     )
 
-                raise SystemExit(f"The lift fails `mise ci`, logged under {tree.logs}")
+                raise SystemExit(f"The lift fails its trial, logged under {tree.logs}")
 
             print("The lift passes `mise ci`")
 
