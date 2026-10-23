@@ -1,8 +1,9 @@
 """
-Holds the records `scotch audit repo` reads out of a checkout, meaning the
-manifest, the mise config, the license, the lockfile, the site's package
-manifest, the workflows with their jobs and steps, the action manifests, the
-mise tasks, and the task scripts, beside the `Finding` each check reports.
+Holds the records `scotch audit repo` and `scotch lift pins` read out of a
+checkout, meaning the manifest, the mise config, the license, the lockfile,
+the site's package manifest, the workflows with their jobs and steps, the
+action manifests, the mise tasks, and the task scripts, beside the `Finding`
+each check reports.
 """
 
 from collections.abc import Callable, Iterable, Mapping
@@ -10,7 +11,7 @@ from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
 from pathlib         import Path
-from pydantic        import AliasPath, BaseModel, BeforeValidator, Field
+from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
 from tomllib         import loads
 from typing          import Annotated, ClassVar, Self, assert_never
@@ -111,23 +112,6 @@ class License(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         )
 
 
-class Package(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
-    """
-    One `[[package]]` entry of `uv.lock`.
-    """
-
-    name: str
-    """
-    The package's normalized name.
-    """
-
-    version: str = ""
-    """
-    The version the lockfile resolves, empty for a package uv locks from a
-    path with no version.
-    """
-
-
 class Script(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
     """
     The inline metadata a task script declares, per PEP 723.
@@ -155,7 +139,7 @@ class Script(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
         version it pins, normalized as PEP 503 normalizes a project name.
         """
         return {
-            sub(r"[-_.]+", "-", pin["name"]).lower(): pin["version"]
+            normalized(pin["name"]): pin["version"]
             for dependency in self.dependencies
             if (pin := pinned(dependency))
         }
@@ -337,6 +321,19 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
     """
     The paths at least one of which a push has to touch for the workflow to
     fire.
+    """
+
+
+class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    One file a `[[package]]` entry of a uv lockfile records, its source
+    distribution or one of its wheels.
+    """
+
+    uploaded: AwareDatetime | None = Field(None, alias="upload-time")
+    """
+    The instant the index received the file, or `None` where the lockfile
+    records none.
     """
 
 
@@ -592,34 +589,16 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
         return frozenset(task for step in self.instances for task in step.tasks)
 
 
-class Lock(ConfigFile):
-    """
-    The packages `uv.lock` resolves.
-    """
-
-    packages: tuple[Package, ...] = Field(alias="package")
-    """
-    Each package the lockfile resolves.
-    """
-
-    def version(self, name: str) -> str | None:
-        """
-        Looks up the package `name` names among those the lockfile resolves.
-
-        Returns:
-            The version the lockfile resolves for it, or `None` where it
-            resolves no such package.
-        """
-        return next(
-            (package.version for package in self.packages if package.name == name),
-            None
-        )
-
-
 class MiseConfig(ConfigFile):
     """
     The fields of `.mise/config.toml` the checks compare against the files
     that restate them.
+    """
+
+    floor: str | None = Field(None, validation_alias="min_version")
+    """
+    The oldest mise release `min_version` lets read the config, or `None`
+    where it sets none.
     """
 
     node: str | None = Field(None, validation_alias=AliasPath("tools", "node"))
@@ -638,6 +617,12 @@ class MiseConfig(ConfigFile):
     The uv version mise pins.
     """
 
+    variables: dict[str, object] = Field({}, validation_alias="env")
+    """
+    The `[env]` block, each variable mise sets under the config beside the
+    `_` table of the paths it puts on `PATH`.
+    """
+
     wrappers: Path = Field(validation_alias=AliasPath("env", "_", "path"))
     """
     The folder the `_.path` entry puts first on `PATH`, holding a wrapper for
@@ -654,10 +639,55 @@ class MiseConfig(ConfigFile):
     @property
     def minor(self) -> str:
         """
-        Cuts the Python version mise pins down to its major and minor, such
-        as `3.14` for `3.14.6`.
+        Cuts the Python version mise pins down to its major and minor.
         """
-        return ".".join(self.python.split(".")[:2])
+        return minor(self.python)
+
+
+class Package(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    One `[[package]]` entry of `uv.lock`.
+    """
+
+    name: str
+    """
+    The package's normalized name.
+    """
+
+    sdist: Upload | None = None
+    """
+    The source distribution the lockfile records, or `None` where it records
+    wheels alone.
+    """
+
+    version: str = ""
+    """
+    The version the lockfile resolves, empty for a package uv locks from a
+    path with no version.
+    """
+
+    wheels: tuple[Upload, ...] = ()
+    """
+    The wheels the lockfile records.
+    """
+
+    @property
+    def released(self) -> AwareDatetime | None:
+        """
+        Reads the instant the version was published, the earliest upload of
+        any file the lockfile records for it.
+
+        Returns:
+            The instant, or `None` where the lockfile records no upload.
+        """
+        return min(
+            (
+                file.uploaded
+                for file in (self.sdist, *self.wheels)
+                if file and file.uploaded
+            ),
+            default = None
+        )
 
 
 class Pyproject(ConfigFile):
@@ -721,6 +751,14 @@ class Pyproject(ConfigFile):
     """
 
     @property
+    def build_requirements(self) -> tuple[str, ...]:
+        """
+        Lists each build requirement and each build constraint, every
+        requirement a build of the package installs.
+        """
+        return (*self.builds, *self.constraints)
+
+    @property
     def loose(self) -> tuple[str, ...]:
         """
         Lists each build requirement and build constraint that is not an
@@ -728,7 +766,7 @@ class Pyproject(ConfigFile):
         """
         return tuple(
             requirement
-            for requirement in (*self.builds, *self.constraints)
+            for requirement in self.build_requirements
             if not pinned(requirement)
         )
 
@@ -774,6 +812,41 @@ class Site(ConfigFile):
             )
             if not exact(version)
         )
+
+
+class Lock(ConfigFile):
+    """
+    The packages `uv.lock` resolves.
+    """
+
+    packages: tuple[Package, ...] = Field(alias="package")
+    """
+    Each package the lockfile resolves.
+    """
+
+    def package(self, name: str) -> Package | None:
+        """
+        Finds the package `name` names among those the lockfile resolves.
+
+        Returns:
+            The package, or `None` where the lockfile resolves no such
+            package.
+        """
+        return next(
+            (package for package in self.packages if package.name == name),
+            None
+        )
+
+    def version(self, name: str) -> str | None:
+        """
+        Looks up the version the lockfile resolves for the package `name`
+        names.
+
+        Returns:
+            The version, or `None` where the lockfile resolves no such
+            package.
+        """
+        return package.version if (package := self.package(name)) else None
 
 
 class Validation(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -927,6 +1000,24 @@ def exact(version: str) -> Match[str] | None:
     and build after them, and no range.
     """
     return fullmatch(r"\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?", version)
+
+
+def minor(version: str) -> str:
+    """
+    Cuts a Python version down to its major and minor, such as `3.14` for
+    `3.14.6`, the form `requires-python` and `[tool.prose].target-version`
+    restate it in.
+    """
+    return ".".join(version.split(".")[:2])
+
+
+def normalized(name: str) -> str:
+    """
+    Normalizes a project's name as PEP 503 does, lowering its case and
+    folding each run of `-`, `_`, and `.` into one `-`, the form a uv
+    lockfile records a package's name in.
+    """
+    return sub(r"[-_.]+", "-", name).lower()
 
 
 def pinned(requirement: str) -> Match[str] | None:

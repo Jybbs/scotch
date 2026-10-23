@@ -2,9 +2,9 @@
 Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
 names, each subcommand sitting in a group named for the verb it runs. The
-hidden `audit` and `render` groups register their commands by import path,
-which cyclopts imports only when one runs, since each reads this module's
-`app` for the help the Guide carries.
+hidden `audit`, `lift`, and `render` groups register their commands by
+import path, which cyclopts imports only when one runs, since each reads
+this module's `app` for the help the Guide carries.
 """
 
 from cyclopts           import App, Parameter
@@ -39,6 +39,14 @@ app.command(
     App(help="Builds the index of stored games from the fetched files.", name="index")
 )
 app["index"].command(index.games)
+app.command(
+    App(
+        help = "Lists, tries, and writes the lift of each lagging pin.",
+        name = "lift",
+        show = False
+    )
+)
+app["lift"].command("scotch.cli.lift:pins")
 app.command(
     App(help="Matches a submitted game against the stored games.", name="match")
 )

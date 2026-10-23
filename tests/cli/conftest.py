@@ -3,20 +3,24 @@ Defines the fixtures the tests of `scotch.cli` share, each described where
 it is defined.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Collection, Iterable
 from common.games    import line
 from common.sample   import Sample
 from common.sources  import declare, land
 from cyclopts        import App
+from datetime        import date
 from pathlib         import Path
 from pytest          import MonkeyPatch, fixture
 from shutil          import copyfile
+from types           import SimpleNamespace
 from typing          import Self
 
 from scotch.docs.inventory  import Outputs
 from scotch.docs.outputs    import Document
 from scotch.games.schemas   import Game, Origin
 from scotch.index.tables    import PositionIndex
+from scotch.pins.schemas    import Lift
+from scotch.pins.trees      import Tree
 from scotch.sources.schemas import Download, Manifest, Source, Sources
 
 
@@ -193,3 +197,74 @@ def fetched(
         return declared(*(path for path, _ in files))
 
     return fetch_all
+
+
+@fixture
+def lagging(
+    monkeypatch : MonkeyPatch,
+    sample      : Sample
+) -> Callable[..., tuple[list[tuple[tuple[str, ...], str, bool]], list[bytes]]]:
+    """
+    Builds a function that points the project's root `scotch lift pins`
+    reads at the sample checkout, makes the command read the lifts it is
+    given on 2026-10-23, and stands in for each attempt at a lift, which
+    fails where it lifts a pin `breaking` names and otherwise returns the
+    names it lifts as its diff. The function returns the attempts made, each
+    as the names lifted, the log's name, and whether it was checked, beside
+    each diff applied to the checkout.
+    """
+
+    def lag(
+        lifts    : Iterable[Lift],
+        breaking : Collection[str] = ()
+    ) -> tuple[list[tuple[tuple[str, ...], str, bool]], list[bytes]]:
+        """
+        Makes the command read `lifts`, every attempt lifting a pin
+        `breaking` names failing.
+        """
+        attempts, applied = [], []
+
+        def attempt(
+            self    : Tree,
+            lifted  : Collection[Lift],
+            log     : Path,
+            *,
+            checked : bool
+        ) -> bytes | None:
+            """
+            Records the attempt and returns the names it lifts as its diff,
+            or `None` where it lifts a breaking pin.
+            """
+            names = tuple(lift.name for lift in lifted)
+            attempts.append((names, log.name, checked))
+
+            return None if set(names) & set(breaking) else ",".join(names).encode()
+
+        def apply(self: Tree, patch: bytes) -> tuple[str, ...]:
+            """
+            Records the diff and names the one file it changes.
+            """
+            applied.append(patch)
+
+            return ("pyproject.toml",)
+
+        listed = tuple(lifts)
+        monkeypatch.setattr("scotch.cli.lift.root", lambda: sample.root)
+        monkeypatch.setattr(
+            "scotch.cli.lift.Pins",
+            SimpleNamespace(
+                __subclasses__ = lambda: [
+                    lambda tree: SimpleNamespace(lifts=lambda: iter(listed))
+                ]
+            )
+        )
+        monkeypatch.setattr(
+            "scotch.cli.lift.date",
+            SimpleNamespace(today=lambda: date(2026, 10, 23))
+        )
+        monkeypatch.setattr(Tree, "apply", apply)
+        monkeypatch.setattr(Tree, "attempt", attempt)
+
+        return attempts, applied
+
+    return lag
