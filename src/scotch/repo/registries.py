@@ -102,9 +102,10 @@ class Label(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     accepts.
     """
 
-    name: Annotated[str, Field(pattern=r"^\S+ [a-z]+$")]
+    name: Annotated[str, Field(pattern=r"^[^\s♟⏱🗝🧵]\S* [a-z]+$")]
     """
-    The label's glyph and its one lowercase word, a space between them.
+    The label's glyph and its one lowercase word, a space between them, the
+    glyph never one of the marks the pull request template's sections open on.
     """
 
     @property

@@ -50,14 +50,19 @@ def test_a_label_reads_its_color_in_oklab(color: str, lab: tuple[float, ...]):
         param("description", "x" * 101, id="long-description"),
         param("name", "bug", id="name-without-glyph"),
         param("name", "🐞 Bug", id="capitalized-word"),
-        param("name", "🐞 two words", id="two-words")
+        param("name", "🐞 two words", id="two-words"),
+        param("name", "♟️ summary", id="summary-mark"),
+        param("name", "⏱️ changes", id="changes-mark"),
+        param("name", "🗝️ notes", id="notes-mark"),
+        param("name", "🧵 issues", id="issues-mark")
     ]
 )
 def test_a_label_rejects_a_field_outside_its_shape(field: str, value: str):
     """
     Asserts that a label refuses a color that is not six lowercase hex
     digits, a description past the 100 characters GitHub accepts, and a name
-    that is not one glyph and one lowercase word.
+    that is not one glyph and one lowercase word or whose glyph is a mark a
+    pull request section opens on.
     """
     fields = {"color": "c62d42", "description": "x" * 100, "name": "🐞 bug"}
 
