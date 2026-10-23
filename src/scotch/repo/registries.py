@@ -646,9 +646,10 @@ class Repository(BaseModel, extra="forbid", frozen=True, use_attribute_docstring
 
     def requests(self, node: str, pyproject: Pyproject) -> list[Request]:
         """
-        Writes the `PATCH` sending the settings beside the description and
-        the homepage `pyproject` declares, then the GraphQL mutation setting
-        Discussions on the repository whose node ID is `node`.
+        Writes the `PATCH` sending the settings beside the description
+        `pyproject` declares and the domain of its homepage, then the
+        GraphQL mutation setting Discussions on the repository whose node ID
+        is `node`.
         """
         return [
             Request(
@@ -699,10 +700,10 @@ class GithubSettings(ConfigFile, extra="forbid"):
 
     def requests(self, node: str, pyproject: Pyproject) -> list[Request]:
         """
-        Writes every call sending the settings, in the order the repository
-        takes them, meaning its own settings and Discussions on the
-        repository whose node ID is `node`, the topics `pyproject` declares,
-        Dependabot, the Actions permissions, and the token's defaults.
+        Writes every call sending the settings, meaning the repository's own
+        settings and Discussions on the repository whose node ID is `node`,
+        the keywords `pyproject` declares as the topics, Dependabot, the
+        Actions permissions, and the token's defaults, in that order.
         """
         return [
             *self.repository.requests(node, pyproject),

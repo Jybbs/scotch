@@ -298,6 +298,17 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "checks-table-unlisted-task"
         ),
         param(
+            ContributingCheck,
+            [(
+                ".github/workflows/warm.yml",
+                "          tools: ${{ matrix.tools }}\n",
+                "          tools: ${{ matrix.tools }}\n"
+                "      - name: Run the task\n        run: mise run lock:check\n"
+            )],
+            [],
+            id = "checks-table-row-outside-pull-requests"
+        ),
+        param(
             InputCheck,
             [
                 (
@@ -457,6 +468,15 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 "The template names `bug`, which the registry lacks"
             )],
             id = "template-naming-no-label"
+        ),
+        param(
+            LabelCheck,
+            [(".github/ISSUE_TEMPLATE/bug.md", '["🐞 bug"]', "5")],
+            [(
+                ".github/ISSUE_TEMPLATE/bug.md", None,
+                "`labels`: Input should be a valid tuple"
+            )],
+            id = "template-out-of-shape"
         ),
         param(
             LicenseCheck,

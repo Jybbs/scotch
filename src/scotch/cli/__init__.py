@@ -3,8 +3,8 @@ Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
 names, each subcommand sitting in a group named for the verb it runs. The
 hidden `apply`, `audit`, and `render` groups register their commands by
-import path, which cyclopts imports only when one runs, since each reads
-this module's `app` for the help the Guide carries.
+import path, which cyclopts imports only when one runs, since each of their
+modules imports this one's `app`.
 """
 
 from cyclopts           import App, Parameter

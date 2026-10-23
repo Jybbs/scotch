@@ -9,7 +9,7 @@ Every change to *Scotch* starts from an issue, lands on a branch named for that 
 
 ## 🧵 Making a Change
 
-1. Open an issue through the [spec or bug template](https://github.com/Jybbs/scotch/issues/new/choose), naming what is wrong and what has to change, and label it with each domain its work touches from `.github/labels.toml`, beside `🐞 bug` where the work repairs a defect
+1. Open an issue through the [spec or bug template](https://github.com/Jybbs/scotch/issues/new/choose), naming what is wrong and what has to change. Anyone holding [triage access](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels) labels it with each domain its work touches from `.github/labels.toml`, beside the `🐞 bug` the bug template applies on its own
 2. Branch from `main` as `<issue>/<slug>`, the issue's number followed by at most three words from its title (*`7/registries`*)
 3. Write the change beside the tests that pin it, run `mise format`, and then run `mise ci` until it passes. After editing `pyproject.toml`, `.mise/config.toml`, or `docs/package.json`, run `mise relock`, so the lockfile it rewrites lands in the same commit
 4. Commit in the form `type(scope): description`, its type one of `feat`, `fix`, `refactor`, `chore`, `docs`, or `test` and its scope one of `parser`, `position`, `matcher`, `index`, `storage`, `viewer`, `cli`, `docs`, `build`, or `ci`, left out where the change spans several, with a body of hyphenated bullets each opening on a verb
