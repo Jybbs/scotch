@@ -3,10 +3,15 @@ requires = ["hatchling==1.32.4"]
 
 [project]
 authors         = [{ name = "James Parkington" }]
+description     = "Finds the stored game closest to a submitted one."
+keywords        = ["chess", "pgn"]
 license         = "MIT"
 license-files   = ["LICENSE.md"]
 readme          = ".github/README.md"
 requires-python = ">=3.14"
+
+[project.urls]
+Homepage = "https://example.com"
 
 [tool.prose]
 target-version = "3.14"

@@ -1,0 +1,17 @@
+{
+  "name": "main branch protection",
+  "bypass_actors": [],
+  "conditions": { "ref_name": { "exclude": [], "include": ["refs/heads/main"] } },
+  "enforcement": "active",
+  "rules": [
+    { "type": "deletion" },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "required_status_checks": [{ "context": "⏱️ Brief", "integration_id": 15368 }],
+        "strict_required_status_checks_policy": true
+      }
+    }
+  ],
+  "target": "branch"
+}

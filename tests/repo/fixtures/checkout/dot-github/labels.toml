@@ -1,0 +1,9 @@
+[[labels]]
+color       = "c62d42"
+description = "A defect"
+name        = "🐞 bug"
+
+[[labels]]
+color       = "e6e6ff"
+description = "The toolchain"
+name        = "🗜️ build"

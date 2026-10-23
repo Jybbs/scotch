@@ -7,7 +7,11 @@ itself to.
 
 from abc             import ABC, abstractmethod
 from collections.abc import Iterator
-from pydantic        import BaseModel
+from itertools       import combinations
+from math            import dist
+from more_itertools  import duplicates_everseen, unique_everseen
+from pathlib         import Path
+from pydantic        import BaseModel, ValidationError
 from re              import search
 from statistics      import mode
 from typing          import ClassVar
@@ -115,6 +119,56 @@ class CommandCheck(Check):
             for pattern, message in self.commands.items():
                 if search(pattern, text):
                     yield Finding(line=line, message=message, path=path)
+
+
+class ContributingCheck(Check):
+    """
+    Fails where the checks table of `.github/CONTRIBUTING.md` names a check
+    no pull-request workflow runs, leaves out one a workflow runs, or gives
+    a check another command than the task its row runs.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at `.github/CONTRIBUTING.md` for each such row, a
+        row's command being `mise` and its task's first alias, or `mise run`
+        and its name.
+        """
+        contributing = self.checkout.contributing
+        commands     = {task.name: task.command for task in self.checkout.tasks}
+        rows         = {
+            name: commands.get(run, f"mise run {run}")
+            for workflow in self.checkout.requested
+            for job in workflow.rows
+            for name, run in job.checks
+        }
+
+        for name, command in rows.items():
+            if (given := contributing.checks.get(name)) is None:
+                yield Finding(
+                    message = (
+                        f"The checks table leaves out `{name}`, "
+                        "which a pull-request workflow runs"
+                    ),
+                    path = contributing.path
+                )
+            elif given != command:
+                yield Finding(
+                    message = (
+                        f"The checks table runs `{name}` through `{given}` "
+                        f"where its row runs `{command}`"
+                    ),
+                    path = contributing.path
+                )
+
+        for name in contributing.checks.keys() - rows.keys():
+            yield Finding(
+                message = (
+                    f"The checks table names `{name}`, "
+                    "which no pull-request workflow runs"
+                ),
+                path = contributing.path
+            )
 
 
 class ExactPinCheck(Check):
@@ -240,6 +294,107 @@ class KitCheck(Check):
                     ),
                     path = path
                 )
+
+
+class LabelCheck(Check):
+    """
+    Fails where the label registry, the release-notes categories, or an
+    issue template departs from the rules the registry holds, meaning:
+
+    - A file that fails its record, such as a row leaving out a field or
+      carrying one the registry does not declare
+    - Two labels sharing a name or a color, or two colors closer in OKLab
+      than the 0.15 that keeps their pills apart in both of GitHub's themes
+    - A label sitting in no category or in several, or a category naming a
+      label the registry lacks
+    - A template naming a label the registry lacks
+    """
+
+    def categories(self) -> Iterator[Finding]:
+        """
+        Yields a finding at `.github/release.yml` for each label sitting in
+        no category or in several, and for each label a category names that
+        the registry lacks.
+        """
+        changelog, labels = self.checkout.changelog, self.checkout.labels
+
+        for name in labels.names:
+            if name not in changelog.names:
+                yield Finding(
+                    message = f"`{name}` sits in no release-notes category",
+                    path    = changelog.path
+                )
+
+        for name in unique_everseen(duplicates_everseen(changelog.names)):
+            yield Finding(
+                message = f"`{name}` sits in more than one release-notes category",
+                path    = changelog.path
+            )
+
+        for name in unique_everseen(changelog.names):
+            if name not in labels.names:
+                yield Finding(
+                    message = f"A category names `{name}`, which the registry lacks",
+                    path    = changelog.path
+                )
+
+    def registry(self) -> Iterator[Finding]:
+        """
+        Yields a finding at `.github/labels.toml` for each name and each
+        color two labels share, and for each pair of colors under 0.15 apart
+        in OKLab, Björn Ottosson's perceptual color space.
+        """
+        floor, labels = 0.15, self.checkout.labels
+
+        for field in ("name", "color"):
+            for value in unique_everseen(
+                duplicates_everseen(getattr(label, field) for label in labels.rows)
+            ):
+                yield Finding(
+                    message = f"More than one label carries the {field} `{value}`",
+                    path    = labels.path
+                )
+
+        for first, second in combinations(labels.rows, 2):
+            if (distance := dist(first.lab, second.lab)) < floor:
+                yield Finding(
+                    message = (
+                        f"`{first.name}` and `{second.name}` sit {distance:.3f} "
+                        f"apart in OKLab, under the {floor} that keeps two pills apart"
+                    ),
+                    path = labels.path
+                )
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding for each departure, or for each error a file raised
+        where one fails its record.
+        """
+        try:
+            self.checkout.changelog, self.checkout.labels, self.checkout.templates
+        except ValidationError as error:
+            yield from unread(error)
+            return
+
+        yield from self.registry()
+        yield from self.categories()
+        yield from self.templates()
+
+    def templates(self) -> Iterator[Finding]:
+        """
+        Yields a finding at each issue template for each label it names that
+        the registry lacks.
+        """
+        names = self.checkout.labels.names
+
+        for template in self.checkout.templates:
+            for name in template.labels:
+                if name not in names:
+                    yield Finding(
+                        message =
+                            f"The template names `{name}`, which the registry lacks",
+                        path = template.path
+                    )
 
 
 class LicenseCheck(Check):
@@ -377,8 +532,7 @@ class RowCheck(Check):
         """
         rows = {
             (workflow.path, task)
-            for workflow in self.checkout.workflows
-            if workflow.requests
+            for workflow in self.checkout.requested
             for job in workflow.rows
             for task in job.tasks
         }
@@ -403,6 +557,47 @@ class RowCheck(Check):
                 ),
                 path = ci.file
             )
+
+
+class RulesetCheck(Check):
+    """
+    Fails where a ruleset fails its record, two rulesets share the name
+    `scotch apply rulesets` matches a live ruleset by, or a ruleset requires
+    a check no pull-request workflow's gate reports.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at each such ruleset, or for each error a ruleset
+        raised where one fails its record.
+        """
+        try:
+            rulesets = self.checkout.rulesets
+        except ValidationError as error:
+            yield from unread(error)
+            return
+
+        gates = {
+            workflow.gate.name for workflow in self.checkout.requested if workflow.gate
+        }
+        named = list(duplicates_everseen(ruleset.name for ruleset in rulesets))
+
+        for ruleset in rulesets:
+            if ruleset.name in named:
+                yield Finding(
+                    message = f"Another ruleset carries the name `{ruleset.name}` too",
+                    path    = ruleset.path
+                )
+
+            for context in ruleset.contexts:
+                if context not in gates:
+                    yield Finding(
+                        message = (
+                            f"The ruleset requires `{context}`, "
+                            "which no pull-request workflow's gate reports"
+                        ),
+                        path = ruleset.path
+                    )
 
 
 class RunnerCheck(Check):
@@ -464,6 +659,23 @@ class ScriptCheck(Check):
                         ),
                         path = script.path
                     )
+
+
+class SettingsCheck(Check):
+    """
+    Fails where `.github/settings.toml` carries a table or a key its record
+    does not declare, leaves one out, or holds a value outside the set
+    GitHub takes, so a misspelled setting fails before anything is sent.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding for each error the file raised.
+        """
+        try:
+            self.checkout.settings
+        except ValidationError as error:
+            yield from unread(error)
 
 
 class SitePinCheck(Check):
@@ -627,3 +839,18 @@ class WrapperCheck(Check):
                     message = f"The wrapper's bytes differ from `{wrappers[0].name}`'s",
                     path    = wrapper
                 )
+
+
+def unread(error: ValidationError) -> Iterator[Finding]:
+    """
+    Yields one finding for each error a record raised on reading its file,
+    at the file the error's title names, each naming the field it sits in
+    where it sits in one.
+    """
+    for detail in error.errors():
+        location = ".".join(map(str, detail["loc"]))
+
+        yield Finding(
+            message = f"`{location}`: {detail['msg']}" if location else detail["msg"],
+            path    = Path(error.title)
+        )

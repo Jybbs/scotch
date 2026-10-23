@@ -1,0 +1,6 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "labels"
+#MISE confirm     = "Write every label `.github/labels.toml` declares to GitHub?"
+#MISE description = "Create or update every label `.github/labels.toml` declares on GitHub, listing each live label it omits"
+
+scotch apply labels

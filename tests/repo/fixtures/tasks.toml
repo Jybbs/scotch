@@ -4,6 +4,7 @@ file    = ".mise/tasks/gha/brief"
 name    = "gha:brief"
 
 [[tasks]]
+aliases = ["lockfile"]
 depends = []
 file    = ".mise/tasks/lock/check"
 name    = "lock:check"
