@@ -527,8 +527,9 @@ class UvPins(Pins):
             ) - self.audit(upgraded, required)
 
             for package in locked.packages:
-                if (lifted := newest.package(package.name)) and (
-                    lifted.version != package.version
+                if (
+                    (lifted := newest.package(package.name))
+                    and lifted.version != package.version
                 ):
                     yield Lift(
                         current  = package.version,
