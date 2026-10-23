@@ -152,14 +152,28 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         each untracked file git does not ignore, and stages them all, so
         `git diff` there reads only what is written after. The directory is
         removed once the block ends.
+
+        Each command the clone runs trusts the clone's own mise config
+        through `MISE_TRUSTED_CONFIG_PATHS`, since `mise lock`, unlike `mise
+        run`, `mise exec`, and `mise install`, refuses a config it has not
+        been told to trust.
         """
         with TemporaryDirectory(prefix="scotch-lift-") as scratch:
+            root = (Path(scratch) / self.root.name).resolve()
             tree = self.model_copy(
                 update = {
-                    "checkout": Checkout(
-                        app  = self.checkout.app,
-                        root = Path(scratch) / self.root.name
-                    )
+                    "checkout"    : Checkout(app=self.checkout.app, root=root),
+                    "environment" : self.environment | {
+                        "MISE_TRUSTED_CONFIG_PATHS": pathsep.join(
+                            filter(
+                                None,
+                                (
+                                    self.environment.get("MISE_TRUSTED_CONFIG_PATHS"),
+                                    str(root)
+                                )
+                            )
+                        )
+                    }
                 }
             )
             changes = self.git("diff", "--binary", "HEAD")

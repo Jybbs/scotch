@@ -8,6 +8,7 @@ an attempt returns, and the files an applied patch changes.
 from collections.abc import Iterator
 from common.sample   import Sample
 from contextlib      import contextmanager
+from os              import pathsep
 from pathlib         import Path
 from pytest          import MonkeyPatch, mark, param, raises
 from pytest_subprocess.fake_process import FakeProcess
@@ -201,8 +202,14 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
     Asserts that a clone shares the tree's objects, applies each change
     the working tree holds against `HEAD` where it holds any, copies each
     untracked file git does not ignore, stages everything, and is removed
-    once the block ends, while keeping the tree's environment.
+    once the block ends, keeping the tree's environment while adding its own
+    root to the mise configs the tree already trusts.
     """
+    tree = tree.model_copy(
+        update = {
+            "environment": {**tree.environment, "MISE_TRUSTED_CONFIG_PATHS": "/trusted"}
+        }
+    )
     (tree.root / "notes" / "draft.txt").parent.mkdir()
     (tree.root / "notes" / "draft.txt").write_text("draft")
     fp.register(["git", "diff", "--binary", "HEAD"], stdout=changes)
@@ -221,7 +228,10 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
         assert clone.root.name == tree.root.name
         assert clone.root != tree.root
         assert (clone.root / "notes" / "draft.txt").read_text() == "draft"
-        assert clone.environment == tree.environment
+        assert clone.environment == {
+            **tree.environment,
+            "MISE_TRUSTED_CONFIG_PATHS": f"/trusted{pathsep}{clone.root}"
+        }
 
     assert not clone.root.exists()
     assert fp.call_count(["git", "apply", "--binary"]) == int(bool(changes))
