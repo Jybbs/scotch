@@ -1,0 +1,6 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "rulesets"
+#MISE confirm     = "Apply the rulesets and send every setting to GitHub?"
+#MISE description = "Apply the rulesets under `.github/rulesets/` and send every setting `.github/settings.toml` declares, listing each live ruleset no file names"
+
+scotch apply rulesets

@@ -1,0 +1,18 @@
+gh api --jq .[] | [.name, .id] --paginate repos/{owner}/{repo}/rulesets?includes_parents=false
+gh api --jq .node_id repos/{owner}/{repo}
+gh api --input - --method PUT --silent repos/{owner}/{repo}/rulesets/7
+  {"bypass_actors":[],"conditions":{"ref_name":{"exclude":[],"include":["refs/heads/main"]}},"enforcement":"active","name":"main branch protection","rules":[{"type":"deletion"},{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"⏱️ Brief","integration_id":15368}],"strict_required_status_checks_policy":true}}],"target":"branch"}
+gh api --input - --method POST --silent repos/{owner}/{repo}/rulesets
+  {"bypass_actors":[],"conditions":{"ref_name":{"exclude":[],"include":["refs/tags/*"]}},"enforcement":"active","name":"release tag protection","rules":[{"type":"update"},{"type":"deletion"}],"target":"tag"}
+gh api --input - --method PATCH --silent repos/{owner}/{repo}
+  {"allow_auto_merge":false,"allow_merge_commit":false,"allow_rebase_merge":false,"allow_squash_merge":true,"allow_update_branch":true,"delete_branch_on_merge":true,"has_issues":true,"has_projects":false,"has_wiki":false,"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"}},"squash_merge_commit_message":"PR_BODY","squash_merge_commit_title":"PR_TITLE","description":"Finds the stored game closest to a submitted one.","homepage":"example.com"}
+gh api --input - --method POST --silent graphql
+  {"query":"mutation($id: ID!, $on: Boolean!) { updateRepository(input: {repositoryId: $id, hasDiscussionsEnabled: $on}) { clientMutationId } }","variables":{"id":"R_node","on":false}}
+gh api --input - --method PUT --silent repos/{owner}/{repo}/topics
+  {"names":["chess","pgn"]}
+gh api --method PUT --silent repos/{owner}/{repo}/vulnerability-alerts
+gh api --method DELETE --silent repos/{owner}/{repo}/automated-security-fixes
+gh api --input - --method PUT --silent repos/{owner}/{repo}/actions/permissions
+  {"allowed_actions":"all","enabled":true,"sha_pinning_required":true}
+gh api --input - --method PUT --silent repos/{owner}/{repo}/actions/permissions/workflow
+  {"can_approve_pull_request_reviews":false,"default_workflow_permissions":"read"}

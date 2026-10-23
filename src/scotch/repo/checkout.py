@@ -1,8 +1,9 @@
 """
-Holds `Checkout`, the repository `scotch audit repo` reads, which loads each
-file into its record from `scotch.repo.schemas` the first time a check reads
-it, asks mise for the tasks it declares, and lists the files `scotch render
-docs` writes from the declarations.
+Holds `Checkout`, the repository `scotch audit repo` and `scotch apply`
+read, which loads each file into its record from `scotch.repo.schemas` or
+`scotch.repo.registries` the first time a check or a command reads it, asks
+mise for the tasks it declares, and lists the files `scotch render docs`
+writes from the declarations.
 """
 
 from collections.abc import Iterator
@@ -12,8 +13,16 @@ from pathlib         import Path
 from pydantic        import BaseModel, InstanceOf, TypeAdapter
 from subprocess      import run
 
-from scotch.docs.inventory import Outputs
-from scotch.repo.schemas   import (
+from scotch.docs.inventory  import Outputs
+from scotch.repo.registries import (
+    Changelog,
+    Contributing,
+    GithubSettings,
+    Labels,
+    Ruleset,
+    Template
+)
+from scotch.repo.schemas    import (
     Action,
     License,
     Lock,
@@ -30,8 +39,9 @@ from scotch.repo.schemas   import (
 
 class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The repository the checks read, each file loaded the first time a check
-    reads it, with every path the records carry joined onto `root`.
+    The repository the checks and the `scotch apply` commands read, each
+    file loaded the first time one of them reads it, with every path the
+    records carry joined onto `root`.
     """
 
     app: InstanceOf[App]
@@ -52,6 +62,27 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         return tuple(
             map(Action.read, sorted(self.root.glob(".github/actions/*/action.yml")))
         )
+
+    @cached_property
+    def changelog(self) -> Changelog:
+        """
+        Reads the release-notes categories `.github/release.yml` declares.
+        """
+        return Changelog.read(self.root / ".github" / "release.yml")
+
+    @cached_property
+    def contributing(self) -> Contributing:
+        """
+        Reads the checks table of `.github/CONTRIBUTING.md`.
+        """
+        return Contributing.read(self.root / ".github" / "CONTRIBUTING.md")
+
+    @cached_property
+    def labels(self) -> Labels:
+        """
+        Reads the label registry `.github/labels.toml`.
+        """
+        return Labels.read(self.root / ".github" / "labels.toml")
 
     @cached_property
     def license(self) -> License:
@@ -103,6 +134,22 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         return Pyproject.read(self.root / "pyproject.toml")
 
     @property
+    def requested(self) -> tuple[Workflow, ...]:
+        """
+        Lists the workflows a pull request runs.
+        """
+        return tuple(workflow for workflow in self.workflows if workflow.requests)
+
+    @cached_property
+    def rulesets(self) -> tuple[Ruleset, ...]:
+        """
+        Reads each ruleset under `.github/rulesets/`.
+        """
+        return tuple(
+            map(Ruleset.read, sorted(self.root.glob(".github/rulesets/*.json")))
+        )
+
+    @property
     def runs(self) -> tuple[tuple[Path, Step], ...]:
         """
         Pairs each step the workflows run, once for each leg of its job's
@@ -124,6 +171,13 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             for task in self.tasks
             if task.file and (script := Script.read(task.file))
         )
+
+    @cached_property
+    def settings(self) -> GithubSettings:
+        """
+        Reads every repository setting `.github/settings.toml` declares.
+        """
+        return GithubSettings.read(self.root / ".github" / "settings.toml")
 
     @cached_property
     def site(self) -> Site:
@@ -169,6 +223,15 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             if task.file
             else task
             for task in TypeAdapter(tuple[Task, ...]).validate_json(listing.stdout)
+        )
+
+    @cached_property
+    def templates(self) -> tuple[Template, ...]:
+        """
+        Reads each Markdown issue template under `.github/ISSUE_TEMPLATE/`.
+        """
+        return tuple(
+            map(Template.read, sorted(self.root.glob(".github/ISSUE_TEMPLATE/*.md")))
         )
 
     @cached_property

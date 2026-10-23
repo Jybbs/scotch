@@ -72,10 +72,11 @@ def indexed(data: Path) -> Game:
 @fixture
 def inside(monkeypatch: MonkeyPatch, sample: Sample) -> Sample:
     """
-    Points the project's root `scotch audit repo` reads at the sample
-    checkout.
+    Points the project's root `scotch apply` and `scotch audit repo` read at
+    the sample checkout.
     """
-    monkeypatch.setattr("scotch.cli.audit.root", lambda: sample.root)
+    for command in ("apply", "audit"):
+        monkeypatch.setattr(f"scotch.cli.{command}.root", lambda: sample.root)
 
     return sample
 

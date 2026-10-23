@@ -1,0 +1,8 @@
+changelog:
+  categories:
+    - labels: ["🐞 bug"]
+      title: 🐞 Bugs
+    - labels: ["🗜️ build"]
+      title: 🗜️ Build
+    - labels: ["*"]
+      title: Other
