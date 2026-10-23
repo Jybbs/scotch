@@ -697,7 +697,8 @@ class Pyproject(ConfigFile):
     """
     The fields of `pyproject.toml` the checks compare against the files that
     restate them, beside the description, the homepage, and the keywords
-    `scotch apply rulesets` sends to the repository.
+    `scotch apply rulesets` sends to the repository, the homepage cut down
+    to its domain.
     """
 
     authors: tuple[Author, ...] = Field(
