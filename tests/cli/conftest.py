@@ -76,10 +76,11 @@ def indexed(data: Path) -> Game:
 @fixture
 def inside(monkeypatch: MonkeyPatch, sample: Sample) -> Sample:
     """
-    Points the project's root `scotch audit repo` reads at the sample
-    checkout.
+    Points the project's root `scotch apply`, `scotch audit repo`, and
+    `scotch lift pins` read at the sample checkout.
     """
-    monkeypatch.setattr("scotch.cli.audit.root", lambda: sample.root)
+    for command in ("apply", "audit", "lift"):
+        monkeypatch.setattr(f"scotch.cli.{command}.root", lambda: sample.root)
 
     return sample
 
@@ -201,17 +202,16 @@ def fetched(
 
 @fixture
 def lagging(
-    monkeypatch : MonkeyPatch,
-    sample      : Sample
+    inside      : Sample,
+    monkeypatch : MonkeyPatch
 ) -> Callable[..., tuple[list[tuple[tuple[str, ...], str, bool]], list[bytes]]]:
     """
-    Builds a function that points the project's root `scotch lift pins`
-    reads at the sample checkout, makes the command read the lifts it is
-    given on 2026-10-23, and stands in for each attempt at a lift, which
-    fails where it lifts a pin `breaking` names and otherwise returns the
-    names it lifts as its diff. The function returns the attempts made, each
-    as the names lifted, the log's name, and whether it was checked, beside
-    each diff applied to the checkout.
+    Builds a function that makes `scotch lift pins`, its root pointed at the
+    sample checkout, read the lifts it is given on 2026-10-23, and stands in
+    for each attempt at a lift, which fails where it lifts a pin `breaking`
+    names and otherwise returns the names it lifts as its diff. The function
+    returns the attempts made, each as the names lifted, the log's name, and
+    whether it was checked, beside each diff applied to the checkout.
     """
 
     def lag(
@@ -249,7 +249,6 @@ def lagging(
             return ("pyproject.toml",)
 
         listed = tuple(lifts)
-        monkeypatch.setattr("scotch.cli.lift.root", lambda: sample.root)
         monkeypatch.setattr(
             "scotch.cli.lift.Pins",
             SimpleNamespace(

@@ -20,17 +20,21 @@ from scotch.repo.checks  import (
     AnchorCheck,
     Check,
     CommandCheck,
+    ContributingCheck,
     ExactPinCheck,
     GateCheck,
     InputCheck,
     KitCheck,
+    LabelCheck,
     LicenseCheck,
     NodeTypesCheck,
     PinCheck,
     RenderCheck,
     RowCheck,
+    RulesetCheck,
     RunnerCheck,
     ScriptCheck,
+    SettingsCheck,
     SitePinCheck,
     SummaryCheck,
     TaskCheck,
@@ -245,6 +249,66 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "ungated-job"
         ),
         param(
+            ContributingCheck,
+            [(
+                ".github/CONTRIBUTING.md",
+                "| `Coverage` | `mise run py:coverage` | A test fails |\n",
+                ""
+            )],
+            [(
+                ".github/CONTRIBUTING.md",
+                None,
+                "The checks table leaves out `Coverage`, "
+                "which a pull-request workflow runs"
+            )],
+            id = "checks-table-row-missing"
+        ),
+        param(
+            ContributingCheck,
+            [(".github/CONTRIBUTING.md", "`mise lockfile`", "`mise run lock:check`")],
+            [(
+                ".github/CONTRIBUTING.md",
+                None,
+                "The checks table runs `Lockfiles` through `mise run lock:check` where "
+                "its row runs `mise lockfile`"
+            )],
+            id = "checks-table-command"
+        ),
+        param(
+            ContributingCheck,
+            [(
+                ".github/CONTRIBUTING.md", "| `Coverage` |",
+                "| `Links` | `mise links` | A link leads nowhere |\n| `Coverage` |"
+            )],
+            [(
+                ".github/CONTRIBUTING.md", None,
+                "The checks table names `Links`, which no pull-request workflow runs"
+            )],
+            id = "checks-table-row-extra"
+        ),
+        param(
+            ContributingCheck,
+            [(".github/workflows/ci.yml", "task: py:coverage", "task: py:unlisted")],
+            [(
+                ".github/CONTRIBUTING.md",
+                None,
+                "The checks table runs `Coverage` through `mise run py:coverage` "
+                "where its row runs `mise run py:unlisted`"
+            )],
+            id = "checks-table-unlisted-task"
+        ),
+        param(
+            ContributingCheck,
+            [(
+                ".github/workflows/warm.yml",
+                "          tools: ${{ matrix.tools }}\n",
+                "          tools: ${{ matrix.tools }}\n"
+                "      - name: Run the task\n        run: mise run lock:check\n"
+            )],
+            [],
+            id = "checks-table-row-outside-pull-requests"
+        ),
+        param(
             InputCheck,
             [
                 (
@@ -296,6 +360,123 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 )
             ],
             id = "subset-saved-alone"
+        ),
+        param(
+            LabelCheck,
+            [(".github/labels.toml", '"e6e6ff"', '"c62d42"')],
+            [
+                (
+                    ".github/labels.toml", None,
+                    "More than one label carries the color `c62d42`"
+                ),
+                (
+                    ".github/labels.toml",
+                    None,
+                    "`🐞 bug` and `🗜️ build` sit 0.000 apart in OKLab, under the 0.15 "
+                    "that keeps two pills apart"
+                )
+            ],
+            id = "shared-label-color"
+        ),
+        param(
+            LabelCheck,
+            [(
+                ".github/labels.toml",
+                '[[labels]]\ncolor       = "e6e6ff"',
+                '[[labels]]\ncolor       = "2d2566"\ndescription = "Again"\n'
+                'name        = "🐞 bug"\n\n[[labels]]\ncolor       = "e6e6ff"'
+            )],
+            [(
+                ".github/labels.toml", None,
+                "More than one label carries the name `🐞 bug`"
+            )],
+            id = "shared-label-name"
+        ),
+        param(
+            LabelCheck,
+            [(".github/labels.toml", '"e6e6ff"', '"7e2d42"')],
+            [(
+                ".github/labels.toml",
+                None,
+                "`🐞 bug` and `🗜️ build` sit 0.149 apart in OKLab, under the 0.15 "
+                "that keeps two pills apart"
+            )],
+            id = "label-colors-under-the-floor"
+        ),
+        param(
+            LabelCheck,
+            [(".github/labels.toml", '"e6e6ff"', '"7d2d42"')],
+            [],
+            id = "label-colors-over-the-floor"
+        ),
+        param(
+            LabelCheck,
+            [(".github/labels.toml", '"c62d42"', '"C62D42"')],
+            [(
+                ".github/labels.toml", None,
+                "`labels.0.color`: String should match pattern '^[0-9a-f]{6}$'"
+            )],
+            id = "label-out-of-shape"
+        ),
+        param(
+            LabelCheck,
+            [(".github/release.yml", "  categories:", "  categories: [")],
+            [(
+                ".github/release.yml",
+                None,
+                "Value error, while parsing a flow node\ndid not find expected node "
+                'content\n  in "<unicode string>", line 3, column 5'
+            )],
+            id = "unparsable-changelog"
+        ),
+        param(
+            LabelCheck,
+            [(
+                ".github/release.yml",
+                '    - labels: ["🗜️ build"]\n      title: 🗜️ Build\n',
+                ""
+            )],
+            [(
+                ".github/release.yml", None,
+                "`🗜️ build` sits in no release-notes category"
+            )],
+            id = "label-in-no-category"
+        ),
+        param(
+            LabelCheck,
+            [(".github/release.yml", '["🐞 bug"]', '["🐞 bug", "🗜️ build"]')],
+            [(
+                ".github/release.yml", None,
+                "`🗜️ build` sits in more than one release-notes category"
+            )],
+            id = "label-in-two-categories"
+        ),
+        param(
+            LabelCheck,
+            [(".github/release.yml", '["🐞 bug"]', '["🐞 bug", "🦉 engine"]')],
+            [(
+                ".github/release.yml", None,
+                "A category names `🦉 engine`, which the registry lacks"
+            )],
+            id = "category-naming-no-label"
+        ),
+        param(
+            LabelCheck,
+            [(".github/ISSUE_TEMPLATE/bug.md", '["🐞 bug"]', '["bug"]')],
+            [(
+                ".github/ISSUE_TEMPLATE/bug.md", None,
+                "The template names `bug`, which the registry lacks"
+            )],
+            id = "template-naming-no-label"
+        ),
+        param(
+            LabelCheck,
+            [(".github/ISSUE_TEMPLATE/bug.md", '["🐞 bug"]', "5")],
+            [(
+                ".github/ISSUE_TEMPLATE/bug.md", None,
+                "`labels`: Input should be a valid tuple"
+            )],
+            id = "template-out-of-shape"
         ),
         param(
             LicenseCheck,
@@ -425,6 +606,88 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             ],
             [],
             id = "row-outside-pull-requests"
+        ),
+        param(
+            RulesetCheck,
+            [(
+                ".github/rulesets/main.json", '"context": "⏱️ Brief"',
+                '"context": "Brief"'
+            )],
+            [(
+                ".github/rulesets/main.json",
+                None,
+                "The ruleset requires `Brief`, "
+                "which no pull-request workflow's gate reports"
+            )],
+            id = "required-check-with-no-gate"
+        ),
+        param(
+            RulesetCheck,
+            [(".github/workflows/ci.yml", "  pull_request:\n", "  push:\n")],
+            [(
+                ".github/rulesets/main.json",
+                None,
+                "The ruleset requires `⏱️ Brief`, "
+                "which no pull-request workflow's gate reports"
+            )],
+            id = "required-check-outside-pull-requests"
+        ),
+        param(
+            RulesetCheck,
+            [(
+                ".github/rulesets/tags.json", '"release tag protection"',
+                '"main branch protection"'
+            )],
+            [
+                (
+                    ".github/rulesets/main.json", None,
+                    "Another ruleset carries the name `main branch protection` too"
+                ),
+                (
+                    ".github/rulesets/tags.json", None,
+                    "Another ruleset carries the name `main branch protection` too"
+                )
+            ],
+            id = "shared-ruleset-name"
+        ),
+        param(
+            RulesetCheck,
+            [(".github/rulesets/tags.json", '"enforcement"', '"enforce"')],
+            [
+                (".github/rulesets/tags.json", None, "`enforcement`: Field required"),
+                (
+                    ".github/rulesets/tags.json", None,
+                    "`enforce`: Extra inputs are not permitted"
+                )
+            ],
+            id = "ruleset-out-of-shape"
+        ),
+        param(
+            RulesetCheck,
+            [(
+                ".github/rulesets/tags.json", '"release tag protection",',
+                '"release tag protection"'
+            )],
+            [(
+                ".github/rulesets/tags.json", None,
+                "Value error, Expecting ',' delimiter: line 3 column 3 (char 39)"
+            )],
+            id = "unparsable-ruleset"
+        ),
+        param(
+            SettingsCheck,
+            [(".github/settings.toml", "has_wiki ", "has_wikis")],
+            [
+                (
+                    ".github/settings.toml", None,
+                    "`repository.has_wiki`: Field required"
+                ),
+                (
+                    ".github/settings.toml", None,
+                    "`repository.has_wikis`: Extra inputs are not permitted"
+                )
+            ],
+            id = "settings-out-of-shape"
         ),
         param(
             RunnerCheck,

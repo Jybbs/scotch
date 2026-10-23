@@ -1,0 +1,18 @@
+changelog:
+  categories:
+    - labels: ["🐞 bug"]
+      title: 🐞 Bugs
+    - labels: ["🕯️ games"]
+      title: 🕯️ Games
+    - labels: ["🦉 engine"]
+      title: 🦉 Engine
+    - labels: ["🪺 store"]
+      title: 🪺 Store
+    - labels: ["🕰️ viewer"]
+      title: 🕰️ Viewer
+    - labels: ["📗 docs"]
+      title: 📗 Documentation
+    - labels: ["🗜️ build"]
+      title: 🗜️ Build
+    - labels: ["*"]
+      title: Other

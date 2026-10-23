@@ -1,0 +1,34 @@
+[[labels]]
+color       = "c62d42"
+description = "A defect, filed beside the label of the domain where it breaks"
+name        = "🐞 bug"
+
+[[labels]]
+color       = "e6e6ff"
+description = "The package, the toolchain, the workflows, and the release path"
+name        = "🗜️ build"
+
+[[labels]]
+color       = "8cc5a3"
+description = "The README, the docs site, and the contributor guide"
+name        = "📗 docs"
+
+[[labels]]
+color       = "2d2566"
+description = "The position index and the match it finds between a submitted game and a stored one"
+name        = "🦉 engine"
+
+[[labels]]
+color       = "f2a33a"
+description = "Reading a PGN game, its tags and moves, and the positions and keys it yields"
+name        = "🕯️ games"
+
+[[labels]]
+color       = "5b9bd5"
+description = "The game sources, their fetch and provenance, and the index built from the fetched files"
+name        = "🪺 store"
+
+[[labels]]
+color       = "6e4527"
+description = "The match viewer on the docs site and the JSON it reads"
+name        = "🕰️ viewer"

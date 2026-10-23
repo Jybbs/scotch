@@ -1,0 +1,3 @@
+gh label create --color c62d42 --description A defect --force 🐞 bug
+gh label create --color e6e6ff --description The toolchain --force 🗜️ build
+gh api --jq .[].name --paginate repos/{owner}/{repo}/labels

@@ -1,0 +1,9 @@
+Usage: scotch apply labels
+
+Creates or updates every label .github/labels.toml declares on the repository   
+the checkout's remote names, then prints each live label the registry omits,    
+which stays on GitHub until it is renamed or deleted by hand.                   
+
+Exits nonzero before writing anything where the registry fails to read, and at  
+the first label gh fails to write.
+

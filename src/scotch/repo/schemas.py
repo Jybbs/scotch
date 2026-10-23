@@ -1,9 +1,9 @@
 """
-Holds the records `scotch audit repo` and `scotch lift pins` read out of a
-checkout, meaning the manifest, the mise config, the license, the lockfile,
-the site's package manifest, the workflows with their jobs and steps, the
-action manifests, the mise tasks, and the task scripts, beside the `Finding`
-each check reports.
+Holds the records `scotch apply rulesets`, `scotch audit repo`, and `scotch
+lift pins` read out of a checkout, meaning the manifest, the mise config,
+the license, the lockfile, the site's package manifest, the workflows with
+their jobs and steps, the action manifests, the mise tasks, and the task
+scripts, beside the `Finding` each check reports.
 """
 
 from collections.abc import Callable, Iterable, Mapping
@@ -11,11 +11,12 @@ from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
 from pathlib         import Path
-from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field
+from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, ValidationError
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
 from tomllib         import loads
 from typing          import Annotated, ClassVar, Self, assert_never
-from yaml            import AliasToken, AnchorToken, CSafeLoader, load, scan
+from urllib.parse    import urlsplit
+from yaml            import AliasToken, AnchorToken, CSafeLoader, YAMLError, load, scan
 
 
 class Author(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -47,10 +48,28 @@ class ConfigFile(BaseModel, extra="ignore", frozen=True, use_attribute_docstring
     def read(cls, path: Path) -> Self:
         """
         Reads the file at `path`.
+
+        Raises:
+            ValidationError: Titled with `path`, where the file fails to
+                             parse or to validate as the record.
         """
-        return cls.model_validate(
-            {**cls.parser(path.read_text(encoding="utf-8")), "path": path}
-        )
+        text = path.read_text(encoding="utf-8")
+
+        try:
+            return cls.model_validate({**cls.parser(text), "path": path})
+        except ValidationError as error:
+            details = error.errors()
+        except (ValueError, YAMLError) as error:
+            details = [
+                {
+                    "input" : text,
+                    "type"  : "value_error",
+                    "ctx"   : {"error": error},
+                    "loc"   : ()
+                }
+            ]
+
+        raise ValidationError.from_exception_data(str(path), details) from None
 
 
 class Format(StrEnum):
@@ -259,25 +278,12 @@ class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         inputs and its script replaced by the value `leg` holds for that
         key.
         """
-        def fill(text: str | int | bool) -> str | int | bool:
-            """
-            Replaces each matrix expression in `text`, an expression naming
-            a key the leg lacks reading as empty, leaving a value that is no
-            string as it stands.
-            """
-            if not isinstance(text, str):
-                return text
-
-            return sub(
-                r"\$\{\{\s*matrix\.([\w-]+)\s*\}\}",
-                lambda match: leg.get(match[1], ""),
-                text
-            )
-
         return self.model_copy(
             update = {
-                "inputs" : {name: fill(value) for name, value in self.inputs.items()},
-                "run"    : fill(self.run)
+                "inputs" : {
+                    name: filled(leg, value) for name, value in self.inputs.items()
+                },
+                "run"    : filled(leg, self.run)
             }
         )
 
@@ -301,6 +307,20 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     """
     The task's name, such as `repo:ci`.
     """
+
+    aliases: tuple[str, ...] = ()
+    """
+    The words `mise <alias>` runs the task under.
+    """
+
+    @property
+    def command(self) -> str:
+        """
+        Writes the shortest command running the task from a shell, `mise`
+        and the task's first alias where it has one and `mise run` and its
+        name otherwise.
+        """
+        return f"mise {self.aliases[0]}" if self.aliases else f"mise run {self.name}"
 
     @property
     def writes_summary(self) -> bool:
@@ -537,6 +557,19 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
         return self.condition.strip("${} ") == "always()"
 
     @property
+    def checks(self) -> tuple[tuple[str, str], ...]:
+        """
+        Pairs the name each leg of the job's matrix reports its check under
+        with each task the leg runs.
+        """
+        return tuple(
+            (filled(leg, self.name), task)
+            for leg in self.legs
+            for step in self.steps
+            for task in step.expand(leg).tasks
+        )
+
+    @property
     def gate(self) -> bool:
         """
         Reads whether the job runs `gha:brief`, the task the `⏱️ Brief` gate
@@ -693,7 +726,9 @@ class Package(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
 class Pyproject(ConfigFile):
     """
     The fields of `pyproject.toml` the checks compare against the files that
-    restate them.
+    restate them, beside the description, the homepage, and the keywords
+    `scotch apply rulesets` sends to the repository, the homepage cut down
+    to its domain.
     """
 
     authors: tuple[Author, ...] = Field(
@@ -716,6 +751,24 @@ class Pyproject(ConfigFile):
     )
     """
     The constraints `[tool.uv]` holds a source distribution's build to.
+    """
+
+    description: str = Field(validation_alias=AliasPath("project", "description"))
+    """
+    The sentence `[project].description` declares, which the repository's
+    About box carries.
+    """
+
+    homepage: str = Field(validation_alias=AliasPath("project", "urls", "Homepage"))
+    """
+    The address `[project.urls].Homepage` declares, where the docs site
+    serves.
+    """
+
+    keywords: tuple[str, ...] = Field(validation_alias=AliasPath("project", "keywords"))
+    """
+    The words `[project].keywords` declares, which the repository carries as
+    its topics.
     """
 
     license: str = Field(validation_alias=AliasPath("project", "license"))
@@ -758,6 +811,14 @@ class Pyproject(ConfigFile):
         build to.
         """
         return (*self.builds, *self.constraints)
+
+    @property
+    def domain(self) -> str:
+        """
+        Cuts the homepage down to its host, such as `scotch.fyi`, the bare
+        domain the repository's About box links.
+        """
+        return urlsplit(self.homepage).netloc
 
     @property
     def loose(self) -> tuple[str, ...]:
@@ -1001,6 +1062,22 @@ def exact(version: str) -> Match[str] | None:
     and build after them, and no range.
     """
     return fullmatch(r"\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?", version)
+
+
+def filled[T: (str, int, bool)](leg: Mapping[str, str], text: T) -> T:
+    """
+    Replaces each `${{ matrix.<key> }}` expression in `text` with the value
+    `leg` holds for that key, an expression naming a key the leg lacks
+    reading as empty, leaving a value that is no string as it stands.
+    """
+    if not isinstance(text, str):
+        return text
+
+    return sub(
+        r"\$\{\{\s*matrix\.([\w-]+)\s*\}\}",
+        lambda match: leg.get(match[1], ""),
+        text
+    )
 
 
 def minor(version: str) -> str:

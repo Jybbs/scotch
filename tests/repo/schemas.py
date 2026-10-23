@@ -6,7 +6,8 @@ describes, and the facts the checks read off those records.
 from common.sample import Sample
 from datetime      import UTC, datetime
 from pathlib       import Path
-from pytest        import mark, param
+from pydantic      import ValidationError
+from pytest        import mark, param, raises
 
 from scotch.repo.schemas import (
     Action,
@@ -74,13 +75,28 @@ def test_a_finding_renders_in_each_format(
     assert finding.render(output) == rendered
 
 
-def test_a_job_reads_one_need_as_a_list():
+@mark.parametrize(
+    "new",
+    [
+        param('license-files   = "LICENSE.md"', id="field-out-of-shape"),
+        param("license-files   = ", id="unparsable-toml")
+    ]
+)
+def test_a_file_out_of_its_records_shape_fails_naming_the_file(
+    new    : str,
+    sample : Sample
+):
     """
-    Asserts that a job's `needs` reads a single job as a list of one.
+    Asserts that a file failing to parse, or to validate as its record,
+    raises the validation error titled with the file's path.
     """
-    assert Job.model_validate(
-        {"id": "brief", "needs": "check", "runs-on": "ubuntu-26.04"}
-    ).needs == ("check",)
+    sample.edit("pyproject.toml", new=new, old='license-files   = ["LICENSE.md"]')
+    path = sample.root / "pyproject.toml"
+
+    with raises(ValidationError) as error:
+        Pyproject.read(path)
+
+    assert error.value.title == str(path)
 
 
 @mark.parametrize(
@@ -122,6 +138,40 @@ def test_a_license_reads_its_title_and_holders(
     path.write_text(text)
 
     assert License.read(path) == License(holders=holders, path=path, title=title)
+
+
+def test_a_job_pairs_each_legs_check_name_with_its_tasks():
+    """
+    Asserts that a job names each leg's check from the matrix expression in
+    its `name`, beside each task the leg runs.
+    """
+    job = Job.model_validate(
+        {
+            "id"       : "check",
+            "name"     : "${{ matrix.name }}",
+            "runs-on"  : "ubuntu-26.04",
+            "steps"    : [{"run": "mise run ${{ matrix.task }}"}],
+            "strategy" : {
+                "matrix": {
+                    "include": [
+                        {"name": "Lockfiles", "task": "lock:check"},
+                        {"name": "Coverage", "task": "py:coverage"}
+                    ]
+                }
+            }
+        }
+    )
+
+    assert job.checks == (("Lockfiles", "lock:check"), ("Coverage", "py:coverage"))
+
+
+def test_a_job_reads_one_need_as_a_list():
+    """
+    Asserts that a job's `needs` reads a single job as a list of one.
+    """
+    assert Job.model_validate(
+        {"id": "brief", "needs": "check", "runs-on": "ubuntu-26.04"}
+    ).needs == ("check",)
 
 
 def test_a_lockfile_finds_the_version_it_resolves(sample: Sample):
@@ -175,31 +225,6 @@ def test_a_name_normalizes_as_pep_503_sets_out(expected: str, name: str):
     assert normalized(name) == expected
 
 
-def test_a_script_declaring_no_metadata_reads_as_none(sample: Sample):
-    """
-    Asserts that a file carrying no `script` block reads as `None`.
-    """
-    assert Script.read(sample.root / ".mise" / "tasks" / "py" / "test") is None
-
-
-def test_a_script_reads_its_inline_metadata(sample: Sample):
-    """
-    Asserts that a task script reads the dependencies and `requires-python`
-    its inline metadata declares, and maps each exact pin to its version
-    under the name PEP 503 normalizes.
-    """
-    sample.edit(
-        ".mise/tasks/gha/brief",
-        new = '["Mini_Jinja==2.24.0", "rich"]',
-        old = '["minijinja==2.24.0"]'
-    )
-    script = Script.read(sample.root / ".mise" / "tasks" / "gha" / "brief")
-
-    assert script.dependencies == ("Mini_Jinja==2.24.0", "rich")
-    assert script.python == ">=3.14"
-    assert script.pins == {"mini-jinja": "2.24.0"}
-
-
 @mark.parametrize(
     ("version", "matches"),
     [
@@ -239,6 +264,31 @@ def test_an_exact_pin_names_one_version(matches: bool, requirement: str):
     assert bool(pinned(requirement)) is matches
 
 
+def test_a_script_declaring_no_metadata_reads_as_none(sample: Sample):
+    """
+    Asserts that a file carrying no `script` block reads as `None`.
+    """
+    assert Script.read(sample.root / ".mise" / "tasks" / "py" / "test") is None
+
+
+def test_a_script_reads_its_inline_metadata(sample: Sample):
+    """
+    Asserts that a task script reads the dependencies and `requires-python`
+    its inline metadata declares, and maps each exact pin to its version
+    under the name PEP 503 normalizes.
+    """
+    sample.edit(
+        ".mise/tasks/gha/brief",
+        new = '["Mini_Jinja==2.24.0", "rich"]',
+        old = '["minijinja==2.24.0"]'
+    )
+    script = Script.read(sample.root / ".mise" / "tasks" / "gha" / "brief")
+
+    assert script.dependencies == ("Mini_Jinja==2.24.0", "rich")
+    assert script.python == ">=3.14"
+    assert script.pins == {"mini-jinja": "2.24.0"}
+
+
 def test_a_step_expands_the_matrix_expressions_in_its_inputs_and_script():
     """
     Asserts that expanding a step against one leg replaces each matrix
@@ -256,6 +306,31 @@ def test_a_step_expands_the_matrix_expressions_in_its_inputs_and_script():
 
     assert expanded.run == "mise run py:check"
     assert expanded.inputs == {"depth": 2, "tools": "python uv"}
+
+
+@mark.parametrize(
+    ("aliases", "command"),
+    [
+        param(("lockfile",), "mise lockfile", id="aliased"),
+        param((), "mise run lock:check", id="unaliased")
+    ]
+)
+def test_a_task_runs_through_its_alias_where_it_has_one(
+    aliases : tuple[str, ...],
+    command : str
+):
+    """
+    Asserts that a task's command runs it through its first alias where it
+    has one, and through `mise run` and its name otherwise.
+    """
+    task = Task(
+        aliases = aliases,
+        depends = (),
+        file    = None,
+        name    = "lock:check"
+    )
+
+    assert task.command == command
 
 
 def test_a_step_reads_the_tasks_tools_and_summary_its_inputs_and_script_name():
@@ -326,51 +401,6 @@ def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
     assert workflow.ungated == ()
 
 
-def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
-    """
-    Asserts that a workflow lists, relative to the root, each file and its
-    own file that its `push` filter leaves out, and reads no filter where it
-    fires on no push, matching each pattern of the filter so that:
-
-    - `*` stops at a `/`
-    - A `**` segment spans folders
-    - A later `!` pattern leaves out what an earlier one took in
-    """
-    root = sample.root
-    warm = Workflow.read(root / ".github" / "workflows" / "warm.yml")
-    ci   = Workflow.read(root / ".github" / "workflows" / "ci.yml")
-
-    assert warm.saves
-    assert warm.paths[0] == ".github/actions/provision/action.yml"
-    assert warm.unfiltered([root / ".mise" / "config.toml"], root) == []
-    assert warm.unfiltered([root / "uv.lock"], root) == [Path("uv.lock")]
-    assert ci.paths == ()
-    assert ci.unfiltered([], root) == [Path(".github/workflows/ci.yml")]
-
-    sample.edit(
-        ".github/workflows/warm.yml",
-        new = "      - .mise/*.toml\n",
-        old = "      - .mise/config.toml\n"
-    )
-    globbed = Workflow.read(root / ".github" / "workflows" / "warm.yml")
-
-    assert globbed.unfiltered([root / ".mise" / "config.toml"], root) == []
-    assert globbed.unfiltered([root / ".mise" / "tasks" / "py" / "test"], root) == [
-        Path(".mise/tasks/py/test")
-    ]
-
-    sample.edit(
-        ".github/workflows/warm.yml",
-        new = '      - .mise/**\n      - "!.mise/mise.lock"\n',
-        old = "      - .mise/*.toml\n      - .mise/mise.lock\n"
-    )
-    negated = Workflow.read(root / ".github" / "workflows" / "warm.yml")
-
-    assert negated.unfiltered([root / ".mise" / "mise.lock"], root) == [Path(
-        ".mise/mise.lock"
-    )]
-
-
 @mark.parametrize(
     ("matrix", "legs"),
     [
@@ -439,6 +469,51 @@ def test_a_job_reads_whether_it_runs_always(always: bool, condition: str):
     assert Job.model_validate(
         {"id": "brief", "if": condition, "runs-on": "ubuntu-26.04"}
     ).always is always
+
+
+def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
+    """
+    Asserts that a workflow lists, relative to the root, each file and its
+    own file that its `push` filter leaves out, and reads no filter where it
+    fires on no push, matching each pattern of the filter so that:
+
+    - `*` stops at a `/`
+    - A `**` segment spans folders
+    - A later `!` pattern leaves out what an earlier one took in
+    """
+    root = sample.root
+    warm = Workflow.read(root / ".github" / "workflows" / "warm.yml")
+    ci   = Workflow.read(root / ".github" / "workflows" / "ci.yml")
+
+    assert warm.saves
+    assert warm.paths[0] == ".github/actions/provision/action.yml"
+    assert warm.unfiltered([root / ".mise" / "config.toml"], root) == []
+    assert warm.unfiltered([root / "uv.lock"], root) == [Path("uv.lock")]
+    assert ci.paths == ()
+    assert ci.unfiltered([], root) == [Path(".github/workflows/ci.yml")]
+
+    sample.edit(
+        ".github/workflows/warm.yml",
+        new = "      - .mise/*.toml\n",
+        old = "      - .mise/config.toml\n"
+    )
+    globbed = Workflow.read(root / ".github" / "workflows" / "warm.yml")
+
+    assert globbed.unfiltered([root / ".mise" / "config.toml"], root) == []
+    assert globbed.unfiltered([root / ".mise" / "tasks" / "py" / "test"], root) == [
+        Path(".mise/tasks/py/test")
+    ]
+
+    sample.edit(
+        ".github/workflows/warm.yml",
+        new = '      - .mise/**\n      - "!.mise/mise.lock"\n',
+        old = "      - .mise/*.toml\n      - .mise/mise.lock\n"
+    )
+    negated = Workflow.read(root / ".github" / "workflows" / "warm.yml")
+
+    assert negated.unfiltered([root / ".mise" / "mise.lock"], root) == [Path(
+        ".mise/mise.lock"
+    )]
 
 
 def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
@@ -516,6 +591,21 @@ def test_the_manifest_lists_each_loose_build_pin(sample: Sample):
     assert Pyproject.read(sample.root / "pyproject.toml").loose == (
         "hatchling>=1.32", "setuptools"
     )
+
+
+def test_the_manifest_reads_the_facts_the_repository_page_carries(sample: Sample):
+    """
+    Asserts that the manifest reads the description and the keywords
+    `[project]` declares, and the homepage `[project.urls]` declares beside
+    its bare domain.
+    """
+    pyproject = Pyproject.read(sample.root / "pyproject.toml")
+
+    assert pyproject.description == "Finds the stored game closest to a submitted one."
+    assert pyproject.keywords == ("chess", "pgn")
+    assert (
+        pyproject.homepage, pyproject.domain
+    ) == ("https://example.com", "example.com")
 
 
 def test_the_manifest_reads_the_fields_the_checks_compare(sample: Sample):
