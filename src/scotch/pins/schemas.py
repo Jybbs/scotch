@@ -9,6 +9,7 @@ manager's answer into.
 from collections.abc import Collection, Iterable
 from datetime        import date
 from enum            import StrEnum, auto
+from more_itertools  import unique_everseen
 from operator        import attrgetter
 from pathlib         import Path
 from pydantic        import AliasPath, AwareDatetime, BaseModel, Field
@@ -16,6 +17,7 @@ from re              import Match, escape, fullmatch, search, subn
 from typing          import Self, assert_never
 
 from scotch.docs.tallies import markdown
+from scotch.repo.checks  import Check
 from scotch.repo.schemas import Package, normalized
 
 
@@ -452,10 +454,16 @@ class Report(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     @property
     def majors(self) -> tuple[str, ...]:
         """
-        Lists the name of each pin whose lift is major, once each, in the
-        order the table gives them.
+        Lists the name of each pin whose lift is major, in the order
+        the table gives them, once for each set of pins `coupled` holds
+        together.
         """
-        return tuple(dict.fromkeys(lift.name for lift in self.rows if lift.major))
+        return tuple(
+            unique_everseen(
+                (lift.name for lift in self.rows if lift.major),
+                key = coupled
+            )
+        )
 
     @property
     def names(self) -> frozenset[str]:
@@ -490,13 +498,26 @@ class Report(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     def without(self, names: Collection[str]) -> Self:
         """
         Copies the report leaving out every lift of a pin `names` holds
-        where it stands.
+        where it stands, and of each pin `coupled` holds together with one.
         """
+        held = frozenset().union(*map(coupled, names))
+
         return self.model_copy(
             update = {
-                "lifts": tuple(lift for lift in self.lifts if lift.name not in names)
+                "lifts": tuple(lift for lift in self.lifts if lift.name not in held)
             }
         )
+
+
+def coupled(name: str) -> frozenset[str]:
+    """
+    Collects the pin `name` names beside each pin a check in
+    `scotch.repo.checks` holds to it, such as `@vitest/coverage-v8` beside
+    `vitest`, the pins a hold leaves where they stand together.
+    """
+    return frozenset({name}).union(
+        *(check.coupled for check in Check.__subclasses__() if name in check.coupled)
+    )
 
 
 def release(version: str) -> tuple[int, ...]:

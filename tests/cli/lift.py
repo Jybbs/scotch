@@ -22,6 +22,30 @@ type Attempt = tuple[tuple[str, ...], str, bool]
 type Lagging = Callable[..., tuple[list[Attempt], list[bytes]]]
 
 
+def coupled_pair() -> tuple[Lift, ...]:
+    """
+    Builds the major lifts of `vitest` and `@vitest/coverage-v8`, which
+    `repo:audit` holds to one version, beside the lift of `pluggy`.
+    """
+    return (
+        *(
+            Lift(
+                current = "5.0.5",
+                name    = name,
+                newest  = "6.0.0",
+                path    = "docs/package.json"
+            )
+            for name in ("vitest", "@vitest/coverage-v8")
+        ),
+        Lift(
+            current = "1.6.0",
+            name    = "pluggy",
+            newest  = "1.7.0",
+            path    = "pyproject.toml"
+        )
+    )
+
+
 def lagging_three() -> tuple[Lift, ...]:
     """
     Builds the lifts of `actions/checkout` and of `polars`, both major and
@@ -87,6 +111,45 @@ def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):
         f"The lift fails to relock, logged under {sample.root / '.cache' / 'lift'}"
     )
     assert applied == []
+
+
+def test_a_failing_trial_holds_back_a_coupled_pair_once_as_one(
+    capsys  : CaptureFixture[str],
+    lagging : Lagging,
+    sample  : Sample
+):
+    """
+    Asserts that a failing trial holds back `vitest` and
+    `@vitest/coverage-v8` together in one attempt, named for the first in
+    the table's order, and says that holding the two back passes.
+    """
+    attempts, _ = lagging(coupled_pair(), breaking={"vitest"})
+
+    assert invoke("lift", "pins", "--try") == (
+        f"The lift fails its trial, logged under {sample.root / '.cache' / 'lift'}"
+    )
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        "Holding back `@vitest/coverage-v8` and `vitest` passes"
+    )
+    assert attempts == [
+        (("@vitest/coverage-v8", "vitest", "pluggy"), "trial.log", True),
+        (("pluggy",), "held-@vitest-coverage-v8.log", True)
+    ]
+
+
+@mark.parametrize("hold", ["@vitest/coverage-v8", "vitest"])
+def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
+    hold    : str,
+    lagging : Lagging
+):
+    """
+    Asserts that holding either of `vitest` and `@vitest/coverage-v8` leaves
+    both out of the trial.
+    """
+    attempts, _ = lagging(coupled_pair())
+
+    assert invoke("lift", "pins", "--try", "--hold", hold) == 0
+    assert attempts == [(("pluggy",), "trial.log", True)]
 
 
 def test_a_hold_naming_no_listed_pin_exits_two_before_any_attempt(

@@ -232,6 +232,59 @@ def test_a_report_names_its_pins_and_holds_every_lift_of_a_held_name():
     ] == [("pyproject.toml", "pluggy"), ("uv.lock", "polars")]
 
 
+@mark.parametrize(
+    ("hold", "left"),
+    [
+        param("@types/node", ("@vitest/coverage-v8", "vitest", "pluggy"), id="types"),
+        param("node", ("@vitest/coverage-v8", "vitest", "pluggy"), id="node"),
+        param("vitest", ("node", "@types/node", "pluggy"), id="vitest"),
+        param("@vitest/coverage-v8", ("node", "@types/node", "pluggy"), id="coverage")
+    ]
+)
+def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
+    hold : str,
+    left : tuple[str, ...]
+):
+    """
+    Asserts that holding either pin of a pair `NodeTypesCheck` or
+    `VitestCheck` holds together leaves out the lifts of both, and that the
+    report lists one major lift for each such pair, so a failing trial holds
+    the pair back once.
+    """
+    report = Report(
+        lifts = (
+            lift(
+                current = "26.11.1",
+                name    = "node",
+                newest  = "27.0.0",
+                path    = Path(".mise/config.toml")
+            ),
+            lift(
+                current = "26.6.5",
+                name    = "@types/node",
+                newest  = "27.0.1",
+                path    = Path("docs/package.json")
+            ),
+            lift(
+                current = "5.0.5",
+                name    = "@vitest/coverage-v8",
+                newest  = "6.0.0",
+                path    = Path("docs/package.json")
+            ),
+            lift(
+                current = "5.0.5",
+                name    = "vitest",
+                newest  = "6.0.0",
+                path    = Path("docs/package.json")
+            ),
+            lift("pluggy", "1.6.0", "1.7.0")
+        )
+    )
+
+    assert report.majors == ("node", "@vitest/coverage-v8")
+    assert tuple(held.name for held in report.without({hold}).rows) == left
+
+
 def test_an_edit_raises_where_the_file_spells_no_version_beside_its_name(
     tmp_path: Path
 ):

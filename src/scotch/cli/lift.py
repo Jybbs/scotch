@@ -15,7 +15,7 @@ from typing     import Annotated
 from scotch.cli           import app
 from scotch.cli.settings  import root
 from scotch.pins.managers import Pins
-from scotch.pins.schemas  import Report
+from scotch.pins.schemas  import Report, coupled
 from scotch.pins.trees    import Tree
 from scotch.repo.checkout import Checkout
 
@@ -24,8 +24,9 @@ def pins(
     *,
     hold  : Annotated[tuple[str, ...], Parameter(
         help = (
-            "A pin the trial and the write leave where it stands, given once "
-            "per pin."
+            "A pin the trial and the write leave where it stands beside each "
+            "pin `repo:audit` holds to it, such as `@vitest/coverage-v8` beside "
+            "`vitest`, given once per pin."
         )
     )] = (),
     trial : Annotated[bool, Parameter(
@@ -46,15 +47,19 @@ def pins(
     Prints one Markdown table of every pin the repository at the project's
     root declares that lags its newest release, naming the file declaring
     it, its current and newest versions, the newest release's age in days,
-    whether the lift is major, and the advisories it clears.
+    whether the lift is major, and the advisories it clears. The lift of
+    `node` stops inside the major of the newest `@types/node`, the major
+    `repo:audit` holds the two to.
 
-    Under `--try`, writes every lift the table lists but those of the
-    pins `--hold` names into a scratch clone of the checkout, carrying
-    its uncommitted and untracked files, and runs `mise ci` there. Where
-    that fails, the trial runs again holding back each major lift in turn,
-    printing whether each passes, and the log of each attempt lands under
-    `.cache/lift/`. Under `--write`, writes the lift into the checkout as
-    one diff, once a trial passes where `--try` is given as well.
+    Under `--try`, writes every lift the table lists but those of the pins
+    `--hold` names and of each pin `repo:audit` holds to one of them, such
+    as `@types/node` beside `node`, into a scratch clone of the checkout,
+    carrying its uncommitted and untracked files, and runs `mise ci` there.
+    Where that fails, the trial runs again holding back each major lift in
+    turn together with the pins `repo:audit` holds to it, printing whether
+    each passes, and the log of each attempt lands under `.cache/lift/`.
+    Under `--write`, writes the lift into the checkout as one diff, once a
+    trial passes where `--try` is given as well.
 
     Exits with status 2 where `--hold` names a pin the table lists nowhere,
     and with status 1 naming the problem where a trial fails, where the
@@ -95,8 +100,9 @@ def pins(
                         tree.logs / f"held-{name.replace('/', '-')}.log",
                         checked = True
                     ) is not None
+                    named = " and ".join(f"`{pin}`" for pin in sorted(coupled(name)))
                     print(
-                        f"Holding back `{name}` {'passes' if passes else 'still fails'}"
+                        f"Holding back {named} {'passes' if passes else 'still fails'}"
                     )
 
                 raise SystemExit(f"The lift fails its trial, logged under {tree.logs}")

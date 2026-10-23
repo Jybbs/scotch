@@ -18,7 +18,40 @@ from tomllib import loads
 from scotch.pins.managers import ActionPins, BunPins, MisePins, UvPins
 from scotch.pins.schemas  import Advisory, Edit, Lift, Spelling
 from scotch.pins.trees    import Tree
-from scotch.repo.checks   import PinCheck, ScriptCheck
+from scotch.repo.checks   import NodeTypesCheck, PinCheck, ScriptCheck
+
+
+def crossing(fp: FakeProcess, tree: Tree):
+    """
+    Answers `mise outdated` with `node` lagging `28.1.0` from the `26.11.1`
+    the sample pins, and `mise ls-remote` with the releases of `node`, none
+    newer inside the major `26`, `27.2.0` and `28.1.0` dated, and `27.3.0`
+    a prerelease.
+    """
+    fp.register(
+        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
+        stdout = dumps(
+            {
+                "node": {
+                    "latest"    : "28.1.0",
+                    "requested" : "26.11.1",
+                    "source"    : {"path": str(tree.root / ".mise" / "config.toml")}
+                }
+            }
+        )
+    )
+    fp.register(
+        ["mise", "-C", tree.root, "ls-remote", "--json", "node"],
+        stdout = dumps(
+            [
+                {"version": "26.10.0"},
+                {"version": "26.11.1"},
+                {"created_at": "2026-10-20T00:00:00Z", "version": "27.2.0"},
+                {"prerelease": True, "version": "27.3.0"},
+                {"created_at": "2026-10-21T00:00:00Z", "version": "28.1.0"}
+            ]
+        )
+    )
 
 
 def target(process: FakePopen) -> Path:
@@ -111,6 +144,84 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
 
 
 @mark.parametrize(
+    ("types", "lifted"),
+    [
+        param("26.9.0", [], id="unpublished"),
+        param(
+            "27.0.3",
+            [("27.2.0", datetime(2026, 10, 20, tzinfo=UTC))],
+            id = "behind"
+        ),
+        param(
+            "28.0.0",
+            [("28.1.0", datetime(2026, 10, 21, tzinfo=UTC))],
+            id = "caught-up"
+        )
+    ]
+)
+def test_node_stops_inside_the_major_of_the_newest_types(
+    fp     : FakeProcess,
+    lifted : list[tuple[str, datetime]],
+    sample : Sample,
+    tree   : Tree,
+    types  : str
+):
+    """
+    Asserts that `node` lifts to its newest release inside the major the
+    newest `@types/node` carries, passing over a prerelease and dated by
+    `mise ls-remote`, stays where it stands where no release inside that
+    major is newer, and lifts to its newest release once `@types/node`
+    reaches that major, so `NodeTypesCheck` passes once both are written.
+    """
+    crossing(fp, tree)
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--", "bun", "info",
+            f"--cwd={tree.root / 'docs'}",
+            "@types/node", "version", "--json"
+        ],
+        stdout = dumps(types)
+    )
+    lifts = list(MisePins(tree=tree).lifts())
+
+    assert [(lift.newest, lift.released) for lift in lifts] == lifted
+
+    for lift in lifts:
+        lift.write(tree.root)
+
+    Edit(
+        name     = "@types/node",
+        path     = Path("docs/package.json"),
+        spelling = Spelling.MEMBER,
+        version  = types
+    ).apply(tree.root)
+
+    assert list(NodeTypesCheck(checkout=sample.checkout).scan()) == []
+
+
+def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that where `bun outdated` reports no package and the site holds
+    no override and no step passes a Wrangler version, nothing lifts and no
+    copy of the site is relocked or audited.
+    """
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--", "bun", "outdated",
+            f"--cwd={tree.root / 'docs'}"
+        ],
+        stdout = "| Package | Current | Update | Latest |\n"
+    )
+
+    assert list(BunPins(tree=tree).lifts()) == []
+    assert len(fp.calls) == 1
+
+
+@mark.parametrize(
     ("floor", "lifted"),
     [
         param("2026.9.18", True, id="lagging"),
@@ -163,28 +274,6 @@ def test_the_floor_lifts_to_the_newest_release_of_mise(
     assert list(MisePins(tree=tree).lifts()) == ([floor] if lifted else [])
 
 
-def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
-):
-    """
-    Asserts that where `bun outdated` reports no package and the site holds
-    no override and no step passes a Wrangler version, nothing lifts and no
-    copy of the site is relocked or audited.
-    """
-    fp.register(
-        [
-            "mise", "-C", tree.root, "exec", "--", "bun", "outdated",
-            f"--cwd={tree.root / 'docs'}"
-        ],
-        stdout = "| Package | Current | Update | Latest |\n"
-    )
-
-    assert list(BunPins(tree=tree).lifts()) == []
-    assert len(fp.calls) == 1
-
-
 def test_an_action_in_a_repository_folder_reads_that_repository(
     fp     : FakeProcess,
     sample : Sample,
@@ -234,6 +323,23 @@ def test_an_action_in_a_repository_folder_reads_that_repository(
                 ),
             )
         )
+    ]
+
+
+def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that `node` lifts to its newest release, past any major, where
+    the site pins no `@types/node`, reading no release of `@types/node`.
+    """
+    sample.edit("docs/package.json", new="", old='"@types/node"         : "26.6.5",')
+    crossing(fp, tree)
+
+    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
+        ("node", "28.1.0")
     ]
 
 

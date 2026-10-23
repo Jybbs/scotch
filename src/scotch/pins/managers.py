@@ -288,7 +288,8 @@ class BunPins(Pins):
 class MisePins(Pins):
     """
     The tools `.mise/config.toml` pins, whose newest releases `mise
-    outdated` reports, and the floor its `min_version` sets, whose newest
+    outdated` reports, `node` stopping inside the major of the newest
+    `@types/node`, and the floor its `min_version` sets, whose newest
     release is the newest `mise ls-remote` lists for mise itself, each dated
     through `mise ls-remote`.
     """
@@ -296,7 +297,8 @@ class MisePins(Pins):
     def lifts(self) -> Iterator[Lift]:
         """
         Yields a lift for each tool `mise outdated` reports against the
-        config, then one for the floor where mise has a newer release.
+        config that has a release to move to, then one for the floor where
+        mise has a newer release.
         """
         config = self.tree.checkout.mise
         path   = self.tree.relative(config.path)
@@ -305,7 +307,9 @@ class MisePins(Pins):
         )
 
         for name, tool in sorted(report.items()):
-            if tool.source.resolve() == config.path.resolve():
+            if tool.source.resolve() == config.path.resolve() and (
+                (newest := self.newest(name, tool)).version != tool.requested
+            ):
                 yield Lift(
                     current = tool.requested,
                     edits   = (
@@ -313,14 +317,14 @@ class MisePins(Pins):
                             name     = name,
                             path     = path,
                             spelling = Spelling.ASSIGNMENT,
-                            version  = tool.latest
+                            version  = newest.version
                         ),
-                        *self.restatements(name, tool.latest)
+                        *self.restatements(name, newest.version)
                     ),
                     name     = name,
-                    newest   = tool.latest,
+                    newest   = newest.version,
                     path     = path,
-                    released = self.released(name, tool.latest)
+                    released = newest.created
                 )
 
         if config.floor:
@@ -350,22 +354,40 @@ class MisePins(Pins):
                     released = newest.created
                 )
 
-    def released(self, tool: str, version: str) -> AwareDatetime | None:
+    def newest(self, name: str, tool: Outdated) -> Listing:
         """
-        Finds the instant `mise ls-remote` dates the release `version` of
-        `tool` to.
+        Finds the release the tool `name` names lifts to, the `latest` `mise
+        outdated` reports in `tool`, except that `node` passing the major
+        of the newest `@types/node` stops at its newest release inside that
+        major where the site pins `@types/node`, since `NodeTypesCheck` in
+        `scotch.repo.checks` holds the two to one major.
 
         Returns:
-            The instant, or `None` where mise lists the release undated or
-            not at all.
+            The release as `mise ls-remote` lists it, undated where mise
+            lists it undated or not at all, or the pinned version where no
+            release inside that major is newer.
         """
+        listed  = self.releases(name)
+        version = tool.latest
+        current = release(tool.requested)
+        typed   = "@types/node" in self.tree.checkout.site.packages
+
+        if name == "node" and release(version)[:1] > current[:1] and typed:
+            ceiling = release(BunPins(tree=self.tree).info("version", "@types/node"))
+            version = max(
+                (
+                    entry.version
+                    for entry in listed
+                    if not entry.prerelease
+                    and release(entry.version)[:1] <= ceiling[:1]
+                ),
+                default = tool.requested,
+                key     = release
+            )
+
         return next(
-            (
-                listed.created
-                for listed in self.releases(tool)
-                if listed.version == version
-            ),
-            None
+            (entry for entry in listed if entry.version == version),
+            Listing(version=version)
         )
 
     def releases(self, tool: str) -> tuple[Listing, ...]:
