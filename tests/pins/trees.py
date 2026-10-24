@@ -19,6 +19,14 @@ from scotch.pins.schemas import Edit, Lift, Spelling
 from scotch.pins.trees   import Tree
 
 
+@contextmanager
+def cloned(tree: Tree) -> Iterator[Tree]:
+    """
+    Stands the tree itself in for its clone.
+    """
+    yield tree
+
+
 def called(fp: FakeProcess) -> list[list[str]]:
     """
     Reads each command `fp` answered, in the order it was run, with each
@@ -265,13 +273,6 @@ def test_an_attempt_returns_the_diff_only_where_every_step_passes(
     """
     checks = []
 
-    @contextmanager
-    def cloned(self: Tree) -> Iterator[Tree]:
-        """
-        Stands the tree itself in for its clone.
-        """
-        yield self
-
     def check(self: Tree, handle: TextIO) -> bool:
         """
         Records the check and returns the verdict the case sets.
@@ -308,13 +309,6 @@ def test_a_write_failing_its_audit_returns_no_diff(
     diff where the relocked tree fails `repo:audit`, the last command it
     runs and logs.
     """
-
-    @contextmanager
-    def cloned(self: Tree) -> Iterator[Tree]:
-        """
-        Stands the tree itself in for its clone.
-        """
-        yield self
 
     monkeypatch.setattr(Tree, "clone", cloned)
     log = tree.logs / "write.log"

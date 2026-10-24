@@ -102,6 +102,20 @@ def test_a_command_reading_a_pin_that_fails_exits_naming_it(
     assert invoke("lift", "pins") == "`uv audit` exited with status 2\nunreachable"
 
 
+def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):
+    """
+    Asserts that a write whose relock or audit fails exits naming the folder
+    its log lands in and applies nothing.
+    """
+    _, applied = lagging(lagging_three(), breaking={"pluggy"})
+
+    assert invoke("lift", "pins", "--write") == (
+        "The lift fails to relock or to pass `mise audit`, logged under "
+        f"{sample.root / '.cache' / 'lift'}"
+    )
+    assert applied == []
+
+
 @mark.parametrize(
     "new",
     [param("node   = 26", id="out-of-shape"), param("node   = ", id="unparseable")]
@@ -122,20 +136,6 @@ def test_a_config_failing_to_read_exits_naming_the_file(
         f"1 validation error for {inside.root / '.mise' / 'config.toml'}\n"
     )
     assert not fp.calls
-
-
-def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):
-    """
-    Asserts that a write whose relock or audit fails exits naming the folder
-    its log lands in and applies nothing.
-    """
-    _, applied = lagging(lagging_three(), breaking={"pluggy"})
-
-    assert invoke("lift", "pins", "--write") == (
-        "The lift fails to relock or to pass `mise audit`, logged under "
-        f"{sample.root / '.cache' / 'lift'}"
-    )
-    assert applied == []
 
 
 def test_a_failing_trial_holds_back_a_coupled_pair_once_as_one(
@@ -162,21 +162,6 @@ def test_a_failing_trial_holds_back_a_coupled_pair_once_as_one(
     ]
 
 
-@mark.parametrize("hold", ["@vitest/coverage-v8", "vitest"])
-def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
-    hold    : str,
-    lagging : Lagging
-):
-    """
-    Asserts that holding either of `vitest` and `@vitest/coverage-v8` leaves
-    both out of the trial.
-    """
-    attempts, _ = lagging(coupled_pair())
-
-    assert invoke("lift", "pins", "--try", "--hold", hold) == 0
-    assert attempts == [(("pluggy",), "trial.log", True)]
-
-
 def test_a_hold_naming_no_listed_pin_exits_two_before_any_attempt(
     lagging     : Lagging,
     monkeypatch : MonkeyPatch
@@ -201,6 +186,49 @@ def test_a_hold_naming_no_listed_pin_exits_two_before_any_attempt(
     ) == 2
     assert stderr.getvalue() == "The table lists no pin named pydantic\n"
     assert (attempts, applied) == ([], [])
+
+
+@mark.parametrize("hold", ["@vitest/coverage-v8", "vitest"])
+def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
+    hold    : str,
+    lagging : Lagging
+):
+    """
+    Asserts that holding either of `vitest` and `@vitest/coverage-v8` leaves
+    both out of the trial.
+    """
+    attempts, _ = lagging(coupled_pair())
+
+    assert invoke("lift", "pins", "--try", "--hold", hold) == 0
+    assert attempts == [(("pluggy",), "trial.log", True)]
+
+
+def test_a_lift_no_longer_applying_exits_naming_the_apply(
+    lagging     : Lagging,
+    monkeypatch : MonkeyPatch
+):
+    """
+    Asserts that a write whose diff no longer applies to the checkout, since
+    a file it changes changed while the lift ran, ends the run naming the
+    `git apply` and what it printed to standard error.
+    """
+    lagging(lagging_three())
+
+    def stale(self: Tree, patch: bytes) -> tuple[str, ...]:
+        """
+        Raises the error `git apply` raises on a file that changed.
+        """
+        raise CalledProcessError(
+            1,
+            ["git", "apply"],
+            stderr = b"error: patch failed: pyproject.toml:3\n"
+        )
+
+    monkeypatch.setattr(Tree, "apply", stale)
+
+    assert invoke("lift", "pins", "--write") == (
+        "`git apply` exited with status 1\nerror: patch failed: pyproject.toml:3"
+    )
 
 
 @mark.parametrize(
@@ -281,32 +309,20 @@ def test_a_write_applies_one_diff(
     assert applied == [b"actions/checkout,pluggy,polars"]
 
 
-def test_a_lift_no_longer_applying_exits_naming_the_apply(
-    lagging     : Lagging,
-    monkeypatch : MonkeyPatch
+def test_a_passing_trial_lifts_every_pin_not_held(
+    capsys  : CaptureFixture[str],
+    lagging : Lagging
 ):
     """
-    Asserts that a write whose diff no longer applies to the checkout, since
-    a file it changes changed while the lift ran, ends the run naming the
-    `git apply` and what it printed to standard error.
+    Asserts that a trial lifts every pin but the held ones in one checked
+    attempt logged as `trial.log`, says the lift passes, and writes nothing.
     """
-    lagging(lagging_three())
+    attempts, applied = lagging(lagging_three())
 
-    def stale(self: Tree, patch: bytes) -> tuple[str, ...]:
-        """
-        Raises the error `git apply` raises on a file that changed.
-        """
-        raise CalledProcessError(
-            1,
-            ["git", "apply"],
-            stderr = b"error: patch failed: pyproject.toml:3\n"
-        )
-
-    monkeypatch.setattr(Tree, "apply", stale)
-
-    assert invoke("lift", "pins", "--write") == (
-        "`git apply` exited with status 1\nerror: patch failed: pyproject.toml:3"
-    )
+    assert invoke("lift", "pins", "--try", "--hold", "pluggy") == 0
+    assert capsys.readouterr().out.endswith("The lift passes `mise ci`\n")
+    assert attempts == [(("actions/checkout", "polars"), "trial.log", True)]
+    assert applied == []
 
 
 @mark.parametrize(
@@ -335,20 +351,30 @@ def test_nothing_left_to_lift_tries_and_writes_nothing(
     assert (attempts, applied) == ([], [])
 
 
-def test_a_passing_trial_lifts_every_pin_not_held(
-    capsys  : CaptureFixture[str],
-    lagging : Lagging
+def test_a_tool_answer_failing_its_record_exits_naming_it(
+    lagging     : Lagging,
+    monkeypatch : MonkeyPatch
 ):
     """
-    Asserts that a trial lifts every pin but the held ones in one checked
-    attempt logged as `trial.log`, says the lift passes, and writes nothing.
+    Asserts that a tool's answer failing to validate as its record ends the
+    run with the validation error naming the record.
     """
-    attempts, applied = lagging(lagging_three())
+    lagging([])
 
-    assert invoke("lift", "pins", "--try", "--hold", "pluggy") == 0
-    assert capsys.readouterr().out.endswith("The lift passes `mise ci`\n")
-    assert attempts == [(("actions/checkout", "polars"), "trial.log", True)]
-    assert applied == []
+    def failing() -> list[Lift]:
+        """
+        Builds a lift from an answer naming no versions.
+        """
+        return [Lift.model_validate({"name": "uv", "path": "uv.lock"})]
+
+    monkeypatch.setattr(
+        "scotch.cli.lift.Pins",
+        SimpleNamespace(
+            __subclasses__ = lambda: [lambda tree: SimpleNamespace(lifts=failing)]
+        )
+    )
+
+    assert invoke("lift", "pins").startswith("2 validation errors for Lift\n")
 
 
 def test_the_command_prints_the_table_of_every_lagging_pin(

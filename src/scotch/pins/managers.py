@@ -7,9 +7,9 @@ yielding a `Lift` for each pin that lags it.
 
 from abc             import ABC, abstractmethod
 from collections.abc import Collection, Iterable, Iterator
-from json            import dumps, loads
+from json            import dumps
 from pathlib         import Path
-from pydantic        import AwareDatetime, BaseModel, TypeAdapter
+from pydantic        import AwareDatetime, BaseModel, ConfigDict, JsonValue, TypeAdapter
 from re              import findall
 from shutil          import copy2
 from tempfile        import TemporaryDirectory
@@ -24,7 +24,7 @@ from scotch.pins.schemas import (
     Outdated,
     Published,
     Spelling,
-    UvAdvisory,
+    UvAudit,
     release
 )
 from scotch.pins.trees   import Tree
@@ -182,7 +182,7 @@ class BunPins(Pins):
 
             return self.audit(self.folder) - self.audit(copy)
 
-    def info(self, field: str, name: str) -> object:
+    def info(self, field: str, name: str) -> JsonValue:
         """
         Queries `bun info` for the field `field` names of the package `name`
         names, such as the `version` its `latest` tag names or the `time`
@@ -190,8 +190,15 @@ class BunPins(Pins):
 
         Returns:
             The field, read out of the JSON `bun info` prints.
+
+        Raises:
+            pydantic.ValidationError: Titled `bun info`, where it prints
+                                      no JSON.
         """
-        return loads(
+        return TypeAdapter(
+            JsonValue,
+            config = ConfigDict(title="bun info")
+        ).validate_json(
             self.tree.tool("bun", "info", f"--cwd={self.folder}", name, field, "--json")
                 .stdout
         )
@@ -499,24 +506,18 @@ class UvPins(Pins):
         return frozenset(
             vulnerability.advisory
             for target in targets
-            for vulnerability in TypeAdapter(tuple[UvAdvisory, ...]).validate_python(
-                loads(
-                    self.tree.audit(
-                        "uv",
-                        "audit",
-                        "--frozen",
-                        "--output-format",
-                        "json",
-                        "--preview-features",
-                        "audit-command,json-output",
-                        *(
-                            ("--project", target)
-                            if target.is_dir()
-                            else ("--script", target)
-                        )
-                    )
-                )["vulnerabilities"]
-            )
+            for vulnerability in UvAudit.model_validate_json(
+                self.tree.audit(
+                    "uv",
+                    "audit",
+                    "--frozen",
+                    "--output-format",
+                    "json",
+                    "--preview-features",
+                    "audit-command,json-output",
+                    *("--project", target) if target.is_dir() else ("--script", target)
+                )
+            ).vulnerabilities
         )
 
     def lifts(self) -> Iterator[Lift]:

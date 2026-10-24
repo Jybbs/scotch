@@ -59,9 +59,9 @@ def pins(
     Where that fails, the trial runs again holding back each major lift in
     turn together with the pins `repo:audit` holds to it, printing whether
     each passes, and the log of each attempt lands under `.cache/lift/`.
-    Under `--write`, writes the lift into the checkout as one diff, once
-    `mise audit` passes on it relocked and once a trial passes where `--try`
-    is given as well.
+    Under `--write`, relocks the lift in a scratch clone and, once `mise
+    audit` passes there, writes it into the checkout as one diff, after a
+    passing trial where `--try` is given as well.
 
     Exits with status 2 where `--hold` names a pin the table lists nowhere,
     and with status 1 naming the problem where a trial fails, where the

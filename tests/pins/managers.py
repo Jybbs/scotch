@@ -3,14 +3,15 @@ Pins the lifts each kind of pin in `scotch.pins.managers` reads out of the
 sample checkout against the answers stand-ins for mise, uv, Bun, git, and
 GitHub's REST endpoint give it, meaning which pins lag, the version each
 lift moves to, the day it is dated to, the rewrites it carries, and the
-advisories it clears.
+advisories it clears, beside the error an answer that is no JSON raises.
 """
 
 from common.sample import Sample
 from datetime      import UTC, datetime
 from json          import dumps, loads as from_json
 from pathlib       import Path
-from pytest        import mark, param
+from pydantic      import ValidationError
+from pytest        import mark, param, raises
 from pytest_subprocess.fake_popen   import FakePopen
 from pytest_subprocess.fake_process import FakeProcess
 from tomllib import loads
@@ -60,6 +61,83 @@ def target(process: FakePopen) -> Path:
     `--project`.
     """
     return Path(process.args[process.args.index("--project") + 1])
+
+
+def test_a_bun_answer_that_is_no_json_fails_naming_bun_info(
+    fp   : FakeProcess,
+    tree : Tree
+):
+    """
+    Asserts that `bun info` printing something other than JSON raises the
+    validation error titled `bun info`, which `scotch lift pins` exits with.
+    """
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--", "bun", "info",
+            f"--cwd={tree.root / 'docs'}",
+            "wrangler", "version", "--json"
+        ],
+        stdout = "error: no such package\n"
+    )
+
+    with raises(ValidationError, match=r"^1 validation error for bun info\n"):
+        BunPins(tree=tree).info("version", "wrangler")
+
+
+@mark.parametrize(
+    ("types", "lifted"),
+    [
+        param("26.9.0", [], id="unpublished"),
+        param(
+            "27.0.3",
+            [("27.2.0", datetime(2026, 10, 20, tzinfo=UTC))],
+            id = "behind"
+        ),
+        param(
+            "28.0.0",
+            [("28.1.0", datetime(2026, 10, 21, tzinfo=UTC))],
+            id = "caught-up"
+        )
+    ]
+)
+def test_node_stops_inside_the_major_of_the_newest_types(
+    fp     : FakeProcess,
+    lifted : list[tuple[str, datetime]],
+    sample : Sample,
+    tree   : Tree,
+    types  : str
+):
+    """
+    Asserts that `node` lifts to its newest release inside the major the
+    newest `@types/node` carries, passing over a prerelease and dated by
+    `mise ls-remote`, stays where it stands where no release inside that
+    major is newer, and lifts to its newest release once `@types/node`
+    reaches that major, so `NodeTypesCheck` passes once both are written.
+    """
+    crossing(fp, tree)
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--", "bun", "info",
+            f"--cwd={tree.root / 'docs'}",
+            "@types/node", "version", "--json"
+        ],
+        stdout = dumps(types)
+    )
+    lifts = list(MisePins(tree=tree).lifts())
+
+    assert [(lift.newest, lift.released) for lift in lifts] == lifted
+
+    for lift in lifts:
+        lift.write(tree.root)
+
+    Edit(
+        name     = "@types/node",
+        path     = Path("docs/package.json"),
+        spelling = Spelling.MEMBER,
+        version  = types
+    ).apply(tree.root)
+
+    assert list(NodeTypesCheck(checkout=sample.checkout).scan()) == []
 
 
 def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
@@ -141,62 +219,6 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
         (".mise/tasks/gha/brief", "minijinja", "3.0.3"),
         (".mise/tasks/gha/brief", "rich", "14.0.0")
     ]
-
-
-@mark.parametrize(
-    ("types", "lifted"),
-    [
-        param("26.9.0", [], id="unpublished"),
-        param(
-            "27.0.3",
-            [("27.2.0", datetime(2026, 10, 20, tzinfo=UTC))],
-            id = "behind"
-        ),
-        param(
-            "28.0.0",
-            [("28.1.0", datetime(2026, 10, 21, tzinfo=UTC))],
-            id = "caught-up"
-        )
-    ]
-)
-def test_node_stops_inside_the_major_of_the_newest_types(
-    fp     : FakeProcess,
-    lifted : list[tuple[str, datetime]],
-    sample : Sample,
-    tree   : Tree,
-    types  : str
-):
-    """
-    Asserts that `node` lifts to its newest release inside the major the
-    newest `@types/node` carries, passing over a prerelease and dated by
-    `mise ls-remote`, stays where it stands where no release inside that
-    major is newer, and lifts to its newest release once `@types/node`
-    reaches that major, so `NodeTypesCheck` passes once both are written.
-    """
-    crossing(fp, tree)
-    fp.register(
-        [
-            "mise", "-C", tree.root, "exec", "--", "bun", "info",
-            f"--cwd={tree.root / 'docs'}",
-            "@types/node", "version", "--json"
-        ],
-        stdout = dumps(types)
-    )
-    lifts = list(MisePins(tree=tree).lifts())
-
-    assert [(lift.newest, lift.released) for lift in lifts] == lifted
-
-    for lift in lifts:
-        lift.write(tree.root)
-
-    Edit(
-        name     = "@types/node",
-        path     = Path("docs/package.json"),
-        spelling = Spelling.MEMBER,
-        version  = types
-    ).apply(tree.root)
-
-    assert list(NodeTypesCheck(checkout=sample.checkout).scan()) == []
 
 
 def test_a_site_lagging_nowhere_relocks_and_audits_nothing(

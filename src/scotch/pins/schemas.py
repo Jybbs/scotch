@@ -385,6 +385,18 @@ class Lift(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             edit.apply(root)
 
 
+class UvAudit(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    The report `uv audit --output-format json` prints for one project or
+    task script.
+    """
+
+    vulnerabilities: tuple[UvAdvisory, ...]
+    """
+    Each advisory the audit reports against a package the lockfile resolves.
+    """
+
+
 class Exact(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     One requirement a file pins to an exact version with `==`, such as the
