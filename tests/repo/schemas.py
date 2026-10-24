@@ -4,6 +4,7 @@ describes, and the facts the checks read off those records.
 """
 
 from common.sample import Sample
+from datetime      import UTC, datetime
 from pathlib       import Path
 from pydantic      import ValidationError
 from pytest        import mark, param, raises
@@ -18,12 +19,14 @@ from scotch.repo.schemas import (
     License,
     Lock,
     MiseConfig,
+    Package,
     Pyproject,
     Script,
     Step,
     Task,
     Workflow,
     exact,
+    normalized,
     pinned
 )
 
@@ -182,6 +185,44 @@ def test_a_lockfile_finds_the_version_it_resolves(sample: Sample):
     assert lock.version("minijinja") == "2.24.0"
     assert lock.version("sample") == ""
     assert lock.version("pyyaml") is None
+    assert lock.package("minijinja") == Package(name="minijinja", version="2.24.0")
+    assert lock.package("pyyaml") is None
+
+
+def test_a_package_dates_its_release_by_its_earliest_upload():
+    """
+    Asserts that a package reads its release as the earliest upload among
+    its source distribution and its wheels, passing over a file the lockfile
+    records no upload for, and as `None` where it records none.
+    """
+    package = Package.model_validate(
+        {
+            "name"    : "polars",
+            "version" : "2.0.0",
+            "sdist"   : {"upload-time": "2026-10-06T11:51:29.679Z"},
+            "wheels"  : [{"upload-time": "2026-10-06T11:44:04.327Z"}, {}]
+        }
+    )
+
+    assert package.released == datetime(2026, 10, 6, 11, 44, 4, 327000, tzinfo=UTC)
+    assert Package(name="sample").released is None
+
+
+@mark.parametrize(
+    ("name", "expected"),
+    [
+        param("MiniJinja", "minijinja", id="case"),
+        param("trove_classifiers", "trove-classifiers", id="underscore"),
+        param("zope.interface", "zope-interface", id="dot"),
+        param("a-_.b", "a-b", id="run")
+    ]
+)
+def test_a_name_normalizes_as_pep_503_sets_out(expected: str, name: str):
+    """
+    Asserts that a project's name lowers its case and folds each run of `-`,
+    `_`, and `.` into one `-`.
+    """
+    assert normalized(name) == expected
 
 
 @mark.parametrize(
@@ -570,13 +611,15 @@ def test_the_manifest_reads_the_facts_the_repository_page_carries(sample: Sample
 def test_the_manifest_reads_the_fields_the_checks_compare(sample: Sample):
     """
     Asserts that the manifest reads each field a check compares out of the
-    table that declares it.
+    table that declares it, and lists the build requirement beside the build
+    constraint.
     """
     pyproject = Pyproject.read(sample.root / "pyproject.toml")
 
     assert [author.name for author in pyproject.authors] == ["James Parkington"]
     assert pyproject.builds == ("hatchling==1.32.4",)
     assert pyproject.constraints == ("setuptools==84.0.0",)
+    assert pyproject.build_requirements == ("hatchling==1.32.4", "setuptools==84.0.0")
     assert (pyproject.license, pyproject.licenses) == ("MIT", (Path("LICENSE.md"),))
     assert (
         pyproject.python, pyproject.target, pyproject.uv
@@ -584,11 +627,26 @@ def test_the_manifest_reads_the_fields_the_checks_compare(sample: Sample):
     assert pyproject.loose == ()
 
 
+def test_the_mise_config_reads_its_floor(sample: Sample):
+    """
+    Asserts that the mise config reads the release its `min_version` sets as
+    the floor.
+    """
+    sample.edit(
+        ".mise/config.toml",
+        new = 'min_version = "2026.9.18"\n[env]',
+        old = "[env]"
+    )
+
+    assert MiseConfig.read(sample.root / ".mise" / "config.toml").floor == "2026.9.18"
+
+
 def test_the_mise_config_reads_its_pins_and_its_neighbors(sample: Sample):
     """
-    Asserts that the mise config reads the Python and uv pins and the
-    wrappers' folder, cuts Python to its minor, and locates its lockfile
-    beside it.
+    Asserts that the mise config reads the Python and uv pins, the wrappers'
+    folder, and the variables of its `[env]` block, reads no floor where
+    it sets no `min_version`, cuts Python to its minor, and locates its
+    lockfile beside it.
     """
     mise = MiseConfig.read(sample.root / ".mise" / "config.toml")
 
@@ -597,3 +655,4 @@ def test_the_mise_config_reads_its_pins_and_its_neighbors(sample: Sample):
     ) == ("3.14.6", "0.12.13", Path(".mise/bin"))
     assert mise.minor == "3.14"
     assert mise.lockfile == sample.root / ".mise" / "mise.lock"
+    assert (mise.floor, mise.variables) == (None, {"_": {"path": ".mise/bin"}})

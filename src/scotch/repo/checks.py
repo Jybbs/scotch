@@ -30,6 +30,12 @@ class Check(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstring
     The repository the check reads.
     """
 
+    coupled: ClassVar[frozenset[str]] = frozenset()
+    """
+    The pins the check holds to one another, which a hold of `scotch lift
+    pins` leaves where they stand together.
+    """
+
     @abstractmethod
     def scan(self) -> Iterator[Finding]:
         """
@@ -437,6 +443,8 @@ class NodeTypesCheck(Check):
     site checks against describe the runtime it builds on.
     """
 
+    coupled: ClassVar[frozenset[str]] = frozenset({"@types/node", "node"})
+
     def scan(self) -> Iterator[Finding]:
         """
         Yields a finding where both are pinned and their majors differ.
@@ -764,6 +772,8 @@ class VitestCheck(Check):
     a version other than `vitest`'s, since Vitest takes only the coverage
     provider of its own release.
     """
+
+    coupled: ClassVar[frozenset[str]] = frozenset({"@vitest/coverage-v8", "vitest"})
 
     def scan(self) -> Iterator[Finding]:
         """

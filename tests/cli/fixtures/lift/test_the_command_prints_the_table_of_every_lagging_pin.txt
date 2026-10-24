@@ -1,0 +1,5 @@
+| **Pin** | **File** | **Current** | **Newest** | **Age in Days** | **Major** | **Advisories** |
+|---|---|---|---|---|---|---|
+| `actions/checkout` | `.github/workflows/ci.yml` | `v6.0.0` | `v7.0.1` |  | yes |  |
+| `pluggy` | `pyproject.toml` | `1.6.0` | `1.7.0` |  |  |  |
+| `polars` | `uv.lock` | `1.44.2` | `2.0.0` | 17 | yes |  |

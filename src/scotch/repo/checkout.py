@@ -1,9 +1,9 @@
 """
-Holds `Checkout`, the repository `scotch audit repo` and `scotch apply`
-read, which loads each file into its record from `scotch.repo.schemas` or
-`scotch.repo.registries` the first time a check or a command reads it, asks
-mise for the tasks it declares, and lists the files `scotch render docs`
-writes from the declarations.
+Holds `Checkout`, the repository `scotch apply`, `scotch audit repo`,
+and `scotch lift pins` read, which loads each file into its record from
+`scotch.repo.schemas` or `scotch.repo.registries` the first time a check or
+a command reads it, asks mise for the tasks it declares, and lists the files
+`scotch render docs` writes from the declarations.
 """
 
 from collections.abc import Iterator
@@ -39,9 +39,9 @@ from scotch.repo.schemas    import (
 
 class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The repository the checks and the `scotch apply` commands read, each
-    file loaded the first time one of them reads it, with every path the
-    records carry joined onto `root`.
+    The repository the checks, the `scotch apply` commands, and `scotch lift
+    pins` read, each file loaded the first time one of them reads it, with
+    every path the records carry joined onto `root`.
     """
 
     app: InstanceOf[App]

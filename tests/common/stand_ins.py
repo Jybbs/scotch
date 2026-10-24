@@ -113,18 +113,25 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
     def run(
         self,
-        task : str = "check",
-        *,
-        bun  : str = "exit 0",
-        mise : str = "exit 0",
-        uv   : str = "exit 0"
+        task       : str = "check",
+        *arguments : str,
+        bun        : str = "exit 0",
+        mise       : str = "exit 0",
+        scotch     : str = "exit 0",
+        uv         : str = "exit 0"
     ) -> CompletedProcess[str]:
         """
-        Runs the `lock` task `task` names from the checkout, against
-        stand-in `bun`, `mise`, and `uv` executables that each log their
-        call and then run the shell line `bun`, `mise`, or `uv` holds.
+        Runs the `lock` task `task` names from the checkout with
+        `arguments`, against stand-in `bun`, `mise`, `scotch`, and `uv`
+        executables that each log their call and then run the shell line
+        `bun`, `mise`, `scotch`, or `uv` holds.
         """
-        for name, line in {"bun": bun, "mise": mise, "uv": uv}.items():
+        for name, line in {
+            "bun"    : bun,
+            "mise"   : mise,
+            "scotch" : scotch,
+            "uv"     : uv
+        }.items():
             stand_in = self.stand_ins / name
             stand_in.write_text(
                 f'#!/bin/sh\necho "{name} $*" >> "{self.root / "calls.log"}"\n{line}\n'
@@ -132,7 +139,7 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             stand_in.chmod(0o755)
 
         return run(
-            [self.project / ".mise" / "tasks" / "lock" / task],
+            [self.project / ".mise" / "tasks" / "lock" / task, *arguments],
             capture_output = True,
             check          = False,
             cwd            = self.lockfile.parents[1],

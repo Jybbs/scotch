@@ -1,0 +1,36 @@
+Usage: scotch lift pins [OPTIONS]
+
+Prints one Markdown table of every pin the repository at the project's root     
+declares that lags its newest release, naming the file declaring it, its current
+and newest versions, the newest release's age in days, whether the lift is      
+major, and the advisories it clears. The lift of node stops inside the major of 
+the newest @types/node, since repo:audit holds the two to one major.            
+
+Under --try, writes every lift the table lists but those of the pins --hold     
+names and of each pin repo:audit holds to one of them, such as @types/node      
+beside node, into a scratch clone of the checkout, carrying its uncommitted and 
+untracked files, and runs mise ci there. Where that fails, the trial runs again 
+holding back each major lift in turn together with the pins repo:audit holds to 
+it, printing whether each passes, and the log of each attempt lands under       
+.cache/lift/. Under --write, relocks the lift in a scratch clone and, once mise 
+audit passes there, writes it into the checkout as one diff, after a passing    
+trial where --try is given as well.                                             
+
+Exits with status 2 where --hold names a pin the table lists nowhere, and with  
+status 1 naming the problem where a trial fails, where the lift's relock or the 
+mise audit after it fails, where a file of the checkout or a tool's answer fails
+to read as its record, naming the file or the record, or where a command the run
+starts fails, such as one reading a pin's newest release or the git apply       
+writing the lift into a checkout whose files changed while the trial ran.
+
+╭─ Parameters ─────────────────────────────────────────────────────────────────╮
+│ --hold STR...  A pin the trial and the write leave where it stands, together │
+│                with each pin repo:audit holds to it, such as                 │
+│                @vitest/coverage-v8 for vitest, given once per pin. [default: │
+│                ()]                                                           │
+│ --try          Tries the lift in a scratch clone of the checkout and runs    │
+│                every check a pull request runs there. [default: False]       │
+│ --write        Writes the lift into the checkout as one diff, relocking      │
+│                every lockfile through its own manager, once mise audit       │
+│                passes on it. [default: False]                                │
+╰──────────────────────────────────────────────────────────────────────────────╯

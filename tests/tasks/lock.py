@@ -8,10 +8,11 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
 - The commands `lock:check`, `lock:audit`, and `lock:sync` run for each
   task script declaring its own dependencies and for the site's
   `docs/bun.lock`
+- The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
-with stand-in `bun`, `mise`, `mktemp`, and `uv` executables first on `PATH`,
-so every file the task writes lands in a directory the case owns.
+with stand-in `bun`, `mise`, `mktemp`, `scotch`, and `uv` executables first
+on `PATH`, so every file the task writes lands in a directory the case owns.
 """
 
 from common.stand_ins import Scratch
@@ -181,6 +182,17 @@ def test_audit_fails_on_an_advisory_or_an_unreachable_service(
 
     assert scratch.run("audit", uv=f"exit {status}").returncode == status
     assert scratch.calls == ["uv audit --preview-features audit-command"]
+
+
+def test_lift_hands_its_arguments_to_the_lift_command(scratch: Scratch):
+    """
+    Asserts that `lock:lift` runs `scotch lift pins` with every argument it
+    is given and exits with the status the command returns.
+    """
+    result = scratch.run("lift", "--try", "--hold", "polars", scotch="exit 2")
+
+    assert result.returncode == 2
+    assert scratch.calls == ["scotch lift pins --try --hold polars"]
 
 
 def test_sync_relocks_the_tools_the_project_each_script_and_the_site(scratch: Scratch):
