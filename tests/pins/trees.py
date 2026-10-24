@@ -74,9 +74,10 @@ def test_a_logged_command_writes_itself_and_its_output(
 @mark.parametrize(
     ("relocks", "upgraded", "ran", "passed"),
     [
-        param("", True, 5, True, id="every-step"),
-        param("", False, 5, True, id="no-upgrade"),
-        param("lock:sync", True, 4, False, id="failing-relock")
+        param("", True, 6, True, id="every-step"),
+        param("", False, 6, True, id="no-upgrade"),
+        param("lock:sync", True, 4, False, id="failing-relock"),
+        param("repo:audit", True, 6, False, id="failing-audit")
     ],
     indirect = ["relocks"]
 )
@@ -92,9 +93,9 @@ def test_a_lift_runs_each_step_in_turn_until_one_fails(
     """
     Asserts that a lift rewrites each version its lifts' edits name, then
     locks and installs the tools, relocks `uv.lock` upgrading each package
-    a lift moves, relocks every lockfile, and renders the files restating a
-    pin, in that order, logging each command and running no step after one
-    that fails.
+    a lift moves, relocks every lockfile, renders the files restating a pin,
+    and audits the tree, in that order, logging each command and running no
+    step after one that fails.
     """
     lifts = [
         Lift(
@@ -288,6 +289,39 @@ def test_an_attempt_returns_the_diff_only_where_every_step_passes(
     assert tree.attempt([], log, checked=checked) == patch
     assert len(checks) == int(lifted and checked)
     assert log.exists()
+
+
+@mark.parametrize(
+    ("relocks", "upgraded"),
+    [param("repo:audit", False, id="failing-audit")],
+    indirect = ["relocks"]
+)
+def test_a_write_failing_its_audit_returns_no_diff(
+    fp          : FakeProcess,
+    monkeypatch : MonkeyPatch,
+    relocks     : list[list[str]],
+    tree        : Tree,
+    upgraded    : bool
+):
+    """
+    Asserts that the unchecked attempt a bare `--write` makes returns no
+    diff where the relocked tree fails `repo:audit`, the last command it
+    runs and logs.
+    """
+
+    @contextmanager
+    def cloned(self: Tree) -> Iterator[Tree]:
+        """
+        Stands the tree itself in for its clone.
+        """
+        yield self
+
+    monkeypatch.setattr(Tree, "clone", cloned)
+    log = tree.logs / "write.log"
+
+    assert tree.attempt([], log, checked=False) is None
+    assert called(fp) == relocks
+    assert log.read_text().splitlines()[-1] == f"$ mise -C {tree.root} run repo:audit"
 
 
 def test_an_applied_patch_lists_each_file_it_changes(fp: FakeProcess, tree: Tree):

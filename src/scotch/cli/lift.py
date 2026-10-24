@@ -39,7 +39,7 @@ def pins(
     write : Annotated[bool, Parameter(
         help = (
             "Writes the lift into the checkout as one diff, relocking every "
-            "lockfile through its own manager."
+            "lockfile through its own manager, once `mise audit` passes on it."
         )
     )] = False
 ) -> int:
@@ -58,14 +58,16 @@ def pins(
     Where that fails, the trial runs again holding back each major lift in
     turn together with the pins `repo:audit` holds to it, printing whether
     each passes, and the log of each attempt lands under `.cache/lift/`.
-    Under `--write`, writes the lift into the checkout as one diff, once a
-    trial passes where `--try` is given as well.
+    Under `--write`, writes the lift into the checkout as one diff, once
+    `mise audit` passes on it relocked and once a trial passes where `--try`
+    is given as well.
 
     Exits with status 2 where `--hold` names a pin the table lists nowhere,
     and with status 1 naming the problem where a trial fails, where the
-    lift's relock fails, or where a command the run starts fails, such as
-    one reading a pin's newest release or the `git apply` writing the lift
-    into a checkout whose files changed while the trial ran.
+    lift's relock or the `mise audit` after it fails, or where a command the
+    run starts fails, such as one reading a pin's newest release or the `git
+    apply` writing the lift into a checkout whose files changed while the
+    trial ran.
     """
     tree = Tree.scrubbed(Checkout(app=app, root=root()), environ)
 
@@ -113,7 +115,10 @@ def pins(
             if patch is None and (
                 patch := tree.attempt(held.rows, tree.logs / "write.log", checked=False)
             ) is None:
-                raise SystemExit(f"The lift fails to relock, logged under {tree.logs}")
+                raise SystemExit(
+                    "The lift fails to relock or to pass `mise audit`, logged under "
+                    f"{tree.logs}"
+                )
 
             for path in tree.apply(patch):
                 print(f"Lifted {path}")

@@ -13,13 +13,14 @@ untracked files, and runs mise ci there. Where that fails, the trial runs again
 holding back each major lift in turn together with the pins repo:audit holds to 
 it, printing whether each passes, and the log of each attempt lands under       
 .cache/lift/. Under --write, writes the lift into the checkout as one diff, once
-a trial passes where --try is given as well.                                    
+mise audit passes on it relocked and once a trial passes where --try is given as
+well.                                                                           
 
 Exits with status 2 where --hold names a pin the table lists nowhere, and with  
-status 1 naming the problem where a trial fails, where the lift's relock fails, 
-or where a command the run starts fails, such as one reading a pin's newest     
-release or the git apply writing the lift into a checkout whose files changed   
-while the trial ran.
+status 1 naming the problem where a trial fails, where the lift's relock or the 
+mise audit after it fails, or where a command the run starts fails, such as one 
+reading a pin's newest release or the git apply writing the lift into a checkout
+whose files changed while the trial ran.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ --hold STR...  A pin the trial and the write leave where it stands, together │
@@ -29,5 +30,6 @@ while the trial ran.
 │ --try          Tries the lift in a scratch clone of the checkout and runs    │
 │                every check a pull request runs there. [default: False]       │
 │ --write        Writes the lift into the checkout as one diff, relocking      │
-│                every lockfile through its own manager. [default: False]      │
+│                every lockfile through its own manager, once mise audit       │
+│                passes on it. [default: False]                                │
 ╰──────────────────────────────────────────────────────────────────────────────╯

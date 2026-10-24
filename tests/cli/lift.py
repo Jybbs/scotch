@@ -102,13 +102,14 @@ def test_a_command_reading_a_pin_that_fails_exits_naming_it(
 
 def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):
     """
-    Asserts that a write whose relock fails exits naming the folder its log
-    lands in and applies nothing.
+    Asserts that a write whose relock or audit fails exits naming the folder
+    its log lands in and applies nothing.
     """
     _, applied = lagging(lagging_three(), breaking={"pluggy"})
 
     assert invoke("lift", "pins", "--write") == (
-        f"The lift fails to relock, logged under {sample.root / '.cache' / 'lift'}"
+        "The lift fails to relock or to pass `mise audit`, logged under "
+        f"{sample.root / '.cache' / 'lift'}"
     )
     assert applied == []
 

@@ -41,7 +41,8 @@ def relocks(fp: FakeProcess, request: FixtureRequest, tree: Tree) -> list[list[s
                 )
             ],
             ["run", "lock:sync"],
-            ["run", "docs:render"]
+            ["run", "docs:render"],
+            ["run", "repo:audit"]
         )
     ]
 

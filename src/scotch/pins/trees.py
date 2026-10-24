@@ -99,9 +99,9 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         checked : bool
     ) -> bytes | None:
         """
-        Writes `lifts` into a scratch clone of the tree, then runs `mise
-        ci` there where `checked` is set, writing every command and what it
-        prints to the file at `log`.
+        Writes `lifts` into a scratch clone of the tree and audits it, then
+        runs `mise ci` there where `checked` is set, writing every command
+        and what it prints to the file at `log`.
 
         Returns:
             The diff the lift writes into the clone, or `None` where a
@@ -212,9 +212,9 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
 
     def lift(self, handle: TextIO, lifts: Collection[Lift]) -> bool:
         """
-        Writes each of `lifts` into the tree and relocks every lockfile
-        through its own manager, writing each command and what it prints to
-        `handle`, in these steps:
+        Writes each of `lifts` into the tree, relocks every lockfile through
+        its own manager, and audits the result, writing each command and
+        what it prints to `handle`, in these steps:
 
         1. Rewrites each version the lifts' edits name
         2. Locks and installs the tools `.mise/config.toml` then pins, so
@@ -226,6 +226,9 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         5. Runs `docs:render`, which rewrites each file restating a pin,
            such as the README's Python badge, on an environment the wrapper
            builds on the lifted interpreter
+        6. Runs `repo:audit`, which fails where the lifted tree restates a
+           pin two ways, such as `vitest` and `@vitest/coverage-v8` on two
+           versions
 
         Returns:
             Whether every command passed, the steps stopping at the first
@@ -245,7 +248,8 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             ("install",),
             ("exec", "--", "uv", "lock", "--no-locked", *upgrades),
             ("run", "lock:sync"),
-            ("run", "docs:render")
+            ("run", "docs:render"),
+            ("run", "repo:audit")
         ]
         return all(self.log(handle, "mise", "-C", self.root, *step) for step in steps)
 
