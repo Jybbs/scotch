@@ -274,6 +274,38 @@ def test_the_floor_lifts_to_the_newest_release_of_mise(
     assert list(MisePins(tree=tree).lifts()) == ([floor] if lifted else [])
 
 
+def test_a_tool_other_than_node_lifts_past_a_major_reading_no_types(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that a tool other than `node` lifts to its newest release
+    past a major where the site pins `@types/node`, reading no release of
+    `@types/node`.
+    """
+    fp.register(
+        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
+        stdout = dumps(
+            {
+                "uv": {
+                    "latest"    : "1.0.0",
+                    "requested" : "0.12.13",
+                    "source"    : {"path": str(tree.root / ".mise" / "config.toml")}
+                }
+            }
+        )
+    )
+    fp.register(
+        ["mise", "-C", tree.root, "ls-remote", "--json", "uv"],
+        stdout = dumps([{"version": "1.0.0"}])
+    )
+
+    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
+        ("uv", "1.0.0")
+    ]
+
+
 def test_an_action_in_a_repository_folder_reads_that_repository(
     fp     : FakeProcess,
     sample : Sample,

@@ -24,9 +24,9 @@ def pins(
     *,
     hold  : Annotated[tuple[str, ...], Parameter(
         help = (
-            "A pin the trial and the write leave where it stands beside each "
-            "pin `repo:audit` holds to it, such as `@vitest/coverage-v8` beside "
-            "`vitest`, given once per pin."
+            "A pin the trial and the write leave where it stands, together with "
+            "each pin `repo:audit` holds to it, such as `@vitest/coverage-v8` "
+            "for `vitest`, given once per pin."
         )
     )] = (),
     trial : Annotated[bool, Parameter(
@@ -47,9 +47,9 @@ def pins(
     Prints one Markdown table of every pin the repository at the project's
     root declares that lags its newest release, naming the file declaring
     it, its current and newest versions, the newest release's age in days,
-    whether the lift is major, and the advisories it clears. The lift of
-    `node` stops inside the major of the newest `@types/node`, the major
-    `repo:audit` holds the two to.
+    whether the lift is major, and the advisories it clears. The lift
+    of `node` stops inside the major of the newest `@types/node`, since
+    `repo:audit` holds the two to one major.
 
     Under `--try`, writes every lift the table lists but those of the pins
     `--hold` names and of each pin `repo:audit` holds to one of them, such
