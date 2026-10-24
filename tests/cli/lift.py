@@ -1,16 +1,18 @@
 """
 Pins what `scotch lift pins` prints and decides for the lifts it reads,
-meaning the table it prints, the status it exits with for a hold naming no
-pin and for a command that fails, the attempts each of `--try` and `--write`
-makes and the order it makes them in, and the diff it applies.
+meaning the table it prints, the status it exits with for a hold naming
+no pin, for a command that fails, and for a file that fails to read, the
+attempts each of `--try` and `--write` makes and the order it makes them in,
+and the diff it applies.
 """
 
-from collections.abc  import Callable
-from common.app       import invoke
-from common.sample    import Sample
-from datetime         import UTC, datetime
-from io               import StringIO
-from pytest           import CaptureFixture, MonkeyPatch, mark, param
+from collections.abc import Callable
+from common.app      import invoke
+from common.sample   import Sample
+from datetime        import UTC, datetime
+from io              import StringIO
+from pytest          import CaptureFixture, MonkeyPatch, mark, param
+from pytest_subprocess.fake_process import FakeProcess
 from subprocess       import CalledProcessError
 from syrupy.assertion import SnapshotAssertion
 from types            import SimpleNamespace
@@ -98,6 +100,28 @@ def test_a_command_reading_a_pin_that_fails_exits_naming_it(
     )
 
     assert invoke("lift", "pins") == "`uv audit` exited with status 2\nunreachable"
+
+
+@mark.parametrize(
+    "new",
+    [param("node   = 26", id="out-of-shape"), param("node   = ", id="unparseable")]
+)
+def test_a_config_failing_to_read_exits_naming_the_file(
+    fp     : FakeProcess,
+    inside : Sample,
+    new    : str
+):
+    """
+    Asserts that a file of the checkout failing to parse or to validate as
+    its record stops the command with the validation error naming the file,
+    before any command runs.
+    """
+    inside.edit(".mise/config.toml", new=new, old='node   = "26.11.1"')
+
+    assert invoke("lift", "pins").startswith(
+        f"1 validation error for {inside.root / '.mise' / 'config.toml'}\n"
+    )
+    assert not fp.calls
 
 
 def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):

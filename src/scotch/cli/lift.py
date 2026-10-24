@@ -7,6 +7,7 @@ run by the `lock:lift` task.
 from cyclopts   import Parameter
 from datetime   import date
 from os         import environ, fsdecode
+from pydantic   import ValidationError
 from shlex      import join
 from subprocess import CalledProcessError
 from sys        import stderr
@@ -64,14 +65,14 @@ def pins(
 
     Exits with status 2 where `--hold` names a pin the table lists nowhere,
     and with status 1 naming the problem where a trial fails, where the
-    lift's relock or the `mise audit` after it fails, or where a command the
-    run starts fails, such as one reading a pin's newest release or the `git
-    apply` writing the lift into a checkout whose files changed while the
-    trial ran.
+    lift's relock or the `mise audit` after it fails, where a file of the
+    checkout or a tool's answer fails to read as its record, naming the
+    file or the record, or where a command the run starts fails, such as one
+    reading a pin's newest release or the `git apply` writing the lift into
+    a checkout whose files changed while the trial ran.
     """
-    tree = Tree.scrubbed(Checkout(app=app, root=root()), environ)
-
     try:
+        tree   = Tree.scrubbed(Checkout(app=app, root=root()), environ)
         report = Report(
             lifts = tuple(
                 lift
@@ -129,3 +130,5 @@ def pins(
             f"`{join(map(str, error.cmd))}` exited with status {error.returncode}"
             f"\n{fsdecode(error.stderr or '')}".rstrip()
         )
+    except ValidationError as error:
+        raise SystemExit(str(error)) from None

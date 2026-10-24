@@ -18,9 +18,10 @@ well.
 
 Exits with status 2 where --hold names a pin the table lists nowhere, and with  
 status 1 naming the problem where a trial fails, where the lift's relock or the 
-mise audit after it fails, or where a command the run starts fails, such as one 
-reading a pin's newest release or the git apply writing the lift into a checkout
-whose files changed while the trial ran.
+mise audit after it fails, where a file of the checkout or a tool's answer fails
+to read as its record, naming the file or the record, or where a command the run
+starts fails, such as one reading a pin's newest release or the git apply       
+writing the lift into a checkout whose files changed while the trial ran.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ --hold STR...  A pin the trial and the write leave where it stands, together │
