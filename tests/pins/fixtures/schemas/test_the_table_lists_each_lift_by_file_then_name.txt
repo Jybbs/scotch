@@ -1,0 +1,5 @@
+| **Pin** | **File** | **Current** | **Newest** | **Age in Days** | **Major** | **Advisories** |
+|---|---|---|---|---|---|---|
+| `bun` | `.mise/config.toml` | `1.4.3` | `1.4.4` |  |  |  |
+| `uv` | `.mise/config.toml` | `0.12.13` | `0.13.5` | 3 | yes |  |
+| `certifi` | `uv.lock` | `2026.10.19` | `2026.10.23` |  |  | [GHSA-x](https://x) |

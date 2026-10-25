@@ -1,0 +1,12 @@
+Usage: scotch apply rulesets
+
+Updates in place each live ruleset sharing the name of a file under             
+.github/rulesets/, creating the ruleset where none does, then sends every       
+setting .github/settings.toml declares beside the description pyproject.toml    
+declares, the domain of its homepage, and its keywords as the repository's      
+topics, and prints each live ruleset no file names, which stays on GitHub until 
+it is deleted by hand.                                                          
+
+Exits nonzero before writing anything where a ruleset, the settings, or the     
+manifest fails to read, and at the first call gh fails to send.
+

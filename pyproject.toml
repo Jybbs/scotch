@@ -20,6 +20,15 @@ dependencies    = [
     "urllib3"
 ]
 description     = "Finds the grandmaster game sharing the longest run of positions with a submitted chess game and shows how that game continued."
+keywords        = [
+    "chess",
+    "chess-analysis",
+    "chess-database",
+    "parquet",
+    "pgn",
+    "python",
+    "python-chess"
+]
 license         = "MIT"
 license-files   = ["LICENSE.md"]
 name            = "scotch"

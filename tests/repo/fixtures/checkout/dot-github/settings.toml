@@ -1,0 +1,32 @@
+[actions]
+allowed_actions      = "all"
+enabled              = true
+sha_pinning_required = true
+
+[dependabot]
+automated-security-fixes = false
+vulnerability-alerts     = true
+
+[repository]
+allow_auto_merge            = false
+allow_merge_commit          = false
+allow_rebase_merge          = false
+allow_squash_merge          = true
+allow_update_branch         = true
+delete_branch_on_merge      = true
+has_discussions             = false
+has_issues                  = true
+has_projects                = false
+has_wiki                    = false
+squash_merge_commit_message = "PR_BODY"
+squash_merge_commit_title   = "PR_TITLE"
+
+[repository.security_and_analysis.secret_scanning]
+status = "enabled"
+
+[repository.security_and_analysis.secret_scanning_push_protection]
+status = "enabled"
+
+[workflow]
+can_approve_pull_request_reviews = false
+default_workflow_permissions     = "read"

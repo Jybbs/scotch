@@ -1,0 +1,5 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "lift"
+#MISE description = "List every pin lagging its newest release, try the lift in a scratch clone under `--try`, and write it as one diff under `--write`"
+
+scotch lift pins "$@"

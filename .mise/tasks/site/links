@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "links"
 #MISE depends     = ["site:press"]
-#MISE description = "Check every link, asset, and heading fragment in the built site and the README with no network, passing any further arguments to lychee"
+#MISE description = "Check every link, asset, and heading fragment in the built site, the README, and the contributor guide with no network, passing any further arguments to lychee"
 #MISE dir         = "docs"
 
 dist="$PWD/.vitepress/dist"
@@ -16,4 +16,4 @@ lychee \
   --remap "^${home//./\\.} file://${dist// /%20}" \
   --root-dir "$dist" \
   "$@" \
-  "$dist" ../.github/README.md
+  "$dist" ../.github/CONTRIBUTING.md ../.github/README.md
