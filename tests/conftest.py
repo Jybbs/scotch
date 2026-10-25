@@ -79,6 +79,8 @@ def known() -> Path:
       Pachman–Cobo Arteaga's games (Havana 1965 and 1963)
     - `demo.pgn`, which plays Kasparov–Sosonko move for move through
       `21...b6` and then departs with `22. c6`
+    - `viewer.pgn`, the example the Viewer opens on, which reaches the demo
+      game's position after `4...Bb4` through `1. Nf3 Nf6 2. c4`
     """
     return Path(__file__).parent / "index" / "fixtures"
 

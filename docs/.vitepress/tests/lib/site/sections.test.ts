@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { ROLES }               from '../../../lib/identity/roles.ts'
 import { SECTIONS, sectionOf } from '../../../lib/site/sections.ts'
 import { pageText }            from '../../common/pages.ts'
 
@@ -14,6 +15,13 @@ describe('SECTIONS', () => {
 
   it('lists the sections alphabetically', () => {
     expect(SECTIONS.map(({ slug }) => slug)).toEqual(SECTIONS.map(({ slug }) => slug).toSorted())
+  })
+
+  it('accents each section in a color of its own, never a game\'s or the run\'s', () => {
+    const colors: readonly string[] = SECTIONS.map(({ color }) => color)
+    const taken                     = [ROLES.run.light, ROLES.stored.light, ROLES.submitted.light]
+    expect(new Set(colors).size).toBe(colors.length)
+    expect(taken.filter(color => colors.includes(color))).toEqual([])
   })
 })
 

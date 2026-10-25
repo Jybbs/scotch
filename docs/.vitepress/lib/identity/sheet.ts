@@ -10,6 +10,16 @@ import { IDENTITY, rootRule } from './tokens.ts'
 export const SHEET = 'virtual:scotch-identity.css'
 
 /**
+ * Writes the families a face falls back through, led by the family its
+ * Fontsource package declares, which names a variable face with ` Variable`
+ * behind the family's own name, as a canvas's `font` and a stylesheet both read
+ * them.
+ */
+export function familyOf({ family, stack }: { family: string, stack: string }): string {
+  return `"${family} Variable", ${stack}`
+}
+
+/**
  * Serves the identity's stylesheet, its roles', and the motion's as one module
  * the theme imports, so no stylesheet restates a hex, a family name, a
  * duration, or a curve.
@@ -32,7 +42,7 @@ export function identitySheet(identity = IDENTITY): string {
   const colors = Object.entries(identity.palette)
     .map(([token, color]): [string, string] => [token, color.hex])
   const faces = Object.entries(identity.faces)
-    .map(([face, { family, stack }]): [string, string] => [`face-${face}`, `"${family} Variable", ${stack}`])
+    .map(([face, { family, stack }]): [string, string] => [`face-${face}`, familyOf({ family, stack })])
   return rootRule([...colors, ...faces])
 }
 

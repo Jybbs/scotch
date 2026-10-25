@@ -46,15 +46,18 @@ class Outputs(RootModel[list[Output]]):
     ) -> list[Output]:
         """
         Lists the files written from `index`, meaning the store the Data
-        pages and the Guide's store page read, the examples the front page,
-        the Methods page, and the link cards draw, the figures each Markdown
-        file of `pages` sets inside its sentences, the example run the
-        README and the Guide carry, and the tables the Data pages and the
-        Guide's store page set beneath their widgets.
+        pages, the Guide's store page, and the Viewer read, the examples
+        the front page, the Methods page, and the link cards draw, the match
+        the Viewer opens on beside the demo game alone, the figures each
+        Markdown file of `pages` sets inside its sentences, the example run
+        the README and the Guide carry, and the tables the Data pages and
+        the Guide's store page set beneath their widgets.
         """
         census   = Census(index=index)
+        games    = Path("docs/public/games")
+        viewer   = Example(path=games / "viewer.pgn", shown=0)
         examples = {
-            name: Example(path=Path("docs/public/games", f"{name}.pgn"), shown=shown)
+            name: Example(path=games / f"{name}.pgn", shown=shown)
             for name, shown in (("demo", 0), ("front", 18), ("methods", 18))
         }
         drawn = cache(
@@ -87,6 +90,13 @@ class Outputs(RootModel[list[Output]]):
             Document.from_value(
                 path  = Outputs.rendered / "store.json",
                 value = lambda: census.store.model_dump(mode="json")
+            ),
+            Document.from_value(
+                path  = Outputs.rendered / "viewer.json",
+                value = lambda: {
+                    "alone" : examples["demo"].exported(root).model_dump(mode="json"),
+                    "match" : viewer.exported(root, index).model_dump(mode="json")
+                }
             ),
             *(
                 Region(

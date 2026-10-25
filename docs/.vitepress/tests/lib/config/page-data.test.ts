@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { ACTIONS, leadOf, pageData } from '../../../lib/config/page-data.ts'
+import { VIEWER }                    from '../../../lib/viewer/page.ts'
 import { pageAt }                    from '../../common/pages.ts'
 import { test }                      from '../../common/repo.ts'
 
@@ -8,19 +9,31 @@ const built = (srcDir: string): { siteConfig: { srcDir: string } } => ({ siteCon
 
 describe('pageData', () => {
   test("lays the front page out on the home layout with the hero's buttons", ({ repo }) => {
-    expect(pageData({ frontmatter: { kept: true }, relativePath: 'index.md' }, built(repo.root)))
+    const page = { frontmatter: { kept: true }, relativePath: 'index.md' }
+    expect(pageData(page, built(repo.root), repo.metaUrl))
       .toEqual({ frontmatter: { hero: { actions: ACTIONS }, kept: true, layout: 'home' } })
   })
 
   test('describes every other page by the first sentence of its prose', ({ repo }) => {
     repo.write('guide/store.md', '# The Store\n\nThe store holds games. It reads archives.\n')
-    expect(pageData({ frontmatter: {}, relativePath: 'guide/store.md' }, built(repo.root)))
+    expect(pageData({ frontmatter: {}, relativePath: 'guide/store.md' }, built(repo.root), repo.metaUrl))
       .toEqual({ description: 'The store holds games.' })
+  })
+
+  test('lays the Viewer out as the tool, naming the version the manifest declares', ({ repo }) => {
+    repo.write(VIEWER.page, '# Viewer\n\nThe Viewer steps through two games.\n')
+    const laid = pageData({ frontmatter: {}, relativePath: VIEWER.page }, built(repo.root), repo.metaUrl)
+    expect(laid).toMatchObject({
+      description : 'The Viewer steps through two games.',
+      frontmatter : { layout: VIEWER.layout, sidebar: false }
+    })
+    expect(laid?.frontmatter?.stats).toContainEqual({ label: 'Version', value: '1.2.3' })
   })
 
   test('leaves a page opening on no paragraph as it stands', ({ repo }) => {
     repo.write('guide/empty.md', '# Empty\n')
-    expect(pageData({ frontmatter: {}, relativePath: 'guide/empty.md' }, built(repo.root))).toBeUndefined()
+    expect(pageData({ frontmatter: {}, relativePath: 'guide/empty.md' }, built(repo.root), repo.metaUrl))
+      .toBeUndefined()
   })
 })
 

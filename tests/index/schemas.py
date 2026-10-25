@@ -1,8 +1,8 @@
 """
 Pins the records describing a match, meaning the `Side` each game becomes
-for the site's viewer, the plies a `Span` covers in each game, what a
-`Match` prints and names as the move where the two games part, and the
-`Export` the site's viewer reads.
+for the Viewer, the plies a `Span` covers in each game, what a `Match`
+prints and names as the move where the two games part, and the `Export` the
+Viewer reads.
 """
 
 from common.games     import line
@@ -146,12 +146,13 @@ def test_a_summary_names_the_file_the_stored_game_was_read_from(
 def test_an_export_holds_both_sides_beside_the_span(snapshot: SnapshotAssertion):
     """
     Asserts that an export of a match holds the submitted game, the stored
-    game, and the span the two share, as the JSON the site's viewer reads.
+    game, the span the two share, and the count of other stored games tied
+    with the stored game, as the JSON the Viewer reads.
     """
     match = Match(
         game = line("e4", "e5", "Nf3"),
         span = Span(length=3, offset=0, start=0),
-        ties = 0
+        ties = 2
     )
 
     assert Export.from_match(match, line("e4", "e5", "Bc4")).model_dump_json(
@@ -176,6 +177,6 @@ def test_an_export_without_a_match_leaves_the_stored_side_empty(
     """
     Asserts that an export of a game no stored game shares a position with
     holds the submitted game alone, writing `null` for the span and the
-    stored side.
+    stored side and 0 for the ties.
     """
     assert Export.from_match(None, line("e4")).model_dump_json(indent=2) == snapshot

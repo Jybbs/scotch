@@ -67,8 +67,7 @@ export function nearest(squares: readonly number[]): number | undefined {
  * stylesheet rings in the light squares' color so it reads on a dark square.
  */
 export function pieceMarkup(piece: pieces.Piece): string {
-  const body = pieces.DRAWINGS[piece].replace(/ id="[^"]*"/u, '')
-  return pieces.svgOf(piece === piece.toUpperCase() ? body : `<g class="sc-run-halo">${body}</g>${body}`)
+  return pieces.svgOf(pieces.ringed(piece, 'sc-run-halo'))
 }
 
 /**

@@ -1,0 +1,29 @@
+.sc-viewer-copy {
+  position      : fixed;
+  inset         : auto;
+  width         : min(30rem, calc(100vw - 32px));
+  margin        : 0;
+  padding       : 14px 16px 16px;
+  border        : 0;
+  border-radius : 12px;
+  background    : var(--sc-raised);
+  color         : var(--sc-ink);
+  box-shadow    : 0 0 0 1px var(--sc-rule), 0 18px 40px -20px var(--sc-viewer-shade);
+
+  &:popover-open {
+    display : grid;
+    gap     : 10px;
+  }
+}
+
+.sc-viewer-copy-field {
+  width         : 100%;
+  padding       : 8px 10px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 6px;
+  background    : var(--sc-page);
+  color         : var(--sc-ink);
+  font          : 400 0.74rem/18px var(--sc-face-code);
+  white-space   : pre;
+  resize        : vertical;
+}

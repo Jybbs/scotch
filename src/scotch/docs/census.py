@@ -1,10 +1,11 @@
 """
 Holds `Census`, the counts the site's pages and the README draw from the
 index, meaning how long the stored games run by their result and by the
-decade they were played in, how many each fetched file holds, and how often
-the longest unbroken run leaves out a match a reader would also want, which
-`scotch render docs` writes out as the JSON the Data pages and the Guide's
-store page read and sets in the tables and figures the pages carry.
+decade they were played in, how many each fetched file holds, how many
+positions the index holds, and how often the longest unbroken run leaves
+out a match a reader would also want, which `scotch render docs` writes out
+as the JSON the Data pages, the Guide's store page, and the Viewer read and
+sets in the tables and figures the pages carry.
 """
 
 from collections.abc import Iterator
@@ -74,6 +75,18 @@ class Census:
         ).collect()
 
     @cached_property
+    def positions(self) -> int:
+        """
+        Counts the positions the index holds, one for each position of each
+        stored game.
+        """
+        return (
+            self.index.positions.select(col("key").len())
+                .collect()
+                .item()
+        )
+
+    @cached_property
     def reach(self) -> DataFrame:
         """
         Counts the stored games reaching each position the index holds.
@@ -92,23 +105,18 @@ class Census:
         """
         Measures what the longest-run rule leaves out over `sample` stored
         games drawn with `seed`, each matched against every other stored
-        game save those holding its whole mainline, beside the counts of the
-        index the sample is drawn from.
+        game save those holding its whole mainline, beside the count of the
+        distinct keys of the index the sample is drawn from.
         """
         keys     = self.reach.height
         measured = list(self.measured())
 
         return Rules(
-            accidents = keys * (keys - 1) / 2**65,
-            crowd     = self.crowd,
-            crowded   = sum(crowded for _, crowded, _ in measured),
-            keys      = keys,
-            matched   = len(measured),
-            positions = (
-                self.index.positions.select(col("key").len())
-                    .collect()
-                    .item()
-            ),
+            accidents  = keys * (keys - 1) / 2**65,
+            crowd      = self.crowd,
+            crowded    = sum(crowded for _, crowded, _ in measured),
+            keys       = keys,
+            matched    = len(measured),
             sample     = len(self.sampled),
             tied       = sum(tied for tied, _, _ in measured),
             transposed = sum(transposed for _, _, transposed in measured)
@@ -128,9 +136,10 @@ class Census:
     @cached_property
     def store(self) -> Tally:
         """
-        Counts the stored games by how many moves they play, by result and
-        by decade, and by the file holding them, from 0 moves to the longest
-        game's, the results in the order of their names.
+        Counts the stored games by how many moves they play, by result
+        and by decade, and by the file holding them, from 0 moves to the
+        longest game's, the results in the order of their names, beside the
+        positions the index holds.
         """
         longest = self.games.get_column("moves").max()
         results = (
@@ -180,7 +189,8 @@ class Census:
                     )
                 )
             ],
-            results = results
+            positions = self.positions,
+            results   = results
         )
 
     def counted(self, copies: int, game: Game) -> Series:

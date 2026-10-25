@@ -1,10 +1,10 @@
 """
 Pins the counts `Census` draws from an index, meaning each stored game's
 file, decade, moves, and result, the games counted by moves for each result
-and each decade, each file's games, and what the longest-run rule leaves out
-over a sample, against the five games of the `counted` fixture, whose counts
-a reader checks by hand, and against the short lines a case indexes to pose
-one rule.
+and each decade, each file's games, the positions the index holds, and what
+the longest-run rule leaves out over a sample, against the five games of
+the `counted` fixture, whose counts a reader checks by hand, and against the
+short lines a case indexes to pose one rule.
 """
 
 from collections.abc import Callable, Iterable
@@ -112,17 +112,16 @@ def test_rules_count_what_the_longest_run_leaves_out(
     counted : tuple[list[Game], PositionIndex]
 ):
     """
-    Asserts what the longest-run rule leaves out over all five games, beside
-    the counts of their positions and keys. The game from the kings alone
-    shares no position and goes unmatched, and each of the four others
-    ties, the three sharing an opening on their five-position runs and the
-    third on the starting position. Only the third game's run lies wholly in
-    positions more than two other games reach, and only the first game finds
-    a shorter run reaching, in another order, a position rarer than any of
-    its longest run's.
+    Asserts what the longest-run rule leaves out over all five games,
+    beside the count of their keys. The game from the kings alone shares no
+    position and goes unmatched, and each of the four others ties, the three
+    sharing an opening on their five-position runs and the third on the
+    starting position. Only the third game's run lies wholly in positions
+    more than two other games reach, and only the first game finds a shorter
+    run reaching, in another order, a position rarer than any of its longest
+    run's.
     """
-    games, _ = counted
-    keys     = {key for game in games for key in game.keys}
+    keys = {key for game in counted[0] for key in game.keys}
 
     assert census.rules == Rules(
         accidents  = len(keys) * (len(keys) - 1) / 2**65,
@@ -130,7 +129,6 @@ def test_rules_count_what_the_longest_run_leaves_out(
         crowded    = 1,
         keys       = len(keys),
         matched    = 4,
-        positions  = sum(len(game.keys) for game in games),
         sample     = 5,
         tied       = 4,
         transposed = 1
@@ -254,12 +252,16 @@ def test_rules_sample_every_game_of_an_index_holding_fewer_than_the_sample(
     assert Census(index=scanned([line("e4"), line("d4")])).rules.sample == 2
 
 
-def test_store_counts_the_games_by_moves_result_decade_and_file(census: Census):
+def test_store_counts_the_games_by_moves_result_decade_and_file(
+    census  : Census,
+    counted : tuple[list[Game], PositionIndex]
+):
     """
     Asserts that the store lists each result in order beside one count per
     result for each number of moves from 0, one count per number of moves
-    for each decade the dated games fall in, and each file's games, its
-    games by decade, and its undated games.
+    for each decade the dated games fall in, each file's games, its games by
+    decade, and its undated games, beside the positions the index holds, one
+    for each position of each stored game.
     """
     assert census.store == Tally(
         eras = [
@@ -287,9 +289,10 @@ def test_store_counts_the_games_by_moves_result_decade_and_file(census: Census):
                 undated = 0
             )
         ],
-        games   = 5,
-        moves   = [[0, 0, 0], [0, 1, 0], [0, 0, 0], [1, 2, 1]],
-        results = ["0-1", "1-0", "1/2-1/2"]
+        games     = 5,
+        moves     = [[0, 0, 0], [0, 1, 0], [0, 0, 0], [1, 2, 1]],
+        positions = sum(len(game.keys) for game in counted[0]),
+        results   = ["0-1", "1-0", "1/2-1/2"]
     )
 
 

@@ -41,6 +41,8 @@ export const ROLES = {
   data_edge    : { dark: ['ground', 50, 'dark'], kind: 'mark', light: 'dark' },
   front_hollow : { dark: 'black', kind: 'fill', light: 'dark' },
   front_paper  : { dark: 'ground', kind: 'fill', light: 'white' },
+  glyph_dark   : { dark: ['dark', 86, 'light'], kind: 'fill', light: ['ground', 77, 'primary'] },
+  glyph_light  : { dark: ['dark', 78, 'light'], kind: 'fill', light: ['ground', 72, 'light'] },
   ink          : { dark: 'ground', kind: 'text', light: 'dark' },
   page         : { dark: 'dark', kind: 'ground', light: 'ground' },
   quiet        : { dark: ['ground', 66, 'dark'], kind: 'text', light: ['dark', 72, 'ground'] },

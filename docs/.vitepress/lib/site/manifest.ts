@@ -1,5 +1,6 @@
-import fs   from 'node:fs'
-import path from 'node:path'
+import { execFileSync } from 'node:child_process'
+import fs               from 'node:fs'
+import path             from 'node:path'
 
 import { parse } from 'smol-toml'
 
@@ -21,6 +22,33 @@ export interface ProjectFacts {
 function required(value: unknown, file: string, key: string): string {
   if (typeof value !== 'string') throw new Error(`no ${key} in ${file}`)
   return value
+}
+
+/**
+ * Reads the commit the site is built from, the one GitHub Actions names where a
+ * workflow builds it and otherwise the one git checks out, as its first seven
+ * hexadecimal digits, or `undefined` where neither knows one, as in an export
+ * of the repository.
+ *
+ * Args:
+ *   metaUrl : The `import.meta.url` of the module calling, which the
+ *     repository's root is found from.
+ *   env     : The environment the build runs in.
+ */
+export function commitOf(
+  metaUrl : string,
+  env     : Readonly<Record<string, string | undefined>> = process.env
+): string | undefined {
+  if (env.GITHUB_SHA) return env.GITHUB_SHA.slice(0, 7)
+  try {
+    return execFileSync('git', ['rev-parse', '--short=7', 'HEAD'], {
+      cwd      : repoRoot(metaUrl),
+      encoding : 'utf8',
+      stdio    : ['ignore', 'pipe', 'ignore']
+    }).trim()
+  } catch {
+    return undefined
+  }
 }
 
 /**

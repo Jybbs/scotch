@@ -3,7 +3,11 @@ import path from 'node:path'
 
 import type { PageData } from 'vitepress'
 
-import { FRONT } from '../markdown/front.ts'
+import { STORE }                  from '../data/store.ts'
+import { FRONT }                  from '../markdown/front.ts'
+import { commitOf, projectFacts } from '../site/manifest.ts'
+import { statsOf }                from '../viewer/colophon.ts'
+import { VIEWER }                 from '../viewer/page.ts'
 
 type TransformedPage = Pick<PageData, 'frontmatter' | 'relativePath'>
 
@@ -38,21 +42,29 @@ export function leadOf(markdown: string): string | undefined {
 /**
  * Adds what VitePress needs to lay out one page, so no page carries a framework
  * option of its own. The front page takes the home layout and its hero's
- * buttons, and every other page takes the first sentence of its own prose as
- * its description.
+ * buttons, the Viewer's page takes the tool as its layout with no sidebar and
+ * the figures the strip closing the tool names, and every page but the front
+ * one takes the first sentence of its own prose as its description.
  *
  * Args:
  *   page    : The page VitePress is writing.
  *   context : What VitePress hands the transform, the folder the pages sit in
  *     among it.
+ *   metaUrl : The `import.meta.url` of the configuration, which the
+ *     repository's root is found from.
  */
 export function pageData(
   page    : TransformedPage,
-  context : { siteConfig: { srcDir: string } }
+  context : { siteConfig: { srcDir: string } },
+  metaUrl : string
 ): Partial<PageData> | undefined {
   if (page.relativePath === FRONT) {
     return { frontmatter: { ...page.frontmatter, hero: { actions: ACTIONS }, layout: 'home' } }
   }
   const description = leadOf(fs.readFileSync(path.join(context.siteConfig.srcDir, page.relativePath), 'utf8'))
+  if (page.relativePath === VIEWER.page) {
+    const stats = statsOf(commitOf(metaUrl), STORE, projectFacts(metaUrl).version)
+    return { description, frontmatter: { ...page.frontmatter, layout: VIEWER.layout, sidebar: false, stats } }
+  }
   return description === undefined ? undefined : { description }
 }

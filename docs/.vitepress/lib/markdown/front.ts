@@ -34,7 +34,8 @@ export function frontPage(md: MarkdownRenderer): void {
     const heading = tokens.findIndex(token => token.type === 'heading_open' && token.tag === 'h1')
     if (heading !== -1) {
       // Finds the block after the tagline's, which is a paragraph's three tokens or an HTML block's one.
-      const next = tokens.findIndex((token, index) => index > heading + 3 && token.level === 0 && token.nesting !== -1)
+      const next = tokens.findIndex((token, index) =>
+        index > heading + 3 && token.level === 0 && token.nesting !== -1)
       tokens.splice(heading, next === -1 ? tokens.length : next - heading)
     }
     cards(state)

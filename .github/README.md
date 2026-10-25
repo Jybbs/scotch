@@ -54,6 +54,8 @@ Parts where the stored game played 22. Bc2
 ```
 <!-- /example -->
 
+With `--json` and a path, the same command writes the match to a file the **[Viewer](https://scotch.fyi/viewer/)** opens, setting the two games side by side and stepping through them together.
+
 ## 📗 License
 
 *Scotch* is released under the MIT license [`LICENSE.md`](../LICENSE.md) carries. The site's faces carry the [SIL Open Font License](https://openfontlicense.org), and the chess pieces python-chess draws, by Cburnett, carry the [3-clause BSD license](https://commons.wikimedia.org/wiki/File:Chess_klt45.svg) Wikimedia Commons lists.

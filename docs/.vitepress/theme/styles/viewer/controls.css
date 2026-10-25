@@ -1,0 +1,83 @@
+.sc-viewer-controls {
+  display         : flex;
+  flex-wrap       : wrap;
+  justify-content : center;
+  gap             : 8px 14px;
+  padding         : 6px;
+  border-radius   : 999px;
+  background      : var(--sc-page);
+  box-shadow      : 0 0 0 1px var(--sc-rule), 0 12px 28px -18px var(--sc-viewer-shade);
+}
+
+.sc-viewer-group {
+  display : flex;
+  gap     : 6px;
+}
+
+.sc-viewer-control {
+  display        : inline-flex;
+  align-items    : center;
+  gap            : 7px;
+  height         : 34px;
+  padding        : 0 7px 0 13px;
+  border         : 1px solid var(--sc-rule);
+  border-radius  : 999px;
+  background     : var(--sc-raised);
+  color          : var(--sc-run);
+  font           : 600 0.64rem/1 var(--sc-face-code);
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+  cursor         : pointer;
+  transition     : border-color var(--sc-duration-fade) var(--sc-curve-glide), color var(--sc-duration-fade) var(--sc-curve-glide);
+
+  &:hover:not(:disabled) { border-color: var(--sc-run); }
+
+  &:disabled {
+    color   : var(--sc-quiet);
+    opacity : 0.7;
+    cursor  : default;
+  }
+
+  &[aria-pressed='true'] {
+    border-color : var(--sc-run);
+    background   : var(--sc-tint);
+  }
+
+  [data-group='run'] & { border-color: color-mix(in srgb, var(--sc-run) 45%, var(--sc-rule)); }
+}
+
+.sc-viewer-key {
+  display        : inline-grid;
+  place-items    : center;
+  min-width      : 22px;
+  height         : 20px;
+  padding        : 0 5px;
+  border-radius  : 4px;
+  background     : var(--sc-side);
+  box-shadow     : inset 0 0 0 1px var(--sc-rule), inset 0 -1px 0 var(--sc-rule);
+  color          : var(--sc-ink);
+  font           : 500 0.64rem/1 var(--sc-face-code);
+  letter-spacing : 0;
+  text-transform : none;
+}
+
+@media (width < 40rem) {
+  .sc-viewer-controls {
+    display       : grid;
+    gap           : 6px;
+    width         : 100%;
+    padding       : 4px;
+    border-radius : 24px;
+  }
+
+  .sc-viewer-group { gap: 4px; }
+
+  .sc-viewer-control {
+    flex            : 1 1 auto;
+    justify-content : space-between;
+    gap             : 6px;
+    padding-inline  : 8px 4px;
+  }
+
+  .sc-viewer-key { display: none; }
+}

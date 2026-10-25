@@ -94,9 +94,10 @@ def counted(
 def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path]:
     """
     Builds a writer that lays out a checkout under `tmp_path` holding the
-    mark and the lockup, the bibliography, a README holding the markers of
-    its badges and its install steps, each page it is given, and the three
-    example lines, and registers the answer git gives for the Markdown files
+    mark and the lockup, the bibliography, a README holding the markers
+    of its badges and its install steps, each page it is given, and every
+    example line, each the demo game but the Viewer's, which takes the game
+    it opens on, and registers the answer git gives for the Markdown files
     it tracks, the pages the writer was given.
     """
 
@@ -118,8 +119,11 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
         (docs / "references.bib").write_text("")
         (docs / "public" / "games").mkdir(parents=True)
 
-        for name in ("demo", "front", "methods"):
-            copyfile(known / "demo.pgn", docs / "public" / "games" / f"{name}.pgn")
+        for name in ("demo", "front", "methods", "viewer"):
+            copyfile(
+                known / ("viewer.pgn" if name == "viewer" else "demo.pgn"),
+                docs / "public" / "games" / f"{name}.pgn"
+            )
 
         for name, text in pages.items():
             (path := docs / "pages" / name).parent.mkdir(
@@ -156,8 +160,9 @@ def project() -> Project:
 @fixture
 def tally(archive: Callable[..., Archive]) -> Tally:
     """
-    Builds a tally of ten games over two decades, the moves counted up to
-    move 3, in the order `Census.store` lists the results.
+    Builds a tally of ten games over two decades holding 640 positions,
+    the moves counted up to move 3, in the order `Census.store` lists the
+    results.
     """
     return Tally(
         eras = [
@@ -168,7 +173,8 @@ def tally(archive: Callable[..., Archive]) -> Tally:
             archive(4, "Morphy", {"1850": 4}),
             archive(6, "Kasparov", {"1990": 6})
         ],
-        games   = 10,
-        moves   = [[0, 0, 1, 0], [0, 1, 0, 1], [0, 1, 1, 1], [0, 0, 1, 3]],
-        results = ["*", "0-1", "1-0", "1/2-1/2"]
+        games     = 10,
+        moves     = [[0, 0, 1, 0], [0, 1, 0, 1], [0, 1, 1, 1], [0, 0, 1, 3]],
+        positions = 640,
+        results   = ["*", "0-1", "1-0", "1/2-1/2"]
     )

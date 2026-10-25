@@ -128,7 +128,8 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     """
     What the longest-run rule leaves out over a sample of stored games, each
     matched against every other stored game save those holding its whole
-    mainline, beside the counts of the index the sample is drawn from.
+    mainline, beside the count of the distinct keys of the index the sample
+    is drawn from.
     """
 
     accidents: float
@@ -158,12 +159,6 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     """
     The count of sampled games some other stored game, save one holding the
     whole mainline, shares a position with.
-    """
-
-    positions: NonNegativeInt
-    """
-    The count of positions the index holds, one for each position of each
-    stored game.
     """
 
     sample: NonNegativeInt
@@ -200,7 +195,6 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                 f"{float(f'{1 / self.accidents:.2g}'):,.0f}" if self.accidents else "",
             "crowd"     : f"{self.crowd:,}",
             "keys"      : f"{self.keys:,}",
-            "positions" : f"{self.positions:,}",
             "sample"    : f"{self.sample:,}",
             **{
                 name: f"{count / self.matched:.0%}" if self.matched else ""
@@ -216,7 +210,8 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
 class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     The stored games counted by how many moves they play, by result and by
-    decade, and by the file holding them, as `Census.store` counts them.
+    decade, and by the file holding them, beside the positions the index
+    holds, as `Census.store` counts them.
     """
 
     eras: list[Era]
@@ -238,6 +233,12 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     """
     For each number of moves from 0, the count of the games playing it that
     end in each result, in the order `results` names them.
+    """
+
+    positions: NonNegativeInt
+    """
+    The count of positions the index holds, one for each position of each
+    stored game.
     """
 
     results: list[str]
@@ -297,14 +298,15 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     @property
     def figures(self) -> dict[str, str]:
         """
-        Writes each figure the Data pages set inside their sentences,
-        meaning the count of every stored game, the earliest decade one
-        was played in, the median of the moves the games of each decade,
-        every game, the drawn games, and White's wins play, the most and
-        the fewest games one file holds, the share of the games played from
-        1980 on beside that year, and the count of undated games, a median
-        being the fewest moves at least half the games it counts end by. The
-        earliest decade is empty where no game is dated.
+        Writes each figure the pages set inside their sentences from the
+        store, meaning the count of every stored game and of the positions
+        the index holds, the earliest decade one was played in, the median
+        of the moves the games of each decade, every game, the drawn games,
+        and White's wins play, the most and the fewest games one file holds,
+        the share of the games played from 1980 on beside that year, and
+        the count of undated games, a median being the fewest moves at least
+        half the games it counts end by. The earliest decade is empty where
+        no game is dated.
         """
         sizes  = [file.games for file in self.files]
         since  = 1980
@@ -317,6 +319,7 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
             "games"        : f"{self.games:,}",
             "largest"      : f"{max(sizes):,}",
             "median"       : str(ended([sum(counts) for counts in self.moves], 0.5)),
+            "positions"    : f"{self.positions:,}",
             "recent"       : f"{recent / self.games:.0%}",
             "recent-from"  : str(since),
             "smallest"     : f"{min(sizes):,}",
