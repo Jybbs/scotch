@@ -4,7 +4,8 @@ game the index matches it to, and the `Showing` of that match, with a
 `Shown` for each of its two games, which `scotch render docs` writes out
 as the JSON the front page, the Methods page, and the link cards read,
 and reads for the example run and the figures the pages set inside their
-sentences.
+sentences. An `Example` also exports its match as the match file the Viewer
+opens on.
 """
 
 from pathlib  import Path
@@ -13,7 +14,7 @@ from pydantic import BaseModel, Field, NonNegativeInt
 from typing   import Annotated, Self
 
 from scotch.games.schemas import Frame, Game
-from scotch.index.schemas import Span
+from scotch.index.schemas import Export, Span
 from scotch.index.tables  import PositionIndex
 
 
@@ -168,3 +169,13 @@ class Example(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             submitted = Shown.from_game(submitted, self.shown),
             summary   = match.summary
         )
+
+    def exported(self, root: Path, index: PositionIndex | None = None) -> Export:
+        """
+        Reads the example's first game under `root` beside the stored game
+        `index` matches it to, as the Viewer reads a match, or the game
+        alone where no index is given.
+        """
+        submitted = Game.first(root / self.path)
+
+        return Export.from_match(index.match(submitted) if index else None, submitted)

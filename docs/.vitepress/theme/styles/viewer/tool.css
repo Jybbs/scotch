@@ -1,0 +1,132 @@
+.sc-viewer {
+  --sc-viewer-pitch     : 33px;
+  --sc-viewer-caption   : 26px;
+  --sc-viewer-shade     : light-dark(color-mix(in srgb, var(--sc-dark) 35%, transparent), color-mix(in srgb, var(--sc-dark) 70%, transparent));
+  display               : grid;
+  grid-template-columns : minmax(0, 1fr);
+  gap                   : 20px;
+  width                 : calc(100% - 48px);
+  max-width             : 94rem;
+  min-width             : 0;
+  margin                : 24px auto 0;
+  outline               : none;
+  color                 : var(--sc-ink);
+}
+
+.sc-viewer [data-game='submitted'] { --sc-viewer-game: var(--sc-submitted); }
+
+.sc-viewer [data-game='stored'] { --sc-viewer-game: var(--sc-stored); }
+
+.sc-viewer-hidden {
+  position    : absolute;
+  width       : 1px;
+  height      : 1px;
+  overflow    : hidden;
+  clip-path   : inset(50%);
+  white-space : nowrap;
+}
+
+.sc-viewer-icon {
+  display         : block;
+  width           : 14px;
+  height          : 14px;
+  fill            : none;
+  stroke          : currentColor;
+  stroke-width    : 1.7;
+  stroke-linecap  : round;
+  stroke-linejoin : round;
+}
+
+.sc-viewer-kicker {
+  display        : inline-flex;
+  align-items    : center;
+  gap            : 7px;
+  margin         : 0;
+  color          : var(--sc-quiet);
+  font           : 500 0.64rem/16px var(--sc-face-code);
+  letter-spacing : 0.12em;
+  text-transform : uppercase;
+}
+
+.sc-viewer-chip {
+  display        : inline-flex;
+  align-items    : center;
+  gap            : 7px;
+  height         : 34px;
+  padding        : 0 13px;
+  border         : 1px solid var(--sc-rule);
+  border-radius  : 999px;
+  background     : var(--sc-raised);
+  color          : var(--sc-ink);
+  font           : 600 0.64rem/1 var(--sc-face-code);
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+  white-space    : nowrap;
+  cursor         : pointer;
+  transition     : border-color var(--sc-duration-fade) var(--sc-curve-glide), background-color var(--sc-duration-fade) var(--sc-curve-glide);
+
+  &:has(.sc-viewer-icon) { padding-left: 11px; }
+
+  &:hover { border-color: var(--sc-run); }
+
+  &[aria-pressed='true'] {
+    border-color : var(--sc-run);
+    background   : var(--sc-tint);
+    box-shadow   : inset 0 0 0 1px var(--sc-run);
+  }
+}
+
+:is(.sc-viewer-chip, .sc-viewer-control, .sc-viewer-copy-field, .sc-viewer-differing, .sc-viewer-move, .sc-viewer-track):focus-visible {
+  outline        : 2px solid var(--sc-run);
+  outline-offset : 2px;
+}
+
+.sc-viewer-colophon {
+  display         : flex;
+  justify-content : center;
+  width           : fit-content;
+  margin          : 36px auto 40px;
+  padding         : 14px 8px 0;
+  border-top      : 1px solid var(--sc-rule);
+}
+
+.sc-viewer-stat {
+  display        : grid;
+  justify-items  : center;
+  gap            : 2px;
+  min-width      : 7.5rem;
+  padding-inline : 12px;
+
+  & dd {
+    order                : -1;
+    margin               : 0;
+    color                : var(--sc-ink);
+    font                 : 500 0.94rem/20px var(--sc-face-code);
+    font-variant-numeric : tabular-nums;
+  }
+
+  & dt {
+    color          : var(--sc-quiet);
+    font           : 500 0.62rem/16px var(--sc-face-code);
+    letter-spacing : 0.14em;
+    text-transform : uppercase;
+  }
+}
+
+@media (width < 40rem) {
+  .sc-viewer {
+    gap        : 14px;
+    width      : calc(100% - 32px);
+    margin-top : 16px;
+  }
+
+  .sc-viewer-colophon {
+    display               : grid;
+    grid-template-columns : repeat(2, minmax(0, 1fr));
+    row-gap               : 14px;
+    width                 : 100%;
+    margin-top            : 28px;
+  }
+
+  .sc-viewer-stat { min-width: 0; }
+}

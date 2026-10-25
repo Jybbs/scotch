@@ -1,7 +1,7 @@
 """
 Holds the records a match travels in, meaning the `Span` of positions two
-games share, the `Match` a `PositionIndex` finds for a submitted game, and
-the `Export` that `scotch match game --json` writes for the site's viewer,
+games share, the `Match` a `PositionIndex` finds for a submitted game,
+and the `Export` that `scotch match game --json` writes for the Viewer,
 beside the `Table` each of the index's Parquet tables is declared as, the
 declarations `GAMES` and `POSITIONS` that `TABLES` lists, `ROWS`, the schema
 of the games `PositionIndex.rows` lays out before the index numbers them,
@@ -135,7 +135,7 @@ TABLES = (GAMES, POSITIONS)
 
 class Side(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    One game of a match as the site's viewer reads it.
+    One game of a match as the Viewer reads it.
     """
 
     headers: dict[str, str]
@@ -269,8 +269,8 @@ class Match(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
 
 class Export(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    A submitted game beside the stored game it matched, as the site's viewer
-    reads it from JSON.
+    A submitted game beside the stored game it matched, as the Viewer reads
+    it from JSON.
     """
 
     submitted: Side
@@ -290,11 +290,18 @@ class Export(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     the submitted game.
     """
 
+    ties: NonNegativeInt = 0
+    """
+    The count of other stored games sharing a run as long as the stored
+    game's, 0 where none does or where no stored game shares a position.
+    """
+
     @classmethod
     def from_match(cls, match: Match | None, submitted: Game) -> Self:
         """
-        Reads `submitted` and the stored game `match` holds, leaving the
-        stored side and the span empty where `match` is `None`.
+        Reads `submitted` and the stored game `match` holds beside the games
+        tied with it, leaving the stored side and the span empty and the
+        ties at 0 where `match` is `None`.
         """
         if match is None:
             return cls(submitted=Side.from_game(submitted))
@@ -302,5 +309,6 @@ class Export(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         return cls(
             span      = match.span,
             stored    = Side.from_game(match.game),
-            submitted = Side.from_game(submitted)
+            submitted = Side.from_game(submitted),
+            ties      = match.ties
         )

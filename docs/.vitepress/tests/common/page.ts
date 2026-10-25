@@ -25,6 +25,10 @@ export function context(): CanvasRenderingContext2D {
     clearRect    : vi.fn<() => void>(),
     clip         : vi.fn<() => void>(),
     drawImage    : vi.fn<() => void>(),
+    fillRect     : vi.fn<() => void>(),
+    fillStyle    : '',
+    fillText     : vi.fn<() => void>(),
+    font         : '',
     globalAlpha  : 1,
     lineWidth    : 1,
     rect         : vi.fn<() => void>(),
@@ -33,7 +37,8 @@ export function context(): CanvasRenderingContext2D {
     scale        : vi.fn<() => void>(),
     setTransform : vi.fn<() => void>(),
     stroke       : vi.fn<() => void>(),
-    strokeStyle  : ''
+    strokeStyle  : '',
+    textBaseline : 'alphabetic'
   } as unknown as CanvasRenderingContext2D
 }
 

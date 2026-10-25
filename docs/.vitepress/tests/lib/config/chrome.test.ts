@@ -7,15 +7,22 @@ describe('FOOTER', () => {
   const message = FOOTER.message ?? ''
 
   it.each([
-    ['MIT license', 'https://opensource.org/license/mit'],
+    ['MIT Licensed', 'https://opensource.org/license/mit'],
     ['SIL Open Font License', 'https://openfontlicense.org'],
     ['3-clause BSD license', 'https://commons.wikimedia.org/wiki/File:Chess_klt45.svg']
-  ])('links the %s to its text', (license, address) => {
+  ])('links %s to its license', (license, address) => {
     expect(message).toContain(`<a href="${address}">${license}</a>`)
   })
 
-  it('credits the pieces to Cburnett', () => {
-    expect(message).toContain('drawn by Cburnett')
+  it('reads as one line of three parts, the code, the faces, and the pieces by Cburnett', () => {
+    expect(message.replaceAll(/<[^>]+>/gu, '')).toBe(
+        'MIT Licensed · faces under the SIL Open Font License · '
+      + 'pieces by Cburnett under the 3-clause BSD license'
+    )
+  })
+
+  it('links no file on GitHub', () => {
+    expect(message).not.toMatch(/github\.com/u)
   })
 
   it('reads as prose once its tags are left out', () => {

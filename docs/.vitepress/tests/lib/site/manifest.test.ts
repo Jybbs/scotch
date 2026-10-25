@@ -1,10 +1,30 @@
+import { execFileSync }  from 'node:child_process'
 import path              from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import { describe, expect } from 'vitest'
 
-import { projectFacts }   from '../../../lib/site/manifest.ts'
-import { MANIFEST, test } from '../../common/repo.ts'
+import { commitOf, projectFacts } from '../../../lib/site/manifest.ts'
+import { MANIFEST, test }         from '../../common/repo.ts'
+
+describe('commitOf', () => {
+  test('reads the commit GitHub Actions names, as its first seven digits', ({ repo }) => {
+    expect(commitOf(repo.metaUrl, { GITHUB_SHA: '0123456789abcdef' })).toBe('0123456')
+  })
+
+  test('reads the commit git checks out where no workflow names one', ({ repo }) => {
+    const git = (...args: string[]): string =>
+      execFileSync('git', ['-C', repo.root, ...args], { encoding: 'utf8' }).trim()
+    git('init', '--quiet')
+    git('-c', 'user.name=Scotch', '-c', 'user.email=scotch@example.org', '-c', 'commit.gpgsign=false',
+      'commit', '--quiet', '--allow-empty', '--no-verify', '--message', 'Opens the history')
+    expect(commitOf(repo.metaUrl, {})).toBe(git('rev-parse', '--short=7', 'HEAD'))
+  })
+
+  test('reads no commit where neither knows one, as in an export of the repository', ({ repo }) => {
+    expect(commitOf(repo.metaUrl, {})).toBeUndefined()
+  })
+})
 
 describe('projectFacts', () => {
   test('reads the description, the homepage and its host, the version, and the coverage gate', ({ repo }) => {

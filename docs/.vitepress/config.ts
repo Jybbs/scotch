@@ -25,7 +25,7 @@ export default defineConfig({
   srcDir            : paths.pagesDir(import.meta.url),
   title             : TITLE,
   transformHead     : context => head.pageHead(facts, context.pageData, TITLE),
-  transformPageData : pageData,
+  transformPageData : (page, context) => pageData(page, context, import.meta.url),
 
   themeConfig: {
     footer    : FOOTER,

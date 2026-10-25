@@ -2,7 +2,8 @@
 Pins the `Showing` an `Example` draws for the site's pages from a line of
 moves matched against an index, meaning the run the two games share, the
 next longest run, the move where they part, the frames, tags, and moves of
-the `Shown` each game becomes, and the figures a page names about the match.
+the `Shown` each game becomes, and the figures a page names about the match,
+beside the export of the match an `Example` writes for the Viewer.
 """
 
 from collections.abc import Callable, Iterable
@@ -165,6 +166,26 @@ def test_an_example_a_game_cannot_be_read_from_raises(
         Example(path=Path("line.pgn"), shown=0).drawn(index, tmp_path)
 
 
+def test_an_example_exports_the_match_the_viewer_reads(
+    index : PositionIndex,
+    known : Path
+):
+    """
+    Asserts that the demo game exports beside Kasparov–Sosonko and the run
+    the two share where an index is given, and alone, with no span and no
+    stored game, where none is.
+    """
+    example = Example(path=Path("demo.pgn"), shown=0)
+    matched = example.exported(known, index)
+    alone   = example.exported(known)
+
+    assert matched.span == Span(length=43, offset=0, start=0)
+    assert matched.stored is not None
+    assert matched.stored.headers["White"] == "Kasparov, Gary"
+    assert (alone.span, alone.stored) == (None, None)
+    assert alone.submitted == matched.submitted
+
+
 def test_an_example_no_stored_game_meets_raises(index: PositionIndex, tmp_path: Path):
     """
     Asserts that drawing a line sharing no position with any stored game
@@ -212,3 +233,20 @@ def test_the_next_run_leaves_out_every_run_of_the_matched_game(
     drawn = Example(path=Path(path.name), shown=0).drawn(index, path.parent)
 
     assert (drawn.span.length, drawn.next) == (8, 1)
+
+
+def test_the_viewers_example_meets_kasparov_sosonko_by_another_move_order(
+    index : PositionIndex,
+    known : Path
+):
+    """
+    Asserts that the example the Viewer opens on, which reaches the demo
+    game's position after `4...Bb4` through `1. Nf3 Nf6 2. c4` rather than
+    `1. d4`, meets Kasparov–Sosonko at ply 7 and shares the 36 positions
+    from there through ply 42, where the stored game played `22. Bc2`.
+    """
+    exported = Example(path=Path("viewer.pgn"), shown=0).exported(known, index)
+
+    assert exported.span == Span(length=36, offset=0, start=7)
+    assert exported.stored is not None
+    assert exported.stored.moves[42] == "Bc2"

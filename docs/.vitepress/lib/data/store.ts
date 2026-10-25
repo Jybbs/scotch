@@ -35,19 +35,20 @@ export interface Rank {
 }
 
 /**
- * The counts `scotch render docs` reads from the index for the Data pages and
- * the Guide's store page, meaning the games of each decade by length, each
- * fetched file, the count of every stored game, the archives it keeps the most
- * games from, and for each number of moves the games ending in each result
- * `results` names.
+ * The counts `scotch render docs` reads from the index for the Data pages, the
+ * Guide's store page, and the Viewer, meaning the games of each decade by
+ * length, each fetched file, the count of every stored game and of every
+ * position the index holds, the archives it keeps the most games from, and for
+ * each number of moves the games ending in each result `results` names.
  */
 export interface Store {
-  eras    : readonly Era[]
-  files   : readonly Archive[]
-  games   : number
-  largest : readonly Rank[]
-  moves   : readonly (readonly number[])[]
-  results : readonly string[]
+  eras      : readonly Era[]
+  files     : readonly Archive[]
+  games     : number
+  largest   : readonly Rank[]
+  moves     : readonly (readonly number[])[]
+  positions : number
+  results   : readonly string[]
 }
 
 /**

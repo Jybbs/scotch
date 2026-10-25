@@ -38,7 +38,8 @@ def test_an_index_adds_the_files_written_from_it(
     from the index and its census:
 
     - The examples, holding the front page's and the Methods page's alone
-    - The store the Data pages and the store page read
+    - The store the Data pages, the store page, and the Viewer read
+    - The Viewer's match beside the demo game alone
     - The example run the README and the Guide carry, naming the stored game
       the demo line meets
     - The tables the Data pages and the store page set beneath their
@@ -69,6 +70,7 @@ def test_an_index_adds_the_files_written_from_it(
     assert [(type(output), str(output.path)) for output in measured] == [
         (Document, "docs/.vitepress/lib/rendered/examples.json"),
         (Document, "docs/.vitepress/lib/rendered/store.json"),
+        (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
         (Region, "docs/pages/guide/index.md"),
         (Region, "docs/pages/data/index.md"),
@@ -93,6 +95,11 @@ def test_an_index_adds_the_files_written_from_it(
     assert list(
         loads((root / "docs/.vitepress/lib/rendered/examples.json").read_text())
     ) == ["front", "methods"]
+
+    viewer = loads((root / "docs/.vitepress/lib/rendered/viewer.json").read_text())
+
+    assert (viewer["alone"]["span"], viewer["alone"]["stored"]) == (None, None)
+    assert viewer["match"]["stored"]["headers"]["White"] == "Kasparov, Gary"
     assert text["guide/index.md"].startswith(
         "<!-- example -->\n```bash\nscotch match game"
         " docs/public/games/demo.pgn\n```\n\n```text\n"

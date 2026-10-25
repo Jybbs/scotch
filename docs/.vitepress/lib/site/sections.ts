@@ -10,7 +10,8 @@ export type Section = (typeof SECTIONS)[number]
 export const SECTIONS = [
   { color: 'series_1', label: 'Data',    slug: 'data'    },
   { color: 'series_4', label: 'Guide',   slug: 'guide'   },
-  { color: 'series_5', label: 'Methods', slug: 'methods' }
+  { color: 'series_5', label: 'Methods', slug: 'methods' },
+  { color: 'series_6', label: 'Viewer',  slug: 'viewer'  }
 ] as const satisfies readonly { color: Token, label: string, slug: string }[]
 
 /**

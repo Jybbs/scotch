@@ -1,4 +1,4 @@
-import * as tokens                          from '../identity/tokens.ts'
+import { resolved }                         from '../identity/scheme.ts'
 import * as colors                          from './colors.ts'
 import { ovalOf }                           from './example.ts'
 import { type Plan, layout, pads }          from './layout.ts'
@@ -36,23 +36,6 @@ async function bitmapsOf(
     return [painter.bitmapKey(layer, kind, size), bitmap] as const
   }))
   return new Map(entries)
-}
-
-/**
- * Resolves each color the backdrop paints in to the value its custom property
- * computes to under `element`, through a probe whose `color` reads it, since a
- * custom property's own computed value keeps the `var()` and `light-dark()` it
- * was written with.
- */
-function paletteOf(element: HTMLElement): colors.Palette {
-  const probe = document.createElement('i')
-  element.append(probe)
-  const palette = Object.fromEntries(Object.entries(colors.PAINTS).map(([color, name]) => {
-    probe.style.color = `var(${tokens.propertyOf(name)})`
-    return [color, getComputedStyle(probe).color]
-  })) as colors.Palette
-  probe.remove()
-  return palette
 }
 
 /**
@@ -197,7 +180,7 @@ export class View {
     const plan = this.scene.plan
     if (!plan) return false
     const version = ++this.version
-    const palette = paletteOf(root)
+    const palette = resolved(root, colors.PAINTS)
     const bitmaps = await bitmapsOf(dark, palette, plan)
     if (version !== this.version) return false
     this.drawings = {

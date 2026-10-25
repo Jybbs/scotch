@@ -91,9 +91,9 @@ class Faces(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
 
 class Palette(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The palette named Walnut, drawn from a wooden club board in walnut and
-    a light wood, with the brass of a clock's case among its series, each
-    series color in the order a chart takes them.
+    The palette named Walnut, drawn from a wooden club board in walnut and a
+    light wood, with the brass of a clock's case among its series, the first
+    five series colors in the order a chart takes them.
     """
 
     critical: Color = Color(hex="#c43e47", name="Brick Red")
@@ -145,6 +145,12 @@ class Palette(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     series_5: Color = Color(hex="#1e7634", name="Forest Green")
     """
     The fifth series color.
+    """
+
+    series_6: Color = Color(hex="#a738a2", name="Red Violet")
+    """
+    The sixth series color, the Viewer section's own, which no chart's
+    series order takes.
     """
 
     warning: Color = Color(hex="#f48241", name="Mandarin Pearl")

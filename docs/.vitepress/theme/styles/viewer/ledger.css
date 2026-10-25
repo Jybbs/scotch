@@ -1,0 +1,187 @@
+.sc-viewer-ledger {
+  --sc-viewer-gut    : 40px;
+  display            : grid;
+  grid-template-rows : minmax(0, 1fr) var(--sc-viewer-caption);
+  gap                : 10px;
+  min-width          : 0;
+  min-height         : 0;
+  height             : 100%;
+}
+
+.sc-viewer-ledger-box {
+  position            : relative;
+  min-height          : 0;
+  overflow-y          : auto;
+  border-top          : 2px solid var(--sc-ink);
+  scrollbar-width     : thin;
+  overscroll-behavior : contain;
+}
+
+.sc-viewer-rows { position: relative; }
+
+.sc-viewer-row {
+  display               : grid;
+  grid-template-columns : 2.1rem minmax(0, 1fr) minmax(0, 1fr) var(--sc-viewer-gut) 2.1rem minmax(0, 1fr) minmax(0, 1fr);
+  height                : var(--sc-viewer-pitch);
+  border-bottom         : 1px solid color-mix(in srgb, var(--sc-rule) 70%, transparent);
+
+  &[data-at] {
+    background : color-mix(in srgb, var(--sc-run) 18%, var(--sc-page));
+    box-shadow : inset 2px 0 0 var(--sc-ink);
+  }
+}
+
+.sc-viewer-no {
+  padding              : 0 4px;
+  color                : var(--sc-quiet);
+  font                 : 500 0.7rem/calc(var(--sc-viewer-pitch) - 1px) var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+  text-align           : right;
+}
+
+.sc-viewer-cell { min-width: 0; }
+
+.sc-viewer-move {
+  position        : relative;
+  display         : flex;
+  align-items     : center;
+  justify-content : space-between;
+  gap             : 6px;
+  width           : 100%;
+  height          : calc(var(--sc-viewer-pitch) - 1px);
+  padding         : 0 6px;
+  border          : 0;
+  background      : none;
+  color           : var(--sc-ink);
+  font            : 500 0.8rem/1 var(--sc-face-code);
+  text-align      : left;
+  cursor          : pointer;
+  transition      : background-color var(--sc-duration-fade) var(--sc-curve-glide);
+
+  &:hover { background: var(--sc-tint); }
+
+  &[aria-current='step'] {
+    background : var(--sc-ink);
+    color      : var(--sc-page);
+  }
+
+  &[data-twin] {
+    outline        : 1.5px dashed var(--sc-run);
+    outline-offset : -3px;
+  }
+
+  &[aria-current='step'][data-twin] { outline-color: var(--sc-page); }
+}
+
+.sc-viewer-san {
+  min-width : 0;
+  overflow  : hidden;
+}
+
+.sc-viewer-tag {
+  flex          : none;
+  width         : 7px;
+  height        : 7px;
+  border-radius : 1px;
+  background    : var(--sc-run);
+  font-size     : 0;
+  rotate        : 45deg;
+
+  [aria-current='step'] & { background: var(--sc-page); }
+}
+
+.sc-viewer-none {
+  max-width    : none;
+  margin       : 14px 0 0;
+  padding-left : calc(50% + 12px);
+  color        : var(--sc-quiet);
+  font         : italic 400 0.9rem/20px var(--sc-face-body);
+}
+
+.sc-viewer-threads {
+  position       : absolute;
+  top            : 0;
+  left           : 0;
+  z-index        : 1;
+  overflow       : visible;
+  pointer-events : none;
+}
+
+.sc-viewer-thread {
+  fill           : none;
+  stroke         : var(--sc-viewer-game);
+  stroke-width   : 2;
+  stroke-linecap : round;
+}
+
+.sc-viewer-bar { fill: var(--sc-run); }
+
+.sc-viewer-ring-at {
+  will-change : transform;
+  transition  : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+
+  & circle {
+    fill         : var(--sc-raised);
+    stroke       : var(--sc-ink);
+    stroke-width : 2;
+  }
+
+  .sc-viewer-gliding & {
+    transition : transform var(--sc-viewer-step, var(--sc-duration-glide)) var(--sc-curve-glide), opacity var(--sc-duration-fade) var(--sc-curve-glide);
+  }
+}
+
+.sc-viewer-sign {
+  display     : grid;
+  place-items : center;
+  color       : var(--sc-quiet);
+
+  & svg {
+    display        : block;
+    width          : 20px;
+    height         : 20px;
+    fill           : none;
+    stroke         : currentColor;
+    stroke-width   : 2.2;
+    stroke-linecap : round;
+  }
+
+  .sc-viewer[data-shared='yes'] & { color: var(--sc-run); }
+
+  .sc-viewer[data-matched='no'] & { visibility: hidden; }
+}
+
+.sc-viewer-differ {
+  transform-origin : 14px 14px;
+  transition       : opacity var(--sc-duration-settle) var(--sc-curve-glide), scale var(--sc-duration-settle) var(--sc-curve-glide);
+
+  .sc-viewer[data-shared='yes'] & {
+    opacity : 0;
+    scale   : 0.4;
+  }
+}
+
+@media (width < 60rem) {
+  .sc-viewer-ledger { grid-template-rows: var(--sc-viewer-caption) minmax(0, 1fr); }
+
+  .sc-viewer-sign { order: -1; }
+}
+
+@media (width < 40rem) {
+  .sc-viewer-row { grid-template-columns: 1.7rem minmax(0, 1fr) minmax(0, 1fr) var(--sc-viewer-gut) 1.7rem minmax(0, 1fr) minmax(0, 1fr); }
+
+  .sc-viewer-move {
+    padding   : 0 4px;
+    font-size : 0.7rem;
+  }
+
+  .sc-viewer-no {
+    padding-inline : 2px;
+    font-size      : 0.6rem;
+  }
+
+  .sc-viewer-sign svg {
+    width  : 22px;
+    height : 22px;
+  }
+}

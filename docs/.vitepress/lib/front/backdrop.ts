@@ -4,39 +4,15 @@ import {
   useDocumentVisibility,
   useElementVisibility,
   useEventListener,
-  useMutationObserver,
   usePreferredReducedMotion,
   useRafFn,
   useResizeObserver
 } from '@vueuse/core'
-import { type Ref, computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { type Ref, computed, onBeforeUnmount, onMounted, watch } from 'vue'
 
+import { useDark }       from '../identity/scheme.ts'
 import type { Pointing } from './scene.ts'
 import { View }          from './view.ts'
-
-/**
- * Reads whether the root element carries the `dark` class the site's appearance
- * switch sets.
- */
-function darkened(): boolean {
-  return document.documentElement.classList.contains('dark')
-}
-
-/**
- * Follows whether the root element carries the `dark` class from the moment the
- * page mounts and through each change to its classes, so a color read after a
- * change reads the scheme the page now shows.
- */
-function useDark(): Ref<boolean> {
-  const dark = shallowRef(false)
-  onMounted(() => {
-    dark.value = darkened()
-  })
-  useMutationObserver(defaultDocument?.documentElement, () => {
-    dark.value = darkened()
-  }, { attributeFilter: ['class'] })
-  return dark
-}
 
 /**
  * Passes the page's scrolling and every pointer event to the backdrop, drawing

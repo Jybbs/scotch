@@ -1,0 +1,64 @@
+.sc-viewer-track {
+  display               : grid;
+  grid-template-columns : 9px minmax(0, 1fr);
+  column-gap            : 10px;
+  min-width             : 0;
+  border-radius         : 6px;
+  cursor                : pointer;
+  touch-action          : pan-x;
+}
+
+.sc-viewer-track-swatches {
+  position : relative;
+
+  & span {
+    position : absolute;
+    top      : calc(var(--sc-viewer-middle) - 4px);
+    right    : 0;
+    display  : flex;
+  }
+
+  & span::before {
+    content       : '';
+    flex          : none;
+    width         : 9px;
+    height        : 9px;
+    border-radius : 2px;
+    background    : var(--sc-viewer-game);
+  }
+
+  .sc-viewer[data-matched='no'] & [data-game='stored'] { display: none; }
+}
+
+.sc-viewer-track-scroll {
+  position            : relative;
+  min-width           : 0;
+  overflow-x          : auto;
+  overflow-y          : hidden;
+  scrollbar-width     : thin;
+  overscroll-behavior : contain;
+  mask-image          : linear-gradient(90deg, transparent, var(--sc-ink) 20px, var(--sc-ink) calc(100% - 20px), transparent);
+}
+
+.sc-viewer-track-area { position: relative; }
+
+.sc-viewer-track-canvas { display: block; }
+
+.sc-viewer-track-head {
+  position       : absolute;
+  left           : 0;
+  border-radius  : 5px;
+  box-shadow     : 0 0 0 2px var(--sc-ink);
+  pointer-events : none;
+  will-change    : transform;
+
+  &.sc-viewer-gliding { transition: transform var(--sc-viewer-step, var(--sc-duration-glide)) var(--sc-curve-glide); }
+}
+
+@media (width < 40rem) {
+  .sc-viewer-track {
+    grid-template-columns : minmax(0, 1fr);
+
+    & .sc-viewer-track-swatches { display: none; }
+  }
+}

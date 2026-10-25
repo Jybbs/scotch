@@ -10,9 +10,10 @@ const PLAYERS = 'https://www.pgnmentor.com/players/'
  * whose results run in the order the index lists them.
  */
 export const SAMPLE_STORE: Store = {
-  games   : 26,
-  moves   : [[0, 1, 1, 0], [1, 0, 2, 1], [0, 1, 1, 2], [0, 2, 0, 1], [0, 1, 1, 1]],
-  results : ['*', '0-1', '1-0', '1/2-1/2'],
+  games     : 26,
+  moves     : [[0, 1, 1, 0], [1, 0, 2, 1], [0, 1, 1, 2], [0, 2, 0, 1], [0, 1, 1, 1]],
+  positions : 1820,
+  results   : ['*', '0-1', '1-0', '1/2-1/2'],
 
   eras: [
     { decade: 1840, moves: [0, 1, 1], name: '1840s' },

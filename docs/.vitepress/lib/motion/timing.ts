@@ -64,3 +64,18 @@ export function smoother(share: number): number {
   const value = clamp(share, 0, 1)
   return value * value * value * (value * (6 * value - 15) + 10)
 }
+
+/**
+ * Solves the smootherstep for the share of its time at which it reaches a share
+ * of its way, by bisection, since the smootherstep rises over the whole of it.
+ */
+export function unsmoother(reached: number): number {
+  let low  = 0
+  let high = 1
+  for (let step = 0; step < 24; step++) {
+    const middle = (low + high) / 2
+    if (smoother(middle) < reached) low = middle
+    else high = middle
+  }
+  return (low + high) / 2
+}

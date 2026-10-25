@@ -88,9 +88,7 @@ def test_a_tally_with_no_dated_game_names_no_earliest_decade(tally: Tally):
     assert (figures["earliest"], figures["recent"]) == ("", "0%")
 
 
-def test_a_tally_writes_each_figure_the_data_pages_name(
-    archive: Callable[..., Archive]
-):
+def test_a_tally_writes_each_figure_the_pages_name(archive: Callable[..., Archive]):
     """
     Asserts each figure of a tally of five games whose counts a reader
     checks by hand, a median being the fewest moves at least half the games
@@ -107,9 +105,10 @@ def test_a_tally_writes_each_figure_the_data_pages_name(
             archive(2, "b").model_copy(update={"undated": 1}),
             archive(1, "c")
         ],
-        games   = 5,
-        moves   = [[0, 0, 1], [1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 2, 0]],
-        results = ["0-1", "1-0", "1/2-1/2"]
+        games     = 5,
+        moves     = [[0, 0, 1], [1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 2, 0]],
+        positions = 30,
+        results   = ["0-1", "1-0", "1/2-1/2"]
     )
 
     assert tally.figures == {
@@ -121,6 +120,7 @@ def test_a_tally_writes_each_figure_the_data_pages_name(
         "median-1870"  : "1",
         "median-1980"  : "3",
         "median-1990"  : "3",
+        "positions"    : "30",
         "recent"       : "60%",
         "recent-from"  : "1980",
         "smallest"     : "1",
@@ -218,7 +218,6 @@ def test_rules_write_each_figure_the_methods_pages_name():
         crowded    = 1,
         keys       = 14000,
         matched    = 4,
-        positions  = 26000,
         sample     = 1000,
         tied       = 4,
         transposed = 2
@@ -229,7 +228,6 @@ def test_rules_write_each_figure_the_methods_pages_name():
         "crowd"      : "100",
         "crowded"    : "25%",
         "keys"       : "14,000",
-        "positions"  : "26,000",
         "sample"     : "1,000",
         "tied"       : "100%",
         "transposed" : "50%"
@@ -370,8 +368,7 @@ def test_the_outcomes_table_counts_each_result_within_each_span(tally: Tally):
             {
                 "accidents" : 2.13e-05,
                 "keys"      : 14000,
-                "matched"   : 0,
-                "positions" : 26000
+                "matched"   : 0
             },
             {
                 "accidents"  : "47,000",
@@ -385,8 +382,7 @@ def test_the_outcomes_table_counts_each_result_within_each_span(tally: Tally):
             {
                 "accidents" : 0.0,
                 "keys"      : 1,
-                "matched"   : 0,
-                "positions" : 1
+                "matched"   : 0
             },
             {
                 "accidents"  : "",
