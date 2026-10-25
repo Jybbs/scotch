@@ -107,7 +107,7 @@ def test_a_tally_writes_each_figure_the_pages_name(archive: Callable[..., Archiv
         ],
         games     = 5,
         moves     = [[0, 0, 1], [1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 2, 0]],
-        positions = 30,
+        positions = 26000,
         results   = ["0-1", "1-0", "1/2-1/2"]
     )
 
@@ -120,7 +120,7 @@ def test_a_tally_writes_each_figure_the_pages_name(archive: Callable[..., Archiv
         "median-1870"  : "1",
         "median-1980"  : "3",
         "median-1990"  : "3",
-        "positions"    : "30",
+        "positions"    : "26,000",
         "recent"       : "60%",
         "recent-from"  : "1980",
         "smallest"     : "1",

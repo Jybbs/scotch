@@ -96,7 +96,8 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
     Builds a writer that lays out a checkout under `tmp_path` holding the
     mark and the lockup, the bibliography, a README holding the markers
     of its badges and its install steps, each page it is given, and every
-    example line, and registers the answer git gives for the Markdown files
+    example line, each the demo game but the Viewer's, which takes the game
+    it opens on, and registers the answer git gives for the Markdown files
     it tracks, the pages the writer was given.
     """
 
@@ -119,7 +120,10 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
         (docs / "public" / "games").mkdir(parents=True)
 
         for name in ("demo", "front", "methods", "viewer"):
-            copyfile(known / "demo.pgn", docs / "public" / "games" / f"{name}.pgn")
+            copyfile(
+                known / ("viewer.pgn" if name == "viewer" else "demo.pgn"),
+                docs / "public" / "games" / f"{name}.pgn"
+            )
 
         for name, text in pages.items():
             (path := docs / "pages" / name).parent.mkdir(

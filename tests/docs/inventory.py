@@ -100,6 +100,9 @@ def test_an_index_adds_the_files_written_from_it(
 
     assert (viewer["alone"]["span"], viewer["alone"]["stored"]) == (None, None)
     assert viewer["match"]["stored"]["headers"]["White"] == "Kasparov, Gary"
+    assert [viewer[name]["submitted"]["moves"][0] for name in ("alone", "match")] == [
+        "d4", "Nf3"
+    ]
     assert text["guide/index.md"].startswith(
         "<!-- example -->\n```bash\nscotch match game"
         " docs/public/games/demo.pgn\n```\n\n```text\n"
