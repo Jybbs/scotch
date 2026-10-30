@@ -140,11 +140,21 @@ def test_node_stops_inside_the_major_of_the_newest_types(
     assert list(NodeTypesCheck(checkout=sample.checkout).scan()) == []
 
 
-def test_a_crate_at_its_newest_release_lifts_nothing(fp: FakeProcess, tree: Tree):
+def test_a_crate_at_its_newest_release_lifts_nothing(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
     """
-    Asserts that a crate whose requirement names the release `cargo search`
-    reports as its newest yields no lift.
+    Asserts that a crate whose requirement names the release `cargo
+    search` reports as its newest yields no lift, an operator opening the
+    requirement included.
     """
+    sample.edit(
+        "rust/Cargo.toml",
+        new = 'shakmaty = "=0.30.2"\n',
+        old = 'shakmaty = "0.30.2"\n'
+    )
     fp.register(
         [
             "mise", "-C", tree.root, "exec", "--",

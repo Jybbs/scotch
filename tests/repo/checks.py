@@ -94,7 +94,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [
                 (
                     ".github/actions/provision/action.yml",
-                    6,
+                    9,
                     "The manifest carries a YAML anchor or alias, which GitHub's "
                     "action-manifest parser rejects"
                 )
@@ -334,8 +334,8 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 (
                     ".github/workflows/ci.yml",
                     None,
-                    "No step saves the tool cache for `python uv zizmor`, which this "
-                    "workflow installs"
+                    "No step saves the tool cache `python uv zizmor`, which this "
+                    "workflow restores"
                 )
             ],
             id = "subset-unsaved"
@@ -344,22 +344,38 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             KitCheck,
             [(".github/workflows/warm.yml", "- python uv", "- zizmor")],
             [
-                *[
-                    (
-                        ".github/workflows/ci.yml",
-                        None,
-                        "No step saves the tool cache for `python uv`, which this "
-                        "workflow installs"
-                    )
-                ] * 3,
                 (
                     ".github/workflows/warm.yml",
                     None,
-                    "No other step installs `zizmor`, whose tool cache this workflow "
-                    "saves"
+                    "No other step restores the tool cache `zizmor`, which this "
+                    "workflow saves"
                 )
             ],
             id = "subset-saved-alone"
+        ),
+        param(
+            KitCheck,
+            [
+                (
+                    ".github/workflows/ci.yml", "shared-key: scotch-python",
+                    "shared-key: scotch-crate"
+                )
+            ],
+            [
+                (
+                    ".github/workflows/ci.yml",
+                    None,
+                    "No step saves the Cargo cache `scotch-crate`, which this "
+                    "workflow restores"
+                ),
+                (
+                    ".github/workflows/warm.yml",
+                    None,
+                    "No other step restores the Cargo cache `scotch-python`, which "
+                    "this workflow saves"
+                )
+            ],
+            id = "cargo-key-unsaved"
         ),
         param(
             LabelCheck,
@@ -955,6 +971,36 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             ],
             [],
             id = "push-filter-glob"
+        ),
+        param(
+            WarmCheck,
+            [(".github/workflows/warm.yml", "      - rust/Cargo.lock\n", "")],
+            [
+                (
+                    ".github/workflows/warm.yml",
+                    None,
+                    "The `push` filter leaves out `rust/Cargo.lock`, which the cache "
+                    "key depends on"
+                )
+            ],
+            id = "push-filter-crate"
+        ),
+        param(
+            WarmCheck,
+            [
+                (
+                    ".github/workflows/warm.yml",
+                    "          shared-key: scotch-python\n",
+                    ""
+                ),
+                (
+                    ".github/workflows/warm.yml",
+                    "      - rust/Cargo.lock\n      - rust/Cargo.toml\n",
+                    ""
+                )
+            ],
+            [],
+            id = "push-filter-tools-alone"
         ),
         param(
             WrapperCheck,

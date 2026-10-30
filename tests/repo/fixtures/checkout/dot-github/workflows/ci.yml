@@ -8,6 +8,7 @@ jobs:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
+          shared-key: ${{ matrix.shared-key }}
           tools: ${{ matrix.tools }}
       - name: Run the task
         run: mise run ${{ matrix.task }}
@@ -18,6 +19,7 @@ jobs:
             task: lock:check
             tools: python uv
           - name: Coverage
+            shared-key: scotch-python
             task: py:coverage
             tools: python uv
   brief:

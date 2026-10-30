@@ -29,6 +29,6 @@ lychee                             = "0.24.2"
 node                               = "26.11.1"
 osv-scanner                        = "2.7.0"
 python                             = "3.15.2"
-rust                               = { components = "clippy,rustfmt", targets = "wasm32-unknown-unknown", version = "1.99.1" }
+rust                               = { components = "clippy,rustfmt", profile = "minimal", targets = "wasm32-unknown-unknown", version = "1.99.1" }
 uv                                 = "0.12.13"
 zizmor                             = "1.30.1"

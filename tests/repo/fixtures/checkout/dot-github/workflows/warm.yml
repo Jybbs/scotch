@@ -13,10 +13,21 @@ jobs:
       matrix:
         tools:
           - python uv
+  cargo:
+    needs: kit
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools and restore the Cargo cache
+        uses: $/.github/actions/provision
+        with:
+          save: 'true'
+          shared-key: scotch-python
+          tools: python uv
   brief:
     if: ${{ always() }}
     name: ⏱️ Brief
     needs:
+      - cargo
       - kit
     runs-on: ubuntu-26.04
     steps:
@@ -30,3 +41,5 @@ on:
       - .github/workflows/warm.yml
       - .mise/config.toml
       - .mise/mise.lock
+      - rust/Cargo.lock
+      - rust/Cargo.toml

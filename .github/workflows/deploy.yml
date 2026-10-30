@@ -27,6 +27,7 @@ jobs:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
+          shared-key: scotch-python
           tools: python rust uv
       - name: Run the suite under coverage
         run: mise run py:coverage

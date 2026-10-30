@@ -7,17 +7,17 @@ import { loadReader } from '../../../lib/games/readers.ts'
 import KEYS           from '../../../lib/rendered/keys.json' with { type: 'json' }
 import { publicDir }  from '../../../lib/site/paths.ts'
 
+const games  = path.join(publicDir(import.meta.url), 'games')
+const keyed: Partial<Record<string, string[]>> = KEYS
 const module = fs.readFileSync(new URL('../../../lib/games/crate/scotch_bg.wasm', import.meta.url))
 const read   = await loadReader(module)
 
-function served(name: string): string {
-  return fs.readFileSync(path.join(publicDir(import.meta.url), 'games', `${name}.pgn`), 'utf8')
-}
-
 describe('loadReader', () => {
-  it.each(Object.entries(KEYS))('keys each position of %s.pgn as the command line keys it', (name, keys) => {
-    const [game] = read(served(name))
-    expect(game?.keys).toEqual(keys.map(BigInt))
+  it.each(fs.readdirSync(games))('keys each position of %s as the command line keys it', file => {
+    const name   = path.parse(file).name
+    const [game] = read(fs.readFileSync(path.join(games, file), 'utf8'))
+    expect(keyed).toHaveProperty([name])
+    expect(game?.keys).toEqual(keyed[name]?.map(BigInt))
   })
 
   it('reads the tags in the order python-chess holds them, its placeholders filling the roster', () => {

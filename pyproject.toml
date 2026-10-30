@@ -124,7 +124,8 @@ cache-keys                    = [
     { file = "pyproject.toml" },
     { file = "rust/Cargo.lock" },
     { file = "rust/Cargo.toml" },
-    { file = "rust/src/**/*.rs" }
+    { file = "rust/src/**/*.rs" },
+    { file = "src/scotch.data/**/*" }
 ]
 python-downloads              = "never"
 python-preference             = "only-system"

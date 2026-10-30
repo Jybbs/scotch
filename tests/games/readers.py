@@ -150,6 +150,7 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
             id = "underpromotion"
         ),
         param("1. e2e4 e7-e5 2. Ng1f3 *\n", id="long-algebraic"),
+        param("1. e4 d5 2. d5 *\n", id="pawn-push-naming-a-capture"),
         param(
             '[FEN "8/P7/8/8/8/8/8/k6K w - - 0 1"]\n\n1. a7a8 *\n',
             id = "missing-promotion-piece"

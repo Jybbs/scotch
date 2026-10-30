@@ -108,9 +108,9 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
 
     errors: tuple[str, ...]
     """
-    The message of each error the reader recorded, worded as python-chess's
-    reader words it, such as a move illegal in the position it was played
-    from.
+    The message of each error the reader recorded, such as a move illegal in
+    the position it was played from, worded as python-chess's reader words it
+    save for a `FEN` tag setting up a position no legal game reaches.
     """
 
     moves: tuple[Move, ...]

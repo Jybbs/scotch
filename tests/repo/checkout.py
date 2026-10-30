@@ -12,7 +12,7 @@ from pytest_subprocess.fake_process import FakeProcess
 from scotch.cli            import app
 from scotch.docs.inventory import Outputs
 from scotch.repo.checkout  import Checkout
-from scotch.repo.schemas   import Step
+from scotch.repo.schemas   import Cache, Step
 
 
 def test_a_step_finds_the_action_its_self_repository_path_names(sample: Sample):
@@ -82,17 +82,15 @@ def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
 
     assert [path.relative_to(root) for path, _ in checkout.steps] == [
         *[Path("workflows/ci.yml")] * 5,
-        *[Path("workflows/warm.yml")] * 3,
+        *[Path("workflows/warm.yml")] * 4,
         Path("actions/provision/action.yml")
     ]
-    assert [(
-        path.name,
-        " ".join(sorted(step.tools))
-    ) for path, step in checkout.provisions] == [
-        ("ci.yml", "python uv"),
-        ("ci.yml", "python uv"),
-        ("ci.yml", "python uv"),
-        ("warm.yml", "python uv")
+    assert [(path.name, step.caches) for path, step in checkout.provisions] == [
+        ("ci.yml", {Cache.TOOLS: "python uv"}),
+        ("ci.yml", {Cache.CARGO: "scotch-python", Cache.TOOLS: "python uv"}),
+        ("ci.yml", {Cache.TOOLS: "python uv"}),
+        ("warm.yml", {Cache.TOOLS: "python uv"}),
+        ("warm.yml", {Cache.CARGO: "scotch-python", Cache.TOOLS: "python uv"})
     ]
 
 

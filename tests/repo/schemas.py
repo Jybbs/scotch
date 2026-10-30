@@ -11,6 +11,7 @@ from pytest        import mark, param, raises
 
 from scotch.repo.schemas import (
     Action,
+    Cache,
     Finding,
     Format,
     Issue,
@@ -341,9 +342,10 @@ def test_a_task_runs_through_its_alias_where_it_has_one(
 
 def test_a_step_reads_the_tasks_tools_and_summary_its_inputs_and_script_name():
     """
-    Asserts that a step reads the tasks its script runs through `mise run`,
-    the tools its `tools` input names as a set, whether it saves the tool
-    cache, and whether its script names the step summary.
+    Asserts that a step reads the tasks its script runs through `mise
+    run`, the tools its `tools` input names as a set, the cache each of
+    its `tools` and `shared-key` inputs names, whether it saves them, and
+    whether its script names the step summary.
     """
     step = Step.model_validate(
         {
@@ -357,10 +359,15 @@ def test_a_step_reads_the_tasks_tools_and_summary_its_inputs_and_script_name():
 
     assert step.tasks == ("lock:check", "py:test")
     assert step.tools == frozenset({"python", "uv"})
+    assert step.caches == {Cache.TOOLS: "python uv"}
     assert step.saves
     assert step.writes_summary
     assert not Step.model_validate({"with": {"save": "false"}}).saves
+    assert Step.model_validate({"with": {"shared-key": "scotch-crate"}}).caches == {
+        Cache.CARGO: "scotch-crate"
+    }
     assert Step().tools == frozenset()
+    assert Step().caches == {}
 
 
 def test_a_step_splits_what_it_uses():
@@ -479,9 +486,10 @@ def test_a_job_reads_whether_it_runs_always(always: bool, condition: str):
 
 def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     """
-    Asserts that a workflow lists, relative to the root, each file and its
-    own file that its `push` filter leaves out, and reads no filter where it
-    fires on no push, matching each pattern of the filter so that:
+    Asserts that a workflow lists each cache its steps save and, relative to
+    the root, each file and its own file that its `push` filter leaves out,
+    and reads no filter where it fires on no push, matching each pattern of
+    the filter so that:
 
     - `*` stops at a `/`
     - A `**` segment spans folders
@@ -491,7 +499,7 @@ def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     warm = Workflow.read(root / ".github" / "workflows" / "warm.yml")
     ci   = Workflow.read(root / ".github" / "workflows" / "ci.yml")
 
-    assert warm.saves
+    assert warm.saved == {Cache.CARGO, Cache.TOOLS}
     assert warm.paths[0] == ".github/actions/provision/action.yml"
     assert warm.unfiltered([root / ".mise" / "config.toml"], root) == []
     assert warm.unfiltered([root / "uv.lock"], root) == [Path("uv.lock")]
@@ -528,7 +536,7 @@ def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
     loads as `True`, a pull request among them, and gives each job its key
     as its id. It also finds the gate, its rows, and the tasks each row runs
     across its matrix, and lists its steps as declared and once for each
-    leg, none of them saving the tool cache.
+    leg, none of them saving a cache.
     """
     workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
 
@@ -540,7 +548,7 @@ def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
         {"lock:check", "py:coverage"}
     )]
     assert workflow.ungated == ()
-    assert not workflow.saves
+    assert workflow.saved == frozenset()
     assert len(workflow.steps) == 5
     assert len(workflow.instances) == 8
 
@@ -564,9 +572,9 @@ def test_an_action_reads_its_inputs_steps_and_anchors(sample: Sample):
     )
     action = Action.read(path)
 
-    assert action.inputs == ("save", "again", "tools")
+    assert action.inputs == ("save", "shared-key", "again", "tools")
     assert action.provisions
-    assert action.anchors == (3, 6)
+    assert action.anchors == (3, 9)
     assert not action.model_copy(update={"steps": ()}).provisions
 
 

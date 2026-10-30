@@ -30,6 +30,16 @@ class Author(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
     """
 
 
+class Cache(StrEnum):
+    """
+    The caches the provisioning action restores, each member's value being
+    the name a finding gives it.
+    """
+
+    CARGO = "Cargo cache"
+    TOOLS = "tool cache"
+
+
 class ConfigFile(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
     """
     A record read out of one configuration file, parsed as TOML unless
@@ -190,107 +200,6 @@ class Script(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
         return cls.model_validate({**loads(content), "path": path})
 
 
-class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
-    """
-    One step of a job or of a composite action.
-    """
-
-    inputs: dict[str, str | int | bool] = Field({}, alias="with")
-    """
-    The inputs the step's `with` block passes the action it uses.
-    """
-
-    run: str = ""
-    """
-    The shell script the step runs.
-    """
-
-    uses: str = ""
-    """
-    The action the step uses, a local path or an owner, a repository, and a
-    ref joined by `@`.
-    """
-
-    @property
-    def action(self) -> str:
-        """
-        Cuts the ref off `uses`, leaving the action it names.
-        """
-        return self.uses.partition("@")[0]
-
-    @property
-    def commands(self) -> tuple[str, ...]:
-        """
-        Lists the command each line of the step's script opens on, such as a
-        task file the script runs by its path.
-        """
-        return tuple(
-            words[0] for line in self.run.splitlines() if (words := line.split())
-        )
-
-    @property
-    def pin(self) -> str:
-        """
-        Cuts the action off `uses`, leaving the ref it is pinned to, empty
-        for a local action.
-        """
-        return self.uses.partition("@")[2]
-
-    @property
-    def saves(self) -> bool:
-        """
-        Reads whether the step passes the provisioning action `save:
-        'true'`, which writes the tool cache back once the install finishes
-        on a cache miss.
-        """
-        return self.inputs.get("save") == "true"
-
-    @property
-    def tasks(self) -> tuple[str, ...]:
-        """
-        Lists the mise tasks the step's script runs through `mise run`.
-        """
-        return tuple(findall(r"\bmise run ([\w:-]+)", self.run))
-
-    @property
-    def tools(self) -> frozenset[str]:
-        """
-        Splits the `tools` input into the tools it names, which
-        `jdx/mise-action` sorts before hashing them into its cache key.
-        """
-        return frozenset(str(self.inputs.get("tools", "")).split())
-
-    @property
-    def wrangler(self) -> str:
-        """
-        Reads the version of Wrangler the step's `wranglerVersion` input
-        names, or an empty text where it passes none.
-        """
-        return str(self.inputs.get("wranglerVersion", ""))
-
-    @property
-    def writes_summary(self) -> bool:
-        """
-        Reads whether the step's script names the workflow step summary.
-        """
-        return "GITHUB_STEP_SUMMARY" in self.run
-
-    def expand(self, leg: Mapping[str, str]) -> Self:
-        """
-        Copies the step with each `${{ matrix.<key> }}` expression in its
-        inputs and its script replaced by the value `leg` holds for that
-        key.
-        """
-        return self.model_copy(
-            update = {
-                "inputs" : {
-                    name: filled(leg, value) for name, value in self.inputs.items()
-                },
-                "run"    : filled(leg, self.run)
-            }
-        )
-
-
 class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
     """
     One task `mise tasks ls --json` lists.
@@ -360,61 +269,6 @@ class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
     """
 
 
-class Action(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
-    """
-    A composite action's manifest, `action.yml` in the action's folder.
-    """
-
-    anchors: tuple[int, ...]
-    """
-    The line of each anchor and alias the manifest carries, counting from
-    one.
-    """
-
-    path: Path
-    """
-    The manifest.
-    """
-
-    inputs: Annotated[tuple[str, ...], BeforeValidator(tuple)] = ()
-    """
-    The name of each input the manifest declares.
-    """
-
-    steps: tuple[Step, ...] = Field(validation_alias=AliasPath("runs", "steps"))
-    """
-    The steps the action runs.
-    """
-
-    @property
-    def provisions(self) -> bool:
-        """
-        Reads whether the action installs tools through `jdx/mise-action`.
-        """
-        return any(step.action == "jdx/mise-action" for step in self.steps)
-
-    @classmethod
-    def read(cls, path: Path) -> Self:
-        """
-        Reads the manifest at `path`, finding each anchor and alias through
-        the tokens `yaml.scan` yields, since a load resolves both before any
-        record holds the result.
-        """
-        text = path.read_text(encoding="utf-8")
-
-        return cls.model_validate(
-            {
-                **load(text, Loader=SafeLoader),
-                "anchors" : tuple(
-                    token.start_mark.line + 1
-                    for token in scan(text, Loader=SafeLoader)
-                    if isinstance(token, AnchorToken | AliasToken)
-                ),
-                "path"    : path
-            }
-        )
-
-
 class Crate(ConfigFile):
     """
     The fields of the crate's `Cargo.toml` the checks compare against the
@@ -434,6 +288,13 @@ class Crate(ConfigFile):
         `=0.2.130`, or `None` where it requires no `wasm-bindgen`.
         """
         return self.requirements.get("wasm-bindgen")
+
+    @property
+    def lockfile(self) -> Path:
+        """
+        Locates `Cargo.lock` beside the manifest.
+        """
+        return self.path.with_name("Cargo.lock")
 
     @property
     def requirements(self) -> dict[str, str]:
@@ -534,127 +395,6 @@ class Issue(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tru
         parentheses after it.
         """
         return f"{self.message} ({self.details})" if self.details else self.message
-
-
-class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
-    """
-    One job of a workflow.
-    """
-
-    id: str
-    """
-    The key the workflow's `jobs` mapping gives the job.
-    """
-
-    condition: str = Field("", alias="if")
-    """
-    The expression the job's `if` runs it under.
-    """
-
-    matrix: dict[str, tuple[str | dict[str, str], ...]] = Field(
-        {},
-        validation_alias = AliasPath("strategy", "matrix")
-    )
-    """
-    The matrix the job's strategy declares, each axis a list of values and
-    `include` a list of legs.
-    """
-
-    name: str = ""
-    """
-    The name GitHub shows for the job and a ruleset's required check names.
-    """
-
-    needs: Annotated[
-        tuple[str, ...],
-        BeforeValidator(lambda needs: (needs,) if isinstance(needs, str) else needs)
-    ] = ()
-    """
-    The jobs the job waits for, whether `needs` names one or a list.
-    """
-
-    runner: str = Field(alias="runs-on")
-    """
-    The runner image the job runs on.
-    """
-
-    steps: tuple[Step, ...] = ()
-    """
-    The steps the job runs.
-    """
-
-    @property
-    def always(self) -> bool:
-        """
-        Reads whether the job runs under `always()`, whether or not its
-        condition is wrapped in `${{ }}`.
-        """
-        return self.condition.strip("${} ") == "always()"
-
-    @property
-    def checks(self) -> tuple[tuple[str, str], ...]:
-        """
-        Pairs the name each leg of the job's matrix reports its check under
-        with each task the leg runs.
-        """
-        return tuple(
-            (filled(leg, self.name), task)
-            for leg in self.legs
-            for step in self.steps
-            for task in step.expand(leg).tasks
-        )
-
-    @property
-    def gate(self) -> bool:
-        """
-        Reads whether the job runs `gha:brief`, the task the `⏱️ Brief` gate
-        runs.
-        """
-        return "gha:brief" in self.tasks
-
-    @property
-    def instances(self) -> tuple[Step, ...]:
-        """
-        Expands each step once for each leg of the job's matrix.
-        """
-        return tuple(step.expand(leg) for leg in self.legs for step in self.steps)
-
-    @property
-    def legs(self) -> tuple[Mapping[str, str], ...]:
-        """
-        Expands the matrix into its legs the way GitHub does, crossing each
-        axis value with every other axis's, then merging each `include`
-        entry into every leg it overwrites no axis value of, and taking an
-        entry that fits no leg as a leg of its own.
-
-        Returns:
-            The legs, or one empty leg for a job with no matrix.
-        """
-        axes = {key: values for key, values in self.matrix.items() if key != "include"}
-        legs = [dict(zip(axes, values)) for values in product(
-            *axes.values()
-        )] if axes else []
-        added = []
-
-        for entry in self.matrix.get("include", ()):
-            fits = [leg for leg in legs if all(
-                leg[key] == entry[key] for key in entry.keys() & axes.keys()
-            )]
-
-            for leg in fits:
-                leg.update(entry)
-
-            if not fits:
-                added.append(entry)
-
-        return (*legs, *added) or ({},)
-
-    @property
-    def tasks(self) -> frozenset[str]:
-        """
-        Collects the mise tasks the job runs across every leg of its matrix.
-        """
-        return frozenset(*step.tasks for step in self.instances)
 
 
 class MiseConfig(ConfigFile):
@@ -926,6 +666,297 @@ class Site(ConfigFile):
         )
 
 
+class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    One step of a job or of a composite action.
+    """
+
+    inputs: dict[str, str | int | bool] = Field({}, alias="with")
+    """
+    The inputs the step's `with` block passes the action it uses.
+    """
+
+    run: str = ""
+    """
+    The shell script the step runs.
+    """
+
+    uses: str = ""
+    """
+    The action the step uses, a local path or an owner, a repository, and a
+    ref joined by `@`.
+    """
+
+    @property
+    def action(self) -> str:
+        """
+        Cuts the ref off `uses`, leaving the action it names.
+        """
+        return self.uses.partition("@")[0]
+
+    @property
+    def caches(self) -> dict[Cache, str]:
+        """
+        Names each cache the step restores through the provisioning action,
+        the tool cache by the tools `tools` names and the Cargo cache by the
+        key its `shared-key` input names, leaving out a cache the step names
+        nothing for.
+        """
+        names = {
+            Cache.CARGO : str(self.inputs.get("shared-key", "")),
+            Cache.TOOLS : " ".join(sorted(self.tools))
+        }
+        return {cache: name for cache, name in names.items() if name}
+
+    @property
+    def commands(self) -> tuple[str, ...]:
+        """
+        Lists the command each line of the step's script opens on, such as a
+        task file the script runs by its path.
+        """
+        return tuple(
+            words[0] for line in self.run.splitlines() if (words := line.split())
+        )
+
+    @property
+    def pin(self) -> str:
+        """
+        Cuts the action off `uses`, leaving the ref it is pinned to, empty
+        for a local action.
+        """
+        return self.uses.partition("@")[2]
+
+    @property
+    def saves(self) -> bool:
+        """
+        Reads whether the step passes the provisioning action `save:
+        'true'`, which writes the tool cache back once the install finishes
+        on a cache miss and the Cargo cache back once the job ends.
+        """
+        return self.inputs.get("save") == "true"
+
+    @property
+    def tasks(self) -> tuple[str, ...]:
+        """
+        Lists the mise tasks the step's script runs through `mise run`.
+        """
+        return tuple(findall(r"\bmise run ([\w:-]+)", self.run))
+
+    @property
+    def tools(self) -> frozenset[str]:
+        """
+        Splits the `tools` input into the tools it names, which
+        `jdx/mise-action` sorts before hashing them into its cache key.
+        """
+        return frozenset(str(self.inputs.get("tools", "")).split())
+
+    @property
+    def wrangler(self) -> str:
+        """
+        Reads the version of Wrangler the step's `wranglerVersion` input
+        names, or an empty text where it passes none.
+        """
+        return str(self.inputs.get("wranglerVersion", ""))
+
+    @property
+    def writes_summary(self) -> bool:
+        """
+        Reads whether the step's script names the workflow step summary.
+        """
+        return "GITHUB_STEP_SUMMARY" in self.run
+
+    def expand(self, leg: Mapping[str, str]) -> Self:
+        """
+        Copies the step with each `${{ matrix.<key> }}` expression in its
+        inputs and its script replaced by the value `leg` holds for that
+        key.
+        """
+        return self.model_copy(
+            update = {
+                "inputs" : {
+                    name: filled(leg, value) for name, value in self.inputs.items()
+                },
+                "run"    : filled(leg, self.run)
+            }
+        )
+
+
+class Action(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    A composite action's manifest, `action.yml` in the action's folder.
+    """
+
+    anchors: tuple[int, ...]
+    """
+    The line of each anchor and alias the manifest carries, counting from
+    one.
+    """
+
+    path: Path
+    """
+    The manifest.
+    """
+
+    inputs: Annotated[tuple[str, ...], BeforeValidator(tuple)] = ()
+    """
+    The name of each input the manifest declares.
+    """
+
+    steps: tuple[Step, ...] = Field(validation_alias=AliasPath("runs", "steps"))
+    """
+    The steps the action runs.
+    """
+
+    @property
+    def provisions(self) -> bool:
+        """
+        Reads whether the action installs tools through `jdx/mise-action`.
+        """
+        return any(step.action == "jdx/mise-action" for step in self.steps)
+
+    @classmethod
+    def read(cls, path: Path) -> Self:
+        """
+        Reads the manifest at `path`, finding each anchor and alias through
+        the tokens `yaml.scan` yields, since a load resolves both before any
+        record holds the result.
+        """
+        text = path.read_text(encoding="utf-8")
+
+        return cls.model_validate(
+            {
+                **load(text, Loader=SafeLoader),
+                "anchors" : tuple(
+                    token.start_mark.line + 1
+                    for token in scan(text, Loader=SafeLoader)
+                    if isinstance(token, AnchorToken | AliasToken)
+                ),
+                "path"    : path
+            }
+        )
+
+
+class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    One job of a workflow.
+    """
+
+    id: str
+    """
+    The key the workflow's `jobs` mapping gives the job.
+    """
+
+    condition: str = Field("", alias="if")
+    """
+    The expression the job's `if` runs it under.
+    """
+
+    matrix: dict[str, tuple[str | dict[str, str], ...]] = Field(
+        {},
+        validation_alias = AliasPath("strategy", "matrix")
+    )
+    """
+    The matrix the job's strategy declares, each axis a list of values and
+    `include` a list of legs.
+    """
+
+    name: str = ""
+    """
+    The name GitHub shows for the job and a ruleset's required check names.
+    """
+
+    needs: Annotated[
+        tuple[str, ...],
+        BeforeValidator(lambda needs: (needs,) if isinstance(needs, str) else needs)
+    ] = ()
+    """
+    The jobs the job waits for, whether `needs` names one or a list.
+    """
+
+    runner: str = Field(alias="runs-on")
+    """
+    The runner image the job runs on.
+    """
+
+    steps: tuple[Step, ...] = ()
+    """
+    The steps the job runs.
+    """
+
+    @property
+    def always(self) -> bool:
+        """
+        Reads whether the job runs under `always()`, whether or not its
+        condition is wrapped in `${{ }}`.
+        """
+        return self.condition.strip("${} ") == "always()"
+
+    @property
+    def checks(self) -> tuple[tuple[str, str], ...]:
+        """
+        Pairs the name each leg of the job's matrix reports its check under
+        with each task the leg runs.
+        """
+        return tuple(
+            (filled(leg, self.name), task)
+            for leg in self.legs
+            for step in self.steps
+            for task in step.expand(leg).tasks
+        )
+
+    @property
+    def gate(self) -> bool:
+        """
+        Reads whether the job runs `gha:brief`, the task the `⏱️ Brief` gate
+        runs.
+        """
+        return "gha:brief" in self.tasks
+
+    @property
+    def instances(self) -> tuple[Step, ...]:
+        """
+        Expands each step once for each leg of the job's matrix.
+        """
+        return tuple(step.expand(leg) for leg in self.legs for step in self.steps)
+
+    @property
+    def legs(self) -> tuple[Mapping[str, str], ...]:
+        """
+        Expands the matrix into its legs the way GitHub does, crossing each
+        axis value with every other axis's, then merging each `include`
+        entry into every leg it overwrites no axis value of, and taking an
+        entry that fits no leg as a leg of its own.
+
+        Returns:
+            The legs, or one empty leg for a job with no matrix.
+        """
+        axes = {key: values for key, values in self.matrix.items() if key != "include"}
+        legs = [dict(zip(axes, values)) for values in product(
+            *axes.values()
+        )] if axes else []
+        added = []
+
+        for entry in self.matrix.get("include", ()):
+            fits = [leg for leg in legs if all(
+                leg[key] == entry[key] for key in entry.keys() & axes.keys()
+            )]
+
+            for leg in fits:
+                leg.update(entry)
+
+            if not fits:
+                added.append(entry)
+
+        return (*legs, *added) or ({},)
+
+    @property
+    def tasks(self) -> frozenset[str]:
+        """
+        Collects the mise tasks the job runs across every leg of its matrix.
+        """
+        return frozenset(*step.tasks for step in self.instances)
+
+
 class Lock(ConfigFile):
     """
     The packages `uv.lock` resolves.
@@ -1032,12 +1063,14 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         return tuple(job for job in self.jobs if not job.gate)
 
     @property
-    def saves(self) -> bool:
+    def saved(self) -> frozenset[Cache]:
         """
-        Reads whether any step of the workflow passes `save: 'true'`,
-        writing the tool cache back.
+        Lists each cache a step of the workflow writes back by passing
+        `save: 'true'`.
         """
-        return any(step.saves for step in self.instances)
+        return frozenset(
+            cache for step in self.instances if step.saves for cache in step.caches
+        )
 
     @property
     def steps(self) -> tuple[Step, ...]:
