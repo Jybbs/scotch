@@ -298,7 +298,8 @@ def test_shipped_declares_the_files_written_from_declarations(
     Asserts that the outputs declared with no index are these, in
     this order:
 
-    - The identity's and the pieces' JSON
+    - The identity's JSON, the keys of each game the site serves, and the
+      pieces' JSON
     - The favicon and each lockup
     - The README's badges, then the install steps of the README and the
       Guide
@@ -311,6 +312,7 @@ def test_shipped_declares_the_files_written_from_declarations(
 
     assert [(type(output), str(output.path)) for output in outputs] == [
         (Document, "docs/.vitepress/lib/rendered/identity.json"),
+        (Document, "docs/.vitepress/lib/rendered/keys.json"),
         (Document, "docs/.vitepress/lib/rendered/pieces.json"),
         (Document, "docs/public/favicon.svg"),
         (Document, "docs/assets/lockup-cashmere.svg"),

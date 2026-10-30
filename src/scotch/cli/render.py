@@ -32,8 +32,7 @@ def docs():
     markers enclose other than one region, where a page cites a key no entry
     of `docs/references.bib` holds, where that file holds a block or an
     entry that cannot be read, or where an example line the pages draw holds
-    no game python-chess reads cleanly or shares no position with a stored
-    game.
+    no game read with no error or shares no position with a stored game.
     """
     settings = Settings()
 

@@ -17,7 +17,7 @@ from statistics      import mode
 from typing          import ClassVar
 
 from scotch.repo.checkout import Checkout
-from scotch.repo.schemas  import Finding, exact
+from scotch.repo.schemas  import Cache, Finding, exact
 
 
 class Check(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -266,40 +266,36 @@ class InputCheck(Check):
 
 class KitCheck(Check):
     """
-    Fails where the tool subsets the workflows install differ from the ones
-    a step saving the tool cache installs, since each subset is a cache
-    archive of its own.
+    Fails where the caches the workflows restore differ from the ones a step
+    saving a cache restores, since each tool subset and each Cargo cache key
+    is a cache archive of its own.
     """
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding at each step installing a subset no step saves, and
-        at each step saving a subset no other step installs.
+        Yields a finding at each step restoring a cache no step saves, and
+        at each step saving a cache no other step restores.
         """
         provisions = self.checkout.provisions
-        installed  = {step.tools for _, step in provisions if not step.saves}
-        saved      = {step.tools for _, step in provisions if step.saves}
+        seen       = {
+            (step.saves, cache, name)
+            for _, step in provisions
+            for cache, name in step.caches.items()
+        }
 
         for path, step in provisions:
-            tools = " ".join(sorted(step.tools))
-
-            if not step.saves and step.tools not in saved:
-                yield Finding(
-                    message = (
-                        f"No step saves the tool cache for `{tools}`, "
-                        "which this workflow installs"
-                    ),
-                    path = path
-                )
-
-            if step.saves and step.tools not in installed:
-                yield Finding(
-                    message = (
-                        f"No other step installs `{tools}`, "
-                        "whose tool cache this workflow saves"
-                    ),
-                    path = path
-                )
+            for cache, name in step.caches.items():
+                if (not step.saves, cache, name) not in seen:
+                    yield Finding(
+                        message = (
+                            f"No other step restores the {cache} `{name}`, "
+                            "which this workflow saves"
+                            if step.saves
+                            else f"No step saves the {cache} `{name}`, "
+                            "which this workflow restores"
+                        ),
+                        path = path
+                    )
 
 
 class LabelCheck(Check):
@@ -405,22 +401,22 @@ class LabelCheck(Check):
 
 class LicenseCheck(Check):
     """
-    Fails where the license file's title or copyright holders diverge from
-    the manifest's `license` or `authors`.
+    Fails where the license the license file declares or its copyright
+    holders diverge from the manifest's `license` or `authors`.
     """
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding for the title and for the holders wherever either
+        Yields a finding for the license and for the holders wherever either
         diverges.
         """
         file, pyproject = self.checkout.license, self.checkout.pyproject
         authors         = {author.name for author in pyproject.authors}
 
-        if file.title.removesuffix(" License") != pyproject.license:
+        if file.identifier != pyproject.license:
             yield Finding(
                 message = (
-                    f"The license file is titled `{file.title}` "
+                    f"The license file declares `{file.identifier}` "
                     f"while the manifest declares `{pyproject.license}`"
                 ),
                 path = file.path
@@ -464,32 +460,43 @@ class NodeTypesCheck(Check):
 
 class PinCheck(Check):
     """
-    Fails where `pyproject.toml` restates a version `.mise/config.toml` pins
-    and the two disagree, meaning the Python minor `requires-python` and
-    `[tool.prose].target-version` name and the uv `required-version` holds
-    every machine to.
+    Fails where `pyproject.toml` or the crate's `Cargo.toml` restates a
+    version `.mise/config.toml` pins and the two disagree, meaning the
+    Python minor `requires-python` and `[tool.prose].target-version` name,
+    the uv `required-version` holds every machine to, and the `wasm-bindgen`
+    the crate requires, which its command line has to match exactly.
     """
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding for each restated pin that disagrees.
+        Yields a finding for each restated pin that disagrees, at the file
+        restating it.
         """
-        mise, pyproject = self.checkout.mise, self.checkout.pyproject
-        expected        = {
-            "`[tool.prose].target-version`" : (pyproject.target, mise.minor),
-            "`[tool.uv].required-version`"  : (pyproject.uv, f"=={mise.uv}"),
-            "`requires-python`"             : (pyproject.python, f">={mise.minor}")
+        crate, mise, pyproject = (
+            self.checkout.crate, self.checkout.mise, self.checkout.pyproject
+        )
+        restated = {
+            crate.path: {
+                "`wasm-bindgen`": (crate.bindgen, mise.bindgen and f"={mise.bindgen}")
+            },
+
+            pyproject.path: {
+                "`[tool.prose].target-version`" : (pyproject.target, mise.minor),
+                "`[tool.uv].required-version`"  : (pyproject.uv, f"=={mise.uv}"),
+                "`requires-python`"             : (pyproject.python, f">={mise.minor}")
+            }
         }
 
-        for key, (found, pinned) in expected.items():
-            if found != pinned:
-                yield Finding(
-                    message = (
-                        f"{key} is `{found}` "
-                        f"where `.mise/config.toml` sets `{pinned}`"
-                    ),
-                    path = pyproject.path
-                )
+        for path, pins in restated.items():
+            for key, (found, pinned) in pins.items():
+                if found != pinned:
+                    yield Finding(
+                        message = (
+                            f"{key} is `{found}` "
+                            f"where `.mise/config.toml` sets `{pinned}`"
+                        ),
+                        path = path
+                    )
 
 
 class RenderCheck(Check):
@@ -795,27 +802,36 @@ class VitestCheck(Check):
 
 class WarmCheck(Check):
     """
-    Fails where the `push` filter of a workflow saving the tool cache
-    leaves out a file the cache key depends on, meaning the mise config
-    and lockfile `jdx/mise-action` hashes, and the provisioning action's
-    manifest and the workflow itself, which set the mise version and the
-    tools the key carries.
+    Fails where the `push` filter of a workflow saving a cache leaves out a
+    file the cache's key depends on:
+
+    - For the tool cache, the mise config and lockfile `jdx/mise-action`
+      hashes, and the provisioning action's manifest and the workflow
+      itself, which set the mise version and the tools the key carries
+    - For the Cargo cache, the crate's manifest and lockfile
+      `Swatinem/rust-cache` hashes
     """
 
     def scan(self) -> Iterator[Finding]:
         """
         Yields a finding for each file the filter leaves out.
         """
+        crate  = self.checkout.crate
         root   = self.checkout.root
         inputs = {
-            *(action.path for action in self.checkout.actions if action.provisions),
-            self.checkout.mise.lockfile,
-            self.checkout.mise.path
+            Cache.CARGO : {crate.lockfile, crate.path},
+            Cache.TOOLS : {
+                *(action.path for action in self.checkout.actions if action.provisions),
+                self.checkout.mise.lockfile,
+                self.checkout.mise.path
+            }
         }
 
         for workflow in self.checkout.workflows:
-            if workflow.saves:
-                for path in workflow.unfiltered(inputs, root):
+            if saved := workflow.saved:
+                keyed = set().union(*(inputs[cache] for cache in saved))
+
+                for path in workflow.unfiltered(keyed, root):
                     yield Finding(
                         message = (
                             f"The `push` filter leaves out `{path}`, "

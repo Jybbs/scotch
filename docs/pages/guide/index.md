@@ -2,13 +2,6 @@
 
 *Scotch* runs from a clone of its repository, with [mise](https://mise.jdx.dev) installing the tools `.mise/config.toml` pins, the Python interpreter and [uv](https://docs.astral.sh/uv/) among them. After [installing mise](https://mise.jdx.dev/installing-mise.html), the commands below clone the repository, print the help of the `scotch` command, and report anything the clone still needs.
 
-Where PyYAML publishes no wheel for the interpreter `.mise/config.toml` pins, uv builds it from source as it builds `.venv`. That build carries the `CSafeLoader` the package reads the YAML under `.github/` through only where the compiler finds [LibYAML](https://pyyaml.org/wiki/LibYAML), so install LibYAML before cloning:
-
-- On Debian or Ubuntu, through `apt install libyaml-dev`
-- On macOS, through `brew install libyaml`, then `export CPATH="$(brew --prefix)/include" LIBRARY_PATH="$(brew --prefix)/lib"`, since the compiler there searches no Homebrew prefix
-
-Wherever PyYAML was built without it, `mise doctor project` names the rebuild.
-
 <!-- install -->
 ```bash
 git clone --filter=blob:none https://github.com/Jybbs/scotch.git
@@ -20,7 +13,7 @@ mise doctor project
 ```
 <!-- /install -->
 
-`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout reaches it. Once `cd` runs, mise puts uv and the wrapper at `.mise/bin/scotch` on the path, even with the lines pasted together. The wrapper builds `.venv` from `uv.lock` through `uv run --exact --locked` on its first run, so the package needs no install step of its own between `mise install` and the first command. `mise doctor project` reports each condition the clone needs beyond the pinned tools, beside the command that supplies a missing one.
+`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout reaches it. Once `cd` runs, mise puts uv and the wrapper at `.mise/bin/scotch` on the path, even with the lines pasted together. The wrapper builds `.venv` from `uv.lock` through `uv run --exact --locked` on its first run, compiling the crate under `rust/` with the Rust toolchain mise pins, so the package needs no install step of its own between `mise install` and the first command. `mise doctor project` reports each condition the clone needs beyond the pinned tools, beside the command that supplies a missing one.
 
 ## A First Match
 

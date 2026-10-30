@@ -7,7 +7,7 @@ import type { DefaultTheme } from 'vitepress'
  */
 export const FOOTER: DefaultTheme.Footer = {
   message: [
-    '<a href="https://opensource.org/license/mit">MIT Licensed</a>',
+    'Code under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0-or-later</a>',
     'faces under the <a href="https://openfontlicense.org">SIL Open Font License</a>',
     'pieces by Cburnett under the '
       + '<a href="https://commons.wikimedia.org/wiki/File:Chess_klt45.svg">3-clause BSD license</a>'

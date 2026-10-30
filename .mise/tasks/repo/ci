@@ -7,6 +7,8 @@
 #MISE   "py:coverage",
 #MISE   "repo:audit",
 #MISE   "repo:lint",
+#MISE   "rs:check",
+#MISE   "rs:test",
 #MISE   "site:coverage",
 #MISE   "site:cruft",
 #MISE   "site:links",

@@ -9,7 +9,7 @@ jobs:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
-          tools: bun lychee node
+          tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
       - name: Build the site and check its links
         run: mise run site:links
       - name: Attach the site
@@ -27,7 +27,8 @@ jobs:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
-          tools: python uv
+          shared-key: scotch-python
+          tools: python rust uv
       - name: Run the suite under coverage
         run: mise run py:coverage
       - name: Write the total the badge reads
@@ -99,6 +100,7 @@ on:
       - .mise/tasks/site/**
       - docs/**
       - pyproject.toml
+      - rust/**
       - src/**
       - tests/**
       - uv.lock

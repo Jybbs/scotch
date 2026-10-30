@@ -11,6 +11,7 @@ restore() {
 
 uv lock --check
 each_script uv lock --check
+cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml >/dev/null
 snapshot=$(mktemp)
 cp -p .mise/mise.lock "$snapshot"
 trap restore EXIT

@@ -1,0 +1,5 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Rewrite the crate in the form rustfmt sets, passing any further arguments to `cargo fmt`"
+#MISE dir         = "rust"
+
+cargo fmt "$@"

@@ -5,8 +5,9 @@ folder of the data directory, handing the files one at a time to a pool of
 processes, and writes the index of them to its index folder beside a copy of the
 manifest the files were read under. Files are read in the order sources.toml    
 declares them, a game several files repeat is indexed under the first, and a    
-game python-chess records an error for, or whose Variant tag names a variant    
-other than standard chess, is left out.                                         
+game the reader records an error for, or whose Variant tag names a variant other
+than standard chess, is left out, each game read and keyed as python-chess reads
+and keys it.                                                                    
 
 Prints the count of games read from each file, one line for each problem of a   
 game left out naming its file, its place there, and its players, and the count  

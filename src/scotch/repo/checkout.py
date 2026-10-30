@@ -24,6 +24,7 @@ from scotch.repo.registries import (
 )
 from scotch.repo.schemas    import (
     Action,
+    Crate,
     License,
     Lock,
     MiseConfig,
@@ -76,6 +77,13 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         Reads the checks table of `.github/CONTRIBUTING.md`.
         """
         return Contributing.read(self.root / ".github" / "CONTRIBUTING.md")
+
+    @cached_property
+    def crate(self) -> Crate:
+        """
+        Reads the crate's `Cargo.toml` that `[tool.maturin]` names.
+        """
+        return Crate.read(self.root / self.pyproject.crate)
 
     @cached_property
     def labels(self) -> Labels:

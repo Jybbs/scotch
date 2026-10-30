@@ -1,5 +1,6 @@
 *                                   text=auto eol=lf
 uv.lock                             linguist-generated=true
 .mise/mise.lock                     linguist-generated=true
+rust/Cargo.lock                     linguist-generated=true
 docs/bun.lock                       linguist-generated=true
 docs/.vitepress/lib/rendered/*.json linguist-generated=true

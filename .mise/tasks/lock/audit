@@ -1,8 +1,9 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Fail on any advisory published for a package `uv.lock`, a task script's lockfile, or `docs/bun.lock` resolves, or where an advisory database cannot be reached"
+#MISE description = "Fail on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, or where an advisory database cannot be reached"
 
 source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 
 uv audit --preview-features audit-command
 each_script uv audit --preview-features audit-command
+osv-scanner scan source --lockfile rust/Cargo.lock
 bun audit --cwd docs

@@ -12,6 +12,7 @@ jobs:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
+          shared-key: ${{ matrix.shared-key }}
           tools: ${{ matrix.tools }}
       - name: Run the task
         env:
@@ -49,40 +50,54 @@ jobs:
         include:
           - name: 🩺 Advisories
             task: lock:audit
-            tools: bun python uv
+            tools: bun osv-scanner python rust uv
           - name: 🔐 Lockfiles
             task: lock:check
-            tools: bun python uv
+            tools: bun osv-scanner python rust uv
           - name: 🪻 Prose
+            shared-key: scotch-python
             task: py:check
-            tools: python uv
+            tools: python rust uv
           - name: 🎯 Coverage
+            shared-key: scotch-python
             task: py:coverage
-            tools: python uv
+            tools: python rust uv
           - name: 📋 Audit
+            shared-key: scotch-python
             task: repo:audit
-            tools: python uv
+            tools: python rust uv
           - name: 🔦 Workflows
             task: repo:lint
             tools: zizmor
+          - name: 📎 Clippy
+            shared-key: scotch-clippy
+            task: rs:check
+            tools: python rust
+          - name: 🦀 Crate
+            shared-key: scotch-crate
+            task: rs:test
+            tools: python rust
           - name: 🎯 Site Coverage
+            shared-key: scotch-wasm
             task: site:coverage
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: ✂️ Knip
+            shared-key: scotch-wasm
             task: site:cruft
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: 🔗 Links
             task: site:links
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: ⚓ Oxlint
             task: site:lint
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: 📰 Press
             task: site:press
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: 🧷 Types
+            shared-key: scotch-wasm
             task: site:typecheck
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
     timeout-minutes: 15
   brief:
     if: always()

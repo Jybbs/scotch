@@ -15,14 +15,48 @@ jobs:
       fail-fast: false
       matrix:
         tools:
-          - bun lychee node
-          - bun python uv
+          - bun github:wasm-bindgen/wasm-bindgen lychee node rust
+          - bun osv-scanner python rust uv
+          - python rust
+          - python rust uv
           - python uv
           - zizmor
     timeout-minutes: 10
+  cargo:
+    name: 📦 Cargo (${{ matrix.shared-key }})
+    needs: kit
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools and restore the Cargo cache
+        uses: $/.github/actions/provision
+        with:
+          save: 'true'
+          shared-key: ${{ matrix.shared-key }}
+          tools: ${{ matrix.tools }}
+      - name: Build the crate and save the Cargo cache
+        run: ${{ matrix.command }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - command: mise run rs:check
+            shared-key: scotch-clippy
+            tools: python rust
+          - command: mise run rs:test -- --no-run
+            shared-key: scotch-crate
+            tools: python rust
+          - command: mise x -- uv sync
+            shared-key: scotch-python
+            tools: python rust uv
+          - command: mise run rs:wasm
+            shared-key: scotch-wasm
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
+    timeout-minutes: 20
   prune:
     name: 🧹 Prune
-    needs: kit
+    needs:
+      - cargo
+      - kit
     permissions:
       actions: write
       contents: read
@@ -43,6 +77,7 @@ jobs:
     if: always()
     name: ⏱️ Brief
     needs:
+      - cargo
       - kit
       - prune
     runs-on: ubuntu-26.04
@@ -66,6 +101,8 @@ on:
       - .github/workflows/warm.yml
       - .mise/config.toml
       - .mise/mise.lock
+      - rust/Cargo.lock
+      - rust/Cargo.toml
   workflow_dispatch:
 permissions:
   contents: read

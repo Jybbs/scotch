@@ -116,21 +116,26 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         task       : str = "check",
         *arguments : str,
         bun        : str = "exit 0",
+        cargo      : str = "exit 0",
         mise       : str = "exit 0",
+        osv        : str = "exit 0",
         scotch     : str = "exit 0",
         uv         : str = "exit 0"
     ) -> CompletedProcess[str]:
         """
         Runs the `lock` task `task` names from the checkout with
-        `arguments`, against stand-in `bun`, `mise`, `scotch`, and `uv`
-        executables that each log their call and then run the shell line
-        `bun`, `mise`, `scotch`, or `uv` holds.
+        `arguments`, against stand-in `bun`, `cargo`, `mise`, `osv-scanner`,
+        `scotch`, and `uv` executables that each log their call and then
+        run the shell line `bun`, `cargo`, `mise`, `osv`, `scotch`, or `uv`
+        holds.
         """
         for name, line in {
-            "bun"    : bun,
-            "mise"   : mise,
-            "scotch" : scotch,
-            "uv"     : uv
+            "bun"         : bun,
+            "cargo"       : cargo,
+            "mise"        : mise,
+            "osv-scanner" : osv,
+            "scotch"      : scotch,
+            "uv"          : uv
         }.items():
             stand_in = self.stand_ins / name
             stand_in.write_text(

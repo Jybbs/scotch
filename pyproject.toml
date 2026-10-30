@@ -1,6 +1,6 @@
 [build-system]
-build-backend = "hatchling.build"
-requires      = ["hatchling==1.33.0"]
+build-backend = "maturin"
+requires      = ["maturin==1.16.0"]
 
 [project]
 authors         = [{ name = "James Parkington" }]
@@ -29,7 +29,7 @@ keywords        = [
     "python",
     "python-chess"
 ]
-license         = "MIT"
+license         = "GPL-3.0-or-later"
 license-files   = ["LICENSE.md"]
 name            = "scotch"
 readme          = ".github/README.md"
@@ -71,18 +71,19 @@ branch    = true
 data_file = ".cache/coverage/data"
 source    = ["src/scotch"]
 
-[tool.hatch.build.targets.sdist]
-only-include = [".github/scripts", ".mise", "src", "tests", "uv.lock"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/scotch"]
-
-[tool.hatch.build.targets.wheel.force-include]
-".cache/hatch/scotch.start" = "scotch.start"
-
-[tool.hatch.build.targets.wheel.hooks.version]
-path     = ".cache/hatch/scotch.start"
-template = "scotch.imports.filters:start"
+[tool.maturin]
+data          = "src/scotch.data"
+features      = ["python"]
+include       = [
+    { format = "sdist", path = ".github/scripts/**/*" },
+    { format = "sdist", path = ".mise/**/*" },
+    { format = "sdist", path = "src/scotch.data/**/*" },
+    { format = "sdist", path = "tests/**/*" },
+    { format = "sdist", path = "uv.lock" }
+]
+manifest-path = "rust/Cargo.toml"
+module-name   = "scotch.games.readers"
+python-source = "src"
 
 [tool.prose]
 target-version = "3.15"
@@ -118,14 +119,13 @@ strict                   = true
 testpaths                = ["tests"]
 
 [tool.uv]
-build-constraint-dependencies = [
-    "cython==3.3.0",
-    "packaging==26.3",
-    "pathspec==1.1.1",
-    "pluggy==1.7.0",
-    "setuptools==84.2.1",
-    "tomlkit==0.15.2",
-    "trove-classifiers==2026.9.21.13"
+build-constraint-dependencies = ["cython==3.3.0", "setuptools==84.2.1", "tomlkit==0.15.2"]
+cache-keys                    = [
+    { file = "pyproject.toml" },
+    { file = "rust/Cargo.lock" },
+    { file = "rust/Cargo.toml" },
+    { file = "rust/src/**/*.rs" },
+    { file = "src/scotch.data/**/*" }
 ]
 python-downloads              = "never"
 python-preference             = "only-system"

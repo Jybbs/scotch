@@ -487,3 +487,49 @@ def test_an_edit_reads_back_as_the_version_it_writes(
         found["version"]
         for found in finditer(spelling.pattern(name), (root / "file").read_text())
     ] == [version]
+
+
+@mark.parametrize(
+    ("name", "before", "after"),
+    [
+        param(
+            "github:wasm-bindgen/wasm-bindgen",
+            '"github:wasm-bindgen/wasm-bindgen" = "0.2.130"\n',
+            '"github:wasm-bindgen/wasm-bindgen" = "0.2.131"\n',
+            id = "quoted-key"
+        ),
+        param(
+            "rust",
+            'rust = { components = "clippy", version = "0.2.130" }\n',
+            'rust = { components = "clippy", version = "0.2.131" }\n',
+            id = "inline-table"
+        ),
+        param(
+            "wasm-bindgen",
+            'wasm-bindgen = { optional = true, version = "=0.2.130" }\n',
+            'wasm-bindgen = { optional = true, version = "=0.2.131" }\n',
+            id = "exact-requirement"
+        )
+    ]
+)
+def test_an_assignment_reaches_a_quoted_key_and_an_inline_table(
+    after    : str,
+    before   : str,
+    name     : str,
+    tmp_path : Path
+):
+    """
+    Asserts that a TOML assignment finds the version beside a quoted key and
+    the `version` of an inline table, keeping the operator an exact Cargo
+    requirement opens on.
+    """
+    (tmp_path / "config.toml").write_text(before)
+
+    Edit(
+        name     = name,
+        path     = Path("config.toml"),
+        spelling = Spelling.ASSIGNMENT,
+        version  = "0.2.131"
+    ).apply(tmp_path)
+
+    assert (tmp_path / "config.toml").read_text() == after

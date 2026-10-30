@@ -1,6 +1,7 @@
 """
-Pins what `Game` reads out of a PGN file through python-chess's reader and
-what it derives from that:
+Pins what `Game` reads out of a PGN file through the `readers` extension
+module, which reads as python-chess's reader does, and what it derives
+from that:
 
 - The tags, the mainline's moves, the errors the reader recorded without
   logging them, and the problems those errors and a `Variant` tag add up to
@@ -334,15 +335,19 @@ def test_a_move_from_a_fen_position_reads_behind_the_fen_move_number():
     ) == "40...Kd7"
 
 
-def test_a_null_move_leaves_every_piece_under_its_number():
+def test_a_move_illegal_inside_a_variation_leaves_the_mainline_whole(
+    read: Callable[..., list[Game]]
+):
     """
-    Asserts that a null move draws the frame before it again, every piece on
-    its square under its number, with no move landing anywhere.
+    Asserts that a move illegal inside a variation leaves every move of the
+    mainline after that variation read from the mainline's own position,
+    with no error recorded, since the reader reads no move a variation
+    holds.
     """
-    before, after = line("e4", "--").frames[1:]
+    [game] = read("1. e4 (1. d4 Qxf7) 1... e5 2. Qh5 Nc6 *\n")
 
-    assert after.pieces == before.pieces
-    assert (after.move, after.san, after.landed) == (None, "--", None)
+    assert game.errors == ()
+    assert game.moves == moves("e2e4", "e7e5", "d1h5", "b8c6")
 
 
 @mark.parametrize(
@@ -370,25 +375,29 @@ def test_first_raises_naming_a_file_whose_first_game_cannot_be_read(
         Game.first(pgn(text))
 
 
-def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
+def test_a_null_move_leaves_every_piece_under_its_number():
     """
-    Asserts that a file holding no text yields no game.
+    Asserts that a null move draws the frame before it again, every piece on
+    its square under its number, with no move landing anywhere.
     """
-    assert read("") == []
+    before, after = line("e4", "--").frames[1:]
+
+    assert after.pieces == before.pieces
+    assert (after.move, after.san, after.landed) == (None, "--", None)
 
 
-def test_an_en_passant_capture_that_would_be_illegal_still_changes_the_key():
+def test_a_variant_read_under_rules_of_its_own_leaves_its_moves_unread(
+    read: Callable[..., list[Game]]
+):
     """
-    Asserts that a position whose en passant capture would leave its own
-    king in check carries a key of its own, although FIDE's Laws of Chess,
-    Article 9.2.3, count it as the same position as the one with no en
-    passant square.
+    Asserts that a game whose `Variant` tag names a variant python-chess
+    reads under rules of its own, such as Atomic, holds no move, no key, and
+    no error, leaving the variant's message its one problem.
     """
-    pushed = line("c5", FEN="8/2p5/8/KP5r/8/8/8/7k b - - 0 1")
-    placed = line(FEN="8/8/8/KPp4r/8/8/8/7k w - - 0 2")
+    [game] = read('[Variant "Atomic"]\n\n1. e4 e5 2. Qxf7 *\n')
 
-    assert pushed.placements[-1] == placed.placements[-1]
-    assert pushed.keys[-1] != placed.keys[-1]
+    assert (game.moves, game.keys, game.errors) == ((), (), ())
+    assert game.problems == ("unsupported variant: Atomic",)
 
 
 @given(game=games())
@@ -433,6 +442,43 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     assert line(*sans.split()).keys[-1] == key
 
 
+def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
+    """
+    Asserts that a file holding no text yields no game.
+    """
+    assert read("") == []
+
+
+def test_an_en_passant_capture_that_would_be_illegal_still_changes_the_key():
+    """
+    Asserts that a position whose en passant capture would leave its own
+    king in check carries a key of its own, although FIDE's Laws of Chess,
+    Article 9.2.3, count it as the same position as the one with no en
+    passant square.
+    """
+    pushed = line("c5", FEN="8/2p5/8/KP5r/8/8/8/7k b - - 0 1")
+    placed = line(FEN="8/8/8/KPp4r/8/8/8/7k w - - 0 2")
+
+    assert pushed.placements[-1] == placed.placements[-1]
+    assert pushed.keys[-1] != placed.keys[-1]
+
+
+@mark.parametrize(
+    ("ply", "numbered"),
+    [
+        param(0, "1. e4", id="white"),
+        param(1, "1...e5", id="black"),
+        param(2, "2. Nf3", id="second-move")
+    ]
+)
+def test_a_move_reads_behind_its_number(numbered: str, ply: int):
+    """
+    Asserts that the move played from the position at a ply reads in SAN
+    behind its move number, with three dots before a move of Black's.
+    """
+    assert line("e4", "e5", "Nf3").numbered(ply) == numbered
+
+
 def test_an_illegal_move_ends_the_mainline_and_records_an_error(
     read: Callable[..., list[Game]]
 ):
@@ -461,22 +507,6 @@ def test_an_illegal_move_is_recorded_without_being_logged(
 
     assert len(game.errors) == 1
     assert caplog.records == []
-
-
-@mark.parametrize(
-    ("ply", "numbered"),
-    [
-        param(0, "1. e4", id="white"),
-        param(1, "1...e5", id="black"),
-        param(2, "2. Nf3", id="second-move")
-    ]
-)
-def test_a_move_reads_behind_its_number(numbered: str, ply: int):
-    """
-    Asserts that the move played from the position at a ply reads in SAN
-    behind its move number, with three dots before a move of Black's.
-    """
-    assert line("e4", "e5", "Nf3").numbered(ply) == numbered
 
 
 def test_boards_yields_each_position_on_one_board():
@@ -524,34 +554,6 @@ def test_follow_leaves_no_number_on_the_square_of_a_pawn_taken_en_passant():
     assert numbers.keys() == board.piece_map().keys()
 
 
-def test_players_name_white_then_black():
-    """
-    Asserts that a game names its players as the `White` tag, then `vs.`,
-    then the `Black` tag.
-    """
-    assert line(Black="Short, Nigel D", White="Adams, Michael").players == (
-        "Adams, Michael vs. Short, Nigel D"
-    )
-
-
-def test_tags_fill_the_seven_tag_roster(read: Callable[..., list[Game]]):
-    """
-    Asserts that a game carrying no tag reads with each tag of the Seven Tag
-    Roster set to the placeholder python-chess fills it with.
-    """
-    [game] = read("1. e4 *\n")
-
-    assert game.tags == {
-        "Black"  : "?",
-        "Date"   : "????.??.??",
-        "Event"  : "?",
-        "Result" : "*",
-        "Round"  : "?",
-        "Site"   : "?",
-        "White"  : "?"
-    }
-
-
 @mark.parametrize(
     ("sans", "tags", "kept"),
     [
@@ -590,18 +592,14 @@ def test_a_piece_keeps_its_number_through_each_kind_of_move(
     assert kept <= set(line(*sans, **tags).frames[-1].pieces)
 
 
-def test_text_holding_no_movetext_reads_as_one_game_without_moves(
-    read: Callable[..., list[Game]]
-):
+def test_players_name_white_then_black():
     """
-    Asserts that a file holding text python-chess finds neither a tag nor
-    a move in reads as one game with no move and no error, since the reader
-    skips text matching none of the tokens movetext holds.
+    Asserts that a game names its players as the `White` tag, then `vs.`,
+    then the `Black` tag.
     """
-    [game] = read("hello world\n")
-
-    assert game.moves == ()
-    assert game.problems == ()
+    assert line(Black="Short, Nigel D", White="Adams, Michael").players == (
+        "Adams, Michael vs. Short, Nigel D"
+    )
 
 
 @given(game=games())
@@ -624,6 +622,38 @@ def test_every_frame_draws_its_position_under_numbers_kept_from_the_first(game: 
         and numbered <= numbers
         for frame in game.frames
     )
+
+
+def test_tags_fill_the_seven_tag_roster(read: Callable[..., list[Game]]):
+    """
+    Asserts that a game carrying no tag reads with each tag of the Seven Tag
+    Roster set to the placeholder python-chess fills it with.
+    """
+    [game] = read("1. e4 *\n")
+
+    assert game.tags == {
+        "Black"  : "?",
+        "Date"   : "????.??.??",
+        "Event"  : "?",
+        "Result" : "*",
+        "Round"  : "?",
+        "Site"   : "?",
+        "White"  : "?"
+    }
+
+
+def test_text_holding_no_movetext_reads_as_one_game_without_moves(
+    read: Callable[..., list[Game]]
+):
+    """
+    Asserts that a file holding text python-chess finds neither a tag nor
+    a move in reads as one game with no move and no error, since the reader
+    skips text matching none of the tokens movetext holds.
+    """
+    [game] = read("hello world\n")
+
+    assert game.moves == ()
+    assert game.problems == ()
 
 
 def test_the_roster_reads_the_seven_tags_in_the_standards_order():
@@ -651,11 +681,11 @@ def test_the_variant_problem_follows_the_errors_the_reader_recorded(
 ):
     """
     Asserts that a game whose reader recorded an error and whose `Variant`
-    tag names a variant lists the reader's error first and the variant's
-    message last.
+    tag names Chess960, whose moves the reader reads, lists the reader's
+    error first and the variant's message last.
     """
-    [game]  = read('[Variant "Atomic"]\n\n1. e4 e5 2. Qxf7 *\n')
+    [game]  = read('[Variant "Chess960"]\n\n1. e4 e5 2. Qxf7 *\n')
     [error] = game.errors
 
     assert error.startswith("illegal san: 'Qxf7'")
-    assert game.problems == (error, "unsupported variant: Atomic")
+    assert game.problems == (error, "unsupported variant: Chess960")

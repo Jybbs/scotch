@@ -85,7 +85,7 @@ GAMES = Table(
         [
             # The game's place in the index's order, from 0
             ("game", UInt32),
-            # Each error python-chess's reader recorded
+            # Each error the reader recorded
             ("errors", List(String)),
             # The mainline in Universal Chess Interface (UCI) notation
             ("moves", List(String)),

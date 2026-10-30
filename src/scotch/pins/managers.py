@@ -10,7 +10,7 @@ from collections.abc import Collection, Iterable, Iterator
 from json            import dumps
 from pathlib         import Path
 from pydantic        import AwareDatetime, BaseModel, ConfigDict, JsonValue, TypeAdapter
-from re              import findall
+from re              import escape, findall, search
 from shutil          import copy2
 from tempfile        import TemporaryDirectory
 
@@ -292,6 +292,48 @@ class BunPins(Pins):
                 )
 
 
+class CargoPins(Pins):
+    """
+    The crates the crate's `Cargo.toml` requires, whose newest releases
+    `cargo search` reports, leaving out `wasm-bindgen`, which lifts with the
+    command line `.mise/config.toml` pins.
+    """
+
+    def lifts(self) -> Iterator[Lift]:
+        """
+        Yields a lift for each required crate whose newest release differs
+        from the version its requirement names.
+        """
+        crate = self.tree.checkout.crate
+        path  = self.tree.relative(crate.path)
+
+        for name, requirement in sorted(crate.requirements.items()):
+            if name == "wasm-bindgen":
+                continue
+
+            current = requirement.lstrip("<>=^~")
+            newest  = search(
+                rf'(?m)^{escape(name)} = "(?P<version>[^"]+)"',
+                self.tree.tool("cargo", "search", name, "--limit", "1").stdout
+            )
+
+            if newest and newest["version"] != current:
+                yield Lift(
+                    current = current,
+                    edits   = (
+                        Edit(
+                            name     = name,
+                            path     = path,
+                            spelling = Spelling.ASSIGNMENT,
+                            version  = newest["version"]
+                        ),
+                    ),
+                    name   = name,
+                    newest = newest["version"],
+                    path   = path
+                )
+
+
 class MisePins(Pins):
     """
     The tools `.mise/config.toml` pins, whose newest releases `mise
@@ -412,8 +454,9 @@ class MisePins(Pins):
         that `PinCheck` and `ScriptCheck` in `scotch.repo.checks` hold
         to it, meaning the minor of `python` in `requires-python`,
         in each task script's own `requires-python`, and in
-        `[tool.prose].target-version`, and the `uv` version in
-        `[tool.uv].required-version`.
+        `[tool.prose].target-version`, the `uv` version in
+        `[tool.uv].required-version`, and the `wasm-bindgen` version the
+        crate requires.
         """
         manifest = self.tree.relative(self.tree.checkout.pyproject.path)
 
@@ -448,6 +491,15 @@ class MisePins(Pins):
                     Edit(
                         name     = "required-version",
                         path     = manifest,
+                        spelling = Spelling.ASSIGNMENT,
+                        version  = version
+                    ),
+                )
+            case "github:wasm-bindgen/wasm-bindgen":
+                return (
+                    Edit(
+                        name     = "wasm-bindgen",
+                        path     = self.tree.relative(self.tree.checkout.crate.path),
                         spelling = Spelling.ASSIGNMENT,
                         version  = version
                     ),

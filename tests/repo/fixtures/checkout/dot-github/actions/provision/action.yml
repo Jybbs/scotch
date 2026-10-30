@@ -3,6 +3,9 @@ inputs:
   save:
     default: 'false'
     description: Whether to write the tool cache back
+  shared-key:
+    default: ''
+    description: The Cargo cache to restore
   tools:
     description: The tools to install
     required: true

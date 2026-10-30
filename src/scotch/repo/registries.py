@@ -18,7 +18,7 @@ from math             import cbrt, sumprod
 from mdit_py_plugins.front_matter import front_matter_plugin
 from pydantic import AliasPath, BaseModel, BeforeValidator, Field, JsonValue, TypeAdapter
 from typing   import Annotated, ClassVar
-from yaml     import CSafeLoader, load
+from yaml     import SafeLoader, load
 
 from scotch.repo.schemas import ConfigFile, Pyproject
 
@@ -294,7 +294,7 @@ class Template(ConfigFile):
 
         return next(
             (
-                load(token.content, Loader=CSafeLoader) or {}
+                load(token.content, Loader=SafeLoader) or {}
                 for token in tokens
                 if token.type == "front_matter"
             ),
@@ -339,7 +339,7 @@ class Changelog(ConfigFile):
     GitHub's generated notes sort each merged pull request into.
     """
 
-    parser = partial(load, Loader=CSafeLoader)
+    parser = partial(load, Loader=SafeLoader)
 
     categories: tuple[Category, ...] = Field(
         validation_alias = AliasPath("changelog", "categories")

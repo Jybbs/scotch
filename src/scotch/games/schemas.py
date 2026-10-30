@@ -5,17 +5,16 @@ read from and the `Frame` each position of its mainline is drawn as.
 """
 
 from chess           import Board, Move, square, square_file, square_rank
-from chess.pgn       import Headers, TAG_ROSTER, read_game
-from chess.polyglot  import zobrist_hash
+from chess.pgn       import Headers, TAG_ROSTER
 from collections.abc import Iterator, Mapping
-from functools       import cached_property, partial
+from functools       import cached_property
 from importlib.resources.abc import Traversable
 from itertools               import islice
 from operator                import itemgetter
-from pydantic                import BaseModel, PositiveInt
+from pydantic                import BaseModel, Field, PositiveInt
 from typing import Self
 
-from scotch.games.builders import MainlineBuilder
+from scotch.games import readers
 
 
 class Frame(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -103,14 +102,15 @@ class Origin(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
 class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    One game a PGN file carries, meaning its tags, its mainline's moves, and
-    each error python-chess's reader recorded.
+    One game a PGN file carries, meaning its tags, its mainline's moves, its
+    keys, and each error its reader recorded.
     """
 
     errors: tuple[str, ...]
     """
-    The message of each error python-chess's reader recorded, such as a move
-    illegal in the position it was played from.
+    The message of each error the reader recorded, such as a move illegal in
+    the position it was played from, worded as python-chess's reader words it
+    save for a `FEN` tag setting up a position no legal game reaches.
     """
 
     moves: tuple[Move, ...]
@@ -121,8 +121,28 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
 
     tags: frozendict[str, str]
     """
-    The value of each tag pair keyed by its name, where python-chess fills a
-    tag of the Seven Tag Roster the file leaves out with its placeholder.
+    The value of each tag pair keyed by its name, where the reader fills a
+    tag of the Seven Tag Roster the file leaves out with python-chess's
+    placeholder.
+    """
+
+    keys: tuple[int, ...] = Field(
+        default_factory = lambda data: tuple(
+            readers.keys(
+                [move.uci() for move in data["moves"]],
+                fen     = data["tags"].get("FEN"),
+                variant = data["tags"].get("Variant")
+            )
+        )
+    )
+    """
+    The Zobrist hash of each position of the mainline, keyed as
+    python-chess's `zobrist_hash` keys it, so two positions share a key
+    where FIDE's Laws of Chess, Article 9.2.3, count them as the same
+    position, save that the hash reads the en passant file wherever a pawn
+    stands ready to capture, legal or not. A game whose tags set up no
+    position, or name a variant other than standard chess and Chess960,
+    holds none.
     """
 
     origin: Origin | None = None
@@ -153,17 +173,6 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         return tuple(frames)
 
     @cached_property
-    def keys(self) -> tuple[int, ...]:
-        """
-        Hashes each position of the mainline through python-chess's
-        `zobrist_hash`, so two positions share a key where FIDE's Laws of
-        Chess, Article 9.2.3, count them as the same position, save that
-        the hash reads the en passant file wherever a pawn stands ready to
-        capture, legal or not.
-        """
-        return tuple(map(zobrist_hash, self.boards()))
-
-    @cached_property
     def placements(self) -> tuple[str, ...]:
         """
         Reads the piece placement of each position `boards` yields, the
@@ -183,10 +192,10 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     def problems(self) -> tuple[str, ...]:
         """
         Adds python-chess's message for a variant it cannot read to the
-        errors its reader recorded, wherever the `Variant` tag names
+        errors the reader recorded, wherever the `Variant` tag names
         anything but standard chess and the message is not among them, since
-        the reader reads Chess960 and several other variants under their own
-        rules without recording it.
+        the reader records no message naming Chess960 or another variant
+        python-chess reads under rules of its own.
         """
         variant = self.tags.get("Variant", "Standard")
 
@@ -293,11 +302,18 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         zip archive `zipfile.Path` opens. The file is decoded as UTF-8, each
         sequence UTF-8 cannot decode replaced with U+FFFD, so a file another
         code page wrote still yields every move, every move being ASCII.
+
+        The `readers` extension module reads and keys each game as
+        python-chess's `read_game` reads it under a visitor skipping every
+        variation, each move a variation holds left unread.
         """
         with path.open(encoding="utf-8", errors="replace") as handle:
-            for game in iter(partial(read_game, handle, Visitor=MainlineBuilder), None):
-                yield cls(
-                    errors = map(str, game.errors),
-                    moves  = game.mainline_moves(),
-                    tags   = game.headers
-                )
+            text = handle.read()
+
+        for tags, moves, keys, errors in readers.read(text):
+            yield cls(
+                errors = errors,
+                keys   = keys,
+                moves  = map(Move.from_uci, moves),
+                tags   = frozendict(tags)
+            )

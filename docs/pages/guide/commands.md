@@ -54,8 +54,9 @@ folder of the data directory, handing the files one at a time to a pool of
 processes, and writes the index of them to its index folder beside a copy of the
 manifest the files were read under. Files are read in the order sources.toml
 declares them, a game several files repeat is indexed under the first, and a
-game python-chess records an error for, or whose Variant tag names a variant
-other than standard chess, is left out.
+game the reader records an error for, or whose Variant tag names a variant other
+than standard chess, is left out, each game read and keyed as python-chess reads
+and keys it.
 
 Prints the count of games read from each file, one line for each problem of a
 game left out naming its file, its place there, and its players, and the count
@@ -81,10 +82,11 @@ pyproject.toml or the SCOTCH_DATA variable moves it, and warns where a fetch
 since the index was built recorded other bytes for the files than the ones the
 index was read from.
 
-Exits nonzero naming the problem where the file holds no game, where
-python-chess recorded errors reading the game, where its Variant tag names a
-variant other than standard chess, or where no index has been built or the one
-built holds another layout.
+Exits nonzero naming the problem where the file holds no game, where reading the
+game recorded an error, such as a move illegal in the position it was played
+from or a FEN tag setting up a position no game reaches, where its Variant tag
+names a variant other than standard chess, or where no index has been built or
+the one built holds another layout.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ *  PGN --pgn    The PGN file whose first game is matched. [required]         │

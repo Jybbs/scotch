@@ -51,6 +51,77 @@ url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-windows-x
 checksum = "sha256:d7a7d3eb216614544aab0cde2d8d9f2e4e87839bf5a30a1cd11d077f02d84e0c"
 url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.3/bun-windows-x64-baseline.zip"
 
+[[tools."github:wasm-bindgen/wasm-bindgen"]]
+version = "0.2.130"
+backend = "github:wasm-bindgen/wasm-bindgen"
+specifiers = ["0.2.130"]
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.linux-arm64"]
+checksum = "sha256:cc8dd8e90aa9111758168d30c63a14b7f0276997d9d60d3e160a1fb5e7d3b919"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140661"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.linux-arm64-musl"]
+checksum = "sha256:99ffc93ce80081b91632e2b539b782821a8f3439ab0fddc645287462b2f55d3d"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140664"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.linux-x64"]
+checksum = "sha256:9687f3bb551b9f66f37ed32a40d7913a00f7962db653054e56857bc306c3227f"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140647"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.linux-x64-baseline"]
+checksum = "sha256:9687f3bb551b9f66f37ed32a40d7913a00f7962db653054e56857bc306c3227f"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140647"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.linux-x64-musl"]
+checksum = "sha256:9687f3bb551b9f66f37ed32a40d7913a00f7962db653054e56857bc306c3227f"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140647"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:9687f3bb551b9f66f37ed32a40d7913a00f7962db653054e56857bc306c3227f"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140647"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.macos-arm64"]
+checksum = "sha256:b90ddb9357f584b1af897d58ad77e4cce2b48fc17e2a967bc249a87f72809444"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140655"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.macos-x64"]
+checksum = "sha256:eb209c115b7cb95832423c1aa3f4d06d6c53f63ef74fc4b6fb79ef0b2eea5f10"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140663"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.macos-x64-baseline"]
+checksum = "sha256:eb209c115b7cb95832423c1aa3f4d06d6c53f63ef74fc4b6fb79ef0b2eea5f10"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140663"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.windows-x64"]
+checksum = "sha256:844d23f1b56097549b936dd2e0d561fadebc1e8c9e985d5068b6b919654104ad"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-pc-windows-msvc.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140662"
+provenance = "github-attestations"
+
+[tools."github:wasm-bindgen/wasm-bindgen"."platforms.windows-x64-baseline"]
+checksum = "sha256:844d23f1b56097549b936dd2e0d561fadebc1e8c9e985d5068b6b919654104ad"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-pc-windows-msvc.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140662"
+provenance = "github-attestations"
+
 [[tools.lychee]]
 version = "0.24.2"
 backend = "aqua:lycheeverse/lychee"
@@ -160,6 +231,66 @@ url = "https://nodejs.org/dist/v26.11.1/node-v26.11.1-win-x64.zip"
 checksum = "sha256:97f36a8a9684ff0d3e35758b4610fef5b628a5880e96f2ccc11240e5daf9934e"
 url = "https://nodejs.org/dist/v26.11.1/node-v26.11.1-win-x64.zip"
 
+[[tools.osv-scanner]]
+version = "2.7.0"
+backend = "aqua:google/osv-scanner"
+specifiers = ["2.7.0"]
+
+[tools.osv-scanner."platforms.linux-arm64"]
+checksum = "sha256:4061ef4c021ed3c47f203b818f337e351336cc5cd67c0274fc36bd1dfc728dd7"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_arm64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251568"
+
+[tools.osv-scanner."platforms.linux-arm64-musl"]
+checksum = "sha256:4061ef4c021ed3c47f203b818f337e351336cc5cd67c0274fc36bd1dfc728dd7"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_arm64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251568"
+
+[tools.osv-scanner."platforms.linux-x64"]
+checksum = "sha256:160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251666"
+
+[tools.osv-scanner."platforms.linux-x64-baseline"]
+checksum = "sha256:160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251666"
+
+[tools.osv-scanner."platforms.linux-x64-musl"]
+checksum = "sha256:160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251666"
+
+[tools.osv-scanner."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251666"
+
+[tools.osv-scanner."platforms.macos-arm64"]
+checksum = "sha256:d4926ef8da134332543be276dff157e4c170f99ad91fc48e89448a8816bdf70b"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_darwin_arm64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251557"
+
+[tools.osv-scanner."platforms.macos-x64"]
+checksum = "sha256:e82c5df7ab0a42dff29a1cd0660711447b56b4c0483ff66ad8634df10fd81a45"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_darwin_amd64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251567"
+
+[tools.osv-scanner."platforms.macos-x64-baseline"]
+checksum = "sha256:e82c5df7ab0a42dff29a1cd0660711447b56b4c0483ff66ad8634df10fd81a45"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_darwin_amd64"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251567"
+
+[tools.osv-scanner."platforms.windows-x64"]
+checksum = "sha256:9964ed64ec9a387391eb4cc006ad5c531154821aef29b793e02c448de4686438"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_windows_amd64.exe"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251671"
+
+[tools.osv-scanner."platforms.windows-x64-baseline"]
+checksum = "sha256:9964ed64ec9a387391eb4cc006ad5c531154821aef29b793e02c448de4686438"
+url = "https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_windows_amd64.exe"
+url_api = "https://api.github.com/repos/google/osv-scanner/releases/assets/632251671"
+
 [[tools.python]]
 version = "3.15.2"
 backend = "core:python"
@@ -219,6 +350,16 @@ provenance = "github-attestations"
 checksum = "sha256:02e532b60e720aa3d77e757c349ae9cc945441c05851fa646336fc9ff0403041"
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.15.2+20261026-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
+
+[[tools.rust]]
+version = "1.99.1"
+backend = "core:rust"
+specifiers = ["1.99.1"]
+
+[tools.rust.options]
+components = "clippy,rustfmt"
+profile = "minimal"
+targets = "wasm32-unknown-unknown"
 
 [[tools.uv]]
 version = "0.12.13"

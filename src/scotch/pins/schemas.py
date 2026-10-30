@@ -132,8 +132,10 @@ class Spelling(StrEnum):
 
         - A TOML assignment, or one inside the comment block PEP 723
           describes, whose string may open on the operator a specifier
-          carries, such as `python = "3.14.6"` or `requires-python =
-          ">=3.14"`
+          carries and whose key may be quoted, such as `python = "3.14.6"`,
+          `requires-python = ">=3.14"`, or `"github:owner/tool" = "1.0.0"`,
+          or the `version` of an inline table, such as `rust = { version =
+          "1.99.1" }`
         - An input a workflow step passes, such as `wranglerVersion:
           4.149.0`
         - A member of a JSON object, such as `"vitest": "5.0.5"`
@@ -145,7 +147,10 @@ class Spelling(StrEnum):
 
         match self:
             case Spelling.ASSIGNMENT:
-                return rf'(?m)^(?:# )?{key}\s*=\s*"[<>=!~]*(?P<version>[^"]+)"'
+                return (
+                    rf'(?m)^(?:# )?"?{key}"?\s*=\s*(?:\{{[^}}\n]*\bversion\s*=\s*)?'
+                    r'"[<>=!~]*(?P<version>[^"]+)"'
+                )
             case Spelling.INPUT:
                 return rf"(?m)^\s*{key}:\s*['\"]?(?P<version>[\w.+-]+)"
             case Spelling.MEMBER: return rf'"{key}"\s*:\s*"(?P<version>[^"]+)"'

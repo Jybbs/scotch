@@ -1,8 +1,11 @@
-description: Checks out the repository and installs the tools a job runs through the mise release `.mise/config.toml` sets as its floor, restoring the tool cache and writing it back only where asked
+description: Checks out the repository and installs the tools a job runs through the mise release `.mise/config.toml` sets as its floor, restoring the tool cache and, where a `shared-key` names one, the Cargo cache, and writing them back only where asked
 inputs:
   save:
     default: 'false'
-    description: Whether to write the tool cache back once the install finishes on a cache miss, which only ♟️ Warm does
+    description: Whether to write the tool cache back once the install finishes on a cache miss, and the Cargo cache once the job ends, which only ♟️ Warm does
+  shared-key:
+    default: ''
+    description: The Cargo cache the job restores, which every job naming the same key shares, an empty value restoring none
   tools:
     description: The tools to install, a space-separated subset of the ones `.mise/config.toml` pins
     required: true
@@ -13,6 +16,13 @@ runs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       with:
         persist-credentials: false
+    - name: Install rustup's toolchains inside the tool cache
+      shell: bash
+      run: |
+        {
+          echo "CARGO_TERM_COLOR=always"
+          echo "MISE_RUSTUP_HOME=${LOCALAPPDATA:-$HOME/.local/share}/mise/rustup"
+        } >> "$GITHUB_ENV"
     - name: Read the mise floor
       id: floor
       shell: bash
@@ -24,4 +34,11 @@ runs:
         cache_save: ${{ inputs.save }}
         install_args: ${{ inputs.tools }}
         version: ${{ steps.floor.outputs.version }}
+    - name: Restore the Cargo cache
+      if: ${{ inputs.shared-key != '' }}
+      uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+      with:
+        save-if: ${{ inputs.save == 'true' }}
+        shared-key: ${{ inputs.shared-key }}
+        workspaces: rust -> ../.cache/cargo
   using: composite

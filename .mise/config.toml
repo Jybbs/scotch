@@ -1,12 +1,5 @@
 min_version = "2026.10.18"
 
-[doctor.checks.libyaml]
-depends     = "venv"
-description = "PyYAML in `.venv` was built against LibYAML, which backs the `CSafeLoader` that `scotch.repo` reads the YAML under `.github/` through"
-hint        = 'Install LibYAML through `apt install libyaml-dev` on Debian or Ubuntu, then rebuild PyYAML against it through `mise x -- uv cache clean pyyaml` followed by `mise x -- uv sync --reinstall-package pyyaml`, which replaces the build the uv cache holds as well as the one in `.venv`. On macOS, install it through `brew install libyaml` and run the rebuild with `CPATH="$(brew --prefix)/include" LIBRARY_PATH="$(brew --prefix)/lib"` set, since the compiler there searches no Homebrew prefix.'
-run         = ".venv/bin/python -c 'import yaml; yaml.CSafeLoader'"
-timeout     = "5s"
-
 [doctor.checks.venv]
 description = "`.venv` exists and runs on the Python interpreter mise pins"
 hint        = "mise x -- uv venv --clear .venv && mise x -- uv sync"
@@ -15,6 +8,7 @@ timeout     = "5s"
 
 [env]
 _.path                       = ".mise/bin"
+CARGO_TARGET_DIR             = "{{config_root}}/.cache/cargo"
 HYPOTHESIS_STORAGE_DIRECTORY = "{{config_root}}/.cache/hypothesis"
 JITI_FS_CACHE                = "false"
 NODE_COMPILE_CACHE           = "{{config_root}}/.cache/node"
@@ -29,9 +23,12 @@ auto_install = false
 locked = true
 
 [tools]
-bun    = "1.4.3"
-lychee = "0.24.2"
-node   = "26.11.1"
-python = "3.15.2"
-uv     = "0.12.13"
-zizmor = "1.30.1"
+bun                                = "1.4.3"
+"github:wasm-bindgen/wasm-bindgen" = "0.2.130"
+lychee                             = "0.24.2"
+node                               = "26.11.1"
+osv-scanner                        = "2.7.0"
+python                             = "3.15.2"
+rust                               = { components = "clippy,rustfmt", profile = "minimal", targets = "wasm32-unknown-unknown", version = "1.99.1" }
+uv                                 = "0.12.13"
+zizmor                             = "1.30.1"
