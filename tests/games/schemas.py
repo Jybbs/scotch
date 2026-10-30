@@ -9,7 +9,7 @@ what it derives from that:
   number, and the `Frame` each position is drawn as, every piece under the
   number it keeps from the first
 - The players a game names and its Seven Tag Roster
-- The hash a game takes from its tags and its moves, and the tags it holds
+- The hash a game takes from every one of its fields, and the tags it holds
   frozen
 """
 
@@ -181,7 +181,7 @@ def test_a_frame_numbers_each_piece_by_the_square_it_starts_on():
     assert (second.move, second.san) == ((12, 28), "e4")
 
 
-def test_a_game_hashes_by_its_tags_and_its_moves(read: Callable[..., list[Game]]):
+def test_a_game_hashes_by_its_fields(read: Callable[..., list[Game]]):
     """
     Asserts that a game hashes, so a set holds two reads of one game once
     and holds apart a game differing from them in one tag alone and one

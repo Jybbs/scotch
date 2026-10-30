@@ -81,8 +81,8 @@ def lazily(importer: str | None, module: str, names: tuple[str, ...] | None) -> 
 def start():
     """
     Turns on the global lazy import mode under `lazily`, so each
-    module-level import outside a `try` block waits until its name is first
-    read.
+    module-level import other than a star import or one inside a `try` block
+    waits until its name is first read.
     """
     set_lazy_imports_filter(lazily)
     set_lazy_imports("all")

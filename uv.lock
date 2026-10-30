@@ -4,6 +4,7 @@ requires-python = ">=3.15"
 
 [manifest]
 build-constraints = [
+    { name = "cython", specifier = "==3.3.0" },
     { name = "packaging", specifier = "==26.3" },
     { name = "pathspec", specifier = "==1.1.1" },
     { name = "pluggy", specifier = "==1.7.0" },
