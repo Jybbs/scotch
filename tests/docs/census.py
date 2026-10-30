@@ -121,7 +121,7 @@ def test_rules_count_what_the_longest_run_leaves_out(
     run reaching, in another order, a position rarer than any of its longest
     run's.
     """
-    keys = {key for game in counted[0] for key in game.keys}
+    keys = {*game.keys for game in counted[0]}
 
     assert census.rules == Rules(
         accidents  = len(keys) * (len(keys) - 1) / 2**65,

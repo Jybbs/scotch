@@ -619,7 +619,7 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
         """
         Collects the mise tasks the job runs across every leg of its matrix.
         """
-        return frozenset(task for step in self.instances for task in step.tasks)
+        return frozenset(*step.tasks for step in self.instances)
 
 
 class MiseConfig(ConfigFile):
@@ -957,7 +957,7 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         """
         Expands every job's steps once for each leg of the job's matrix.
         """
-        return tuple(step for job in self.jobs for step in job.instances)
+        return tuple(*job.instances for job in self.jobs)
 
     @property
     def paths(self) -> tuple[str, ...]:
@@ -994,7 +994,7 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         """
         Lists every job's steps as the file declares them.
         """
-        return tuple(step for job in self.jobs for step in job.steps)
+        return tuple(*job.steps for job in self.jobs)
 
     @property
     def ungated(self) -> tuple[str, ...]:

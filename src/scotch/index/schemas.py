@@ -138,7 +138,7 @@ class Side(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     One game of a match as the Viewer reads it.
     """
 
-    headers: dict[str, str]
+    headers: frozendict[str, str]
     """
     The value of each tag pair keyed by its name.
     """

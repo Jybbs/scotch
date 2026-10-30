@@ -1,0 +1,12 @@
+Usage: scotch lift COMMAND
+
+Lists, tries, and writes the lift of each lagging pin.
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ pins  Prints one Markdown table of every pin the repository at the project's │
+│       root declares that lags its newest release, naming the file declaring  │
+│       it, its current and newest versions, the newest release's age in days, │
+│       whether the lift is major, and the advisories it clears. The lift of   │
+│       node stops inside the major of the newest @types/node, since           │
+│       repo:audit holds the two to one major.                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯

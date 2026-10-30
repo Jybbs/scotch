@@ -29,6 +29,17 @@ def test_a_side_holds_one_placement_more_than_its_moves():
     assert len(side.placements) == 3
 
 
+def test_a_side_refuses_a_new_value_for_a_header():
+    """
+    Asserts that a side's headers are frozen with it, so assigning a header
+    raises `TypeError` rather than changing the side the Viewer reads.
+    """
+    side = Side.from_game(line("e4"))
+
+    with raises(TypeError):
+        side.headers["White"] = "Changed"
+
+
 @mark.parametrize(
     "fields",
     [

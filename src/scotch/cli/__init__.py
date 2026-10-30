@@ -2,15 +2,15 @@
 Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
 names, each subcommand sitting in a group named for the verb it runs. The
-hidden `apply`, `audit`, `lift`, and `render` groups register their commands
-by import path, which cyclopts imports only when one runs, since each of
-their modules imports this one's `app`.
+modules of the hidden `apply`, `audit`, `lift`, and `render` groups import
+this module's `app` back, which the global lazy import mode binds only when
+one of their commands runs, after this module has defined it.
 """
 
 from cyclopts           import App, Parameter
 from importlib.metadata import metadata
 
-from scotch.cli       import fetch, index
+from scotch.cli       import apply, audit, fetch, index, lift, render
 from scotch.cli.cite  import source
 from scotch.cli.match import game
 
@@ -26,8 +26,8 @@ app.command(
         show = False
     )
 )
-app["apply"].command("scotch.cli.apply:labels")
-app["apply"].command("scotch.cli.apply:rulesets")
+app["apply"].command(apply.labels)
+app["apply"].command(apply.rulesets)
 app.command(
     App(
         help = "Reports where the repository's configuration has drifted from itself.",
@@ -35,7 +35,7 @@ app.command(
         show = False
     )
 )
-app["audit"].command("scotch.cli.audit:repo")
+app["audit"].command(audit.repo)
 app.command(
     App(help="Prints the footnote definition citing a source.", name="cite")
 )
@@ -55,7 +55,7 @@ app.command(
         show = False
     )
 )
-app["lift"].command("scotch.cli.lift:pins")
+app["lift"].command(lift.pins)
 app.command(
     App(help="Matches a submitted game against the stored games.", name="match")
 )
@@ -67,4 +67,4 @@ app.command(
         show = False
     )
 )
-app["render"].command("scotch.cli.render:docs")
+app["render"].command(render.docs)

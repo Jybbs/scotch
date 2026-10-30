@@ -9,6 +9,8 @@ what it derives from that:
   number, and the `Frame` each position is drawn as, every piece under the
   number it keeps from the first
 - The players a game names and its Seven Tag Roster
+- The hash a game takes from every one of its fields, and the tags it holds
+  frozen
 """
 
 from chess             import Board, Move
@@ -179,18 +181,22 @@ def test_a_frame_numbers_each_piece_by_the_square_it_starts_on():
     assert (second.move, second.san) == ((12, 28), "e4")
 
 
-def test_a_game_reads_from_a_member_of_a_zip_archive(tmp_path: Path):
+def test_a_game_hashes_by_its_fields(read: Callable[..., list[Game]]):
     """
-    Asserts that a PGN file read in place from inside a zip archive, as
-    `zipfile.Path` opens it, yields every game it holds with no origin set.
+    Asserts that a game hashes, so a set holds two reads of one game once
+    and holds apart a game differing from them in one tag alone and one
+    differing in its moves alone.
     """
-    (tmp_path / "games.zip").write_bytes(zipped(("games.pgn", "1. e4 *\n\n1. d4 *\n")))
+    first, second, retagged, replayed = (
+        *read(text)
+        for text in (
+            '[Event "Hashed"]\n\n1. e4 *\n', '[Event "Hashed"]\n\n1. e4 *\n',
+            '[Event "Other"]\n\n1. e4 *\n', '[Event "Hashed"]\n\n1. d4 *\n'
+        )
+    )
 
-    with ZipFile(tmp_path / "games.zip") as archive:
-        games = list(Game.read(ZipPath(archive, "games.pgn")))
-
-    assert [game.moves for game in games] == [moves("e2e4"), moves("d2d4")]
-    assert {game.origin for game in games} == {None}
+    assert len({first, second}) == 1
+    assert len({first, replayed, retagged}) == 3
 
 
 @mark.parametrize(
@@ -258,6 +264,20 @@ def test_a_variant_tag_naming_standard_chess_adds_no_problem(
     assert game.problems == ()
 
 
+def test_a_game_reads_from_a_member_of_a_zip_archive(tmp_path: Path):
+    """
+    Asserts that a PGN file read in place from inside a zip archive, as
+    `zipfile.Path` opens it, yields every game it holds with no origin set.
+    """
+    (tmp_path / "games.zip").write_bytes(zipped(("games.pgn", "1. e4 *\n\n1. d4 *\n")))
+
+    with ZipFile(tmp_path / "games.zip") as archive:
+        games = list(Game.read(ZipPath(archive, "games.pgn")))
+
+    assert [game.moves for game in games] == [moves("e2e4"), moves("d2d4")]
+    assert {game.origin for game in games} == {None}
+
+
 def test_a_game_refuses_a_field_it_does_not_declare():
     """
     Asserts that building a game with a keyword its record does not declare
@@ -281,6 +301,17 @@ def test_a_game_refuses_a_new_value_for_a_field(read: Callable[..., list[Game]])
 
     with raises(ValidationError):
         game.moves = ()
+
+
+def test_a_game_refuses_a_new_value_for_a_tag(read: Callable[..., list[Game]]):
+    """
+    Asserts that a game's tags are frozen with it, so assigning a tag raises
+    `TypeError` rather than changing the game.
+    """
+    [game] = read("1. e4 *\n")
+
+    with raises(TypeError):
+        game.tags["Event"] = "Changed"
 
 
 def test_a_game_whose_position_cannot_be_set_up_draws_no_frame():

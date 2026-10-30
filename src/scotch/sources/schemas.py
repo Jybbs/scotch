@@ -11,7 +11,6 @@ from datetime            import UTC, datetime
 from functools           import partial
 from hashlib             import file_digest
 from importlib.resources import read_text
-from itertools           import chain
 from pathlib             import Path, PurePosixPath
 from pydantic            import AwareDatetime, BaseModel, Field, HttpUrl, NonNegativeInt, model_validator
 from tomllib             import loads
@@ -123,11 +122,9 @@ class Source(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
         with ZipFile(path) as archive:
             yield from self.placed(
-                chain.from_iterable(
-                    Game.read(ZipPath(archive, name))
-                    for name in archive.namelist()
-                    if name.casefold().endswith(".pgn")
-                )
+                *Game.read(ZipPath(archive, name))
+                for name in archive.namelist()
+                if name.casefold().endswith(".pgn")
             )
 
     def path(self, directory: Path) -> Path:
@@ -137,7 +134,7 @@ class Source(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         """
         return directory / self.address.host / self.address.path.removeprefix("/")
 
-    def placed(self, games: Iterator[Game]) -> Iterator[Game]:
+    def placed(self, games: Iterable[Game]) -> Iterator[Game]:
         """
         Gives each game of `games` the `Origin` naming this file's address
         and the game's place in the order `games` yields them.

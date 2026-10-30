@@ -124,6 +124,17 @@ def test_a_shown_game_names_each_player_by_every_word_before_the_comma():
     }
 
 
+def test_a_shown_game_refuses_a_new_value_for_a_header():
+    """
+    Asserts that a shown game's headers are frozen with it, so assigning a
+    header raises `TypeError` rather than changing the figures a page sets.
+    """
+    shown = Shown.from_game(line("e4"), shown=1)
+
+    with raises(TypeError):
+        shown.headers["White"] = "Changed"
+
+
 def test_an_example_dumps_only_what_the_site_reads(index: PositionIndex, known: Path):
     """
     Asserts that the JSON the site reads for an example holds the run, the

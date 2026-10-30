@@ -5,7 +5,7 @@
 </picture>
 
 <!-- badges -->
-[![Python](../docs/assets/badges/python.svg)![3.14+](https://img.shields.io/badge/3.14+-764017?style=for-the-badge)](https://www.python.org/)
+[![Python](../docs/assets/badges/python.svg)![3.15+](https://img.shields.io/badge/3.15+-764017?style=for-the-badge)](https://www.python.org/)
 [![Coverage](../docs/assets/badges/coverage.svg)![percent](https://img.shields.io/badge/dynamic/json?url=https://scotch.fyi/coverage.json&query=%24&suffix=%25&style=for-the-badge&label=&color=764017)](https://github.com/Jybbs/scotch/actions/workflows/deploy.yml?query=branch%3Amain)
 [![Docs](../docs/assets/badges/docs.svg)![Docs](https://img.shields.io/badge/Docs-764017?style=for-the-badge)](https://scotch.fyi/)
 <!-- /badges -->

@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires      = ["hatchling==1.32.4"]
+requires      = ["hatchling==1.33.0"]
 
 [project]
 authors         = [{ name = "James Parkington" }]
@@ -33,7 +33,7 @@ license         = "MIT"
 license-files   = ["LICENSE.md"]
 name            = "scotch"
 readme          = ".github/README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 version         = "0.1.0"
 
 [project.scripts]
@@ -77,8 +77,15 @@ only-include = [".github/scripts", ".mise", "src", "tests", "uv.lock"]
 [tool.hatch.build.targets.wheel]
 packages = ["src/scotch"]
 
+[tool.hatch.build.targets.wheel.force-include]
+".cache/hatch/scotch.start" = "scotch.start"
+
+[tool.hatch.build.targets.wheel.hooks.version]
+path     = ".cache/hatch/scotch.start"
+template = "scotch.imports.filters:start"
+
 [tool.prose]
-target-version = "3.14"
+target-version = "3.15"
 
 [tool.prose.imports]
 first-party = ["scotch"]
@@ -112,11 +119,12 @@ testpaths                = ["tests"]
 
 [tool.uv]
 build-constraint-dependencies = [
+    "cython==3.3.0",
     "packaging==26.3",
     "pathspec==1.1.1",
-    "pluggy==1.6.0",
-    "setuptools==84.0.0",
-    "tomlkit==0.15.1",
+    "pluggy==1.7.0",
+    "setuptools==84.2.1",
+    "tomlkit==0.15.2",
     "trove-classifiers==2026.9.21.13"
 ]
 python-downloads              = "never"

@@ -119,7 +119,7 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     every variation.
     """
 
-    tags: dict[str, str]
+    tags: frozendict[str, str]
     """
     The value of each tag pair keyed by its name, where python-chess fills a
     tag of the Seven Tag Roster the file leaves out with its placeholder.

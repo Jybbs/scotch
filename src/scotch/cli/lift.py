@@ -75,9 +75,7 @@ def pins(
         tree   = Tree.scrubbed(Checkout(app=app, root=root()), environ)
         report = Report(
             lifts = tuple(
-                lift
-                for manager in Pins.__subclasses__()
-                for lift in manager(tree=tree).lifts()
+                *manager(tree=tree).lifts() for manager in Pins.__subclasses__()
             )
         )
         print(report.table(date.today()))
