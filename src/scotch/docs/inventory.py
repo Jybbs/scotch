@@ -225,12 +225,11 @@ class Outputs(RootModel[list[Output]]):
                 ),
                 *(cls.measured(index, pages, readme, root) if index else []),
                 *(
-                    output
-                    for page in pages
-                    for output in (
+                    *(
                         Figures(path=page, values=lambda: declared),
                         Footnotes(path=page, references=references)
                     )
+                    for page in pages
                 )
             ]
         )

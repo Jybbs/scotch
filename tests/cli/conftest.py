@@ -12,6 +12,8 @@ from datetime        import date
 from pathlib         import Path
 from pytest          import MonkeyPatch, fixture
 from shutil          import copyfile
+from subprocess      import run
+from sys             import executable
 from types           import SimpleNamespace
 from typing          import Self
 
@@ -35,6 +37,27 @@ def bibliography(bibtex: Path, monkeypatch: MonkeyPatch, tmp_path: Path) -> Path
     monkeypatch.setattr("scotch.cli.cite.root", lambda: tmp_path)
 
     return tmp_path
+
+
+@fixture(scope="module")
+def help_modules() -> frozenset[str]:
+    """
+    Runs `scotch --help` in an interpreter of its own and reads back the
+    top-level name of every module that interpreter imported by its end.
+    """
+    source = (
+        "import sys; from scotch.cli import app; "
+        "app(['--help'], result_action='return_value'); "
+        "print(*sys.modules, sep='\\n', file=sys.stderr)"
+    )
+    imported = run(
+        [executable, "-c", source],
+        capture_output = True,
+        check          = True,
+        text           = True
+    )
+
+    return frozenset(name.partition(".")[0] for name in imported.stderr.split())
 
 
 @fixture

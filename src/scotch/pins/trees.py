@@ -238,10 +238,9 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             lift.write(self.root)
 
         upgrades = [
-            argument
+            *("--upgrade-package", lift.name)
             for lift in lifts
             if lift.upgraded
-            for argument in ("--upgrade-package", lift.name)
         ]
         steps = [
             ("lock",),

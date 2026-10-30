@@ -398,7 +398,7 @@ def test_a_merge_keeps_the_first_of_each_game_in_order(batches: list[list[Game]]
     a batch and across batches, indexes exactly the first game of each Seven
     Tag Roster and line of moves, in the order the batches hold them.
     """
-    stored = [game for batch in batches for game in batch]
+    stored = [*batch for batch in batches]
     index  = PositionIndex.merge(
         Batch(left=(), rows=PositionIndex.rows(batch), source=declare(f"{number}.pgn"))
         for number, batch in enumerate(batches)

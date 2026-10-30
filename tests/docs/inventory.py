@@ -260,7 +260,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     help_ = (root / "docs/pages/guide/commands.md").read_text()
     store = (root / "docs/pages/guide/store.md").read_text()
 
-    assert [problem for output in outputs for problem in output.problems(root)] == []
+    assert [*output.problems(root) for output in outputs] == []
     assert f"<!-- files -->{len(Sources.read().sources):,}<!-- /files -->" in data
     assert "|---|---|---|" in data
     assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"

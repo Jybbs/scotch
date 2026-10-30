@@ -30,7 +30,7 @@ class Shown(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     it starts at.
     """
 
-    headers: Annotated[dict[str, str], Field(exclude=True)]
+    headers: Annotated[frozendict[str, str], Field(exclude=True)]
     """
     The game's tags, keyed by their names.
     """

@@ -1,0 +1,11 @@
+Usage: scotch match COMMAND
+
+Matches a submitted game against the stored games.
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ game  Finds the stored game sharing the longest unbroken run of positions    │
+│       with the first game of a PGN file, printing the stored game's players, │
+│       event, and date, its place in the file it was read from, the plies the │
+│       two games share, and the move where they part, or a line saying no     │
+│       stored game shares a position with it.                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯

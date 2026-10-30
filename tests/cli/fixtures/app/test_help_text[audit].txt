@@ -1,0 +1,10 @@
+Usage: scotch audit COMMAND
+
+Reports where the repository's configuration has drifted from itself.
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ repo  Reports every divergence the checks in scotch.repo find in the         │
+│       repository at the project's root, printing one line per finding that   │
+│       names its file relative to that root, and exits with status 1 where    │
+│       any finding is an error rather than a warning.                         │
+╰──────────────────────────────────────────────────────────────────────────────╯

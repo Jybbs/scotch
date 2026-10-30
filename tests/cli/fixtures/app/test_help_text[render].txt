@@ -1,0 +1,11 @@
+Usage: scotch render COMMAND
+
+Writes the files the site and the Markdown restate from a declaration.
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ docs  Writes each file a declaration in the repository renders into, meaning │
+│       the JSON the site's theme reads, the favicon and each lockup, the part │
+│       of a page a declaration fills in, the figures a page sets inside its   │
+│       sentences, and the footnote definitions closing each Markdown file,    │
+│       printing the path of each file it changed.                             │
+╰──────────────────────────────────────────────────────────────────────────────╯

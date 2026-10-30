@@ -1,5 +1,12 @@
 min_version = "2026.9.18"
 
+[doctor.checks.libyaml]
+depends     = "venv"
+description = "PyYAML in `.venv` was built against LibYAML, which backs the `CSafeLoader` that `scotch.repo` reads the YAML under `.github/` through"
+hint        = 'Install LibYAML through `apt install libyaml-dev` on Debian or Ubuntu, then rebuild PyYAML against it through `mise x -- uv sync --no-cache --reinstall-package pyyaml`. On macOS, install it through `brew install libyaml` and run the rebuild with `CPATH="$(brew --prefix)/include" LIBRARY_PATH="$(brew --prefix)/lib"` set, since the compiler there searches no Homebrew prefix.'
+run         = ".venv/bin/python -c 'import yaml; yaml.CSafeLoader'"
+timeout     = "5s"
+
 [doctor.checks.venv]
 description = "`.venv` exists and runs on the Python interpreter mise pins"
 hint        = "mise x -- uv venv --clear .venv && mise x -- uv sync"
@@ -25,6 +32,6 @@ locked = true
 bun    = "1.4.3"
 lychee = "0.24.2"
 node   = "26.11.1"
-python = "3.14.6"
+python = "3.15.2"
 uv     = "0.12.13"
 zizmor = "1.30.1"

@@ -314,8 +314,9 @@ class MisePins(Pins):
         )
 
         for name, tool in sorted(report.items()):
-            if tool.source.resolve() == config.path.resolve() and (
-                (newest := self.newest(name, tool)).version != tool.requested
+            if (
+                tool.source.resolve() == config.path.resolve()
+                and (newest := self.newest(name, tool)).version != tool.requested
             ):
                 yield Lift(
                     current = tool.requested,

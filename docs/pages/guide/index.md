@@ -2,6 +2,13 @@
 
 *Scotch* runs from a clone of its repository, with [mise](https://mise.jdx.dev) installing the tools `.mise/config.toml` pins, the Python interpreter and [uv](https://docs.astral.sh/uv/) among them. After [installing mise](https://mise.jdx.dev/installing-mise.html), the commands below clone the repository, print the help of the `scotch` command, and report anything the clone still needs.
 
+Where PyYAML publishes no wheel for the interpreter `.mise/config.toml` pins, uv builds it from source as it builds `.venv`. That build carries the `CSafeLoader` the package reads the YAML under `.github/` through only where the compiler finds [LibYAML](https://pyyaml.org/wiki/LibYAML), so install LibYAML before cloning:
+
+- On Debian or Ubuntu, through `apt install libyaml-dev`
+- On macOS, through `brew install libyaml`, then `export CPATH="$(brew --prefix)/include" LIBRARY_PATH="$(brew --prefix)/lib"`, since the compiler there searches no Homebrew prefix
+
+Wherever PyYAML was built without it, `mise doctor project` names the rebuild.
+
 <!-- install -->
 ```bash
 git clone --filter=blob:none https://github.com/Jybbs/scotch.git

@@ -275,7 +275,7 @@ class Template(ConfigFile):
         tuple[str, ...],
         BeforeValidator(
             lambda labels: [
-                name for label in labels.split(",") if (name := label.strip())
+                name for name in map(str.strip, labels.split(",")) if name
             ] if isinstance(labels, str) else labels
         )
     ] = ()

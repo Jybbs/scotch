@@ -1,8 +1,8 @@
 #!/usr/bin/env -S uv run --exact --locked --script
 # MISE description = "Write the workflow run's summary and exit with its verdict"
 # /// script
-# dependencies = ["minijinja==2.24.0"]
-# requires-python = ">=3.14"
+# dependencies = ["minijinja==3.0.5"]
+# requires-python = ">=3.15"
 # ///
 """
 Writes the summary of the workflow run the `⏱️ Brief` gate ends, from the
