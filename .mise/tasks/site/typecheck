@@ -1,6 +1,6 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "typecheck"
-#MISE depends     = ["site:install"]
+#MISE depends     = ["rs:wasm", "site:install"]
 #MISE description = "Type-check the site's TypeScript, failing on a single-file component `tsc` cannot read, and passing any further arguments to `tsc`"
 #MISE dir         = "docs"
 

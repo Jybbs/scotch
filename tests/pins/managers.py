@@ -1,8 +1,8 @@
 """
 Pins the lifts each kind of pin in `scotch.pins.managers` reads out of the
-sample checkout against the answers stand-ins for mise, uv, Bun, git, and
-GitHub's REST endpoint give it, meaning which pins lag, the version each
-lift moves to, the day it is dated to, the rewrites it carries, and the
+sample checkout against the answers stand-ins for mise, uv, Bun, Cargo,
+git, and GitHub's REST endpoint give it, meaning which pins lag, the version
+each lift moves to, the day it is dated to, the rewrites it carries, and the
 advisories it clears, beside the error an answer that is no JSON raises.
 """
 
@@ -16,7 +16,7 @@ from pytest_subprocess.fake_popen   import FakePopen
 from pytest_subprocess.fake_process import FakeProcess
 from tomllib import loads
 
-from scotch.pins.managers import ActionPins, BunPins, MisePins, UvPins
+from scotch.pins.managers import ActionPins, BunPins, CargoPins, MisePins, UvPins
 from scotch.pins.schemas  import Advisory, Edit, Lift, Spelling
 from scotch.pins.trees    import Tree
 from scotch.repo.checks   import NodeTypesCheck, PinCheck, ScriptCheck
@@ -140,6 +140,22 @@ def test_node_stops_inside_the_major_of_the_newest_types(
     assert list(NodeTypesCheck(checkout=sample.checkout).scan()) == []
 
 
+def test_a_crate_at_its_newest_release_lifts_nothing(fp: FakeProcess, tree: Tree):
+    """
+    Asserts that a crate whose requirement names the release `cargo search`
+    reports as its newest yields no lift.
+    """
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--",
+            "cargo", "search", "shakmaty", "--limit", "1"
+        ],
+        stdout = 'shakmaty = "0.30.2"    # Chess and chess variant rules\n'
+    )
+
+    assert list(CargoPins(tree=tree).lifts()) == []
+
+
 def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
     answered : Sample,
     fp       : FakeProcess,
@@ -221,28 +237,6 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
     ]
 
 
-def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
-):
-    """
-    Asserts that where `bun outdated` reports no package and the site holds
-    no override and no step passes a Wrangler version, nothing lifts and no
-    copy of the site is relocked or audited.
-    """
-    fp.register(
-        [
-            "mise", "-C", tree.root, "exec", "--", "bun", "outdated",
-            f"--cwd={tree.root / 'docs'}"
-        ],
-        stdout = "| Package | Current | Update | Latest |\n"
-    )
-
-    assert list(BunPins(tree=tree).lifts()) == []
-    assert len(fp.calls) == 1
-
-
 @mark.parametrize(
     ("floor", "lifted"),
     [
@@ -294,6 +288,28 @@ def test_the_floor_lifts_to_the_newest_release_of_mise(
     )
 
     assert list(MisePins(tree=tree).lifts()) == ([floor] if lifted else [])
+
+
+def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that where `bun outdated` reports no package and the site holds
+    no override and no step passes a Wrangler version, nothing lifts and no
+    copy of the site is relocked or audited.
+    """
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--", "bun", "outdated",
+            f"--cwd={tree.root / 'docs'}"
+        ],
+        stdout = "| Package | Current | Update | Latest |\n"
+    )
+
+    assert list(BunPins(tree=tree).lifts()) == []
+    assert len(fp.calls) == 1
 
 
 def test_a_tool_other_than_node_lifts_past_a_major_reading_no_types(
@@ -380,23 +396,6 @@ def test_an_action_in_a_repository_folder_reads_that_repository(
     ]
 
 
-def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
-):
-    """
-    Asserts that `node` lifts to its newest release, past any major, where
-    the site pins no `@types/node`, reading no release of `@types/node`.
-    """
-    sample.edit("docs/package.json", new="", old='"@types/node"         : "26.6.5",')
-    crossing(fp, tree)
-
-    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
-        ("node", "28.1.0")
-    ]
-
-
 @mark.parametrize(
     ("warm", "expected"),
     [
@@ -474,120 +473,21 @@ def test_the_actions_lift_to_the_commit_of_their_latest_release(
     )
 
 
-def test_the_npm_packages_lift_through_bun_with_the_advisories_they_clear(
+def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
     fp     : FakeProcess,
     sample : Sample,
     tree   : Tree
 ):
     """
-    Asserts that each package of the site's manifest `bun outdated` reports
-    lifts to its latest release and each override to the release `bun info`
-    tags latest, dated by `bun info`, that a Wrangler version a step passes
-    lifts the same way, and that each of the site's lifts carries the
-    advisory `bun audit` reports against the site's lockfile and not against
-    a copy relocked on the newest releases.
+    Asserts that `node` lifts to its newest release, past any major, where
+    the site pins no `@types/node`, reading no release of `@types/node`.
     """
-    sample.edit(
-        "docs/package.json",
-        new = '"overrides": {"fflate": "0.7.5"},\n    "private"',
-        old = '"private"'
-    )
-    (sample.root / "docs" / "bun.lock").write_text("{}")
-    (sample.root / "docs" / "bunfig.toml").write_text("")
-    (sample.root / ".github" / "workflows" / "deploy.yml").write_text(
-        "jobs:\n  deploy:\n    runs-on: ubuntu-26.04\n    steps:\n"
-        "      - name: Deploy\n"
-        f"        uses: cloudflare/wrangler-action@{'a' * 40}\n"
-        "        with:\n          wranglerVersion: 4.149.0\n"
-        "name: Deploy\non:\n  push:\n"
-    )
-    tool = ["mise", "-C", tree.root, "exec", "--", "bun"]
+    sample.edit("docs/package.json", new="", old='"@types/node"         : "26.6.5",')
+    crossing(fp, tree)
 
-    def relock(process: FakePopen):
-        """
-        Asserts that the copy of the site's manifest carries each lift of
-        the site before it is relocked.
-        """
-        copied = from_json(
-            (Path(process.args[-2].removeprefix("--cwd=")) / "package.json").read_text()
-        )
-
-        assert copied["devDependencies"]["vitest"] == "5.1.0"
-        assert copied["overrides"] == {"fflate": "0.8.3"}
-
-    fp.register(
-        [*tool, "outdated", f"--cwd={tree.root / 'docs'}"],
-        stdout = (
-            "| Package                   | Current | Update | Latest |\n"
-            "|---------------------------|---------|--------|--------|\n"
-            "| @vitest/coverage-v8 (dev) | 5.0.5   | 5.0.5  | 5.1.0  |\n"
-            "|---------------------------|---------|--------|--------|\n"
-            "| vitest (dev)              | 5.0.5   | 5.0.5  | 5.1.0  |\n"
-        )
-    )
-
-    for name, version in {"fflate": "0.8.3", "wrangler": "4.152.0"}.items():
-        fp.register(
-            [*tool, "info", f"--cwd={tree.root / 'docs'}", name, "version", "--json"],
-            stdout = dumps(version)
-        )
-
-    for name, version in {
-        "@vitest/coverage-v8" : "5.1.0",
-        "fflate"              : "0.8.3",
-        "vitest"              : "5.1.0",
-        "wrangler"            : "4.152.0"
-    }.items():
-        fp.register(
-            [*tool, "info", f"--cwd={tree.root / 'docs'}", name, "time", "--json"],
-            stdout = dumps(
-                {"created": "2020-01-01T00:00:00Z", version: "2026-10-20T00:00:00Z"}
-            )
-        )
-
-    fp.register(
-        [*tool, "install", fp.any(max=1, min=1), "--lockfile-only"],
-        callback = relock
-    )
-    fp.register(
-        [*tool, "audit", f"--cwd={tree.root / 'docs'}", "--json"],
-        returncode = 1,
-        stdout = dumps({"fflate": [{"url": "https://github.com/advisories/GHSA-f"}]})
-    )
-    fp.register([*tool, "audit", fp.any(max=1, min=1), "--json"], stdout="{}")
-    lifts = list(BunPins(tree=tree).lifts())
-
-    assert [
-        (str(lift.path), lift.name, lift.current, lift.newest, lift.advisories)
-        for lift in lifts
-    ] == [
-        ("docs/package.json", "@vitest/coverage-v8", "5.0.5", "5.1.0", ()),
-        ("docs/package.json", "vitest", "5.0.5", "5.1.0", ()),
-        (
-            "docs/package.json", "fflate", "0.7.5", "0.8.3",
-            (
-                Advisory(
-                    id      = "GHSA-f",
-                    link    = "https://github.com/advisories/GHSA-f",
-                    package = "fflate"
-                ),
-            )
-        ),
-        (".github/workflows/deploy.yml", "wrangler", "4.149.0", "4.152.0", ())
+    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
+        ("node", "28.1.0")
     ]
-    assert {lift.released for lift in lifts} == {datetime(2026, 10, 20, tzinfo=UTC)}
-
-    for lift in lifts:
-        lift.write(tree.root)
-
-    assert sample.checkout.site.packages == {
-        "@types/node"         : "26.6.5",
-        "@vitest/coverage-v8" : "5.1.0",
-        "vitest"              : "5.1.0"
-    }
-    assert "wranglerVersion: 4.152.0" in (
-        tree.root / ".github" / "workflows" / "deploy.yml"
-    ).read_text()
 
 
 @mark.parametrize(
@@ -739,6 +639,153 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     ]
 
 
+def test_the_crates_lift_to_the_newest_release_cargo_search_reports(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that each crate the crate's `Cargo.toml` requires lifts to the
+    newest release `cargo search` reports, its requirement rewritten in
+    place, whereas `wasm-bindgen` is searched for no release, since it lifts
+    with the command line `.mise/config.toml` pins.
+    """
+    sample.edit(
+        "rust/Cargo.toml",
+        new = 'shakmaty = "0.30.2"\nwasm-bindgen = { version = "=0.2.130" }\n',
+        old = 'shakmaty = "0.30.2"\n'
+    )
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--",
+            "cargo", "search", "shakmaty", "--limit", "1"
+        ],
+        stdout = 'shakmaty = "0.31.0"    # Chess and chess variant rules\n'
+    )
+
+    [lift] = CargoPins(tree=tree).lifts()
+    lift.write(tree.root)
+
+    assert (lift.name, lift.current, lift.newest) == ("shakmaty", "0.30.2", "0.31.0")
+    assert 'shakmaty = "0.31.0"' in (tree.root / "rust" / "Cargo.toml").read_text()
+
+
+def test_the_npm_packages_lift_through_bun_with_the_advisories_they_clear(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that each package of the site's manifest `bun outdated` reports
+    lifts to its latest release and each override to the release `bun info`
+    tags latest, dated by `bun info`, that a Wrangler version a step passes
+    lifts the same way, and that each of the site's lifts carries the
+    advisory `bun audit` reports against the site's lockfile and not against
+    a copy relocked on the newest releases.
+    """
+    sample.edit(
+        "docs/package.json",
+        new = '"overrides": {"fflate": "0.7.5"},\n    "private"',
+        old = '"private"'
+    )
+    (sample.root / "docs" / "bun.lock").write_text("{}")
+    (sample.root / "docs" / "bunfig.toml").write_text("")
+    (sample.root / ".github" / "workflows" / "deploy.yml").write_text(
+        "jobs:\n  deploy:\n    runs-on: ubuntu-26.04\n    steps:\n"
+        "      - name: Deploy\n"
+        f"        uses: cloudflare/wrangler-action@{'a' * 40}\n"
+        "        with:\n          wranglerVersion: 4.149.0\n"
+        "name: Deploy\non:\n  push:\n"
+    )
+    tool = ["mise", "-C", tree.root, "exec", "--", "bun"]
+
+    def relock(process: FakePopen):
+        """
+        Asserts that the copy of the site's manifest carries each lift of
+        the site before it is relocked.
+        """
+        copied = from_json(
+            (Path(process.args[-2].removeprefix("--cwd=")) / "package.json").read_text()
+        )
+
+        assert copied["devDependencies"]["vitest"] == "5.1.0"
+        assert copied["overrides"] == {"fflate": "0.8.3"}
+
+    fp.register(
+        [*tool, "outdated", f"--cwd={tree.root / 'docs'}"],
+        stdout = (
+            "| Package                   | Current | Update | Latest |\n"
+            "|---------------------------|---------|--------|--------|\n"
+            "| @vitest/coverage-v8 (dev) | 5.0.5   | 5.0.5  | 5.1.0  |\n"
+            "|---------------------------|---------|--------|--------|\n"
+            "| vitest (dev)              | 5.0.5   | 5.0.5  | 5.1.0  |\n"
+        )
+    )
+
+    for name, version in {"fflate": "0.8.3", "wrangler": "4.152.0"}.items():
+        fp.register(
+            [*tool, "info", f"--cwd={tree.root / 'docs'}", name, "version", "--json"],
+            stdout = dumps(version)
+        )
+
+    for name, version in {
+        "@vitest/coverage-v8" : "5.1.0",
+        "fflate"              : "0.8.3",
+        "vitest"              : "5.1.0",
+        "wrangler"            : "4.152.0"
+    }.items():
+        fp.register(
+            [*tool, "info", f"--cwd={tree.root / 'docs'}", name, "time", "--json"],
+            stdout = dumps(
+                {"created": "2020-01-01T00:00:00Z", version: "2026-10-20T00:00:00Z"}
+            )
+        )
+
+    fp.register(
+        [*tool, "install", fp.any(max=1, min=1), "--lockfile-only"],
+        callback = relock
+    )
+    fp.register(
+        [*tool, "audit", f"--cwd={tree.root / 'docs'}", "--json"],
+        returncode = 1,
+        stdout = dumps({"fflate": [{"url": "https://github.com/advisories/GHSA-f"}]})
+    )
+    fp.register([*tool, "audit", fp.any(max=1, min=1), "--json"], stdout="{}")
+    lifts = list(BunPins(tree=tree).lifts())
+
+    assert [
+        (str(lift.path), lift.name, lift.current, lift.newest, lift.advisories)
+        for lift in lifts
+    ] == [
+        ("docs/package.json", "@vitest/coverage-v8", "5.0.5", "5.1.0", ()),
+        ("docs/package.json", "vitest", "5.0.5", "5.1.0", ()),
+        (
+            "docs/package.json", "fflate", "0.7.5", "0.8.3",
+            (
+                Advisory(
+                    id      = "GHSA-f",
+                    link    = "https://github.com/advisories/GHSA-f",
+                    package = "fflate"
+                ),
+            )
+        ),
+        (".github/workflows/deploy.yml", "wrangler", "4.149.0", "4.152.0", ())
+    ]
+    assert {lift.released for lift in lifts} == {datetime(2026, 10, 20, tzinfo=UTC)}
+
+    for lift in lifts:
+        lift.write(tree.root)
+
+    assert sample.checkout.site.packages == {
+        "@types/node"         : "26.6.5",
+        "@vitest/coverage-v8" : "5.1.0",
+        "vitest"              : "5.1.0"
+    }
+    assert "wranglerVersion: 4.152.0" in (
+        tree.root / ".github" / "workflows" / "deploy.yml"
+    ).read_text()
+
+
 def test_the_tools_lagging_their_newest_release_lift_with_every_restatement(
     answered : Sample,
     fp       : FakeProcess,
@@ -829,3 +876,50 @@ def test_the_tools_lagging_their_newest_release_lift_with_every_restatement(
         *PinCheck(checkout=checkout).scan(),
         *ScriptCheck(checkout=checkout).scan()
     ] == []
+
+
+def test_wasm_bindgen_lifts_with_the_requirement_the_crate_restates(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that lifting the `wasm-bindgen` command line `.mise/config.toml`
+    pins rewrites the exact requirement the crate's `Cargo.toml` holds the
+    library to, so `PinCheck` passes on the lifted tree.
+    """
+    sample.edit(
+        ".mise/config.toml",
+        new = 'node   = "26.11.1"\n"github:wasm-bindgen/wasm-bindgen" = "0.2.130"\n',
+        old = 'node   = "26.11.1"\n'
+    )
+    sample.edit(
+        "rust/Cargo.toml",
+        new = 'wasm-bindgen = { version = "=0.2.130" }\n',
+        old = 'shakmaty = "0.30.2"\n'
+    )
+    fp.register(
+        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
+        stdout = dumps(
+            {
+                "github:wasm-bindgen/wasm-bindgen": {
+                    "latest"    : "0.2.131",
+                    "requested" : "0.2.130",
+                    "source"    : {"path": str(tree.root / ".mise" / "config.toml")}
+                }
+            }
+        )
+    )
+    fp.register(
+        [
+            "mise", "-C", tree.root,
+            "ls-remote", "--json", "github:wasm-bindgen/wasm-bindgen"
+        ],
+        stdout = dumps([{"version": "0.2.131"}])
+    )
+
+    [lift] = MisePins(tree=tree).lifts()
+    lift.write(tree.root)
+
+    assert list(PinCheck(checkout=sample.checkout).scan()) == []
+    assert 'version = "=0.2.131"' in (tree.root / "rust" / "Cargo.toml").read_text()

@@ -49,40 +49,46 @@ jobs:
         include:
           - name: 🩺 Advisories
             task: lock:audit
-            tools: bun python uv
+            tools: bun osv-scanner python rust uv
           - name: 🔐 Lockfiles
             task: lock:check
-            tools: bun python uv
+            tools: bun osv-scanner python rust uv
           - name: 🪻 Prose
             task: py:check
-            tools: python uv
+            tools: python rust uv
           - name: 🎯 Coverage
             task: py:coverage
-            tools: python uv
+            tools: python rust uv
           - name: 📋 Audit
             task: repo:audit
-            tools: python uv
+            tools: python rust uv
           - name: 🔦 Workflows
             task: repo:lint
             tools: zizmor
+          - name: 📎 Clippy
+            task: rs:check
+            tools: python rust
+          - name: 🦀 Crate
+            task: rs:test
+            tools: python rust
           - name: 🎯 Site Coverage
             task: site:coverage
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: ✂️ Knip
             task: site:cruft
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: 🔗 Links
             task: site:links
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: ⚓ Oxlint
             task: site:lint
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: 📰 Press
             task: site:press
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - name: 🧷 Types
             task: site:typecheck
-            tools: bun lychee node
+            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
     timeout-minutes: 15
   brief:
     if: always()

@@ -7,7 +7,7 @@ describe('FOOTER', () => {
   const message = FOOTER.message ?? ''
 
   it.each([
-    ['MIT Licensed', 'https://opensource.org/license/mit'],
+    ['GPL-3.0-or-later', 'https://www.gnu.org/licenses/gpl-3.0.html'],
     ['SIL Open Font License', 'https://openfontlicense.org'],
     ['3-clause BSD license', 'https://commons.wikimedia.org/wiki/File:Chess_klt45.svg']
   ])('links %s to its license', (license, address) => {
@@ -16,7 +16,7 @@ describe('FOOTER', () => {
 
   it('reads as one line of three parts, the code, the faces, and the pieces by Cburnett', () => {
     expect(message.replaceAll(/<[^>]+>/gu, '')).toBe(
-        'MIT Licensed · faces under the SIL Open Font License · '
+        'Code under the GPL-3.0-or-later · faces under the SIL Open Font License · '
       + 'pieces by Cburnett under the 3-clause BSD license'
     )
   })

@@ -100,44 +100,50 @@ def test_a_file_out_of_its_records_shape_fails_naming_the_file(
 
 
 @mark.parametrize(
-    ("text", "title", "holders"),
+    ("text", "identifier", "holders"),
     [
         param(
-            "MIT License\n\nCopyright (c) 2023 James Parkington\n",
-            "MIT License",
+            "Copyright (C) 2023 James Parkington\n\nSPDX-License-Identifier: "
+            "GPL-3.0-or-later\n\nCopyright (C) 2007 Free Software Foundation\n",
+            "GPL-3.0-or-later",
             ("James Parkington",),
             id = "one"
         ),
         param(
-            "MIT License\n\n"
-            "Copyright (c) 2021-2023 Ada Lovelace, Alan Turing and Grace Hopper\n",
-            "MIT License",
+            "Copyright (c) 2021-2023 Ada Lovelace, Alan Turing and Grace Hopper\n\n"
+            "SPDX-License-Identifier: MIT\n",
+            "MIT",
             ("Ada Lovelace", "Alan Turing", "Grace Hopper"),
             id = "several"
         ),
         param(
             "The Unlicense\n\nThis is free and unencumbered software.\n",
-            "The Unlicense",
+            None,
             (),
             id = "none"
         )
     ]
 )
-def test_a_license_reads_its_title_and_holders(
-    holders  : tuple[str, ...],
-    text     : str,
-    title    : str,
-    tmp_path : Path
+def test_a_license_reads_its_identifier_and_holders(
+    holders    : tuple[str, ...],
+    identifier : str | None,
+    text       : str,
+    tmp_path   : Path
 ):
     """
-    Asserts that a license file reads its first line as its title and the
-    names after the years on its copyright line as its holders, split on the
-    commas and the `and` between them.
+    Asserts that a license file reads the SPDX expression its
+    `SPDX-License-Identifier` line declares and the names after the years
+    on its first copyright line as its holders, split on the commas and the
+    `and` between them.
     """
     path = tmp_path / "LICENSE.md"
     path.write_text(text)
 
-    assert License.read(path) == License(holders=holders, path=path, title=title)
+    assert License.read(path) == License(
+        holders    = holders,
+        identifier = identifier,
+        path       = path
+    )
 
 
 def test_a_job_pairs_each_legs_check_name_with_its_tasks():

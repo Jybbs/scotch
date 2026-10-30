@@ -61,10 +61,10 @@ def test_an_error_prints_in_the_format_asked_for_and_exits_one(
     Asserts that an error prints in each format the command takes, naming
     its file relative to the checkout's root, and exits one.
     """
-    inside.edit("LICENSE.md", new="Apache License", old="MIT License")
+    inside.edit("LICENSE.md", new="Identifier: Apache-2.0", old="Identifier: MIT")
     finding = Finding(
         message = (
-            "The license file is titled `Apache License` "
+            "The license file declares `Apache-2.0` "
             "while the manifest declares `MIT`"
         ),
         path = Path("LICENSE.md")

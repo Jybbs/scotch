@@ -1,9 +1,9 @@
 """
 Holds the records `scotch apply rulesets`, `scotch audit repo`, and `scotch
-lift pins` read out of a checkout, meaning the manifest, the mise config,
-the license, the lockfile, the site's package manifest, the workflows with
-their jobs and steps, the action manifests, the mise tasks, and the task
-scripts, beside the `Finding` each check reports.
+lift pins` read out of a checkout, meaning the manifest, the crate's
+manifest, the mise config, the license, the lockfile, the site's package
+manifest, the workflows with their jobs and steps, the action manifests, the
+mise tasks, and the task scripts, beside the `Finding` each check reports.
 """
 
 from collections.abc import Callable, Iterable, Mapping
@@ -93,24 +93,26 @@ class Level(StrEnum):
 
 class License(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The license file `[project].license-files` names, read for its title and
-    the holders its copyright line names.
+    The license file `[project].license-files` names, read for the license
+    it declares and the holders its copyright line names.
     """
 
     holders: tuple[str, ...]
     """
-    The names the copyright line gives after its years, in the order it
-    gives them.
+    The names the file's first copyright line gives after its years, in the
+    order it gives them.
+    """
+
+    identifier: str | None
+    """
+    The SPDX license expression the file's `SPDX-License-Identifier` line
+    declares, such as `GPL-3.0-or-later`, or `None` where it carries no such
+    line.
     """
 
     path: Path
     """
     The license file.
-    """
-
-    title: str
-    """
-    The file's first line, such as `MIT License`.
     """
 
     @classmethod
@@ -119,15 +121,16 @@ class License(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         Reads the license file at `path`, splitting the holders on the
         commas and the `and` between them.
         """
-        text   = path.read_text(encoding="utf-8")
-        notice = search(r"^Copyright \(c\) [\d, -]+ (.+)$", text, MULTILINE)
+        text       = path.read_text(encoding="utf-8")
+        notice     = search(r"^Copyright \([cC]\) [\d, -]+ (.+)$", text, MULTILINE)
+        identifier = search(r"^SPDX-License-Identifier: (\S+)", text, MULTILINE)
 
         return cls(
             holders = tuple(
                 split(r",\s*|\s+and\s+", notice[1])
             ) if notice else (),
-            path  = path,
-            title = text.partition("\n")[0].strip()
+            identifier = identifier[1] if identifier else None,
+            path       = path
         )
 
 
@@ -412,6 +415,38 @@ class Action(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
         )
 
 
+class Crate(ConfigFile):
+    """
+    The fields of the crate's `Cargo.toml` the checks compare against the
+    pins they restate.
+    """
+
+    dependencies: dict[str, str | dict[str, object]] = {}
+    """
+    Each crate `[dependencies]` names beside the requirement the crate is
+    held to, written as the crate's value or as the `version` of its table.
+    """
+
+    @property
+    def bindgen(self) -> str | None:
+        """
+        Reads the requirement the crate holds `wasm-bindgen` to, such as
+        `=0.2.130`, or `None` where it requires no `wasm-bindgen`.
+        """
+        return self.requirements.get("wasm-bindgen")
+
+    @property
+    def requirements(self) -> dict[str, str]:
+        """
+        Reads the requirement each dependency is held to, whether written as
+        the dependency's value or as the `version` of its table.
+        """
+        return {
+            name: str(spec["version"] if isinstance(spec, dict) else spec)
+            for name, spec in self.dependencies.items()
+        }
+
+
 class Finding(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     One divergence a check reports, at the file and, where one applies, the
@@ -628,6 +663,15 @@ class MiseConfig(ConfigFile):
     that restate them.
     """
 
+    bindgen: str | None = Field(
+        None,
+        validation_alias = AliasPath("tools", "github:wasm-bindgen/wasm-bindgen")
+    )
+    """
+    The wasm-bindgen release mise pins, whose command line writes the
+    bindings of the crate's WebAssembly build, or `None` where it pins none.
+    """
+
     floor: str | None = Field(None, validation_alias="min_version")
     """
     The oldest mise release `min_version` lets read the config, or `None`
@@ -751,6 +795,12 @@ class Pyproject(ConfigFile):
     )
     """
     The constraints `[tool.uv]` holds a source distribution's build to.
+    """
+
+    crate: Path = Field(validation_alias=AliasPath("tool", "maturin", "manifest-path"))
+    """
+    The crate's `Cargo.toml` that `[tool.maturin]` builds the package's
+    extension module from, relative to the repository's root.
     """
 
     description: str = Field(validation_alias=AliasPath("project", "description"))

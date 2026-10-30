@@ -39,11 +39,11 @@ class PositionIndex:
     @classmethod
     def build(cls, games: Iterable[Game]) -> Self:
         """
-        Builds both tables from `games` in the order it yields them. A game
-        whose `boards` yields no board keeps its row in `games`, its errors
+        Builds both tables from `games` in the order it yields them. A
+        game whose `keys` hold none keeps its row in `games`, its errors
         included, and holds none in `positions`.
         """
-        return cls.number(cls.rows(games))
+        return cls.number(cls.rows(games).lazy())
 
     def game(self, number: int) -> Game:
         """
@@ -104,19 +104,23 @@ class PositionIndex:
         """
         # `concat` raises on no frame, so an empty frame under `ROWS` leads the list.
         return cls.number(
-            concat((DataFrame(schema=ROWS), *(batch.rows for batch in batches))).filter(
-                struct("moves", "roster").is_first_distinct()
-            )
+            concat(
+                (
+                    LazyFrame(schema=ROWS),
+                    *(batch.rows.lazy() for batch in batches)
+                )
+            ).filter(struct("moves", "roster").is_first_distinct())
         )
 
     @classmethod
-    def number(cls, rows: DataFrame) -> Self:
+    def number(cls, rows: LazyFrame) -> Self:
         """
         Numbers the games `rows` holds in order as the `game` column and
         splits them into both tables, one row of `positions` for each key a
-        game's `keys` holds, beside the move played from that position.
+        game's `keys` holds, beside the move played from that position, each
+        table read from `rows` as its file is written.
         """
-        frame = rows.lazy().with_row_index("game")
+        frame = rows.with_row_index("game")
 
         return cls(
             games     = frame.select(GAMES.schema.names()),
@@ -147,8 +151,8 @@ class PositionIndex:
     def rows(games: Iterable[Game]) -> DataFrame:
         """
         Lays `games` out one row each under the columns `ROWS` declares,
-        reading the `Result` tag python-chess's reader fills where a file
-        leaves it out.
+        reading the `Result` tag the reader fills where a file leaves it
+        out.
         """
         return DataFrame(
             [
@@ -235,9 +239,9 @@ class PositionIndex:
 @dataclass(frozen=True, kw_only=True)
 class Batch:
     """
-    The games the fetched file of `source` holds, those python-chess reads
-    with no problem laid out as `rows` under the columns `ROWS` declares and
-    the rest kept apart as `left` for a report.
+    The games the fetched file of `source` holds, those read with no problem
+    laid out as `rows` under the columns `ROWS` declares and the rest kept
+    apart as `left` for a report.
     """
 
     left   : tuple[Game, ...]

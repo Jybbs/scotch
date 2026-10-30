@@ -6,30 +6,34 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
   install's dry run give it, `.mise/mise.lock` keeping its bytes and its
   mode whatever the verdict
 - The commands `lock:check`, `lock:audit`, and `lock:sync` run for each
-  task script declaring its own dependencies and for the site's
-  `docs/bun.lock`
+  task script declaring its own dependencies, for the crate's
+  `rust/Cargo.lock`, and for the site's `docs/bun.lock`
 - The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
-with stand-in `bun`, `mise`, `mktemp`, `scotch`, and `uv` executables first
-on `PATH`, so every file the task writes lands in a directory the case owns.
+with stand-in `bun`, `cargo`, `mise`, `mktemp`, `osv-scanner`, `scotch`, and
+`uv` executables first on `PATH`, so every file the task writes lands in a
+directory the case owns.
 """
 
 from common.stand_ins import Scratch
 from pytest           import mark, param
 
+CARGO = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml"
+
 
 def test_a_lockfile_matching_its_manifest_passes(scratch: Scratch):
     """
-    Asserts that the check exits zero where `uv lock --check` passes, `mise
-    lock` leaves `.mise/mise.lock` as it stood, and both dry runs pass,
-    running all four in turn and leaving the lockfile's bytes and mode as
-    they stood and no snapshot behind.
+    Asserts that the check exits zero where `uv lock --check` and
+    the crate's locked `cargo metadata` pass, `mise lock` leaves
+    `.mise/mise.lock` as it stood, and both dry runs pass, running all five
+    in turn and leaving the lockfile's bytes and mode as they stood and no
+    snapshot behind.
     """
     assert scratch.run().returncode == 0
     assert scratch.calls == [
-        "uv lock --check", "mise lock",
-        "mise install --dry-run --force --locked",
+        "uv lock --check", CARGO,
+        "mise lock", "mise install --dry-run --force --locked",
         "bun install --cwd docs --dry-run --frozen-lockfile --no-summary"
     ]
     assert scratch.residue == scratch.pristine
@@ -56,10 +60,11 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
 
 
 @mark.parametrize(
-    ("script", "bun", "mise", "uv", "calls", "stderr"),
+    ("script", "bun", "cargo", "mise", "uv", "calls", "stderr"),
     [
         param(
             False,
+            "exit 0",
             "exit 0",
             "exit 0",
             "exit 1",
@@ -71,6 +76,7 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
             True,
             "exit 0",
             "exit 0",
+            "exit 0",
             '[ "$3" = --script ] && exit 1 || exit 0',
             ["uv lock --check", "uv lock --check --script .mise/tasks/gha/brief.py"],
             "",
@@ -79,18 +85,33 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
         param(
             False,
             "exit 0",
+            "exit 1",
+            "exit 0",
+            "exit 0",
+            ["uv lock --check", CARGO],
+            "",
+            id = "crate-lock-lagging"
+        ),
+        param(
+            False,
+            "exit 0",
+            "exit 0",
             "echo 'mise WARN  failed to resolve python for windows-x64' >&2",
             "exit 0",
-            ["uv lock --check", "mise lock"],
+            ["uv lock --check", CARGO, "mise lock"],
             "failed to resolve python for windows-x64",
             id = "tool-unresolved"
         ),
         param(
             False,
             "exit 0",
+            "exit 0",
             '[ "$1" = install ] && exit 1 || exit 0',
             "exit 0",
-            ["uv lock --check", "mise lock", "mise install --dry-run --force --locked"],
+            [
+                "uv lock --check", CARGO,
+                "mise lock", "mise install --dry-run --force --locked"
+            ],
             "",
             id = "tool-missing-from-the-locked-install"
         ),
@@ -99,9 +120,10 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
             "exit 1",
             "exit 0",
             "exit 0",
+            "exit 0",
             [
-                "uv lock --check", "mise lock",
-                "mise install --dry-run --force --locked",
+                "uv lock --check", CARGO,
+                "mise lock", "mise install --dry-run --force --locked",
                 "bun install --cwd docs --dry-run --frozen-lockfile --no-summary"
             ],
             "",
@@ -112,6 +134,7 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
 def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     bun     : str,
     calls   : list[str],
+    cargo   : str,
     mise    : str,
     scratch : Scratch,
     script  : bool,
@@ -123,7 +146,8 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     drift and leaving `.mise/mise.lock`'s bytes and mode as they stood and
     no snapshot behind, wherever:
 
-    - `uv.lock` or a task script's lockfile would change
+    - `uv.lock`, a task script's lockfile, or `rust/Cargo.lock` would
+      change
     - `mise lock` reports a tool it failed to resolve while exiting zero,
       the report reaching standard error
     - The locked install's dry run finds no entry for a tool on this
@@ -133,12 +157,27 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     if script:
         scratch.add_script()
 
-    result = scratch.run(bun=bun, mise=mise, uv=uv)
+    result = scratch.run(
+        bun   = bun,
+        cargo = cargo,
+        mise  = mise,
+        uv    = uv
+    )
 
     assert result.returncode == 1
     assert scratch.calls == calls
     assert stderr in result.stderr
     assert scratch.residue == scratch.pristine
+
+
+def test_audit_fails_on_an_advisory_for_the_crate(scratch: Scratch):
+    """
+    Asserts that `lock:audit` exits with the status `osv-scanner` returns
+    for an advisory against a crate the crate's lockfile resolves, auditing
+    the site's lockfile no further.
+    """
+    assert scratch.run("audit", osv="exit 1").returncode == 1
+    assert scratch.calls[-1] == "osv-scanner scan source --lockfile rust/Cargo.lock"
 
 
 def test_audit_fails_on_an_advisory_for_the_site(scratch: Scratch):
@@ -155,8 +194,8 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     """
     Asserts that `lock:audit` runs `uv audit` over the project's lockfile
     and then over each task script declaring its own dependencies, each
-    under the preview flag `uv audit` takes, and then `bun audit` over the
-    site's lockfile.
+    under the preview flag `uv audit` takes, then `osv-scanner` over the
+    crate's lockfile, and then `bun audit` over the site's lockfile.
     """
     scratch.add_script()
 
@@ -164,7 +203,7 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     assert scratch.calls == [
         "uv audit --preview-features audit-command",
         f"uv audit --preview-features audit-command --script {scratch.script}",
-        "bun audit --cwd docs"
+        "osv-scanner scan source --lockfile rust/Cargo.lock", "bun audit --cwd docs"
     ]
 
 
@@ -199,7 +238,8 @@ def test_sync_relocks_the_tools_the_project_each_script_and_the_site(scratch: Sc
     """
     Asserts that `lock:sync` re-resolves `.mise/mise.lock`, then `uv.lock`,
     then each task script's lockfile, lifting `UV_LOCKED` for each `uv
-    lock`, and then relocks `docs/bun.lock` without installing.
+    lock`, then the crate's entries in `rust/Cargo.lock`, and then relocks
+    `docs/bun.lock` without installing.
     """
     scratch.add_script()
 
@@ -207,5 +247,6 @@ def test_sync_relocks_the_tools_the_project_each_script_and_the_site(scratch: Sc
     assert scratch.calls == [
         "mise lock", "uv lock --no-locked",
         f"uv lock --no-locked --script {scratch.script}",
+        "cargo update --manifest-path rust/Cargo.toml --workspace",
         "bun install --cwd docs --lockfile-only"
     ]

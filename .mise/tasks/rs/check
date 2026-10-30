@@ -1,0 +1,6 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Report every rewrite rustfmt would make to the crate and every lint Clippy finds in it under each feature, passing any further arguments to Clippy"
+#MISE dir         = "rust"
+
+cargo fmt --check
+cargo clippy --all-features --all-targets --locked "$@" -- --deny warnings

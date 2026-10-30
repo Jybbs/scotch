@@ -42,10 +42,10 @@ def game(
     warns where a fetch since the index was built recorded other bytes for
     the files than the ones the index was read from.
 
-    Exits nonzero naming the problem where the file holds no game, where
-    python-chess recorded errors reading the game, where its `Variant` tag
-    names a variant other than standard chess, or where no index has been
-    built or the one built holds another layout.
+    Exits nonzero naming the problem where the file holds no game, where the
+    reader recorded errors reading the game, worded as python-chess words
+    them, where its `Variant` tag names a variant other than standard chess,
+    or where no index has been built or the one built holds another layout.
     """
     try:
         submitted = Game.first(pgn)

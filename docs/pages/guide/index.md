@@ -13,7 +13,7 @@ mise doctor project
 ```
 <!-- /install -->
 
-`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout reaches it. Once `cd` runs, mise puts uv and the wrapper at `.mise/bin/scotch` on the path, even with the lines pasted together. The wrapper builds `.venv` from `uv.lock` through `uv run --exact --locked` on its first run, so the package needs no install step of its own between `mise install` and the first command. `mise doctor project` reports each condition the clone needs beyond the pinned tools, beside the command that supplies a missing one.
+`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout reaches it. Once `cd` runs, mise puts uv and the wrapper at `.mise/bin/scotch` on the path, even with the lines pasted together. The wrapper builds `.venv` from `uv.lock` through `uv run --exact --locked` on its first run, compiling the crate under `rust/` with the Rust toolchain mise pins, so the package needs no install step of its own between `mise install` and the first command. `mise doctor project` reports each condition the clone needs beyond the pinned tools, beside the command that supplies a missing one.
 
 ## A First Match
 

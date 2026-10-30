@@ -15,8 +15,10 @@ jobs:
       fail-fast: false
       matrix:
         tools:
-          - bun lychee node
-          - bun python uv
+          - bun github:wasm-bindgen/wasm-bindgen lychee node rust
+          - bun osv-scanner python rust uv
+          - python rust
+          - python rust uv
           - python uv
           - zizmor
     timeout-minutes: 10

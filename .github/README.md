@@ -58,4 +58,4 @@ With `--json` and a path, the same command writes the match to a file the **[Vie
 
 ## 📗 License
 
-*Scotch* is released under the MIT license [`LICENSE.md`](../LICENSE.md) carries. The site's faces carry the [SIL Open Font License](https://openfontlicense.org), and the chess pieces python-chess draws, by Cburnett, carry the [3-clause BSD license](https://commons.wikimedia.org/wiki/File:Chess_klt45.svg) Wikimedia Commons lists.
+*Scotch* is released under the [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html), version 3 or any later version, which [`LICENSE.md`](../LICENSE.md) carries. The crate *Scotch* reads and keys its games through links [shakmaty](https://docs.rs/shakmaty), which carries the same license. The site's faces carry the [SIL Open Font License](https://openfontlicense.org), and the chess pieces python-chess draws, by Cburnett, carry the [3-clause BSD license](https://commons.wikimedia.org/wiki/File:Chess_klt45.svg) Wikimedia Commons lists.

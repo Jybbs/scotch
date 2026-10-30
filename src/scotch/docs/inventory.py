@@ -19,6 +19,7 @@ from scotch.docs.examples     import Example
 from scotch.docs.outputs      import Document, Figures, Footnotes, Output, Region
 from scotch.docs.project      import Project
 from scotch.docs.tallies      import markdown
+from scotch.games.schemas     import Game
 from scotch.identity.schemas  import Identity
 from scotch.index.tables      import PositionIndex
 from scotch.sources.schemas   import Sources
@@ -29,7 +30,8 @@ class Outputs(RootModel[list[Output]]):
     The files `scotch render docs` writes, in the order it writes them.
     """
 
-    rendered: ClassVar[Path] = Path("docs/.vitepress/lib/rendered")
+    games    : ClassVar[Path] = Path("docs/public/games")
+    rendered : ClassVar[Path] = Path("docs/.vitepress/lib/rendered")
 
     def __iter__(self) -> Iterator[Output]:
         """
@@ -54,10 +56,9 @@ class Outputs(RootModel[list[Output]]):
         the Guide's store page set beneath their widgets.
         """
         census   = Census(index=index)
-        games    = Path("docs/public/games")
-        viewer   = Example(path=games / "viewer.pgn", shown=0)
+        viewer   = Example(path=Outputs.games / "viewer.pgn", shown=0)
         examples = {
-            name: Example(path=games / f"{name}.pgn", shown=shown)
+            name: Example(path=Outputs.games / f"{name}.pgn", shown=shown)
             for name, shown in (("demo", 0), ("front", 18), ("methods", 18))
         }
         drawn = cache(
@@ -160,6 +161,13 @@ class Outputs(RootModel[list[Output]]):
                 Document.from_value(
                     path  = cls.rendered / "identity.json",
                     value = lambda: identity.model_dump(mode="json")
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "keys.json",
+                    value = lambda: {
+                        pgn.stem: list(map(str, Game.first(pgn).keys))
+                        for pgn in sorted((root / cls.games).glob("*.pgn"))
+                    }
                 ),
                 Document.from_value(
                     path  = cls.rendered / "pieces.json",

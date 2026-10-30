@@ -481,14 +481,14 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             LicenseCheck,
-            [("LICENSE.md", "MIT License", "Apache License")],
+            [("LICENSE.md", "Identifier: MIT", "Identifier: Apache-2.0")],
             [(
                 "LICENSE.md",
                 None,
-                "The license file is titled `Apache License` while the manifest "
+                "The license file declares `Apache-2.0` while the manifest "
                 "declares `MIT`"
             )],
-            id = "license-title"
+            id = "license-identifier"
         ),
         param(
             LicenseCheck,
@@ -579,6 +579,42 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 )
             ],
             id = "required-version"
+        ),
+        param(
+            PinCheck,
+            [
+                (
+                    ".mise/config.toml", 'uv     = "0.12.13"',
+                    'uv     = "0.12.13"\n"github:wasm-bindgen/wasm-bindgen" = "0.2.130"'
+                ),
+                (
+                    "rust/Cargo.toml", 'shakmaty = "0.30.2"',
+                    'wasm-bindgen = { optional = true, version = "=0.2.129" }'
+                )
+            ],
+            [
+                (
+                    "rust/Cargo.toml",
+                    None,
+                    "`wasm-bindgen` is `=0.2.129` where `.mise/config.toml` sets "
+                    "`=0.2.130`"
+                )
+            ],
+            id = "wasm-bindgen"
+        ),
+        param(
+            PinCheck,
+            [(
+                ".mise/config.toml", 'uv     = "0.12.13"',
+                'uv     = "0.12.13"\n"github:wasm-bindgen/wasm-bindgen" = "0.2.130"'
+            )],
+            [
+                (
+                    "rust/Cargo.toml", None,
+                    "`wasm-bindgen` is `None` where `.mise/config.toml` sets `=0.2.130`"
+                )
+            ],
+            id = "wasm-bindgen-unrequired"
         ),
         param(
             RowCheck,

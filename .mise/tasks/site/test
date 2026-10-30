@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE depends     = ["site:install"]
+#MISE depends     = ["rs:wasm", "site:install"]
 #MISE description = "Run the site's suite, passing any further arguments to Vitest"
 #MISE dir         = "docs"
 

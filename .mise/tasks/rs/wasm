@@ -1,0 +1,16 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Build the crate to WebAssembly and write its wasm-bindgen module into `docs/.vitepress/lib/games/crate` for the site"
+#MISE dir         = "rust"
+#MISE outputs     = [
+#MISE   "../docs/.vitepress/lib/games/crate/scotch.d.ts",
+#MISE   "../docs/.vitepress/lib/games/crate/scotch.js",
+#MISE   "../docs/.vitepress/lib/games/crate/scotch_bg.wasm",
+#MISE   "../docs/.vitepress/lib/games/crate/scotch_bg.wasm.d.ts"
+#MISE ]
+#MISE sources     = ["Cargo.lock", "Cargo.toml", "src/**/*.rs"]
+
+cargo build --features wasm --locked --release --target wasm32-unknown-unknown
+wasm-bindgen \
+  --out-dir ../docs/.vitepress/lib/games/crate \
+  --target web \
+  "$CARGO_TARGET_DIR/wasm32-unknown-unknown/release/scotch.wasm"

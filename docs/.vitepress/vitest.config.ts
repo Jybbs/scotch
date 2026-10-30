@@ -22,7 +22,7 @@ export default defineConfig({
     unstubGlobals       : true,
 
     coverage: {
-      exclude          : ['**/*.data.ts'],
+      exclude          : ['**/*.data.ts', '.vitepress/lib/games/crate/**'],
       include          : ['.vitepress/lib/**/*.ts', '.vitepress/theme/**/*.ts'],
       provider         : 'v8',
       reportOnFailure  : true,

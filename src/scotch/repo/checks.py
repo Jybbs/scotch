@@ -405,22 +405,22 @@ class LabelCheck(Check):
 
 class LicenseCheck(Check):
     """
-    Fails where the license file's title or copyright holders diverge from
-    the manifest's `license` or `authors`.
+    Fails where the license the license file declares or its copyright
+    holders diverge from the manifest's `license` or `authors`.
     """
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding for the title and for the holders wherever either
+        Yields a finding for the license and for the holders wherever either
         diverges.
         """
         file, pyproject = self.checkout.license, self.checkout.pyproject
         authors         = {author.name for author in pyproject.authors}
 
-        if file.title.removesuffix(" License") != pyproject.license:
+        if file.identifier != pyproject.license:
             yield Finding(
                 message = (
-                    f"The license file is titled `{file.title}` "
+                    f"The license file declares `{file.identifier}` "
                     f"while the manifest declares `{pyproject.license}`"
                 ),
                 path = file.path
@@ -464,32 +464,43 @@ class NodeTypesCheck(Check):
 
 class PinCheck(Check):
     """
-    Fails where `pyproject.toml` restates a version `.mise/config.toml` pins
-    and the two disagree, meaning the Python minor `requires-python` and
-    `[tool.prose].target-version` name and the uv `required-version` holds
-    every machine to.
+    Fails where `pyproject.toml` or the crate's `Cargo.toml` restates a
+    version `.mise/config.toml` pins and the two disagree, meaning the
+    Python minor `requires-python` and `[tool.prose].target-version` name,
+    the uv `required-version` holds every machine to, and the `wasm-bindgen`
+    the crate requires, which its command line has to match exactly.
     """
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding for each restated pin that disagrees.
+        Yields a finding for each restated pin that disagrees, at the file
+        restating it.
         """
-        mise, pyproject = self.checkout.mise, self.checkout.pyproject
-        expected        = {
-            "`[tool.prose].target-version`" : (pyproject.target, mise.minor),
-            "`[tool.uv].required-version`"  : (pyproject.uv, f"=={mise.uv}"),
-            "`requires-python`"             : (pyproject.python, f">={mise.minor}")
+        crate, mise, pyproject = (
+            self.checkout.crate, self.checkout.mise, self.checkout.pyproject
+        )
+        restated = {
+            crate.path: {
+                "`wasm-bindgen`": (crate.bindgen, mise.bindgen and f"={mise.bindgen}")
+            },
+
+            pyproject.path: {
+                "`[tool.prose].target-version`" : (pyproject.target, mise.minor),
+                "`[tool.uv].required-version`"  : (pyproject.uv, f"=={mise.uv}"),
+                "`requires-python`"             : (pyproject.python, f">={mise.minor}")
+            }
         }
 
-        for key, (found, pinned) in expected.items():
-            if found != pinned:
-                yield Finding(
-                    message = (
-                        f"{key} is `{found}` "
-                        f"where `.mise/config.toml` sets `{pinned}`"
-                    ),
-                    path = pyproject.path
-                )
+        for path, pins in restated.items():
+            for key, (found, pinned) in pins.items():
+                if found != pinned:
+                    yield Finding(
+                        message = (
+                            f"{key} is `{found}` "
+                            f"where `.mise/config.toml` sets `{pinned}`"
+                        ),
+                        path = path
+                    )
 
 
 class RenderCheck(Check):

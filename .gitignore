@@ -3,9 +3,11 @@
 /dist/
 /docs/.vitepress/.temp/
 /docs/.vitepress/dist/
+/docs/.vitepress/lib/games/crate/
 /docs/node_modules/
 
 *.pyc
+*.so
 __pycache__/
 
 .DS_Store

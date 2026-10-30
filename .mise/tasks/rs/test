@@ -1,0 +1,5 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Run the crate's tests, passing any further arguments to `cargo test`"
+#MISE dir         = "rust"
+
+cargo test --locked "$@"

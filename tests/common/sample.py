@@ -23,10 +23,11 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     A copy of the sample checkout written into a directory the test owns.
 
     The fixture keeps the files GitHub's dependency graph and
-    `jdx/mise-action` read, and the workflows zizmor reads, under other
-    names, which each copy renames, a `dot-` folder taking its leading
-    dot and `manifest.toml`, `lock.toml`, and `manifest.json` landing as
-    `pyproject.toml`, `uv.lock`, and `package.json`.
+    `jdx/mise-action` read, and the workflows zizmor reads, under
+    other names, which each copy renames, a `dot-` folder taking its
+    leading dot and `crate.toml`, `manifest.toml`, `lock.toml`, and
+    `manifest.json` landing as `Cargo.toml`, `pyproject.toml`, `uv.lock`,
+    and `package.json`.
     """
 
     root: Path
@@ -88,6 +89,7 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         """
         sample = cls(root=root)
         names  = {
+            "crate.toml"    : "Cargo.toml",
             "lock.toml"     : "uv.lock",
             "manifest.json" : "package.json",
             "manifest.toml" : "pyproject.toml"
