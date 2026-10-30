@@ -16,7 +16,7 @@ from re              import MULTILINE, Match, findall, fullmatch, search, split,
 from tomllib         import loads
 from typing          import Annotated, ClassVar, Self, assert_never
 from urllib.parse    import urlsplit
-from yaml            import AliasToken, AnchorToken, CSafeLoader, YAMLError, load, scan
+from yaml            import AliasToken, AnchorToken, SafeLoader, YAMLError, load, scan
 
 
 class Author(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -401,10 +401,10 @@ class Action(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
 
         return cls.model_validate(
             {
-                **load(text, Loader=CSafeLoader),
+                **load(text, Loader=SafeLoader),
                 "anchors" : tuple(
                     token.start_mark.line + 1
-                    for token in scan(text, Loader=CSafeLoader)
+                    for token in scan(text, Loader=SafeLoader)
                     if isinstance(token, AnchorToken | AliasToken)
                 ),
                 "path"    : path
@@ -1029,7 +1029,7 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         YAML 1.1, which PyYAML follows, reads the bare `on` key as the
         boolean `True`, so the events load from that key into `triggers`.
         """
-        workflow = load(path.read_text(encoding="utf-8"), Loader=CSafeLoader)
+        workflow = load(path.read_text(encoding="utf-8"), Loader=SafeLoader)
 
         return cls.model_validate(
             {

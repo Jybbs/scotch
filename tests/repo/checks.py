@@ -424,8 +424,9 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 ".github/release.yml",
                 None,
-                "Value error, while parsing a flow node\ndid not find expected node "
-                'content\n  in "<unicode string>", line 3, column 5'
+                "Value error, while parsing a flow node\nexpected the node content, but"
+                " found '-'\n  in \"<unicode string>\", line 3, column 5:\n"
+                '        - labels: ["🐞 bug"]\n        ^'
             )],
             id = "unparsable-changelog"
         ),
