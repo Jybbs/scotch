@@ -103,7 +103,6 @@ on:
       - .mise/mise.lock
       - rust/Cargo.lock
       - rust/Cargo.toml
-      - rust/src/**
   workflow_dispatch:
 permissions:
   contents: read
