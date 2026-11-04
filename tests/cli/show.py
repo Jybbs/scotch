@@ -19,6 +19,14 @@ from scotch.games.schemas   import Game
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Download, Manifest, Source
 
+POSITIONS = [
+    param("1. e4 e5 2. Nf3", id="line-of-moves"),
+    param(
+        "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+        id = "fen"
+    )
+]
+
 
 def recorded(body: bytes, data: Path, folder: str, source: Source):
     """
@@ -67,16 +75,7 @@ def test_game_prints_the_stored_game_a_reference_names(
 
 
 @mark.usefixtures("indexed")
-@mark.parametrize(
-    "position",
-    [
-        param("1. e4 e5 2. Nf3", id="line-of-moves"),
-        param(
-            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-            id = "fen"
-        )
-    ]
-)
+@mark.parametrize("position", POSITIONS)
 def test_position_prints_each_move_and_each_game(
     capsys   : CaptureFixture[str],
     position : str,
@@ -90,6 +89,23 @@ def test_position_prints_each_move_and_each_game(
     """
     assert invoke("show", "position", position) == 0
     assert capsys.readouterr().out == snapshot(name="position")
+
+
+@mark.usefixtures("indexed")
+@mark.parametrize("position", POSITIONS)
+def test_position_reads_one_argument_per_field(
+    capsys   : CaptureFixture[str],
+    position : str
+):
+    """
+    Asserts that `scotch show position` reads a position the shell passes as
+    one argument per field as it reads one argument, a FEN's `-` among them,
+    with an option after the last field still read as the option.
+    """
+    assert invoke("show", "position", *position.split(), "--top", "20") == 0
+    assert capsys.readouterr().out.startswith(
+        "1 stored game reaches this position\nNc6 "
+    )
 
 
 @mark.usefixtures("indexed")
@@ -132,6 +148,8 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(
                 " a position",
             id = "fen-short-of-its-fields"
         ),
+        param("--tpo", "Unknown option: --tpo", id="long-option-undeclared"),
+        param("-t", "Unknown option: -t", id="short-option-undeclared"),
         param(
             "1. e4 e4",
             (

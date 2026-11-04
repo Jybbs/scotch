@@ -17,7 +17,7 @@ mise doctor project
 
 ## A First Match
 
-A fresh clone holds no games, so `mise run data:fetch` downloads the archives the store reads and `mise run data:index` builds the index from them. `scotch match game` then matches the first game of a Portable Game Notation (PGN) file. The demo game below matches a game <!-- demo-white -->Kasparov<!-- /demo-white --> played, in the output that `mise run docs:render` writes from the index.
+A fresh clone holds no games, so `mise run data:fetch` downloads the archives the store reads and `mise run data:index` builds the index from them. `scotch match game` then matches one game of a Portable Game Notation (PGN) file. The demo game below matches a game <!-- demo-white -->Kasparov<!-- /demo-white --> played, in the output that `mise run docs:render` writes from the index.
 
 <!-- example -->
 ```bash

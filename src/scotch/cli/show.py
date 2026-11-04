@@ -8,6 +8,7 @@ holds.
 from cyclopts          import Parameter
 from cyclopts.types    import PositiveInt
 from polars.exceptions import SchemaError
+from re                import match
 from typing            import Annotated
 
 from scotch.cli.settings    import Settings
@@ -34,18 +35,17 @@ def game(reference: str):
 
 
 def position(
-    position : Annotated[
+    *position : Annotated[
         str,
         Parameter(
-            help = (
+            allow_leading_hyphen = True,
+            help                 = (
                 "The Forsyth–Edwards Notation of the position or a line of moves from"
-                " the start, the starting position where left out."
-            ),
-            show_default = False
+                " the start, quoted or not, the starting position where left out."
+            )
         )
-    ] = "",
-    *,
-    top      : Annotated[
+    ],
+    top       : Annotated[
         PositiveInt, Parameter(help="The count of games to list, the newest first.")
     ] = 20
 ):
@@ -60,14 +60,19 @@ def position(
     of moves is read as PGN, which skips a token that names no move.
 
     Warns where the files changed since the index was built, and exits
-    nonzero naming the problem where a Forsyth–Edwards Notation names no
-    position or stops short of its first four fields, since a placement
-    alone would read as white to move with no castling rights, where a line
-    of moves holds an illegal move, where no index has been built, or where
-    the one built holds another layout.
+    nonzero naming the problem where a token opening on a hyphen names no
+    option, where a Forsyth–Edwards Notation names no position or stops
+    short of its first four fields, since a placement alone would read as
+    white to move with no castling rights, where a line of moves holds an
+    illegal move, where no index has been built, or where the one built
+    holds another layout.
     """
+    for token in position:
+        if match(r"-+[^-\s]", token):
+            raise SystemExit(f"Unknown option: {token}")
+
     try:
-        print(Settings().opened().answer(position, top).summary)
+        print(Settings().opened().answer(" ".join(position), top).summary)
     except ValueError as error:
         raise SystemExit(str(error))
 

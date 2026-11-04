@@ -1,4 +1,4 @@
-Usage: scotch show position [OPTIONS] [ARGS]
+Usage: scotch show position [OPTIONS] [ARGS...]
 
 Reports what the stored games played from one position.                         
 
@@ -10,15 +10,17 @@ played from its first reach. A line of moves is read as PGN, which skips a token
 that names no move.                                                             
 
 Warns where the files changed since the index was built, and exits nonzero      
-naming the problem where a Forsyth–Edwards Notation names no position or stops  
-short of its first four fields, since a placement alone would read as white to  
-move with no castling rights, where a line of moves holds an illegal move, where
-no index has been built, or where the one built holds another layout.
+naming the problem where a token opening on a hyphen names no option, where a   
+Forsyth–Edwards Notation names no position or stops short of its first four     
+fields, since a placement alone would read as white to move with no castling    
+rights, where a line of moves holds an illegal move, where no index has been    
+built, or where the one built holds another layout.
 
+╭─ Arguments ──────────────────────────────────────────────────────────────────╮
+│ POSITION  The Forsyth–Edwards Notation of the position or a line of moves    │
+│           from the start, quoted or not, the starting position where left    │
+│           out.                                                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
-│ POSITION --position  The Forsyth–Edwards Notation of the position or a line  │
-│                      of moves from the start, the starting position where    │
-│                      left out.                                               │
-│ --top INT            The count of games to list, the newest first. [default: │
-│                      20]                                                     │
+│ --top INT  The count of games to list, the newest first. [default: 20]       │
 ╰──────────────────────────────────────────────────────────────────────────────╯
