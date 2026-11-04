@@ -56,7 +56,8 @@ fn read(text: Py<PyString>) -> Reader {
 /// Lists what the reader passes over with no error in the first game the PGN
 /// text `text` carries, meaning each word of the movetext holding no token and
 /// reading as no move number, each line opening on `[` that holds no tag pair,
-/// and a `(` or a `{` the text never closes.
+/// a `{` the text never closes, a `(` the text never closes or that opens
+/// before any move, and a `)` with no `(` open.
 #[pyfunction]
 fn skipped(text: &str) -> Vec<String> {
     crate::read_at(text, 0).map_or_else(Vec::new, |(game, _)| game.skipped)

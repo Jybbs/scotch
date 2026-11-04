@@ -150,7 +150,8 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(
         param(("1. e4+ e5# 2. Nf3",), id="marks-running-off-a-move"),
         param(("1. e4 e5 2. Nf3\n\n\n",), id="blank-lines-past-the-moves"),
         param(("1. e4 e5\n% an escape\n2. Nf3",), id="percent-line-among-the-moves"),
-        param(("1. e4 e5 2. Nf3\n\n% an escape\n",), id="percent-line-past-the-moves")
+        param(("1. e4 e5 2. Nf3\n\n% an escape\n",), id="percent-line-past-the-moves"),
+        param(("1. e4 ( c5 ) e5 2. Nf3",), id="variation-closing-where-one-is-open")
     ]
 )
 def test_position_reads_what_a_line_of_moves_holds_beside_its_moves(
@@ -264,6 +265,26 @@ def test_position_names_each_word_naming_no_move_and_each_illegal_move(
             "1. e4 {a note e5",
             "Found problems in 1. e4 {a note e5:\nnames no move: '{'",
             id = "comment-left-open"
+        ),
+        param(
+            "1. e41 e5",
+            "Found problems in 1. e41 e5:\nnames no move: '1'",
+            id = "digit-running-into-the-move-before-it"
+        ),
+        param(
+            "( e4",
+            "Found problems in ( e4:\nnames no move: '('",
+            id = "variation-opening-before-any-move"
+        ),
+        param(
+            "1. e4 ) e5",
+            "Found problems in 1. e4 ) e5:\nnames no move: ')'",
+            id = "variation-closing-with-none-open"
+        ),
+        param(
+            "1. e4 ( c5 ) ) e5",
+            "Found problems in 1. e4 ( c5 ) ) e5:\nnames no move: ')'",
+            id = "variation-closed-twice"
         )
     ]
 )
@@ -271,8 +292,8 @@ def test_position_it_cannot_read_exits_naming_the_problem(position: str, problem
     """
     Asserts that a FEN short of its first four fields and a line holding an
     illegal move, a word naming no move, a variation or a comment left open,
-    or more past the blank line ending its moves each exit nonzero naming
-    the problem.
+    a `(` before any move, a `)` with none open, or more past the blank line
+    ending its moves each exit nonzero naming the problem.
     """
     assert invoke("show", "position", position) == problem
 

@@ -34,8 +34,9 @@ pub struct Game {
     pub errors: Vec<String>,
     /// What python-chess's reader passes over with no error, meaning each
     /// word of the movetext holding no token and reading as no move number,
-    /// each line opening on `[` that holds no tag pair, and a `(` or a `{` the
-    /// text never closes.
+    /// each line opening on `[` that holds no tag pair, a `{` the text never
+    /// closes, a `(` the text never closes or that opens before any move, and
+    /// a `)` with no `(` open.
     pub skipped: Vec<String>,
 }
 
@@ -234,8 +235,8 @@ impl Mainline {
                     }
                     Kind::Open if self.depth > 0 => self.depth += 1,
                     Kind::Open if self.moved => self.depth = 1,
-                    Kind::Close => self.depth = self.depth.saturating_sub(1),
-                    Kind::Open => {}
+                    Kind::Close if self.depth > 0 => self.depth -= 1,
+                    Kind::Open | Kind::Close => self.game.skipped.push(line[start..end].to_owned()),
                     _ if self.depth > 0 => {}
                     Kind::Rest => break,
                     Kind::Result if self.tags.get("Result") == Some("*") => {
@@ -255,13 +256,18 @@ impl Mainline {
 
     /// Records each word of `gap`, the text a line holds between two tokens,
     /// unless it reads as a move number, meaning digits closed by any dots or
-    /// any `…`, leaving out the marks running into the move before it where
-    /// `after` is set, such as the `+` of `e4+` and the `x` of `Nf3x`.
+    /// any `…`. Where `after` is set, the first word runs into the move before
+    /// it and is recorded only where it holds a letter or a digit other than
+    /// `x`, which leaves out the `+` of `e4+` and the `x` of `Nf3x` and records
+    /// the `1` of `e41`.
     fn pass_over(&mut self, gap: &str, after: bool) {
-        let mut words = gap.split(is_space).peekable();
+        let mut words = gap.split(is_space);
 
-        if after {
-            words.next_if(|word| !word.contains(|c: char| c.is_alphanumeric() && c != 'x'));
+        if after
+            && let Some(word) = words.next()
+            && word.contains(|c: char| c.is_alphanumeric() && c != 'x')
+        {
+            self.game.skipped.push(word.to_owned());
         }
 
         self.game.skipped.extend(
@@ -480,6 +486,46 @@ mod tests {
 
         assert_eq!(moves(&game), ["e2e4"]);
         assert_eq!(game.skipped, ["("]);
+    }
+
+    #[test]
+    fn a_digit_running_into_the_move_before_it_is_reported() {
+        let [game] = read("1. e41 e5\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5"]);
+        assert_eq!(game.skipped, ["1"]);
+    }
+
+    #[test]
+    fn a_variation_opening_before_any_move_is_reported() {
+        let [game] = read("( e4\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4"]);
+        assert_eq!(game.skipped, ["("]);
+    }
+
+    #[test]
+    fn a_variation_closing_with_none_open_is_reported() {
+        let [game] = read("1. e4 ) e5\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5"]);
+        assert_eq!(game.skipped, [")"]);
+    }
+
+    #[test]
+    fn a_variation_closed_twice_is_reported_once() {
+        let [game] = read("1. e4 ( c5 ) ) e5\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5"]);
+        assert_eq!(game.skipped, [")"]);
+    }
+
+    #[test]
+    fn a_variation_closing_where_one_is_open_is_not_reported() {
+        let [game] = read("1. e4 ( c5 ) e5\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5"]);
+        assert_eq!(game.skipped, Vec::<String>::new());
     }
 
     #[test]
