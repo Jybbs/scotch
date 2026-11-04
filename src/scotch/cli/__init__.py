@@ -10,9 +10,8 @@ one of their commands runs, after this module has defined it.
 from cyclopts           import App, Parameter
 from importlib.metadata import metadata
 
-from scotch.cli       import apply, audit, fetch, index, lift, render
-from scotch.cli.cite  import source
-from scotch.cli.match import game
+from scotch.cli      import apply, audit, fetch, index, lift, match, render, show
+from scotch.cli.cite import source
 
 app = App(
     default_parameter = Parameter(negative=()),
@@ -59,7 +58,8 @@ app["lift"].command(lift.pins)
 app.command(
     App(help="Matches a submitted game against the stored games.", name="match")
 )
-app["match"].command(game)
+app["match"].command(match.game)
+app["match"].command(match.games)
 app.command(
     App(
         help = "Writes the files the site and the Markdown restate from a declaration.",
@@ -68,3 +68,9 @@ app.command(
     )
 )
 app["render"].command(render.docs)
+app.command(
+    App(help="Prints a stored game, a position, or what the store holds.", name="show")
+)
+app["show"].command(show.game)
+app["show"].command(show.position)
+app["show"].command(show.store)

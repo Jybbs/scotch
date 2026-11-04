@@ -1,7 +1,6 @@
 //! Holds `Game`, one game a PGN text carries, read by `read` as
 //! python-chess 1.11.2's `chess.pgn.read_game` reads it under a visitor that
-//! skips every variation, and keyed position by position as
-//! `chess.polyglot.zobrist_hash` keys the boards that game yields.
+//! skips every variation, and keyed position by position through `Board::key`.
 
 use shakmaty::uci::UciMove;
 

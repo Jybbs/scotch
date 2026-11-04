@@ -44,7 +44,7 @@ def test_render_against_an_index_of_another_layout_exits_naming_it(
     Asserts that a render against an index whose games table lacks a column
     exits nonzero naming the directory it read, writing nothing.
     """
-    games = data / "index" / "games.parquet"
+    games = PositionIndex.table(data / "index")
     read_parquet(games).drop("errors").write_parquet(games)
 
     assert invoke("render", "docs") == (

@@ -6,6 +6,7 @@ of stored games from the files `scotch fetch games` downloaded, run by the
 
 from concurrent.futures import ProcessPoolExecutor
 from functools          import partial
+from shutil             import rmtree
 
 from scotch.cli.settings    import Settings
 from scotch.index.tables    import Batch, PositionIndex
@@ -17,12 +18,12 @@ def games():
     Reads the games of every file `scotch fetch games` downloaded into the
     `downloads` folder of the data directory, handing the files one at a
     time to a pool of processes, and writes the index of them to its `index`
-    folder beside a copy of the manifest the files were read under. Files
-    are read in the order `sources.toml` declares them, a game several files
-    repeat is indexed under the first, and a game the reader records an
-    error for, or whose `Variant` tag names a variant other than standard
-    chess, is left out, each game read and keyed as python-chess reads and
-    keys it.
+    folder, replacing what that folder holds, beside a copy of the manifest
+    the files were read under. Files are read in the order `sources.toml`
+    declares them, a game several files repeat is indexed under the first,
+    and a game the reader records an error for, or whose `Variant` tag names
+    a variant other than standard chess, is left out, each game read as
+    python-chess reads it.
 
     Prints the count of games read from each file, one line for each problem
     of a game left out naming its file, its place there, and its players,
@@ -59,9 +60,10 @@ def games():
         print(batch.summary)
 
     index = PositionIndex.merge(batches)
+    rmtree(settings.index, ignore_errors=True)
     index.write(settings.index)
     manifest.write(settings.index)
-    count = index.games.select("game").collect().height
+    count = index.positions.games
     print(
         f"Indexed {count:,} {'game' if count == 1 else 'games'} into {settings.index}"
     )

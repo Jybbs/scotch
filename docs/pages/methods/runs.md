@@ -1,6 +1,6 @@
 # The Longest Run
 
-The index holds one row for each position of each stored game, naming the game, the position's key, its ply, and the move played from it. `scotch match game` looks up every key the submitted game reaches and keeps each stored row holding one of them, which leaves the positions the two games share.
+The index holds each stored game's moves beside enough of each position's key to find the games that may reach it, and it plays each of those games through to compare their full keys, so a lookup returns every position holding the key and no other. `scotch match game` looks up every key the submitted game reaches, which leaves the positions the two games share.
 
 ## Following a Run
 
@@ -20,10 +20,12 @@ Stepping through a match sets the two games' positions on one board, each square
 
 ## Choosing Among Runs
 
-The longest run wins, and where two stored games share runs as long, the match names the one whose run starts earliest in the submitted game, then the one the index holds first, which is the one from the archive `sources.toml` declares first or, within one archive, the one that archive holds first.
+The longest run wins, and stored games sharing runs as long rank by the mean of the ratings their `WhiteElo` and `BlackElo` tags give, the highest first, then those carrying one rating by that rating, then the unrated in the order the index holds them, which is the archive `sources.toml` declares first and, within one archive, the order that archive holds them in.[^edwards1994b] A rating holding no positive number reads as no rating. The match names the first of them and counts the rest, and `scotch match game --top` lists the next, each a different stored game at its longest run in the same order. A game holding several runs as long takes the one starting earliest in the submitted game, then the one starting earliest in the stored game.
 
 [^gusfield1997]: Gusfield, Dan. 1997. "Algorithms on Strings, Trees, and Sequences: Computer Science and Computational Biology," Section 7.4. <https://doi.org/10.1017/CBO9780511574931>
 
 [^wagner1974]: Wagner, Robert A., and Michael J. Fischer. 1974. "The String-to-String Correction Problem," Journal of the ACM, volume 21, number 1, pages 168 to 173. <https://doi.org/10.1145/321796.321811>
 
 [^hirschberg1975]: Hirschberg, D. S. 1975. "A Linear Space Algorithm for Computing Maximal Common Subsequences," Communications of the ACM, volume 18, number 6, pages 341 to 343. <https://doi.org/10.1145/360825.360861>
+
+[^edwards1994b]: Edwards, Steven J., coordinator. 1994. "Standard: Portable Game Notation Specification and Implementation Guide," Section 9.1.2, Tags: WhiteElo, BlackElo. <https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c9.1.2>

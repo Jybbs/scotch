@@ -58,6 +58,23 @@ def test_a_file_changed_on_disk_since_its_fetch_exits_naming_it(
     )
 
 
+def test_an_index_build_clears_the_files_of_the_last_build(
+    data    : Path,
+    fetched : Callable[..., tuple[Source, ...]]
+):
+    """
+    Asserts that a build removes each file an earlier build left in the
+    index folder, so a file of an earlier layout takes up no room on disk
+    beside the new one.
+    """
+    fetched(("players/A.pgn", b"1. e4 *\n"))
+    (data / "index").mkdir()
+    (data / "index" / "positions.parquet").write_bytes(b"stale")
+
+    assert invoke("index", "games") == 0
+    assert not (data / "index" / "positions.parquet").exists()
+
+
 def test_an_index_build_reports_each_file_and_each_game_left_out(
     capsys  : CaptureFixture[str],
     data    : Path,

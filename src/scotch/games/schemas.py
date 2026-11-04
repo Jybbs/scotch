@@ -5,14 +5,16 @@ read from and the `Frame` each position of its mainline is drawn as.
 """
 
 from chess           import Board, Move, square, square_file, square_rank
-from chess.pgn       import Headers, TAG_ROSTER
-from collections.abc import Iterator, Mapping
+from chess.pgn       import Game as Pgn, Headers, TAG_ROSTER
+from collections.abc import Iterable, Iterator, Mapping
 from functools       import cached_property
 from importlib.resources.abc import Traversable
 from itertools               import islice
 from operator                import itemgetter
+from pathlib                 import PurePosixPath
 from pydantic                import BaseModel, Field, PositiveInt
-from typing import Self
+from typing       import Self
+from urllib.parse import unquote, urlsplit
 
 from scotch.games import readers
 
@@ -99,6 +101,22 @@ class Origin(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     across the members of an archive in the order the archive lists them.
     """
 
+    @property
+    def file(self) -> str:
+        """
+        Reads the file's name from its address without its percent-encoding,
+        such as `Carlsen.zip`.
+        """
+        return unquote(PurePosixPath(urlsplit(self.address).path).name)
+
+    @property
+    def reference(self) -> str:
+        """
+        Names the game as `<file>:<n>`, such as `Carlsen.zip:12`, which
+        `scotch show game` reads back.
+        """
+        return f"{self.file}:{self.place}"
+
 
 class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
@@ -136,13 +154,11 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         )
     )
     """
-    The Zobrist hash of each position of the mainline, keyed as
-    python-chess's `zobrist_hash` keys it, so two positions share a key
-    where FIDE's Laws of Chess, Article 9.2.3, count them as the same
-    position, save that the hash reads the en passant file wherever a pawn
-    stands ready to capture, legal or not. A game whose tags set up no
-    position, or name a variant other than standard chess and Chess960,
-    holds none.
+    The Zobrist hash of each position of the mainline, reading the en
+    passant file only where a legal capture reaches its square, so two
+    positions share a key where FIDE's Laws of Chess, Article 9.2.3, count
+    them as the same position. A game whose tags set up no position, or name
+    a variant other than standard chess and Chess960, holds none.
     """
 
     origin: Origin | None = None
@@ -150,6 +166,31 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     The file of the store's sources the game was read from and its place
     there, or `None` for a game read or built anywhere else.
     """
+
+    @property
+    def dated(self) -> int:
+        """
+        Reads the `Date` tag as the number `YYYYMMDD`, a part it leaves
+        unknown as 0, so a later date reads as a larger number.
+        """
+        year, month, day = (
+            int(part) if part.isdecimal() else 0
+            for part in f"{self.tags['Date']}..".split(".")[:3]
+        )
+
+        return min(year, 9999) * 10000 + min(month, 99) * 100 + min(day, 99)
+
+    @property
+    def encoded(self) -> bytes:
+        """
+        Writes the mainline as the file the index holds its moves in stores
+        it, each move as its place among the legal moves of its position.
+        """
+        return readers.encoded(
+            [move.uci() for move in self.moves],
+            fen     = self.tags.get("FEN"),
+            variant = self.tags.get("Variant")
+        )
 
     @cached_property
     def frames(self) -> tuple[Frame, ...]:
@@ -171,6 +212,17 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             frames.append(Frame.drawn(board, numbers, move, board.san_and_push(move)))
 
         return tuple(frames)
+
+    @property
+    def pgn(self) -> str:
+        """
+        Writes the game as PGN, its tags then its mainline, for any chess
+        program to open.
+        """
+        game = Pgn(headers=self.tags)
+        game.add_line(self.moves)
+
+        return str(game)
 
     @cached_property
     def placements(self) -> tuple[str, ...]:
@@ -221,6 +273,32 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         """
         return tuple(map(Board.san, self.boards(), self.moves))
 
+    @property
+    def standing(self) -> int:
+        """
+        Ranks the game among those tied on their longest run from its
+        `WhiteElo` and `BlackElo` tags, the mean of both highest first, then
+        one rating, then none.
+        """
+        return readers.standing(self.tags.get("WhiteElo"), self.tags.get("BlackElo"))
+
+    @property
+    def title(self) -> str:
+        """
+        Names the game on one line, as `<file>:<n>` where the index records
+        the file it was read from, then its players, its event, and its
+        date.
+        """
+        named = f"{self.players}, {self.tags['Event']}, {self.tags['Date']}"
+
+        return f"{self.origin.reference}  {named}" if self.origin else named
+
+    def at(self, ply: int) -> Board:
+        """
+        Plays the mainline up to the position at `ply`.
+        """
+        return next(islice(self.boards(), ply, None))
+
     def boards(self) -> Iterator[Board]:
         """
         Yields the board at each position of the mainline, from the one the
@@ -240,6 +318,39 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             board.push(move)
             yield board
 
+    @staticmethod
+    def chosen(games: Iterable[Game], name: object, number: int | None) -> Game:
+        """
+        Chooses the game at `number` from the `games` of the file `name`
+        names, counting from 1, or the one game the file holds where
+        `number` is `None`.
+
+        Raises:
+            ValueError: Where the file holds no game, holds several and
+                        `number` is `None`, holds fewer than `number`, or
+                        where the game chosen carries a problem, naming the
+                        file and each problem.
+        """
+        read = list(islice(games, number or 2))
+
+        if not read:
+            raise ValueError(f"Found no game in {name}")
+
+        if number is None and len(read) > 1:
+            raise ValueError(
+                f"Found several games in {name}, which --game chooses among"
+            )
+
+        if number is not None and len(read) < number:
+            raise ValueError(f"Found no game {number} in {name}")
+
+        if (game := read[-1]).problems:
+            raise ValueError(
+                "\n".join((f"Found problems in the game in {name}:", *game.problems))
+            )
+
+        return game
+
     @classmethod
     def first(cls, path: Traversable) -> Self:
         """
@@ -251,15 +362,7 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
                         game carries a problem, naming the file and each
                         problem.
         """
-        if (game := next(cls.read(path), None)) is None:
-            raise ValueError(f"Found no game in {path}")
-
-        if game.problems:
-            raise ValueError(
-                "\n".join((f"Found problems in the game in {path}:", *game.problems))
-            )
-
-        return game
+        return cls.chosen(cls.read(path), path, 1)
 
     @staticmethod
     def follow(board: Board, move: Move, numbers: Mapping[int, int]) -> dict[int, int]:
@@ -287,29 +390,35 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
 
         return moved
 
-    def numbered(self, ply: int) -> str:
+    def numbered(self, ply: int, plies: int | None = 1) -> str:
         """
-        Writes the move played from the position at `ply` in SAN behind its
-        move number, such as `22. Bc2` for White and `13...Bxa1` for Black.
+        Writes at most `plies` of the moves played from the position at
+        `ply` in SAN, or every one where `plies` is `None`, and nothing
+        where the game ends there. Each of White's moves and a first move
+        of Black's follow their move number as `Board.variation_san` writes
+        them (`22. Bc2`, `13...Bxa1`), and a null move reads `--`, which
+        that call refuses as illegal.
         """
-        return next(islice(self.boards(), ply, None)).variation_san([self.moves[ply]])
+        return " ".join(
+            f"{board.fullmove_number}. {board.san(move)}"
+            if board.turn
+            else f"{board.fullmove_number}...{board.san(move)}"
+            if at == ply
+            else board.san(move)
+            for at, (board, move) in enumerate(
+                zip(islice(self.boards(), ply, None), self.moves[ply:][:plies]),
+                ply
+            )
+        )
 
     @classmethod
-    def read(cls, path: Traversable) -> Iterator[Self]:
+    def parse(cls, text: str) -> Iterator[Self]:
         """
-        Reads every game the PGN file at `path` carries, in the order it
-        holds them, where `path` names a file on disk or the member of a
-        zip archive `zipfile.Path` opens. The file is decoded as UTF-8, each
-        sequence UTF-8 cannot decode replaced with U+FFFD, so a file another
-        code page wrote still yields every move, every move being ASCII.
-
-        The `readers` extension module reads and keys each game as
+        Reads every game the PGN text `text` carries, in the order it holds
+        them, each read and keyed by the `readers` extension module as
         python-chess's `read_game` reads it under a visitor skipping every
         variation, each move a variation holds left unread.
         """
-        with path.open(encoding="utf-8", errors="replace") as handle:
-            text = handle.read()
-
         for tags, moves, keys, errors in readers.read(text):
             yield cls(
                 errors = errors,
@@ -317,3 +426,14 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
                 moves  = map(Move.from_uci, moves),
                 tags   = frozendict(tags)
             )
+
+    @classmethod
+    def read(cls, path: Traversable) -> Iterator[Self]:
+        """
+        Reads every game the PGN file at `path` carries through `parse`,
+        where `path` names a file on disk or the member of a zip archive
+        `zipfile.Path` opens. The file is decoded as UTF-8, each sequence
+        UTF-8 cannot decode replaced with U+FFFD, so a file another code
+        page wrote still yields every move, every move being ASCII.
+        """
+        return cls.parse(path.read_text(encoding="utf-8", errors="replace"))

@@ -6,12 +6,17 @@ the project's `pyproject.toml`.
 
 from importlib.metadata import distribution
 from pathlib            import Path
+from polars.exceptions  import SchemaError
 from pydantic           import NonNegativeInt, PositiveFloat, field_validator
 from pydantic_settings  import (
     BaseSettings,
     PydanticBaseSettingsSource,
     PyprojectTomlConfigSettingsSource
 )
+from sys                import stderr
+
+from scotch.index.tables    import PositionIndex
+from scotch.sources.schemas import Manifest
 
 
 class Settings(
@@ -63,6 +68,18 @@ class Settings(
         """
         return self.data / "index"
 
+    @property
+    def stale(self) -> bool:
+        """
+        Checks whether a fetch since the index was built recorded other
+        bytes for the files than the ones the index was read from.
+        """
+        indexed, fetched = (
+            Manifest.read(folder).digests for folder in (self.index, self.downloads)
+        )
+
+        return indexed != fetched
+
     @field_validator("data")
     @classmethod
     def anchor(cls, data: Path) -> Path:
@@ -71,6 +88,29 @@ class Settings(
         it stands.
         """
         return root() / data
+
+    def opened(self) -> PositionIndex:
+        """
+        Reads the index under its folder, writing a line to stderr where
+        the files changed since it was built, and exiting nonzero naming the
+        folder where no index has been built or the one built holds another
+        layout.
+        """
+        try:
+            index = PositionIndex.read(self.index)
+        except FileNotFoundError:
+            raise SystemExit(f"No index has been built under {self.index}")
+        except SchemaError:
+            raise SystemExit(f"The index under {self.index} holds another layout")
+
+        if self.stale:
+            print(
+                f"The files under {self.downloads} have changed since the index"
+                " was built from them, so run `scotch index games` to rebuild it",
+                file = stderr
+            )
+
+        return index
 
     @classmethod
     def settings_customise_sources(

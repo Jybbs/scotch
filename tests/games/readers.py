@@ -9,6 +9,9 @@ python-chess reads and keys, the store's own reader before the crate:
 - Each quirk of python-chess's reader on malformed text, read as python-chess
   reads it under a visitor skipping every variation
 - The positions `keys` reads no key for, and the move it stops at
+- The key of a position whose en passant capture no legal move plays, which
+  leaves out what `zobrist_hash` reads, so two positions FIDE's Laws of Chess
+  count as the same share a key
 """
 
 from chess             import Board
@@ -54,12 +57,26 @@ def hashed(game: PgnGame) -> list[int]:
     """
     Keys each position of the mainline of `game` through python-chess's
     `zobrist_hash`, from the one it starts at to the one after its last
-    move, or none where its tags set up no position.
+    move, clearing an en passant square no legal capture reaches first, or
+    none where its tags set up no position.
     """
     try:
-        return [zobrist_hash(node.board()) for node in (game, *game.mainline())]
+        return [legally(node.board()) for node in (game, *game.mainline())]
     except ValueError:
         return []
+
+
+def legally(board: Board) -> int:
+    """
+    Keys `board` through `zobrist_hash` with its en passant square cleared
+    where no legal capture reaches it.
+    """
+    board = board.copy(stack=False)
+
+    if not board.has_legal_en_passant():
+        board.ep_square = None
+
+    return zobrist_hash(board)
 
 
 @given(board=played())
@@ -89,6 +106,27 @@ def test_each_known_answer_game_keys_as_python_chess_keys_it(known: Path, name: 
 
     for _, _, keyed, _ in read(text):
         assert keyed == hashed(read_game(handle))
+
+
+def test_an_en_passant_capture_no_legal_move_plays_leaves_the_key_as_without_it():
+    """
+    Asserts that a position whose pawn stands pinned along its rank beside
+    the pawn that just advanced takes the key of the same position with
+    no en passant square, which FIDE's Laws of Chess count as the same
+    position, although `zobrist_hash` reads the file there, and that a
+    capture a legal move plays takes a key of its own.
+    """
+    pinned, passed = (
+        "8/8/8/K3Pp1r/8/8/8/4k3 w - f6 0 1", "8/8/8/K3Pp1r/8/8/8/4k3 w - - 0 1"
+    )
+    legal, closed = (
+        "4k3/8/8/4Pp2/8/8/8/4K3 w - f6 0 1", "4k3/8/8/4Pp2/8/8/8/4K3 w - - 0 1"
+    )
+
+    assert keys([], fen=pinned) == keys([], fen=passed)
+    assert zobrist_hash(Board(pinned)) != zobrist_hash(Board(passed))
+    assert keys([], fen=legal) == [zobrist_hash(Board(legal))]
+    assert keys([], fen=legal) != keys([], fen=closed)
 
 
 @mark.parametrize(

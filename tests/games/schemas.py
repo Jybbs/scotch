@@ -9,7 +9,9 @@ from that:
 - The key, placement, and SAN each position yields, each move behind its
   number, and the `Frame` each position is drawn as, every piece under the
   number it keeps from the first
-- The players a game names and its Seven Tag Roster
+- The players a game names, its Seven Tag Roster, the number its date reads
+  as, and the file and place its origin names
+- The game of a file `chosen` picks, and the PGN a game writes
 - The hash a game takes from every one of its fields, and the tags it holds
   frozen
 """
@@ -27,7 +29,7 @@ from pydantic          import ValidationError
 from pytest            import LogCaptureFixture, mark, param, raises
 from zipfile           import Path as ZipPath, ZipFile
 
-from scotch.games.schemas import Frame, Game
+from scotch.games.schemas import Frame, Game, Origin
 
 
 def moves(*uci: str) -> tuple[Move, ...]:
@@ -351,6 +353,121 @@ def test_a_move_illegal_inside_a_variation_leaves_the_mainline_whole(
 
 
 @mark.parametrize(
+    ("number", "problem", "text"),
+    [
+        param(None, "Found no game in .*games.pgn$", "", id="empty"),
+        param(
+            None,
+            "Found several games in .*games.pgn, which --game chooses among$",
+            "1. e4 *\n\n1. d4 *\n",
+            id = "several"
+        ),
+        param(
+            3,
+            "Found no game 3 in .*games.pgn$",
+            "1. e4 *\n\n1. d4 *\n",
+            id = "too-few"
+        ),
+        param(
+            2,
+            "Found problems in the game in .*games.pgn:\nillegal san",
+            "1. e4 *\n\n1. Qxh7 *\n",
+            id = "chosen-carries-a-problem"
+        )
+    ]
+)
+def test_chosen_raises_naming_the_file_and_the_problem(
+    number  : int | None,
+    pgn     : Callable[..., Path],
+    problem : str,
+    text    : str
+):
+    """
+    Asserts that choosing from a file holding no game, from one holding
+    several with none chosen, past the games it holds, or a game carrying a
+    problem raises `ValueError` naming the file.
+    """
+    path = pgn(text)
+
+    with raises(ValueError, match=problem):
+        Game.chosen(Game.read(path), path, number)
+
+
+@mark.parametrize(
+    ("number", "uci", "text"),
+    [
+        param(None, "e2e4", "1. e4 *\n", id="the-one-game"),
+        param(1, "e2e4", "1. e4 *\n\n1. Qxh7 *\n", id="first-of-several"),
+        param(2, "d2d4", "1. Qxh7 *\n\n1. d4 *\n\n1. Qxh7 *\n", id="past-a-problem")
+    ]
+)
+def test_chosen_reads_the_game_at_its_number(
+    number : int | None,
+    pgn    : Callable[..., Path],
+    text   : str,
+    uci    : str
+):
+    """
+    Asserts that `chosen` returns the one game a file holds, or the game
+    at the number it is given, whatever problem another game of the file
+    carries.
+    """
+    path = pgn(text)
+
+    assert Game.chosen(Game.read(path), path, number).moves == moves(uci)
+
+
+@mark.parametrize(
+    ("date", "dated"),
+    [
+        param("2000.01.02", 20000102, id="whole"),
+        param("2000.01.??", 20000100, id="no-day"),
+        param("2000.??.??", 20000000, id="no-month"),
+        param("????.??.??", 0, id="no-year"),
+        param("2000", 20000000, id="year-alone"),
+        param("123456.123.123", 99999999, id="parts-too-long")
+    ]
+)
+def test_a_date_reads_as_the_number_yyyymmdd(date: str, dated: int):
+    """
+    Asserts that a `Date` tag reads as the number `YYYYMMDD`, each part it
+    leaves unknown as 0 and each part too long for its digits as the largest
+    those digits hold.
+    """
+    assert line(Date=date).dated == dated
+
+
+@mark.parametrize(
+    ("address", "reference"),
+    [
+        param("https://example.com/players/Carlsen.zip", "Carlsen.zip:12", id="plain"),
+        param(
+            "https://example.com/events/World%20Cup.pgn",
+            "World Cup.pgn:12",
+            id = "percent-encoded"
+        )
+    ]
+)
+def test_an_origin_names_its_file_and_its_place(address: str, reference: str):
+    """
+    Asserts that an origin names a game as `<file>:<n>`, the file's name
+    read from its address without its percent-encoding.
+    """
+    assert Origin(address=address, place=12).reference == reference
+
+
+@given(game=games())
+def test_a_game_writes_pgn_that_reads_back_whole(game: Game):
+    """
+    Asserts that the PGN any game writes reads back as one game holding the
+    same moves and tags with no error.
+    """
+    [read] = Game.parse(game.pgn)
+
+    assert (read.errors, read.moves, read.tags) == ((), game.moves, game.tags)
+
+
+@mark.parametrize(
     ("text", "problem"),
     [
         param("", "Found no game in .*games.pgn$", id="empty"),
@@ -386,18 +503,13 @@ def test_a_null_move_leaves_every_piece_under_its_number():
     assert (after.move, after.san, after.landed) == (None, "--", None)
 
 
-def test_a_variant_read_under_rules_of_its_own_leaves_its_moves_unread(
-    read: Callable[..., list[Game]]
-):
+def test_a_null_move_reads_as_two_dashes_in_its_place():
     """
-    Asserts that a game whose `Variant` tag names a variant python-chess
-    reads under rules of its own, such as Atomic, holds no move, no key, and
-    no error, leaving the variant's message its one problem.
+    Asserts that a null move, which `Board.variation_san` refuses as
+    illegal, reads as `--` in its place in the line, with the moves around
+    it numbered.
     """
-    [game] = read('[Variant "Atomic"]\n\n1. e4 e5 2. Qxf7 *\n')
-
-    assert (game.moves, game.keys, game.errors) == ((), (), ())
-    assert game.problems == ("unsupported variant: Atomic",)
+    assert line("e4", "--", "d4", "d5").numbered(0, None) == "1. e4 -- 2. d4 d5"
 
 
 @given(game=games())
@@ -442,6 +554,20 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     assert line(*sans.split()).keys[-1] == key
 
 
+def test_a_variant_read_under_rules_of_its_own_leaves_its_moves_unread(
+    read: Callable[..., list[Game]]
+):
+    """
+    Asserts that a game whose `Variant` tag names a variant python-chess
+    reads under rules of its own, such as Atomic, holds no move, no key, and
+    no error, leaving the variant's message its one problem.
+    """
+    [game] = read('[Variant "Atomic"]\n\n1. e4 e5 2. Qxf7 *\n')
+
+    assert (game.moves, game.keys, game.errors) == ((), (), ())
+    assert game.problems == ("unsupported variant: Atomic",)
+
+
 def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
     """
     Asserts that a file holding no text yields no game.
@@ -449,34 +575,37 @@ def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
     assert read("") == []
 
 
-def test_an_en_passant_capture_that_would_be_illegal_still_changes_the_key():
+@mark.parametrize(
+    ("ply", "plies", "numbered"),
+    [
+        param(0, 1, "1. e4", id="white"),
+        param(1, 1, "1...e5", id="black"),
+        param(2, 1, "2. Nf3", id="second-move"),
+        param(1, 2, "1...e5 2. Nf3", id="from-black"),
+        param(0, None, "1. e4 e5 2. Nf3", id="to-the-end"),
+        param(3, 1, "", id="game-over")
+    ]
+)
+def test_a_move_reads_behind_its_number(numbered: str, plies: int | None, ply: int):
+    """
+    Asserts that the moves played from the position at a ply read in SAN,
+    each of White's behind its move number and the first behind three dots
+    where it is Black's, with nothing where the game ends at that ply.
+    """
+    assert line("e4", "e5", "Nf3").numbered(ply, plies) == numbered
+
+
+def test_an_en_passant_capture_that_would_be_illegal_leaves_the_key_unchanged():
     """
     Asserts that a position whose en passant capture would leave its own
-    king in check carries a key of its own, although FIDE's Laws of Chess,
-    Article 9.2.3, count it as the same position as the one with no en
-    passant square.
+    king in check shares the key of the one with no en passant square, as
+    FIDE's Laws of Chess, Article 9.2.3, count the two as the same position.
     """
     pushed = line("c5", FEN="8/2p5/8/KP5r/8/8/8/7k b - - 0 1")
     placed = line(FEN="8/8/8/KPp4r/8/8/8/7k w - - 0 2")
 
     assert pushed.placements[-1] == placed.placements[-1]
-    assert pushed.keys[-1] != placed.keys[-1]
-
-
-@mark.parametrize(
-    ("ply", "numbered"),
-    [
-        param(0, "1. e4", id="white"),
-        param(1, "1...e5", id="black"),
-        param(2, "2. Nf3", id="second-move")
-    ]
-)
-def test_a_move_reads_behind_its_number(numbered: str, ply: int):
-    """
-    Asserts that the move played from the position at a ply reads in SAN
-    behind its move number, with three dots before a move of Black's.
-    """
-    assert line("e4", "e5", "Nf3").numbered(ply) == numbered
+    assert pushed.keys[-1] == placed.keys[-1]
 
 
 def test_an_illegal_move_ends_the_mainline_and_records_an_error(

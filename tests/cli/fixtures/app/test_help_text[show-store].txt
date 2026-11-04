@@ -1,0 +1,8 @@
+Usage: scotch show store
+
+Reports what the store holds.                                                   
+
+Prints each file sources.toml declares with its size and fetch date, the games  
+and positions the index holds, whether the files have changed since the index   
+was built from them, and the command to run next.
+

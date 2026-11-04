@@ -1,0 +1,5 @@
+White, W vs. Black, B, Event, 2000.01.02
+Shares 1 position, ply 2 of the submitted game and ply 0 of the stored game
+Parts at rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2, where the submitted game played 2. Nf3 and the stored game played 1. e4
+Continues 1. e4 e5 2. Nf3 Nc6 *
+2 other stored games share a run as long

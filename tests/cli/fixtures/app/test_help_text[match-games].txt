@@ -1,0 +1,17 @@
+Usage: scotch match games PGN
+
+Matches every game of a PGN file against the index of stored games.             
+
+Prints one line per game, naming it as <file>:<n> beside the stored game closest
+to it as scotch match game ranks them, or saying no stored game shares a        
+position with it. Where reading a game recorded an error, or its Variant tag    
+names a variant other than standard chess, its line holds the problem in place  
+of a match, and the rest of the report still prints.                            
+
+Warns where the files changed since the index was built, and exits nonzero      
+naming the problem where the file cannot be read or holds no game, where no     
+index has been built, or where the one built holds another layout.
+
+╭─ Parameters ─────────────────────────────────────────────────────────────────╮
+│ *  PGN --pgn  The PGN file holding the games. [required]                     │
+╰──────────────────────────────────────────────────────────────────────────────╯

@@ -1,0 +1,24 @@
+Usage: scotch show position [OPTIONS] [ARGS]
+
+Reports what the stored games played from one position.                         
+
+Prints how many stored games reach it, each move they played from it with how   
+many games played it and how those games ended, the games ending at the position
+under end, and then the games themselves, newest first, each named as           
+<file>:<n>. A game reaching the position twice counts once, under the move it   
+played from its first reach. A line of moves is read as PGN, which skips a token
+that names no move.                                                             
+
+Warns where the files changed since the index was built, and exits nonzero      
+naming the problem where a Forsyth–Edwards Notation names no position or stops  
+short of its first four fields, since a placement alone would read as white to  
+move with no castling rights, where a line of moves holds an illegal move, where
+no index has been built, or where the one built holds another layout.
+
+╭─ Parameters ─────────────────────────────────────────────────────────────────╮
+│ POSITION --position  The Forsyth–Edwards Notation of the position or a line  │
+│                      of moves from the start, the starting position where    │
+│                      left out.                                               │
+│ --top INT            The count of games to list, the newest first. [default: │
+│                      20]                                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯

@@ -1,0 +1,6 @@
+1,602 stored games reach this position
+e4          1,600  1-0 1,200  1/2-1/2 300  0-1 100  * 0
+Nf3             1  1-0 1  1/2-1/2 0  0-1 0  * 0
+end             1  1-0 0  1/2-1/2 0  0-1 0  * 1
+Newest first:
+White.zip:3  White, W vs. Black, B, Event, 2000.01.02
