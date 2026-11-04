@@ -144,6 +144,7 @@ def test_an_en_passant_capture_no_legal_move_plays_leaves_the_key_as_without_it(
         ),
         param(["e2e4"], {"fen": "garbage"}, 0, id="unreadable-fen"),
         param(["e2e4"], {"variant": "Atomic"}, 0, id="own-rules"),
+        param(["e2e4"], {"variant": "Wild/5"}, 2, id="read-as-standard-chess"),
         param(["e2e4"], {"variant": "Bughouse"}, 0, id="unknown-variant")
     ]
 )
@@ -154,9 +155,9 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
 ):
     """
     Asserts that `keys` keys the position its tags set up and each one its
-    moves reach, stopping at the first move illegal where it is played, and
-    keys nothing where the tags set up no position or name a variant other
-    than standard chess and Chess960.
+    moves reach, stopping at the first move illegal where it is played,
+    and keys nothing where the tags set up no position or name a variant
+    python-chess reads under rules of its own.
     """
     assert len(keys(moves, **setup)) == length
 
@@ -167,6 +168,8 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
         param('[Event "A"]\n1. e4 e5 1-0\n[Event "B"]\n1. d4 *\n', id="joined-games"),
         param("-----\n\n1. e4 *\n", id="row-of-dashes"),
         param('[Event "A"]\n\n\n1. e4 *\n', id="two-blank-lines-after-the-tags"),
+        param("1. e4 hello e5 Qh9 *\n", id="words-naming-no-move"),
+        param("[hello\n1. e4 *\n", id="line-holding-no-tag-pair"),
         param("1. e4 Qh5 ) e5 *\n", id="stray-close-resumes-the-mainline"),
         param("( 1. e4 ) e5 *\n", id="open-before-any-move"),
         param("1. e4 {a\n\nb} e5 *\n", id="comment-across-a-blank-line"),

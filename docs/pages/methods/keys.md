@@ -16,4 +16,4 @@ Two different positions share a key by accident with a chance of one in 2 to the
 
 [^fiekas2026]: Fiekas, Niklas. 2026. "shakmaty 0.30.2 Documentation," Module zobrist, and EnPassantMode. <https://docs.rs/shakmaty/0.30.2/shakmaty/zobrist/index.html>
 
-[^fiekas2025]: Fiekas, Niklas. 2025. "python-chess 1.11.2 Documentation," Polyglot Opening Book Reading, zobrist_hash. <https://python-chess.readthedocs.io/en/v1.11.2/polyglot.html>
+[^fiekas2025]: Fiekas, Niklas. 2025. "python-chess 1.11.2 Documentation," Source of Module chess.polyglot, ZobristHasher.hash_ep_square. <https://python-chess.readthedocs.io/en/v1.11.2/_modules/chess/polyglot.html>

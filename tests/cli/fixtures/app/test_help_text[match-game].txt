@@ -21,8 +21,9 @@ Exits nonzero naming the problem where the file cannot be read, holds no game,
 holds several with none chosen, or holds fewer than the one chosen, where       
 reading the game recorded an error, such as a move illegal in the position it   
 was played from or a FEN tag setting up a position no game reaches, where its   
-Variant tag names a variant other than standard chess, or where no index has    
-been built or the one built holds another layout.
+Variant tag names a variant other than standard chess, where --json names a path
+opening on a hyphen other than -, or where no index has been built or the one   
+built holds another layout.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ *  PGN --pgn    The PGN file holding the game, or - for standard input.      │

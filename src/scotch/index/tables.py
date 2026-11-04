@@ -52,7 +52,7 @@ class PositionIndex:
         Raises:
             ValueError: Where a FEN stops short of its first four fields or
                         names no position, or where a line of moves carries
-                        a problem.
+                        a problem or a word naming no move.
         """
         fen, moves, fields = None, (), position.split()
 
@@ -67,10 +67,14 @@ class PositionIndex:
                 )
         elif line := next(Game.parse(position), None):
             fen, moves = line.tags.get("FEN"), [move.uci() for move in line.moves]
+            problems   = (
+                *line.problems,
+                *(f"names no move: {word!r}" for word in readers.skipped(position))
+            )
 
-            if line.problems:
+            if problems:
                 raise ValueError(
-                    "\n".join((f"Found problems in {position}:", *line.problems))
+                    "\n".join((f"Found problems in {position}:", *problems))
                 )
 
         replies, ended, games = self.positions.tally(moves, fen, top)
@@ -228,13 +232,14 @@ class PositionIndex:
         table = cls.table(directory)
 
         try:
-            found     = read_parquet_schema(table)
+            found = read_parquet_schema(table)
+
+            if found != GAMES:
+                raise SchemaError(f"{table} holds {found} rather than {GAMES}")
+
             positions = readers.Positions.read(cls.path(directory))
         except (ComputeError, ValueError) as error:
             raise SchemaError(f"{directory}: {error}") from error
-
-        if found != GAMES:
-            raise SchemaError(f"{table} holds {found} rather than {GAMES}")
 
         return cls(games=scan_parquet(table, schema=GAMES), positions=positions)
 

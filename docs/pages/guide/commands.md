@@ -92,8 +92,9 @@ Exits nonzero naming the problem where the file cannot be read, holds no game,
 holds several with none chosen, or holds fewer than the one chosen, where
 reading the game recorded an error, such as a move illegal in the position it
 was played from or a FEN tag setting up a position no game reaches, where its
-Variant tag names a variant other than standard chess, or where no index has
-been built or the one built holds another layout.
+Variant tag names a variant other than standard chess, where --json names a path
+opening on a hyphen other than -, or where no index has been built or the one
+built holds another layout.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
 │ *  PGN --pgn    The PGN file holding the game, or - for standard input.      │
@@ -167,15 +168,15 @@ Prints how many stored games reach it, each move they played from it with how
 many games played it and how those games ended, the games ending at the position
 under end, and then the games themselves, newest first, each named as
 <file>:<n>. A game reaching the position twice counts once, under the move it
-played from its first reach. A line of moves is read as PGN, which skips a token
-that names no move.
+played from its first reach. A line of moves is read as PGN, so it may hold move
+numbers, comments, annotation marks, and a result beside its moves.
 
 Warns where the files changed since the index was built, and exits nonzero
 naming the problem where a token opening on a hyphen names no option, where a
 Forsyth–Edwards Notation names no position or stops short of its first four
 fields, since a placement alone would read as white to move with no castling
-rights, where a line of moves holds an illegal move, where no index has been
-built, or where the one built holds another layout.
+rights, where a line of moves holds an illegal move or a word naming no move,
+where no index has been built, or where the one built holds another layout.
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │ POSITION  The Forsyth–Edwards Notation of the position or a line of moves    │

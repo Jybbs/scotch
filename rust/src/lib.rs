@@ -29,9 +29,10 @@ use crate::{boards::Board, codes::Writer};
 /// Interface (UCI) notation, from the position `fen` sets up or the standard
 /// starting position.
 ///
-/// Returns no key where `variant` names a variant other than standard chess
-/// and Chess960 or `fen` names no position, and stops at the first move
-/// illegal in the position it is played from.
+/// Returns no key where `fen` names no position, or where `variant` names a
+/// variant python-chess reads under rules of its own or names no rules it
+/// reads, and stops at the first move illegal in the position it is played
+/// from.
 #[must_use]
 pub fn keys(
     fen: Option<&str>,

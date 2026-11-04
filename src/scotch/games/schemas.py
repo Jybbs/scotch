@@ -158,7 +158,7 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     passant file only where a legal capture reaches its square, so two
     positions share a key where FIDE's Laws of Chess, Article 9.2.3, count
     them as the same position. A game whose tags set up no position, or name
-    a variant other than standard chess and Chess960, holds none.
+    a variant python-chess reads under rules of its own, holds none.
     """
 
     origin: Origin | None = None

@@ -297,6 +297,46 @@ def test_an_index_holding_another_layout_exits_naming_where_it_was_read(
     ) == f"The index under {data / 'index'} holds another layout"
 
 
+@mark.usefixtures("indexed")
+def test_an_index_of_an_earlier_layout_exits_naming_where_it_was_read(
+    data : Path,
+    pgn  : Callable[..., Path]
+):
+    """
+    Asserts that a folder holding a games table under another layout and
+    no file of positions exits nonzero as another layout rather than as
+    no index.
+    """
+    games = PositionIndex.table(data / "index")
+    read_parquet(games).drop("errors").write_parquet(games)
+    PositionIndex.path(data / "index").rename(data / "moved")
+
+    assert invoke(
+        "match",
+        "game",
+        str(pgn("1. e4 *"))
+    ) == f"The index under {data / 'index'} holds another layout"
+
+
+@mark.usefixtures("indexed")
+@mark.parametrize(
+    "option",
+    [param("--link", id="declared"), param("--top", id="takes-a-value")]
+)
+def test_json_refuses_an_option_as_its_path(option: str, pgn: Callable[..., Path]):
+    """
+    Asserts that `--json` standing before another option exits naming that
+    option rather than writing a file under its name.
+    """
+    assert invoke(
+        "match",
+        "game",
+        str(pgn("1. e4 e5 *")),
+        "--json",
+        option
+    ) == f"Unknown option: {option}"
+
+
 @mark.parametrize(
     "argv",
     [param((), id="alone"), param(("--link", "--top", "1"), id="beside-the-others")]

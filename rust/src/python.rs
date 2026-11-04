@@ -53,6 +53,15 @@ fn read(text: Py<PyString>) -> Reader {
     Reader { text, at: 0 }
 }
 
+/// Lists what the reader passes over with no error in the first game the PGN
+/// text `text` carries, meaning each word of the movetext holding no token and
+/// reading as no move number, and each line opening on `[` that holds no tag
+/// pair.
+#[pyfunction]
+fn skipped(text: &str) -> Vec<String> {
+    crate::read_at(text, 0).map_or_else(Vec::new, |(game, _)| game.skipped)
+}
+
 /// Keys each position of the mainline `moves` names in UCI notation, from
 /// the position `fen` sets up under the variant `variant` names.
 #[pyfunction]
@@ -219,5 +228,5 @@ impl Held {
 #[pymodule]
 mod readers {
     #[pymodule_export]
-    use super::{Held, encoded, keys, read, standing};
+    use super::{Held, encoded, keys, read, skipped, standing};
 }

@@ -343,6 +343,24 @@ def test_reading_a_table_written_under_another_layout_raises(
         PositionIndex.read(tmp_path)
 
 
+def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
+    """
+    Asserts that a stored game holding the starting position at plies 0,
+    4, 8, and 12 ranks its four runs by ply, matches at the earliest, and
+    counts as one game among the ties.
+    """
+    index = PositionIndex.build([line(*["Nf3", "Nf6", "Ng1", "Ng8"] * 3)])
+    match = index.match(line("h4"))
+
+    assert (
+        index.runs(line("h4"))
+             .get_column("offset")
+             .to_list()
+    ) == [0, 4, 8, 12]
+    assert match.span == Span(length=1, offset=0, start=0)
+    assert match.ties == 0
+
+
 @mark.parametrize(
     "body",
     [param(b"", id="empty"), param(b"parquet\0\0" * 16, id="another-layout")]
@@ -361,24 +379,6 @@ def test_reading_a_positions_file_under_another_layout_raises(
 
     with raises(SchemaError, match=str(tmp_path)):
         PositionIndex.read(tmp_path)
-
-
-def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
-    """
-    Asserts that a stored game holding the starting position at plies 0,
-    4, 8, and 12 ranks its four runs by ply, matches at the earliest, and
-    counts as one game among the ties.
-    """
-    index = PositionIndex.build([line(*["Nf3", "Nf6", "Ng1", "Ng8"] * 3)])
-    match = index.match(line("h4"))
-
-    assert (
-        index.runs(line("h4"))
-             .get_column("offset")
-             .to_list()
-    ) == [0, 4, 8, 12]
-    assert match.span == Span(length=1, offset=0, start=0)
-    assert match.ties == 0
 
 
 def test_a_stored_game_set_up_from_a_fen_shares_the_positions_it_reaches():
@@ -435,6 +435,23 @@ def test_a_tie_among_unrated_games_goes_to_the_game_the_index_holds_first(
     assert match.game == stored[1]
     assert match.span == Span(length=4, offset=0, start=0)
     assert match.ties == 1
+
+
+def test_a_tie_goes_to_the_game_whose_ratings_rank_highest_over_an_earlier_run(
+    index  : PositionIndex,
+    stored : list[Game]
+):
+    """
+    Asserts that a game sharing its first three positions with both of
+    Pachman's unrated games, and three more with Kasparov–Sosonko once its
+    knights return home, matches Kasparov–Sosonko, whose ratings rank it
+    above the two, although their runs start earlier.
+    """
+    match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
+
+    assert match.game == stored[0]
+    assert match.span == Span(length=3, offset=-4, start=4)
+    assert match.ties == 2
 
 
 @mark.parametrize(
@@ -517,21 +534,15 @@ def test_an_answer_counts_each_game_under_the_move_from_its_first_reach(
     assert answer.games == tuple(game for game, _ in reached)
 
 
-def test_a_tie_goes_to_the_game_whose_ratings_rank_highest_over_an_earlier_run(
-    index  : PositionIndex,
-    stored : list[Game]
-):
+def test_an_answer_counts_a_result_outside_the_four_as_unfinished():
     """
-    Asserts that a game sharing its first three positions with both of
-    Pachman's unrated games, and three more with Kasparov–Sosonko once its
-    knights return home, matches Kasparov–Sosonko, whose ratings rank it
-    above the two, although their runs start earlier.
+    Asserts that a stored game whose `Result` tag holds none of the results
+    `RESULTS` names counts under `*` among the games playing its move.
     """
-    match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
-
-    assert match.game == stored[0]
-    assert match.span == Span(length=3, offset=-4, start=4)
-    assert match.ties == 2
+    assert PositionIndex.build([line("e4", Result="abandoned")]).answer(
+        "",
+        top = 1
+    ).replies == (Reply(outcomes=(0, 0, 0, 1), san="e4"),)
 
 
 def test_an_answer_for_a_position_no_game_reaches_holds_nothing(index: PositionIndex):
@@ -546,14 +557,46 @@ def test_an_answer_for_a_position_no_game_reaches_holds_nothing(index: PositionI
     )
 
 
-def test_an_answer_skips_a_token_that_names_no_move():
+@mark.parametrize(
+    "position",
+    [
+        param("1 e4 2 e5", id="move-numbers-with-no-period"),
+        param("1.e4 1...e5", id="move-numbers-running-into-the-moves"),
+        param("1. e4 ... e5", id="an-ellipsis-standing-alone"),
+        param("1. e4 {a note} e5", id="comment"),
+        param("1. e4 ; a rest of a line\ne5", id="comment-to-the-end-of-the-line"),
+        param("1. e4 $1 e5 $14", id="numeric-annotation-glyphs"),
+        param("1. e4! e5?!", id="annotation-marks"),
+        param("1. e4 (1. d4 d5) e5", id="variation"),
+        param("1. e4 e5 *", id="unfinished-result"),
+        param("1. e4 e5 1-0", id="result"),
+        param("1. e4+ e5#", id="check-and-mate-marks"),
+        param("1. e2-e4 e7e5", id="long-algebraic"),
+        param('[Event "A"]\n\n1. e4 e5', id="tag-pair")
+    ]
+)
+def test_an_answer_reads_what_a_line_of_moves_holds_beside_its_moves(position: str):
     """
-    Asserts that a token the PGN reader skips leaves the position the moves
-    around it reach, so `1. e4 hello` reads as `1. e4`.
+    Asserts that move numbers, comments, annotations, a variation, a result,
+    and each spelling of a move the PGN reader takes leave the position the
+    moves alone reach.
     """
-    index = PositionIndex.build([line("e4", "e5"), line("d4")])
+    index = PositionIndex.build([line("e4", "e5", "Nf3"), line("d4")])
 
-    assert index.answer("1. e4 hello", top=1) == index.answer("1. e4", top=1)
+    assert index.answer(position, top=1) == index.answer("1. e4 e5", top=1)
+
+
+def test_an_answer_reads_a_move_the_reader_takes_short_of_its_last_letter():
+    """
+    Asserts that `Nf3x`, whose `Nf3` the PGN reader reads as the move,
+    leaves the position `Nf3` reaches.
+    """
+    index = PositionIndex.build([line("e4", "e5", "Nf3", "Nc6")])
+
+    assert index.answer("1. e4 e5 2. Nf3x", top=1) == index.answer(
+        "1. e4 e5 2. Nf3",
+        top = 1
+    )
 
 
 def test_an_index_counts_every_position_and_each_distinct_key():
@@ -565,6 +608,16 @@ def test_an_index_counts_every_position_and_each_distinct_key():
 
     assert (positions.positions, positions.keys) == (6, 4)
     assert positions.moves(1) == ["e2e4", "c7c5"]
+
+
+def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
+    """
+    Asserts that an index built from no game writes, reads back, and finds
+    no match for any submitted game.
+    """
+    PositionIndex.build([]).write(tmp_path)
+
+    assert PositionIndex.read(tmp_path).match(demo) is None
 
 
 @mark.parametrize(
@@ -615,16 +668,6 @@ def test_an_answer_counts_the_moves_played_from_a_position(position: str):
     )
 
 
-def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
-    """
-    Asserts that an index built from no game writes, reads back, and finds
-    no match for any submitted game.
-    """
-    PositionIndex.build([]).write(tmp_path)
-
-    assert PositionIndex.read(tmp_path).match(demo) is None
-
-
 def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
     """
     Asserts that the table read back, the runs frame, and the rows laid
@@ -634,6 +677,19 @@ def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex
     assert index.games.collect().schema == GAMES
     assert index.runs(line("e4")).schema == RUNS
     assert PositionIndex.rows([line("e4")]).schema == ROWS
+
+
+def test_reading_a_table_holding_no_parquet_raises(stored: list[Game], tmp_path: Path):
+    """
+    Asserts that reading an index whose table of games holds bytes no
+    Parquet writer wrote raises `SchemaError` rather than the error Polars
+    raises for the file.
+    """
+    PositionIndex.build(stored).write(tmp_path)
+    PositionIndex.table(tmp_path).write_bytes(b"")
+
+    with raises(SchemaError):
+        PositionIndex.read(tmp_path)
 
 
 @mark.parametrize(
@@ -651,6 +707,9 @@ def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex
         ),
         param("x/8/8/8/8/8/8/8 w - -", "x/8", id="fen-naming-no-position"),
         param("1. e4 e4", "illegal san", id="illegal-move"),
+        param("1. e4 hello", "names no move: 'hello'", id="word-naming-no-move"),
+        param("1. e4 e5 Qh9", "names no move: 'Qh9'", id="square-off-the-board"),
+        param("[hello 1. e4", "names no move: '\\[hello 1. e4'", id="no-tag-pair"),
         param('[Variant "Atomic"]\n\n1. e4', "unsupported variant", id="variant")
     ]
 )
@@ -660,22 +719,29 @@ def test_an_answer_refuses_a_position_it_cannot_read(
     problem  : str
 ):
     """
-    Asserts that a FEN stopping short of its first four fields, a FEN naming
-    no position, a line holding an illegal move, and a line naming a variant
-    other than standard chess each raise `ValueError` naming the problem.
+    Asserts that a FEN stopping short of its first four fields, a FEN
+    naming no position, a line holding an illegal move or a word naming no
+    move, and a line naming a variant other than standard chess each raise
+    `ValueError` naming the problem.
     """
     with raises(ValueError, match=problem):
         index.answer(position, top=1)
 
 
-def test_reading_a_table_holding_no_parquet_raises(stored: list[Game], tmp_path: Path):
+def test_reading_a_table_under_another_layout_raises_with_no_positions_file(
+    stored   : list[Game],
+    tmp_path : Path
+):
     """
-    Asserts that reading an index whose table of games holds bytes no
-    Parquet writer wrote raises `SchemaError` rather than the error Polars
-    raises for the file.
+    Asserts that a table of games under another layout raises `SchemaError`
+    ahead of the file of positions, so a folder an earlier layout wrote,
+    which holds no such file, reads as another layout rather than as no
+    index.
     """
     PositionIndex.build(stored).write(tmp_path)
-    PositionIndex.table(tmp_path).write_bytes(b"")
+    path = PositionIndex.table(tmp_path)
+    read_parquet(path).drop("game").write_parquet(path)
+    PositionIndex.path(tmp_path).rename(tmp_path / "moved")
 
     with raises(SchemaError):
         PositionIndex.read(tmp_path)

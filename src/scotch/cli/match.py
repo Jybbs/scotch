@@ -78,9 +78,13 @@ def game(
     chosen, where reading the game recorded an error, such as a move illegal
     in the position it was played from or a `FEN` tag setting up a position
     no game reaches, where its `Variant` tag names a variant other than
-    standard chess, or where no index has been built or the one built holds
+    standard chess, where `--json` names a path opening on a hyphen other
+    than `-`, or where no index has been built or the one built holds
     another layout.
     """
+    if json and json != Path("-") and str(json).startswith("-"):
+        raise SystemExit(f"Unknown option: {json}")
+
     try:
         submitted = (
             Game.chosen(

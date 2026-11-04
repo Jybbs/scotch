@@ -3,8 +3,9 @@
 //! game against them, and counts the moves they played.
 //!
 //! The file holds each game's mainline as `codes` writes it and enough of
-//! each key to find the games that may reach it, those games then being played
-//! through and their full keys compared, so no result depends on part of a key.
+//! each key to narrow a lookup to a few candidate lists of games, games from
+//! those lists then being played through and their full keys compared to
+//! confirm the list holding the key, so no result depends on part of a key.
 //! A game is placed by its moves' bytes in a numbering of its own, its slot,
 //! which lays the games sharing an opening side by side in a list of slots.
 //! Each section is read where it lies in the mapped file, so opening the file

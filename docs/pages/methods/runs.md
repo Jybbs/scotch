@@ -1,6 +1,6 @@
 # The Longest Run
 
-The index holds each stored game's moves beside enough of each position's key to find the games that may reach it, and it plays each of those games through to compare their full keys, so a lookup returns every position holding the key and no other. `scotch match game` looks up every key the submitted game reaches, which leaves the positions the two games share.
+The index holds each stored game's moves beside enough of each position's key to narrow a lookup to a few candidate lists of games, and it plays games from those lists through and compares their full keys to confirm the list holding the key, so a lookup returns every position holding the key and no other. `scotch match game` looks up every key the submitted game reaches, which leaves the positions the two games share.
 
 ## Following a Run
 
