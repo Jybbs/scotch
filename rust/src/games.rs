@@ -34,7 +34,8 @@ pub struct Game {
     pub errors: Vec<String>,
     /// What python-chess's reader passes over with no error, meaning each
     /// word of the movetext holding no token and reading as no move number,
-    /// and each line opening on `[` that holds no tag pair.
+    /// each line opening on `[` that holds no tag pair, and a `(` or a `{` the
+    /// text never closes.
     pub skipped: Vec<String>,
 }
 
@@ -141,6 +142,11 @@ fn next(lines: &mut Lines<'_>) -> Option<Game> {
         moved: false,
     };
     reader.movetext(lines, line);
+
+    if reader.depth > 0 && reader.game.errors.is_empty() {
+        reader.game.skipped.push("(".to_owned());
+    }
+
     reader.game.tags = reader.tags.pairs();
     Some(reader.game)
 }
@@ -213,13 +219,16 @@ impl Mainline {
             let mut after = false;
 
             while let Some((kind, start, end)) = tokens::next(line, from) {
-                self.pass_over(&line[from..start], after, kind == Kind::Move);
+                self.pass_over(&line[from..start], after);
                 from = end;
                 after = kind == Kind::Move;
 
                 match kind {
                     Kind::Comment => {
-                        line = close(lines, &line[start + 1..]);
+                        line = close(lines, &line[start + 1..]).unwrap_or_else(|| {
+                            self.game.skipped.push("{".to_owned());
+                            ""
+                        });
                         fresh = false;
                         break;
                     }
@@ -238,32 +247,28 @@ impl Mainline {
             }
 
             if fresh {
-                self.pass_over(&line[from..], after, false);
+                self.pass_over(&line[from..], after);
                 line = lines.next_line();
             }
         }
     }
 
     /// Records each word of `gap`, the text a line holds between two tokens,
-    /// that reads as no move number, leaving out the word running into the
-    /// move before it where `after` is set, such as the `x` of `Nf3x`, and the
-    /// one running into the move after it where `before` is set.
-    fn pass_over(&mut self, gap: &str, after: bool, before: bool) {
-        let mut words = gap.split(is_space);
+    /// unless it reads as a move number, meaning digits closed by any dots or
+    /// any `…`, leaving out the marks running into the move before it where
+    /// `after` is set, such as the `+` of `e4+` and the `x` of `Nf3x`.
+    fn pass_over(&mut self, gap: &str, after: bool) {
+        let mut words = gap.split(is_space).peekable();
 
         if after {
-            words.next();
-        }
-
-        if before {
-            words.next_back();
+            words.next_if(|word| !word.contains(|c: char| c.is_alphanumeric() && c != 'x'));
         }
 
         self.game.skipped.extend(
             words
                 .filter(|word| {
                     !word
-                        .trim_end_matches('.')
+                        .trim_end_matches(['.', '…'])
                         .bytes()
                         .all(|c| c.is_ascii_digit())
                 })
@@ -308,17 +313,17 @@ impl Mainline {
 
 /// Reads past the comment whose text opens `rest` to the `}` closing it,
 /// reading further lines where it runs past the end of this one, and
-/// returns what follows the `}` on its line, or an empty line where the
-/// text ends first.
-fn close<'a>(lines: &mut Lines<'a>, mut rest: &'a str) -> &'a str {
+/// returns what follows the `}` on its line, or `None` where the text ends
+/// first.
+fn close<'a>(lines: &mut Lines<'a>, mut rest: &'a str) -> Option<&'a str> {
     while !rest.is_empty() {
         if let Some(at) = rest.find('}') {
-            return &rest[at + 1..];
+            return Some(&rest[at + 1..]);
         }
         rest = lines.next_line();
     }
 
-    rest
+    None
 }
 
 #[cfg(test)]
@@ -451,6 +456,46 @@ mod tests {
             .unwrap();
 
         assert_eq!(game.skipped, ["hello", "inside", "after", "last", "end"]);
+    }
+
+    #[test]
+    fn a_word_running_into_a_move_is_reported_on_either_side() {
+        let [game] = read("1. e4hello helloe5 2. Sf3 Pc6\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5", "f2f3", "c7c6"]);
+        assert_eq!(game.skipped, ["hello", "hello", "S", "P"]);
+    }
+
+    #[test]
+    fn marks_running_off_a_move_and_an_ellipsis_in_a_number_are_not_reported() {
+        let [game] = read("1. e4+ 1…e5# 2.…Nf3x\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5", "g1f3"]);
+        assert_eq!(game.skipped, Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_variation_the_text_never_closes_is_reported() {
+        let [game] = read("1. e4 ( e5\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4"]);
+        assert_eq!(game.skipped, ["("]);
+    }
+
+    #[test]
+    fn a_comment_the_text_never_closes_is_reported() {
+        let [game] = read("1. e4 {a note\ne5\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["e2e4"]);
+        assert_eq!(game.skipped, ["{"]);
+    }
+
+    #[test]
+    fn a_variation_an_illegal_move_opens_is_not_reported_as_left_open() {
+        let [game] = read("1. e4 e4 e5\n").try_into().unwrap();
+
+        assert_eq!(game.errors.len(), 1);
+        assert_eq!(game.skipped, Vec::<String>::new());
     }
 
     #[test]

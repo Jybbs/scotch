@@ -145,7 +145,12 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(
         param(("1. e4! e5?! $1 2. Nf3 $14",), id="annotations"),
         param(("1. e4 (1. d4) e5 2. Nf3 *",), id="variation-and-result"),
         param(("1. e4 e5 2. Nf3x",), id="a-letter-past-the-move-the-reader-takes"),
-        param(("1.", "e4", "e5", "2.", "Nf3x", "1-0"), id="one-argument-per-word")
+        param(("1.", "e4", "e5", "2.", "Nf3x", "1-0"), id="one-argument-per-word"),
+        param(("1. e4 1…e5 2. Nf3",), id="ellipsis-in-a-move-number"),
+        param(("1. e4+ e5# 2. Nf3",), id="marks-running-off-a-move"),
+        param(("1. e4 e5 2. Nf3\n\n\n",), id="blank-lines-past-the-moves"),
+        param(("1. e4 e5\n% an escape\n2. Nf3",), id="percent-line-among-the-moves"),
+        param(("1. e4 e5 2. Nf3\n\n% an escape\n",), id="percent-line-past-the-moves")
     ]
 )
 def test_position_reads_what_a_line_of_moves_holds_beside_its_moves(
@@ -154,9 +159,9 @@ def test_position_reads_what_a_line_of_moves_holds_beside_its_moves(
 ):
     """
     Asserts that `scotch show position` reports the position the moves
-    alone reach for a line holding move numbers, comments, annotations, a
-    variation, a result, or a move the PGN reader takes short of its last
-    letter.
+    alone reach for a line holding move numbers, comments, annotations,
+    a variation, a result, a move the PGN reader takes short of its last
+    letter, or a blank line or a `%` line with no move past it.
     """
     assert invoke("show", "position", *position) == 0
     assert capsys.readouterr().out.startswith(
@@ -217,14 +222,57 @@ def test_position_names_each_word_naming_no_move_and_each_illegal_move(
             "1. e4 e5 Qh9!",
             "Found problems in 1. e4 e5 Qh9!:\nnames no move: 'Qh9'",
             id = "word-running-into-an-annotation"
+        ),
+        param(
+            "1. e4 helloe5",
+            "Found problems in 1. e4 helloe5:\nnames no move: 'hello'",
+            id = "word-running-into-the-move-after-it"
+        ),
+        param(
+            "1. e4 e5 2. Sf3",
+            "Found problems in 1. e4 e5 2. Sf3:\nnames no move: 'S'",
+            id = "piece-letter-the-reader-passes-over"
+        ),
+        param(
+            "1. Pe4",
+            "Found problems in 1. Pe4:\nnames no move: 'P'",
+            id = "pawn-letter-the-reader-passes-over"
+        ),
+        param(
+            "1. e4hello",
+            "Found problems in 1. e4hello:\nnames no move: 'hello'",
+            id = "word-running-into-the-move-before-it"
+        ),
+        param(
+            "1. e4\n\ne5",
+            "Found problems in 1. e4\n\ne5:\nholds more past the blank line ending"
+                " its moves",
+            id = "move-past-a-blank-line"
+        ),
+        param(
+            '[Event "A"]\n\n\n1. e4 e5',
+            'Found problems in [Event "A"]\n\n\n1. e4 e5:\nholds more past the blank'
+                " line ending its moves",
+            id = "two-blank-lines-after-the-tags"
+        ),
+        param(
+            "1. e4 ( e5",
+            "Found problems in 1. e4 ( e5:\nnames no move: '('",
+            id = "variation-left-open"
+        ),
+        param(
+            "1. e4 {a note e5",
+            "Found problems in 1. e4 {a note e5:\nnames no move: '{'",
+            id = "comment-left-open"
         )
     ]
 )
 def test_position_it_cannot_read_exits_naming_the_problem(position: str, problem: str):
     """
-    Asserts that a FEN short of its first four fields, a line holding an
-    illegal move, and a line holding a word naming no move each exit nonzero
-    naming the problem.
+    Asserts that a FEN short of its first four fields and a line holding an
+    illegal move, a word naming no move, a variation or a comment left open,
+    or more past the blank line ending its moves each exit nonzero naming
+    the problem.
     """
     assert invoke("show", "position", position) == problem
 

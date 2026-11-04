@@ -175,8 +175,9 @@ Warns where the files changed since the index was built, and exits nonzero
 naming the problem where a token opening on a hyphen names no option, where a
 Forsyth–Edwards Notation names no position or stops short of its first four
 fields, since a placement alone would read as white to move with no castling
-rights, where a line of moves holds an illegal move or a word naming no move,
-where no index has been built, or where the one built holds another layout.
+rights, where a line of moves holds an illegal move, a word naming no move, or
+more past the blank line ending its moves, where no index has been built, or
+where the one built holds another layout.
 
 ╭─ Arguments ──────────────────────────────────────────────────────────────────╮
 │ POSITION  The Forsyth–Edwards Notation of the position or a line of moves    │

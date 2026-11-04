@@ -52,7 +52,8 @@ class PositionIndex:
         Raises:
             ValueError: Where a FEN stops short of its first four fields or
                         names no position, or where a line of moves carries
-                        a problem or a word naming no move.
+                        a problem, a word naming no move, or more past the
+                        blank line ending its moves.
         """
         fen, moves, fields = None, (), position.split()
 
@@ -65,11 +66,13 @@ class PositionIndex:
                     " placement, the side to move, the castling rights, and the"
                     " en passant square, which together name a position"
                 )
-        elif line := next(Game.parse(position), None):
-            fen, moves = line.tags.get("FEN"), [move.uci() for move in line.moves]
-            problems   = (
+        elif games := tuple(Game.parse(position)):
+            line, *rest = games
+            fen, moves  = line.tags.get("FEN"), [move.uci() for move in line.moves]
+            problems    = (
                 *line.problems,
-                *(f"names no move: {word!r}" for word in readers.skipped(position))
+                *(f"names no move: {word!r}" for word in readers.skipped(position)),
+                *(("holds more past the blank line ending its moves",) if rest else ())
             )
 
             if problems:

@@ -65,8 +65,9 @@ def position(
     option, where a Forsyth–Edwards Notation names no position or stops
     short of its first four fields, since a placement alone would read as
     white to move with no castling rights, where a line of moves holds an
-    illegal move or a word naming no move, where no index has been built, or
-    where the one built holds another layout.
+    illegal move, a word naming no move, or more past the blank line ending
+    its moves, where no index has been built, or where the one built holds
+    another layout.
     """
     for token in position:
         if match(r"-+[^-\s]", token):
