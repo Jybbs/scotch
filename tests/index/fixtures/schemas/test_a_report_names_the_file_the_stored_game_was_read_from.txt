@@ -1,0 +1,5 @@
+White.zip:1234  White, W vs. Black, B, Event, 2000.01.02
+Shares 2 positions, plies 0 to 1 of the submitted game and plies 0 to 1 of the stored game
+Parts at rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1, where the submitted game played 1...e5 and the stored game played 1...e5
+Continues 1...e5 *
+1 other stored game shares a run as long

@@ -9,6 +9,9 @@ python-chess reads and keys, the store's own reader before the crate:
 - Each quirk of python-chess's reader on malformed text, read as python-chess
   reads it under a visitor skipping every variation
 - The positions `keys` reads no key for, and the move it stops at
+- The key of a position whose en passant capture no legal move plays, which
+  leaves out what `zobrist_hash` reads, so two positions FIDE's Laws of Chess
+  count as the same share a key
 """
 
 from chess             import Board
@@ -54,12 +57,26 @@ def hashed(game: PgnGame) -> list[int]:
     """
     Keys each position of the mainline of `game` through python-chess's
     `zobrist_hash`, from the one it starts at to the one after its last
-    move, or none where its tags set up no position.
+    move, clearing an en passant square no legal capture reaches first, or
+    none where its tags set up no position.
     """
     try:
-        return [zobrist_hash(node.board()) for node in (game, *game.mainline())]
+        return [legally(node.board()) for node in (game, *game.mainline())]
     except ValueError:
         return []
+
+
+def legally(board: Board) -> int:
+    """
+    Keys `board` through `zobrist_hash` with its en passant square cleared
+    where no legal capture reaches it.
+    """
+    board = board.copy(stack=False)
+
+    if not board.has_legal_en_passant():
+        board.ep_square = None
+
+    return zobrist_hash(board)
 
 
 @given(board=played())
@@ -91,6 +108,27 @@ def test_each_known_answer_game_keys_as_python_chess_keys_it(known: Path, name: 
         assert keyed == hashed(read_game(handle))
 
 
+def test_an_en_passant_capture_no_legal_move_plays_leaves_the_key_as_without_it():
+    """
+    Asserts that a position whose pawn stands pinned along its rank beside
+    the pawn that just advanced takes the key of the same position with
+    no en passant square, which FIDE's Laws of Chess count as the same
+    position, although `zobrist_hash` reads the file there, and that a
+    capture a legal move plays takes a key of its own.
+    """
+    pinned, passed = (
+        "8/8/8/K3Pp1r/8/8/8/4k3 w - f6 0 1", "8/8/8/K3Pp1r/8/8/8/4k3 w - - 0 1"
+    )
+    legal, closed = (
+        "4k3/8/8/4Pp2/8/8/8/4K3 w - f6 0 1", "4k3/8/8/4Pp2/8/8/8/4K3 w - - 0 1"
+    )
+
+    assert keys([], fen=pinned) == keys([], fen=passed)
+    assert zobrist_hash(Board(pinned)) != zobrist_hash(Board(passed))
+    assert keys([], fen=legal) == [zobrist_hash(Board(legal))]
+    assert keys([], fen=legal) != keys([], fen=closed)
+
+
 @mark.parametrize(
     ("moves", "setup", "length"),
     [
@@ -106,6 +144,7 @@ def test_each_known_answer_game_keys_as_python_chess_keys_it(known: Path, name: 
         ),
         param(["e2e4"], {"fen": "garbage"}, 0, id="unreadable-fen"),
         param(["e2e4"], {"variant": "Atomic"}, 0, id="own-rules"),
+        param(["e2e4"], {"variant": "Wild/5"}, 2, id="read-as-standard-chess"),
         param(["e2e4"], {"variant": "Bughouse"}, 0, id="unknown-variant")
     ]
 )
@@ -116,9 +155,9 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
 ):
     """
     Asserts that `keys` keys the position its tags set up and each one its
-    moves reach, stopping at the first move illegal where it is played, and
-    keys nothing where the tags set up no position or name a variant other
-    than standard chess and Chess960.
+    moves reach, stopping at the first move illegal where it is played,
+    and keys nothing where the tags set up no position or name a variant
+    python-chess reads under rules of its own.
     """
     assert len(keys(moves, **setup)) == length
 
@@ -129,6 +168,8 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
         param('[Event "A"]\n1. e4 e5 1-0\n[Event "B"]\n1. d4 *\n', id="joined-games"),
         param("-----\n\n1. e4 *\n", id="row-of-dashes"),
         param('[Event "A"]\n\n\n1. e4 *\n', id="two-blank-lines-after-the-tags"),
+        param("1. e4 hello e5 Qh9 *\n", id="words-naming-no-move"),
+        param("[hello\n1. e4 *\n", id="line-holding-no-tag-pair"),
         param("1. e4 Qh5 ) e5 *\n", id="stray-close-resumes-the-mainline"),
         param("( 1. e4 ) e5 *\n", id="open-before-any-move"),
         param("1. e4 {a\n\nb} e5 *\n", id="comment-across-a-blank-line"),

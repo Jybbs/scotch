@@ -219,7 +219,11 @@ def test_commands_lists_each_command_the_help_shows():
         ("cite", "source"),
         ("fetch", "games"),
         ("index", "games"),
-        ("match", "game")
+        ("match", "game"),
+        ("match", "games"),
+        ("show", "game"),
+        ("show", "position"),
+        ("show", "store")
     ]
 
 

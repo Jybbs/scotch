@@ -18,22 +18,42 @@
     annote     = {Encloses an alternative line in parentheses after the move it replaces, which is how the Viewer's PGN copy sets the stored game's continuation beside the submitted game's move where the two part.}
 }
 
+@misc{edwards1994b,
+    editor     = {Edwards, Steven J.},
+    editortype = {coordinator},
+    title      = {Standard: Portable Game Notation Specification and Implementation Guide},
+    year       = {1994},
+    note       = {Section 9.1.2, Tags: WhiteElo, BlackElo},
+    url        = {https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c9.1.2},
+    annote     = {Holds each player's FIDE Elo rating as an integer, or a hyphen for an unrated player, which orders the stored games tied on the longest run.}
+}
+
+@misc{edwards1994c,
+    editor     = {Edwards, Steven J.},
+    editortype = {coordinator},
+    title      = {Standard: Portable Game Notation Specification and Implementation Guide},
+    year       = {1994},
+    note       = {Section 16.1, FEN},
+    url        = {https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c16.1},
+    annote     = {Defines Forsyth--Edwards Notation, whose first four fields name the placement, the side to move, the castling rights, and the en passant square, which is the form scotch match game reports a parting position in and scotch show position reads one from.}
+}
+
 @misc{fide2023,
     author = {International Chess Federation},
     title  = {{FIDE} Laws of Chess},
     year   = {2023},
     note   = {Article 9.2.3},
     url    = {https://handbook.fide.com/chapter/E012023},
-    annote = {Counts two positions as the same where the same player has the move, the same pieces stand on the same squares, and every piece has the same moves, which is when two games share a position and, save where an en passant capture is ruled out, when their keys agree.}
+    annote = {Counts two positions as the same where the same player has the move, the same pieces stand on the same squares, and every piece has the same moves, which is when two games share a position and when their keys agree.}
 }
 
 @misc{fiekas2025,
     author = {Fiekas, Niklas},
     title  = {python-chess 1.11.2 Documentation},
     year   = {2025},
-    note   = {Polyglot Opening Book Reading, zobrist\_hash},
-    url    = {https://python-chess.readthedocs.io/en/v1.11.2/polyglot.html},
-    annote = {Documents the call that hashes a position into the 64-bit key the index stores, from the side to move, the pieces, the castling rights, and the file a pawn could capture en passant on.}
+    note   = {Source of Module chess.polyglot, ZobristHasher.hash\_ep\_square},
+    url    = {https://python-chess.readthedocs.io/en/v1.11.2/_modules/chess/polyglot.html},
+    annote = {Holds the source of the call that hashes a position under Polyglot's random numbers, from the pieces, the castling rights, the side to move, and the file of an en passant square a pawn stands ready to capture on, legal or not, which gives the key the index holds everywhere but at a file no legal move captures on.}
 }
 
 @misc{fiekas2026,
@@ -42,7 +62,7 @@
     year   = {2026},
     note   = {Module zobrist, and EnPassantMode},
     url    = {https://docs.rs/shakmaty/0.30.2/shakmaty/zobrist/index.html},
-    annote = {Documents the 64-bit Zobrist hash the crate under rust/ keys each position by, whose value for the starting position is 0x463b96181691fc9c, and the PseudoLegal mode, which reads the en passant file only where an enemy pawn stands beside a pawn just advanced two squares.}
+    annote = {Documents the 64-bit Zobrist hash the crate under rust/ keys each position by, whose value for the starting position is 0x463b96181691fc9c, and the Legal mode, which reads the en passant file only where a legal move plays the capture.}
 }
 
 @book{gusfield1997,

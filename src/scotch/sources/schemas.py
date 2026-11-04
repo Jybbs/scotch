@@ -11,11 +11,10 @@ from datetime            import UTC, datetime
 from functools           import partial
 from hashlib             import file_digest
 from importlib.resources import read_text
-from pathlib             import Path, PurePosixPath
+from pathlib             import Path
 from pydantic            import AwareDatetime, BaseModel, Field, HttpUrl, NonNegativeInt, model_validator
 from tomllib             import loads
 from typing              import Self
-from urllib.parse        import unquote
 from zipfile             import Path as ZipPath, ZipFile, is_zipfile
 
 from scotch.games.schemas import Game, Origin
@@ -47,6 +46,13 @@ class Download(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     """
     The instant the file was fetched, in UTC.
     """
+
+    @property
+    def summary(self) -> str:
+        """
+        Writes the file's size and the day it was fetched.
+        """
+        return f"{self.size_bytes:,} bytes, fetched {self.fetched:%Y-%m-%d}"
 
     @classmethod
     def from_file(cls, path: Path, *, etag: str | None) -> Self:
@@ -104,7 +110,7 @@ class Source(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         Reads the file's name from its address without its percent-encoding,
         such as `Carlsen.zip`.
         """
-        return unquote(PurePosixPath(self.address.path).name)
+        return Origin(address=str(self.address), place=1).file
 
     def games(self, directory: Path) -> Iterator[Game]:
         """

@@ -1,0 +1,10 @@
+Usage: scotch show COMMAND
+
+Prints a stored game, a position, or what the store holds.
+
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ game      Prints the stored game a <file>:<n> reference names as PGN, for    │
+│           any chess program to open, its tags then its mainline.             │
+│ position  Reports what the stored games played from one position.            │
+│ store     Reports what the store holds.                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯

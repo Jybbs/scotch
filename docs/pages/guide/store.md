@@ -8,7 +8,7 @@ The store is the files `src/scotch/sources/sources.toml` declares, fetched under
 
 ## Building the Index
 
-`mise run data:index` runs `scotch index games`, which reads every fetched archive in place into the index of stored games and of every position they reach, leaving out a game the reader records an error for or whose `Variant` tag names a variant other than standard chess. The crate under `rust/` reads and keys each game as python-chess reads and keys it, recording each error in python-chess's words. It copies the manifest beside the index, so `scotch match game` warns where a later fetch recorded other bytes than the ones the index was read from.
+`mise run data:index` runs `scotch index games`, which reads every fetched archive in place into the index of stored games and of every position they reach, leaving out a game the reader records an error for or whose `Variant` tag names a variant other than standard chess. The crate under `rust/` reads each game as python-chess reads it, recording each error in python-chess's words, and keys each position as [Position Keys](../methods/keys.md) sets out. The index is two files, `games.parquet`, an Apache Parquet table of each game's tags, and `positions.bin`, which holds each game's moves, each numbered among the legal moves of its position, beside enough of each position's key to find the games that may reach it, so a command maps the file into memory and reads only what its lookup reaches. The build copies the manifest beside the index, so `scotch match game` warns where a later fetch recorded other bytes than the ones the index was read from and `scotch show store` reports the same.
 
 ## The Largest Shares
 

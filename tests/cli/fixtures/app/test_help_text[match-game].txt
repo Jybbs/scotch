@@ -1,9 +1,15 @@
 Usage: scotch match game [OPTIONS] PGN
 
-Finds the stored game sharing the longest unbroken run of positions with the    
-first game of a PGN file, printing the stored game's players, event, and date,  
-its place in the file it was read from, the plies the two games share, and the  
-move where they part, or a line saying no stored game shares a position with it.
+Finds the stored game sharing the longest unbroken run of positions with one    
+game of a PGN file.                                                             
+
+Prints the stored game as <file>:<n> beside its players, event, and date, the   
+plies the two games share, the Forsyth–Edwards Notation of the position where   
+they part with the move each played from it, the stored game's moves from there 
+through its result, and the count of other stored games sharing a run as long,  
+or a line saying no stored game shares a position with it. Stored games tied on 
+the run rank by the mean of their players' ratings, highest first, then by the  
+one rating a game carries, then in the order the index holds them.              
 
 Reads the index from the index folder of the data directory, which is           
 .cache/data under the project's root unless the [tool.scotch] table of its      
@@ -11,13 +17,24 @@ pyproject.toml or the SCOTCH_DATA variable moves it, and warns where a fetch
 since the index was built recorded other bytes for the files than the ones the  
 index was read from.                                                            
 
-Exits nonzero naming the problem where the file holds no game, where reading the
-game recorded an error, such as a move illegal in the position it was played    
-from or a FEN tag setting up a position no game reaches, where its Variant tag  
-names a variant other than standard chess, or where no index has been built or  
-the one built holds another layout.
+Exits nonzero naming the problem where the file cannot be read, holds no game,  
+holds several with none chosen, or holds fewer than the one chosen, where       
+reading the game recorded an error, such as a move illegal in the position it   
+was played from or a FEN tag setting up a position no game reaches, where its   
+Variant tag names a variant other than standard chess, where --json names a path
+opening on a hyphen other than -, or where no index has been built or the one   
+built holds another layout.
 
 ╭─ Parameters ─────────────────────────────────────────────────────────────────╮
-│ *  PGN --pgn    The PGN file whose first game is matched. [required]         │
-│    --json PATH  The file the match is written to as JSON.                    │
+│ *  PGN --pgn    The PGN file holding the game, or - for standard input.      │
+│                 [required]                                                   │
+│    --game INT   The game to match, counting from 1, where the file holds     │
+│                 several.                                                     │
+│    --json PATH  The file the match is written to as JSON, or - to print the  │
+│                 JSON alone.                                                  │
+│    --link       Prints the address of the Viewer opening the match.          │
+│                 [default: False]                                             │
+│    --plies INT  The most plies of the stored game's continuation to print.   │
+│    --top INT    The count of further stored games to list after the match.   │
+│                 [default: 0]                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯

@@ -1,25 +1,26 @@
 """
 Pins what `PositionIndex` finds for a submitted game against a store built
-from the three games in `fixtures/stored.pgn`, that a store reads back
-from Parquet as it was built, that a read holds each file to its table's
-declaration, and what a `Batch` keeps of a fetched file and an index merged
-from several keeps of a game they repeat.
+from the three games in `fixtures/stored.pgn`, what it reports for one
+position, that a store reads back from its files as it was built, that a
+read holds each file to its layout, and what a `Batch` keeps of a fetched
+file and an index merged from several keeps of a game they repeat.
 """
 
+from collections           import Counter
 from collections.abc       import Callable
 from common.games          import line
 from common.sources        import declare, land
 from common.strategies     import games
 from hypothesis            import given
-from hypothesis.strategies import lists
+from hypothesis.strategies import integers, lists
 from itertools             import product, takewhile
 from pathlib               import Path
 from polars                import DataFrame, read_parquet
 from polars.exceptions     import SchemaError
 from pytest                import TempPathFactory, mark, param, raises
 
-from scotch.games.schemas import Game
-from scotch.index.schemas import GAMES, POSITIONS, ROWS, RUNS, Span, TABLES, Table
+from scotch.games.schemas import Game, Origin
+from scotch.index.schemas import Answer, GAMES, ROWS, RUNS, Reply, Span
 from scotch.index.tables  import Batch, PositionIndex
 
 
@@ -151,11 +152,195 @@ def test_a_game_two_batches_repeat_is_indexed_once_under_the_first(tmp_path: Pat
 
     assert [
         (game.tags["Round"], game.origin.address, game.origin.place)
-        for game in map(index.game, range(index.games.collect().height))
+        for game in map(index.game, range(index.positions.games))
     ] == [
         ("1", "https://example.com/First.pgn", 1),
         ("2", "https://example.com/Second.pgn", 2)
     ]
+
+
+def test_a_reference_names_the_stored_game_read_from_it():
+    """
+    Asserts that `<file>:<n>` finds the game at the place `n` of the file
+    `file`, whose name is read without its percent-encoding and may hold a
+    colon, and that a reference naming no stored game finds nothing, a place
+    written with a leading zero among them.
+    """
+    games = [
+        line(
+            "e4",
+            origin = Origin(address="https://example.com/a/My%20File.zip", place=2)
+        ),
+        line("d4", origin=Origin(address="https://example.com/b/Other.zip", place=2)),
+        line("c4", origin=Origin(address="https://example.com/c/A%3AB.zip", place=2))
+    ]
+    index = PositionIndex.build(games)
+
+    assert index.referenced("My File.zip:2") == games[0]
+    assert index.referenced("Other.zip:2") == games[1]
+    assert index.referenced("A:B.zip:2") == games[2]
+    assert index.referenced("Other.zip:02") is None
+    assert index.referenced("Other.zip:3") is None
+    assert index.referenced("Missing.zip:2") is None
+    assert index.referenced("Other.zip") is None
+
+
+@mark.parametrize(
+    ("ratings", "first"),
+    [
+        param(({}, {}), 0, id="unrated-in-index-order"),
+        param(({}, {"BlackElo": "1"}), 1, id="one-rating-over-none"),
+        param(
+            ({"WhiteElo": "2800"}, {"BlackElo": "1", "WhiteElo": "1"}),
+            1,
+            id = "both-ratings-over-one"
+        ),
+        param(
+            (
+                {"BlackElo": "2000", "WhiteElo": "2000"},
+                {"BlackElo": "2000", "WhiteElo": "2800"}
+            ),
+            1,
+            id = "higher-mean-first"
+        ),
+        param(
+            ({"WhiteElo": "2100"}, {"BlackElo": "2000"}),
+            0,
+            id = "higher-one-rating-first"
+        ),
+        param(
+            ({"BlackElo": "0", "WhiteElo": "0"}, {"WhiteElo": "1"}),
+            1,
+            id = "a-rating-of-zero-is-no-rating"
+        ),
+        param(
+            ({"WhiteElo": "unknown"}, {"WhiteElo": "1"}),
+            1,
+            id = "a-rating-holding-no-number-is-no-rating"
+        )
+    ]
+)
+def test_a_tie_goes_to_the_game_whose_ratings_rank_highest(
+    first   : int,
+    ratings : tuple[dict[str, str], dict[str, str]]
+):
+    """
+    Asserts that two stored games sharing runs as long rank by the mean of
+    both ratings, above a game carrying one, then by that one rating, above
+    a game carrying none, then in the order the index holds them.
+    """
+    games = [line("e4", "e5", **tags) for tags in ratings]
+    match = PositionIndex.build(games).match(line("e4", "e5"))
+
+    assert match.game == games[first]
+    assert match.ties == 1
+
+
+@given(stored=lists(games(plies=12), max_size=4))
+def test_any_store_reads_back_as_it_was_built(
+    stored           : list[Game],
+    tmp_path_factory : TempPathFactory
+):
+    """
+    Asserts that every game an index is built from reads back from its
+    files, in the order it was built, with the tags, the moves, and the
+    errors it held.
+    """
+    directory = tmp_path_factory.mktemp("store")
+    PositionIndex.build(stored).write(directory)
+
+    assert list(map(PositionIndex.read(directory).game, range(len(stored)))) == stored
+
+
+@given(
+    stored    = lists(games(plies=12, width=3), max_size=4, min_size=1),
+    submitted = games(plies=12, width=3)
+)
+def test_a_match_is_the_longest_run_any_stored_game_shares(
+    stored    : list[Game],
+    submitted : Game
+):
+    """
+    Asserts that every run the index finds for any submitted game is one a
+    search over every pair of plies finds, and that the match is the longest
+    of them, with ties going to the game whose ratings rank highest, then to
+    the game the index holds first, then to the run starting earliest in the
+    submitted game, then to the run starting earliest in that game, and that
+    `top` lists each game once at its longest run in that order.
+    """
+    runs = sorted(
+        (-length, -game.standing, number, start, ply - start)
+        for number, game in enumerate(stored)
+        for start, ply in product(range(len(submitted.keys)), range(len(game.keys)))
+        if (start == 0 or ply == 0 or submitted.keys[start - 1] != game.keys[ply - 1])
+        and (length := shared(submitted.keys[start:], game.keys[ply:]))
+    )
+    index   = PositionIndex.build(stored)
+    length  = -runs[0][0]
+    longest = [
+        next(run for run in runs if run[2] == number)
+        for number in dict.fromkeys(run[2] for run in runs)
+    ]
+
+    assert index.runs(submitted).rows() == [
+        (number, offset, start, -negated)
+        for negated, _, number, start, offset in runs
+    ]
+    assert [
+        (stored.index(match.game), match.span, match.ties)
+        for match in index.matches(submitted, top=len(stored))
+    ] == [
+        (
+            stored.index(stored[number]),
+            Span(length=-negated, offset=offset, start=start),
+            len({run[2] for run in runs if -run[0] == length}) - 1
+        )
+        for negated, _, number, start, offset in longest
+    ]
+
+
+@mark.parametrize("name", ["games.parquet", "positions.bin"])
+def test_reading_an_index_missing_a_file_raises(
+    name     : str,
+    stored   : list[Game],
+    tmp_path : Path
+):
+    """
+    Asserts that reading an index missing either file raises
+    `FileNotFoundError`, whichever file is the one left.
+    """
+    PositionIndex.build(stored).write(tmp_path)
+    (tmp_path / name).rename(tmp_path / "moved")
+
+    with raises(FileNotFoundError):
+        PositionIndex.read(tmp_path)
+
+
+@mark.parametrize(
+    "layout",
+    [
+        param(lambda frame: frame.drop("game"), id="column-missing"),
+        param(lambda frame: frame.with_row_index("row"), id="column-added"),
+        param(lambda frame: frame.cast({"game": str}), id="other-dtype"),
+        param(lambda frame: frame.select(reversed(frame.columns)), id="other-order")
+    ]
+)
+def test_reading_a_table_written_under_another_layout_raises(
+    layout   : Callable[[DataFrame], DataFrame],
+    stored   : list[Game],
+    tmp_path : Path
+):
+    """
+    Asserts that scanning an index whose table of games lacks a declared
+    column, carries one more, holds one under another type, or holds its
+    columns in another order raises `SchemaError` at the read.
+    """
+    PositionIndex.build(stored).write(tmp_path)
+    path = PositionIndex.table(tmp_path)
+    layout(read_parquet(path)).write_parquet(path)
+
+    with raises(SchemaError):
+        PositionIndex.read(tmp_path)
 
 
 def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
@@ -176,14 +361,74 @@ def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
     assert match.ties == 0
 
 
-def test_a_tie_goes_to_the_game_the_index_holds_first(
+@mark.parametrize(
+    "body",
+    [param(b"", id="empty"), param(b"parquet\0\0" * 16, id="another-layout")]
+)
+def test_reading_a_positions_file_under_another_layout_raises(
+    body     : bytes,
+    stored   : list[Game],
+    tmp_path : Path
+):
+    """
+    Asserts that reading an index whose file of positions holds no bytes or
+    bytes another layout wrote raises `SchemaError` naming the folder.
+    """
+    PositionIndex.build(stored).write(tmp_path)
+    PositionIndex.path(tmp_path).write_bytes(body)
+
+    with raises(SchemaError, match=str(tmp_path)):
+        PositionIndex.read(tmp_path)
+
+
+def test_a_stored_game_set_up_from_a_fen_shares_the_positions_it_reaches():
+    """
+    Asserts that a stored game a `FEN` tag sets up reads back with the tag,
+    that a game reaching that position by moves shares a run with it from
+    there, and that the answer for that position counts its move.
+    """
+    fen   = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+    index = PositionIndex.build(
+        [line("d4"), line("Nf3", "Nc6", FEN=fen, Result="1-0")]
+    )
+
+    assert index.game(1).tags["FEN"] == fen
+    assert index.match(line("e4", "e5", "Nf3", "Nf6")).span == Span(
+        length = 2,
+        offset = -2,
+        start  = 2
+    )
+    assert index.answer("1. e4 e5", top=1).replies == (
+        Reply(outcomes=(1, 0, 0, 0), san="Nf3"),
+    )
+
+
+def test_a_stored_null_move_reads_back_and_counts_as_a_move():
+    """
+    Asserts that a stored game holding a null move reads back with it, that
+    the answer for the position before it counts it as `--`, and that a line
+    of moves passes through it.
+    """
+    game  = line("e4", "--", "d4", Result="1-0")
+    index = PositionIndex.build([game])
+
+    assert index.game(0).moves == game.moves
+    assert index.answer("1. e4", top=1).replies == (
+        Reply(outcomes=(1, 0, 0, 0), san="--"),
+    )
+    assert index.answer("1. e4 --", top=1).replies == (
+        Reply(outcomes=(1, 0, 0, 0), san="d4"),
+    )
+
+
+def test_a_tie_among_unrated_games_goes_to_the_game_the_index_holds_first(
     index  : PositionIndex,
     stored : list[Game]
 ):
     """
     Asserts that a game sharing its first four positions with both of
-    Pachman's games matches the 1965 game, which the index holds first, and
-    counts the 1963 game as sharing a run as long.
+    Pachman's games, neither rated, matches the 1965 game, which the index
+    holds first, and counts the 1963 game as sharing a run as long.
     """
     match = index.match(line("Nf3", "Nf6", "c4", "d6"))
 
@@ -192,122 +437,21 @@ def test_a_tie_goes_to_the_game_the_index_holds_first(
     assert match.ties == 1
 
 
-@given(stored=lists(games(plies=12), max_size=4))
-def test_any_store_reads_back_as_it_was_built(
-    stored           : list[Game],
-    tmp_path_factory : TempPathFactory
-):
-    """
-    Asserts that every game an index is built from reads back from Parquet,
-    in the order it was built, with the tags, the moves, and the errors
-    it held.
-    """
-    directory = tmp_path_factory.mktemp("store")
-    PositionIndex.build(stored).write(directory)
-
-    assert list(map(PositionIndex.read(directory).game, range(len(stored)))) == stored
-
-
-@given(
-    stored    = lists(games(plies=12, width=3), max_size=4, min_size=1),
-    submitted = games(plies=12, width=3)
-)
-def test_a_match_is_the_longest_run_any_stored_game_shares(
-    stored    : list[Game],
-    submitted : Game
-):
-    """
-    Asserts that the match for any submitted game is the longest run of
-    shared positions a search over every pair of plies finds, with ties
-    going to the run starting earliest, then to the game the index holds
-    first, then to the run starting earliest in that game.
-    """
-    runs = [
-        (length, start, number, ply - start)
-        for number, game in enumerate(stored)
-        for start, ply in product(range(len(submitted.keys)), range(len(game.keys)))
-        if (start == 0 or ply == 0 or submitted.keys[start - 1] != game.keys[ply - 1])
-        and (length := shared(submitted.keys[start:], game.keys[ply:]))
-    ]
-    length, start, number, offset = min(runs, key=lambda run: (-run[0], *run[1:]))
-    match = PositionIndex.build(stored).match(submitted)
-
-    assert match.game == stored[number]
-    assert match.span == Span(length=length, offset=offset, start=start)
-    assert match.ties == len({run[2] for run in runs if run[0] == length}) - 1
-
-
-@mark.parametrize("table", [param(table, id=table.name) for table in TABLES])
-def test_reading_an_index_missing_a_table_raises(
-    stored   : list[Game],
-    table    : Table,
-    tmp_path : Path
-):
-    """
-    Asserts that scanning an index missing either table raises
-    `FileNotFoundError` at once, although the other table reads.
-    """
-    PositionIndex.build(stored).write(tmp_path)
-    table.path(tmp_path).rename(tmp_path / "moved.parquet")
-
-    with raises(FileNotFoundError):
-        PositionIndex.read(tmp_path)
-
-
-@mark.parametrize(
-    "layout",
-    [
-        param(lambda frame: frame.drop("game"), id="column-missing"),
-        param(lambda frame: frame.with_row_index("row"), id="column-added"),
-        param(lambda frame: frame.cast({"game": str}), id="other-dtype"),
-        param(lambda frame: frame.select(reversed(frame.columns)), id="other-order")
-    ]
-)
-@mark.parametrize("table", [param(table, id=table.name) for table in TABLES])
-def test_reading_a_table_written_under_another_layout_raises(
-    layout   : Callable[[DataFrame], DataFrame],
-    stored   : list[Game],
-    table    : Table,
-    tmp_path : Path
-):
-    """
-    Asserts that scanning an index where either table lacks a declared
-    column, carries one more, holds one under another type, or holds its
-    columns in another order raises `SchemaError` at the read.
-    """
-    PositionIndex.build(stored).write(tmp_path)
-    path = table.path(tmp_path)
-    layout(read_parquet(path)).write_parquet(path)
-
-    with raises(SchemaError):
-        PositionIndex.read(tmp_path)
-
-
-def test_a_tie_goes_to_the_run_starting_earliest(
+def test_a_tie_goes_to_the_game_whose_ratings_rank_highest_over_an_earlier_run(
     index  : PositionIndex,
     stored : list[Game]
 ):
     """
     Asserts that a game sharing its first three positions with both of
-    Pachman's games, and three more with Kasparov–Sosonko once its knights
-    return home, matches the 1965 game, whose run starts earlier, although
-    the index holds Kasparov–Sosonko first.
+    Pachman's unrated games, and three more with Kasparov–Sosonko once its
+    knights return home, matches Kasparov–Sosonko, whose ratings rank it
+    above the two, although their runs start earlier.
     """
     match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
 
-    assert match.game == stored[1]
-    assert match.span == Span(length=3, offset=0, start=0)
+    assert match.game == stored[0]
+    assert match.span == Span(length=3, offset=-4, start=4)
     assert match.ties == 2
-
-
-def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
-    """
-    Asserts that an index built from no game writes, reads back, and finds
-    no match for any submitted game.
-    """
-    PositionIndex.build([]).write(tmp_path)
-
-    assert PositionIndex.read(tmp_path).match(demo) is None
 
 
 @mark.parametrize(
@@ -324,53 +468,283 @@ def test_a_game_python_chess_cannot_set_up_is_stored_without_positions(
 ):
     """
     Asserts that a game whose `FEN` or `Variant` tag python-chess rejects
-    builds into the games table with the error its reader recorded and into
-    no row of the positions table, so no match returns it.
+    builds into the games table with the error its reader recorded, holding
+    no moves and reaching no position, so no match returns it.
     """
     [rejected] = Game.read(pgn(f"{tag}\n\n1. e4 *\n"))
     index      = PositionIndex.build([rejected, *stored])
 
     assert rejected.errors
-    assert index.game(0) == rejected
-    assert 0 not in index.positions.collect().get_column("game")
+    assert index.game(0) == rejected.model_copy(update={"moves": ()})
+    assert index.positions.positions == sum(len(game.keys) for game in stored)
     assert index.match(line("e4")).game == stored[0]
+
+
+@mark.parametrize(
+    "sans",
+    [
+        param(("Nf3", "Nf6", "Ng1", "Ng8", "e4"), id="plays-on"),
+        param(("Nf3", "Nf6", "Ng1", "Ng8"), id="ends-at-the-second-reach")
+    ]
+)
+def test_an_answer_counts_a_game_reaching_a_position_twice_once(sans: tuple[str, ...]):
+    """
+    Asserts that a game reaching the starting position again counts once,
+    under the move it played from its first reach, and never as ending there
+    although it may end at the second reach.
+    """
+    game   = line(*sans)
+    answer = PositionIndex.build([game]).answer("", top=1)
+
+    assert answer.replies == (Reply(outcomes=(0, 0, 0, 1), san="Nf3"),)
+    assert answer.ended.games == 0
+    assert answer.games == (game,)
+
+
+@given(
+    chosen = integers(0),
+    stored = lists(games(plies=12, width=3), max_size=4, min_size=1)
+)
+def test_an_answer_counts_each_game_under_the_move_from_its_first_reach(
+    chosen : int,
+    stored : list[Game]
+):
+    """
+    Asserts that the answer for any position a stored game reaches counts
+    every game holding its key once, under the move played from that key's
+    first place in the game or as ending there, the most played move first,
+    and lists those games in the order the index holds them.
+    """
+    ply     = chosen % len(stored[0].keys)
+    key     = stored[0].keys[ply]
+    reached = [(game, game.keys.index(key)) for game in stored if key in game.keys]
+    played  = Counter(
+        game.sans[first] for game, first in reached if first < len(game.moves)
+    )
+    answer = PositionIndex.build(stored).answer(
+        stored[0].at(ply).fen(),
+        top = len(stored)
+    )
+
+    assert [(reply.san, reply.games) for reply in answer.replies] == sorted(
+        played.items(),
+        key = lambda pair: (-pair[1], pair[0])
+    )
+    assert answer.ended.games == len(reached) - played.total()
+    assert answer.games == tuple(game for game, _ in reached)
+
+
+def test_an_answer_counts_a_result_outside_the_four_as_unfinished():
+    """
+    Asserts that a stored game whose `Result` tag holds none of the results
+    `RESULTS` names counts under `*` among the games playing its move.
+    """
+    assert PositionIndex.build([line("e4", Result="abandoned")]).answer(
+        "",
+        top = 1
+    ).replies == (Reply(outcomes=(0, 0, 0, 1), san="e4"),)
+
+
+def test_an_answer_for_a_position_no_game_reaches_holds_nothing(index: PositionIndex):
+    """
+    Asserts that the answer for a position no stored game reaches holds no
+    move and no game.
+    """
+    assert index.answer("1. h4 h5", top=1) == Answer(
+        ended   = Reply(outcomes=(0, 0, 0, 0), san="end"),
+        games   = (),
+        replies = ()
+    )
+
+
+@mark.parametrize(
+    "position",
+    [
+        param("1 e4 2 e5", id="move-numbers-with-no-period"),
+        param("1.e4 1...e5", id="move-numbers-running-into-the-moves"),
+        param("1. e4 ... e5", id="an-ellipsis-standing-alone"),
+        param("1. e4 {a note} e5", id="comment"),
+        param("1. e4 ; a rest of a line\ne5", id="comment-to-the-end-of-the-line"),
+        param("1. e4 $1 e5 $14", id="numeric-annotation-glyphs"),
+        param("1. e4! e5?!", id="annotation-marks"),
+        param("1. e4 (1. d4 d5) e5", id="variation"),
+        param("1. e4 e5 *", id="unfinished-result"),
+        param("1. e4 e5 1-0", id="result"),
+        param("1. e4+ e5#", id="check-and-mate-marks"),
+        param("1. e2-e4 e7e5", id="long-algebraic"),
+        param('[Event "A"]\n\n1. e4 e5', id="tag-pair")
+    ]
+)
+def test_an_answer_reads_what_a_line_of_moves_holds_beside_its_moves(position: str):
+    """
+    Asserts that move numbers, comments, annotations, a variation, a result,
+    and each spelling of a move the PGN reader takes leave the position the
+    moves alone reach.
+    """
+    index = PositionIndex.build([line("e4", "e5", "Nf3"), line("d4")])
+
+    assert index.answer(position, top=1) == index.answer("1. e4 e5", top=1)
+
+
+def test_an_answer_reads_a_move_the_reader_takes_short_of_its_last_letter():
+    """
+    Asserts that `Nf3x`, whose `Nf3` the PGN reader reads as the move,
+    leaves the position `Nf3` reaches.
+    """
+    index = PositionIndex.build([line("e4", "e5", "Nf3", "Nc6")])
+
+    assert index.answer("1. e4 e5 2. Nf3x", top=1) == index.answer(
+        "1. e4 e5 2. Nf3",
+        top = 1
+    )
+
+
+def test_an_index_counts_every_position_and_each_distinct_key():
+    """
+    Asserts that an index counts each position of each game it holds, the
+    game's first position included, and each distinct key once.
+    """
+    positions = PositionIndex.build([line("e4", "e5"), line("e4", "c5")]).positions
+
+    assert (positions.positions, positions.keys) == (6, 4)
+    assert positions.moves(1) == ["e2e4", "c7c5"]
+
+
+def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
+    """
+    Asserts that an index built from no game writes, reads back, and finds
+    no match for any submitted game.
+    """
+    PositionIndex.build([]).write(tmp_path)
+
+    assert PositionIndex.read(tmp_path).match(demo) is None
+
+
+@mark.parametrize(
+    "position",
+    [
+        param("1. e4 e5 2. Nf3", id="line-of-moves"),
+        param(
+            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+            id = "fen"
+        ),
+        param(
+            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq -",
+            id = "fen-of-four-fields"
+        ),
+        param(
+            " rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R  b KQkq - 1 2",
+            id = "fen-behind-spaces"
+        ),
+        param(
+            '[FEN "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"]\n\n'
+            "2. Nf3",
+            id = "fen-tag-pair"
+        )
+    ]
+)
+def test_an_answer_counts_the_moves_played_from_a_position(position: str):
+    """
+    Asserts that the answer for a position reached through a line of moves
+    or named by a FEN, a `FEN` tag pair included, counts each move the
+    stored games played from it and how those games ended, the games ending
+    there apart, and lists the games newest first.
+    """
+    games = [
+        line("e4", "e5", "Nf3", "Nc6", Date="2000.01.01", Result="1-0"),
+        line("e4", "e5", "Nf3", "Nc6", Date="2010.01.01", Result="0-1"),
+        line("e4", "e5", "Nf3", "Nf6", Date="2005.??.??", Result="1/2-1/2"),
+        line("e4", "e5", "Nf3", Date="2015.01.01", Result="*"),
+        line("d4", Date="2020.01.01")
+    ]
+
+    assert PositionIndex.build(games).answer(position, top=3) == Answer(
+        ended   = Reply(outcomes=(0, 0, 0, 1), san="end"),
+        games   = [games[3], games[1], games[2]],
+        replies = [
+            Reply(outcomes=(1, 0, 1, 0), san="Nc6"),
+            Reply(outcomes=(0, 1, 0, 0), san="Nf6")
+        ]
+    )
 
 
 def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
     """
-    Asserts that each table read back, the runs frame, and the rows laid
-    out before an index numbers them carry the columns `GAMES`, `POSITIONS`,
-    `RUNS`, and `ROWS` declare, in that order.
+    Asserts that the table read back, the runs frame, and the rows laid
+    out before an index numbers them carry the columns `GAMES`, `RUNS`, and
+    `ROWS` declare, in that order.
     """
-    assert index.games.collect().schema == GAMES.schema
-    assert index.positions.collect().schema == POSITIONS.schema
+    assert index.games.collect().schema == GAMES
     assert index.runs(line("e4")).schema == RUNS
     assert PositionIndex.rows([line("e4")]).schema == ROWS
 
 
-def test_each_position_holds_the_move_played_from_it():
+def test_reading_a_table_holding_no_parquet_raises(stored: list[Game], tmp_path: Path):
     """
-    Asserts that the positions table holds one row per position of a stored
-    game, keyed by its Zobrist hash beside the move in UCI played from it,
-    with no move at the game's last position.
+    Asserts that reading an index whose table of games holds bytes no
+    Parquet writer wrote raises `SchemaError` rather than the error Polars
+    raises for the file.
     """
-    game = line("e4", "e5")
+    PositionIndex.build(stored).write(tmp_path)
+    PositionIndex.table(tmp_path).write_bytes(b"")
 
-    assert (
-        PositionIndex.build([game])
-                     .positions.collect()
-                     .rows(named=True)
-    ) == [
-        {
-            "game" : 0,
-            "key"  : key,
-            "move" : move,
-            "ply"  : ply
-        }
-        for ply, (key, move) in enumerate(
-            zip(game.keys, ("e2e4", "e7e5", None), strict=True)
-        )
+    with raises(SchemaError):
+        PositionIndex.read(tmp_path)
+
+
+@mark.parametrize(
+    ("position", "problem"),
+    [
+        param(
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+            "stops short",
+            id = "placement"
+        ),
+        param(
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq",
+            "stops short",
+            id = "three-fields"
+        ),
+        param("x/8/8/8/8/8/8/8 w - -", "x/8", id="fen-naming-no-position"),
+        param("1. e4 e4", "illegal san", id="illegal-move"),
+        param("1. e4 hello", "names no move: 'hello'", id="word-naming-no-move"),
+        param("1. e4 e5 Qh9", "names no move: 'Qh9'", id="square-off-the-board"),
+        param("[hello 1. e4", "names no move: '\\[hello 1. e4'", id="no-tag-pair"),
+        param('[Variant "Atomic"]\n\n1. e4', "unsupported variant", id="variant")
     ]
+)
+def test_an_answer_refuses_a_position_it_cannot_read(
+    index    : PositionIndex,
+    position : str,
+    problem  : str
+):
+    """
+    Asserts that a FEN stopping short of its first four fields, a FEN
+    naming no position, a line holding an illegal move or a word naming no
+    move, and a line naming a variant other than standard chess each raise
+    `ValueError` naming the problem.
+    """
+    with raises(ValueError, match=problem):
+        index.answer(position, top=1)
+
+
+def test_reading_a_table_under_another_layout_raises_with_no_positions_file(
+    stored   : list[Game],
+    tmp_path : Path
+):
+    """
+    Asserts that a table of games under another layout raises `SchemaError`
+    ahead of the file of positions, so a folder an earlier layout wrote,
+    which holds no such file, reads as another layout rather than as no
+    index.
+    """
+    PositionIndex.build(stored).write(tmp_path)
+    path = PositionIndex.table(tmp_path)
+    read_parquet(path).drop("game").write_parquet(path)
+    PositionIndex.path(tmp_path).rename(tmp_path / "moved")
+
+    with raises(SchemaError):
+        PositionIndex.read(tmp_path)
 
 
 def test_the_demo_game_matches_the_game_it_follows(
@@ -404,7 +778,7 @@ def test_a_merge_keeps_the_first_of_each_game_in_order(batches: list[list[Game]]
         for number, batch in enumerate(batches)
     )
 
-    assert list(map(index.game, range(index.games.collect().height))) == [
+    assert list(map(index.game, range(index.positions.games))) == [
         game
         for number, game in enumerate(stored)
         if (

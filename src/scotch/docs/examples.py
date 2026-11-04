@@ -9,7 +9,6 @@ opens on.
 """
 
 from pathlib  import Path
-from polars   import col
 from pydantic import BaseModel, Field, NonNegativeInt
 from typing   import Annotated, Self
 
@@ -152,22 +151,19 @@ class Example(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
                         position with it.
         """
         submitted = Game.first(root / self.path)
-        runs      = index.runs(submitted)
 
-        if (match := index.matched(runs)) is None:
+        if not (matches := index.matches(submitted, top=2)):
             raise ValueError(f"No stored game shares a position with {self.path}")
 
+        match = matches[0]
+
         return Showing(
-            next = (
-                runs.filter(col("game") != runs.item(0, "game"))
-                    .get_column("length")
-                    .max()
-            ),
+            next      = matches[1].span.length if len(matches) > 1 else None,
             parting   = match.parting,
             span      = match.span,
             stored    = Shown.from_game(match.game, self.shown),
             submitted = Shown.from_game(submitted, self.shown),
-            summary   = match.summary
+            summary   = match.report()
         )
 
     def exported(self, root: Path, index: PositionIndex | None = None) -> Export:

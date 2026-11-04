@@ -1,0 +1,13 @@
+Usage: scotch show game REFERENCE
+
+Prints the stored game a <file>:<n> reference names as PGN, for any chess       
+program to open, its tags then its mainline.                                    
+
+Warns where the files changed since the index was built, and exits nonzero      
+naming the problem where the index holds no such game, where no index has been  
+built, or where the one built holds another layout.
+
+╭─ Parameters ─────────────────────────────────────────────────────────────────╮
+│ *  REFERENCE --reference  The stored game, as scotch match game names it.    │
+│                           [required]                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯

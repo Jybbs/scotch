@@ -70,35 +70,9 @@ class Census:
                            .cast(UInt16, strict=False)
             )
                 // 10 * 10,
-            moves  = (col("moves").list.len() + 1) // 2,
+            moves  = (col("plies") + 1) // 2,
             result = col("result")
         ).collect()
-
-    @cached_property
-    def positions(self) -> int:
-        """
-        Counts the positions the index holds, one for each position of each
-        stored game.
-        """
-        return (
-            self.index.positions.select(col("key").len())
-                .collect()
-                .item()
-        )
-
-    @cached_property
-    def reach(self) -> DataFrame:
-        """
-        Counts the stored games reaching each position the index holds.
-
-        Returns:
-            One row per key under `key` and `games`.
-        """
-        return (
-            self.index.positions.group_by("key")
-                .agg(games=col("game").n_unique())
-                .collect()
-        )
 
     @cached_property
     def rules(self) -> Rules:
@@ -108,7 +82,7 @@ class Census:
         game save those holding its whole mainline, beside the count of the
         distinct keys of the index the sample is drawn from.
         """
-        keys     = self.reach.height
+        keys     = self.index.positions.keys
         measured = list(self.measured())
 
         return Rules(
@@ -189,7 +163,7 @@ class Census:
                     )
                 )
             ],
-            positions = self.positions,
+            positions = self.index.positions.positions,
             results   = results
         )
 
@@ -199,15 +173,7 @@ class Census:
         in the order the mainline reaches them, leaving out the `copies`
         holding the whole mainline, the game itself among them.
         """
-        keys = DataFrame({"key": game.keys}, schema={"key": self.reach.schema["key"]})
-
-        return (
-            (
-                keys.join(self.reach, how="left", maintain_order="left", on="key")
-                    .get_column("games")
-            )
-            - copies
-        )
+        return Series(self.index.positions.reach(game.keys)) - copies
 
     @staticmethod
     def counts(longest: int, rows: DataFrame) -> list[int]:
@@ -258,7 +224,12 @@ class Census:
             ).explode("ply", empty_as_null=False)
 
             yield (
-                self.index.tied(runs) > 0,
+                (
+                    runs.filter(col("length") == best["length"])
+                        .get_column("game")
+                        .n_unique()
+                )
+                > 1,
                 rarest > self.crowd,
                 not reached.is_empty()
                 and counts.gather(reached.get_column("ply")).min() < rarest

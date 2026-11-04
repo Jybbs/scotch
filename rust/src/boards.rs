@@ -2,12 +2,23 @@
 //! a `FEN` tag as python-chess's `Board` sets one up and written back in
 //! Forsyth–Edwards Notation (FEN) as its `fen` writes one into an error.
 
+use std::io::{self, ErrorKind};
+
 use shakmaty::{
-    CastlingMode, Chess, Color, EnPassantMode, FromSetup, Position, PositionError, Setup,
-    uci::UciMove, zobrist::Zobrist64,
+    CastlingMode, Chess, Color, EnPassantMode, FromSetup, Move, Position, PositionError, Setup,
+    san::SanPlus, uci::UciMove, zobrist::Zobrist64,
 };
 
 use crate::{fens, tags::Rules};
+
+/// One turn of a mainline, which plays a legal move or passes.
+#[derive(Clone, Copy, Debug)]
+pub enum Turn {
+    /// A legal move.
+    Move(Move),
+    /// A null move, which passes the turn.
+    Null,
+}
 
 /// A position and the castling rules it is read under.
 #[derive(Clone, Debug)]
@@ -60,20 +71,96 @@ impl Board {
         )
     }
 
+    /// Sets up the position a mainline starts from, under the rules its
+    /// `Variant` tag names and from the position its `FEN` tag names, or
+    /// returns `None` where `variant` names rules of its own or `fen` names
+    /// no position.
+    pub fn started(fen: Option<&str>, variant: Option<&str>) -> Option<Board> {
+        Rules::named(variant)
+            .ok()
+            .filter(|&rules| rules != Rules::Variant)
+            .and_then(|rules| Board::set_up(fen, rules).ok())
+    }
+
+    /// Plays `moves`, each named in Universal Chess Interface (UCI) notation,
+    /// from the position `fen` names or the standard starting position.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidInput` where `fen` names no position or a move is not
+    /// legal.
+    pub fn reached(fen: Option<&str>, moves: &[String]) -> io::Result<Board> {
+        let refused = |message: String| io::Error::new(ErrorKind::InvalidInput, message);
+        let mut board = Board::started(fen, None)
+            .ok_or_else(|| refused(format!("names no position: {}", fen.unwrap_or_default())))?;
+
+        for uci in moves {
+            if !board.named(uci).is_some_and(|turn| board.take(turn)) {
+                return Err(refused(format!("illegal move: {uci}")));
+            }
+        }
+
+        Ok(board)
+    }
+
+    /// Lists each position one turn from this one beside the name of the turn
+    /// in Standard Algebraic Notation (SAN), a null move under the name
+    /// python-chess's `Board.san` gives it.
+    pub fn children(&self) -> impl Iterator<Item = (String, Board)> {
+        let mut passed = self.clone();
+        let null = passed.pass().then(|| ("--".to_owned(), passed));
+
+        self.position
+            .legal_moves()
+            .into_iter()
+            .map(|m| {
+                let mut child = self.clone();
+                let name = SanPlus::from_move_and_play_unchecked(&mut child.position, m);
+
+                (name.to_string(), child)
+            })
+            .chain(null)
+    }
+
     /// Hashes the position through Polyglot's Zobrist keys, reading the en
-    /// passant file wherever a pawn stands ready to capture, legal or not,
-    /// as python-chess's `chess.polyglot.zobrist_hash` does.
+    /// passant file only where a legal capture reaches its square, so two
+    /// positions take one key where the FIDE Laws of Chess, Article 9.2.3,
+    /// count them the same.
     pub fn key(&self) -> u64 {
         self.position
-            .zobrist_hash::<Zobrist64>(EnPassantMode::PseudoLegal)
+            .zobrist_hash::<Zobrist64>(EnPassantMode::Legal)
             .0
     }
 
+    /// Reads the turn the UCI notation `uci` names from this position, or
+    /// `None` where it names no legal move.
+    pub fn named(&self, uci: &str) -> Option<Turn> {
+        match uci {
+            "0000" => Some(Turn::Null),
+            _ => uci
+                .parse::<UciMove>()
+                .ok()?
+                .to_move(&self.position)
+                .ok()
+                .map(Turn::Move),
+        }
+    }
+
+    /// Takes `turn`, or returns `false` where it passes and `pass` refuses.
+    pub fn take(&mut self, turn: Turn) -> bool {
+        match turn {
+            Turn::Move(m) => {
+                self.play(m);
+                true
+            }
+            Turn::Null => self.pass(),
+        }
+    }
+
     /// Lists the legal moves beside the name python-chess gives each, the
-    /// move in Universal Chess Interface (UCI) notation, which writes a castle
-    /// as the king's move onto its own square in standard chess and onto the
-    /// rook's in Chess960.
-    pub fn legal(&self) -> impl Iterator<Item = (shakmaty::Move, UciMove)> {
+    /// move in UCI notation, which writes a castle as the king's move onto
+    /// its own square in standard chess and onto the rook's in Chess960.
+    pub fn legal(&self) -> impl Iterator<Item = (Move, UciMove)> {
         let mode = self.position.castles().mode();
 
         self.position
@@ -83,7 +170,7 @@ impl Board {
     }
 
     /// Plays the legal move `m`.
-    pub fn play(&mut self, m: shakmaty::Move) {
+    pub fn play(&mut self, m: Move) {
         self.position.play_unchecked(m);
     }
 
@@ -219,5 +306,48 @@ mod tests {
             Board::set_up(None, Rules::Standard).unwrap().key(),
             0x463b_9618_1691_fc9c
         );
+    }
+
+    #[test]
+    fn an_en_passant_square_counts_only_where_a_capture_is_legal() {
+        let key = |fen| Board::set_up(Some(fen), Rules::Standard).unwrap().key();
+
+        // The white pawn on e5 can capture on f6, so the square counts.
+        assert_ne!(
+            key("rnbqkbnr/ppppp1pp/8/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3"),
+            key("rnbqkbnr/ppppp1pp/8/4Pp2/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 3")
+        );
+        // The white pawn on e5 stands pinned along the fifth rank, so it does not.
+        assert_eq!(
+            key("8/8/8/K3Pp1r/8/8/8/4k3 w - f6 0 1"),
+            key("8/8/8/K3Pp1r/8/8/8/4k3 w - - 0 1")
+        );
+        // No white pawn stands beside the square, so it does not.
+        assert_eq!(
+            key("rnbqkbnr/ppppp1pp/8/5p2/8/8/PPPPPPPP/RNBQKBNR w KQkq f6 0 2"),
+            key("rnbqkbnr/ppppp1pp/8/5p2/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 2")
+        );
+    }
+
+    #[test]
+    fn a_turn_is_named_in_uci_notation_or_not_at_all() {
+        let mut board = Board::set_up(None, Rules::Standard).unwrap();
+
+        assert!(board.named("e2e5").is_none());
+        assert!(board.named("nonsense").is_none());
+        assert!(matches!(board.named("0000"), Some(Turn::Null)));
+        assert!(board.take(board.named("e2e4").unwrap()));
+        assert_eq!(
+            board.fen(),
+            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+        );
+    }
+
+    #[test]
+    fn a_mainline_starts_only_under_rules_the_crate_reads() {
+        assert!(Board::started(None, None).is_some());
+        assert!(Board::started(None, Some("Atomic")).is_none());
+        assert!(Board::started(None, Some("Nonsense")).is_none());
+        assert!(Board::started(Some("x"), None).is_none());
     }
 }
