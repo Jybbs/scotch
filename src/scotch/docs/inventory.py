@@ -16,9 +16,12 @@ from typing          import ClassVar, Self
 from scotch.citations.schemas import References
 from scotch.docs.census       import Census
 from scotch.docs.examples     import Example
+from scotch.docs.marks        import Marks
 from scotch.docs.outputs      import Document, Figures, Footnotes, Output, Region
 from scotch.docs.project      import Project
+from scotch.docs.reference    import Reference
 from scotch.docs.tallies      import markdown
+from scotch.docs.terms        import Terms
 from scotch.games.schemas     import Game
 from scotch.identity.schemas  import Identity
 from scotch.index.tables      import PositionIndex
@@ -48,12 +51,13 @@ class Outputs(RootModel[list[Output]]):
     ) -> list[Output]:
         """
         Lists the files written from `index`, meaning the store the Data
-        pages, the Guide's store page, and the Viewer read, the examples
-        the front page, the Methods page, and the link cards draw, the match
-        the Viewer opens on beside the demo game alone, the figures each
-        Markdown file of `pages` sets inside its sentences, the example run
-        the README and the Guide carry, and the tables the Data pages and
-        the Guide's store page set beneath their widgets.
+        pages, the Guide's store page, the identity page, and the Viewer
+        read, the examples the front page, the Methods page, and the link
+        cards draw, the match the Viewer opens on beside the demo game
+        alone, the figures each Markdown file of `pages` sets inside its
+        sentences, the example run the README and the Guide carry, and the
+        tables the Data pages, the Guide's store page, and the identity page
+        set beneath their widgets.
         """
         census   = Census(index=index)
         viewer   = Example(path=Outputs.games / "viewer.pgn", shown=0)
@@ -120,7 +124,8 @@ class Outputs(RootModel[list[Output]]):
                     ("docs/pages/data/index.md", "decades"),
                     ("docs/pages/data/lengths.md", "lengths"),
                     ("docs/pages/data/lengths.md", "outcomes"),
-                    ("docs/pages/guide/store.md", "archives")
+                    ("docs/pages/guide/store.md", "archives"),
+                    ("docs/pages/reference/identity.md", "series")
                 )
             ),
             *(Figures(path=page, values=figures) for page in pages)
@@ -155,12 +160,17 @@ class Outputs(RootModel[list[Output]]):
         project    = Project.installed()
         references = cache(partial(References.shipped, root))
         palette    = identity.palette
+        reference  = Reference(identity=identity, root=root)
 
         return cls(
             [
                 Document.from_value(
                     path  = cls.rendered / "identity.json",
                     value = lambda: identity.model_dump(mode="json")
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "homes.json",
+                    value = lambda: Reference.homes
                 ),
                 Document.from_value(
                     path  = cls.rendered / "keys.json",
@@ -170,8 +180,16 @@ class Outputs(RootModel[list[Output]]):
                     }
                 ),
                 Document.from_value(
+                    path  = cls.rendered / "marks.json",
+                    value = lambda: Marks.read(root).model_dump(mode="json")
+                ),
+                Document.from_value(
                     path  = cls.rendered / "pieces.json",
                     value = lambda: dict(sorted(PIECES.items()))
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "terms.json",
+                    value = lambda: Terms.read().model_dump(mode="json")["terms"]
                 ),
                 Document(
                     path   = Path("docs/public/favicon.svg"),
@@ -220,6 +238,24 @@ class Outputs(RootModel[list[Output]]):
                     path   = Path("docs/pages/guide/store.md"),
                     render = lambda: "\n".join(
                         ("```toml", Sources.text().partition("\n\n")[0], "```")
+                    )
+                ),
+                *(
+                    Region(
+                        name   = name,
+                        path   = Path("docs/pages/reference") / page,
+                        render = lambda name=name: getattr(reference, name)
+                    )
+                    for page, name in (
+                        ("settings.md", "settings"),
+                        ("tasks.md", "tasks"),
+                        ("identity.md", "palette"),
+                        ("identity.md", "roles"),
+                        ("identity.md", "faces"),
+                        ("identity.md", "pieces"),
+                        ("identity.md", "marks"),
+                        ("identity.md", "construction"),
+                        ("terms.md", "terms")
                     )
                 ),
                 *(

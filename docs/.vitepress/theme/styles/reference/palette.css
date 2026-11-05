@@ -1,0 +1,203 @@
+.sc-ref-rank {
+  position              : relative;
+  display               : grid;
+  grid-template-columns : repeat(12, minmax(0, 1fr));
+}
+
+.sc-ref[data-narrow] .sc-ref-rank { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+.sc-ref-square {
+  display      : flex;
+  overflow     : hidden;
+  align-items  : flex-end;
+  min-width    : 0;
+  padding      : 0 0 5px 5px;
+  aspect-ratio : 1;
+  box-shadow   : inset 0 0 0 1px color-mix(in srgb, var(--sc-ink) 16%, transparent);
+}
+
+.sc-ref-square span {
+  font           : 500 0.54rem/1 var(--sc-face-code);
+  letter-spacing : -0.01em;
+  white-space    : nowrap;
+}
+
+.sc-ref-ring {
+  position       : absolute;
+  top            : 0;
+  left           : 0;
+  width          : calc(100% / 12);
+  aspect-ratio   : 1;
+  box-shadow     : inset 0 0 0 2px var(--sc-page), 0 0 0 2px var(--sc-ink);
+  pointer-events : none;
+  transition     : transform var(--sc-duration-glide) var(--sc-curve-glide), opacity var(--sc-duration-fade);
+}
+
+.sc-ref[data-narrow] .sc-ref-ring { width: calc(100% / 6); }
+
+.sc-ref-picked { transition: opacity var(--sc-duration-fade); }
+
+.sc-ref-card {
+  display               : grid;
+  grid-template-columns : 11rem minmax(0, 1fr);
+  gap                   : 4px 16px;
+  align-content         : start;
+}
+
+.sc-ref[data-narrow] .sc-ref-card { grid-template-columns: minmax(0, 1fr); }
+
+.sc-ref-card > div {
+  display       : grid;
+  gap           : 5px;
+  align-content : start;
+  min-width     : 0;
+}
+
+.sc-ref-chips {
+  display   : flex;
+  flex-wrap : wrap;
+  gap       : 4px;
+}
+
+.sc-ref .sc-ref-chips code {
+  padding       : 1px 5px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 3px;
+  background    : none;
+  font          : 500 0.66rem/1.4 var(--sc-face-code);
+  color         : var(--sc-ink);
+}
+
+.sc-ref .sc-ref-chips code[data-mixed] {
+  border-style : dashed;
+  color        : var(--sc-quiet);
+}
+
+.sc-ref-lanes {
+  display : grid;
+  gap     : 2px;
+}
+
+.sc-ref-lane {
+  display               : grid;
+  grid-template-columns : 2.6rem minmax(0, 1fr);
+  align-items           : center;
+  height                : 20px;
+}
+
+.sc-ref-track {
+  position       : relative;
+  height         : 100%;
+  container-type : inline-size;
+}
+
+.sc-ref-track::before {
+  position   : absolute;
+  top        : 50%;
+  right      : 0;
+  left       : 0;
+  height     : 1px;
+  background : var(--sc-rule);
+  content    : '';
+}
+
+.sc-ref-gate {
+  position   : absolute;
+  top        : 3px;
+  bottom     : 3px;
+  left       : 0;
+  width      : 1px;
+  background : var(--sc-quiet);
+  transform  : translateX(calc(var(--sc-ref-at) * 100cqw));
+}
+
+.sc-ref-marker {
+  position      : absolute;
+  top           : 3px;
+  left          : -7px;
+  display       : grid;
+  place-items   : center;
+  width         : 14px;
+  height        : 14px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 2px;
+  background    : var(--sc-ref-ground);
+  transform     : translateX(calc(var(--sc-ref-at) * 100cqw));
+  transition    : transform var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-ref-marker i {
+  width      : 6px;
+  height     : 6px;
+  background : var(--sc-ref-color);
+  transition : background-color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-ticks {
+  position   : relative;
+  align-self : stretch;
+}
+
+.sc-ref-ticks span {
+  position  : absolute;
+  font      : 500 0.6rem/1.2 var(--sc-face-code);
+  color     : var(--sc-quiet);
+  transform : translateX(-50%);
+}
+
+.sc-ref-ticks span:last-child { transform: translateX(-100%); }
+
+.sc-ref-scheme { text-transform: capitalize; }
+
+.sc-ref-grounds {
+  display               : grid;
+  grid-template-columns : 2.6rem repeat(4, minmax(0, 1fr));
+}
+
+.sc-ref[data-narrow] .sc-ref-grounds { grid-template-columns: 2.3rem repeat(4, minmax(0, 1fr)); }
+
+.sc-ref-grounds > small {
+  align-self     : center;
+  padding-bottom : 3px;
+}
+
+.sc-ref-grounds > .sc-ref-top { padding-left: 8px; }
+
+.sc-ref[data-narrow] .sc-ref-grounds > .sc-ref-top { padding-left: 5px; }
+
+.sc-ref-cell {
+  display               : grid;
+  grid-template-columns : 13px minmax(0, 1fr);
+  gap                   : 6px;
+  align-items           : center;
+  height                : 34px;
+  padding               : 0 6px 0 8px;
+  font                  : 500 0.84rem/1 var(--sc-face-code);
+}
+
+.sc-ref[data-narrow] .sc-ref-cell {
+  grid-template-columns : 9px minmax(0, 1fr);
+  gap                   : 4px;
+  padding               : 0 3px 0 5px;
+  font-size             : 0.74rem;
+}
+
+.sc-ref-cell svg {
+  width  : 100%;
+  height : 16px;
+}
+
+.sc-ref-cell > span { white-space: nowrap; }
+
+.sc-ref-cell b { font-weight: 500; }
+
+.sc-ref-cell em {
+  margin-left : 3px;
+  font        : 500 0.58rem/1 var(--sc-face-code);
+  opacity     : 0.72;
+}
+
+.sc-ref[data-narrow] .sc-ref-cell em {
+  display : block;
+  margin  : 2px 0 0;
+}

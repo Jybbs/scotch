@@ -1,0 +1,101 @@
+.sc-ref-board {
+  position      : relative;
+  overflow      : clip;
+  border-radius : 2px;
+  aspect-ratio  : 1;
+  box-shadow    : 0 0 0 1px var(--sc-rule);
+  cursor        : pointer;
+  touch-action  : manipulation;
+  user-select   : none;
+}
+
+.sc-ref-board:focus-visible {
+  outline        : 2px solid var(--sc-run);
+  outline-offset : 2px;
+}
+
+.sc-ref-tile {
+  position    : absolute;
+  display     : grid;
+  place-items : center;
+  width       : 12.5%;
+  height      : 12.5%;
+}
+
+.sc-ref-tile i {
+  width         : 34%;
+  height        : 34%;
+  border-radius : 1px;
+  background    : var(--sc-ref-color);
+  opacity       : 0;
+  transform     : scale(0.3);
+  transition    : 
+    opacity var(--sc-duration-move) var(--sc-curve-glide) var(--sc-ref-lag),
+    transform var(--sc-duration-move) var(--sc-curve-glide) var(--sc-ref-lag);
+}
+
+.sc-ref-tile[data-lit] i {
+  opacity   : 1;
+  transform : scale(1);
+}
+
+.sc-ref-stander {
+  position       : absolute;
+  top            : 0;
+  left           : 0;
+  width          : 12.5%;
+  height         : 12.5%;
+  pointer-events : none;
+  transition     : transform var(--sc-duration-glide) var(--sc-curve-glide);
+}
+
+.sc-ref-stander svg, .sc-ref-specimen svg, .sc-ref-tray svg {
+  display : block;
+  width   : 100%;
+  height  : 100%;
+}
+
+.sc-ref-halo * {
+  fill         : color-mix(in oklab, var(--sc-light) 85%, transparent) !important;
+  stroke       : color-mix(in oklab, var(--sc-light) 85%, transparent) !important;
+  stroke-width : 3.4 !important;
+}
+
+.sc-ref-specimen {
+  display               : grid;
+  grid-template-columns : 62px 62px minmax(0, 1fr);
+  align-items           : center;
+}
+
+.sc-ref-specimen > i { aspect-ratio: 1; }
+
+.sc-ref-specimen > div {
+  min-width   : 0;
+  margin-left : 12px;
+}
+
+.sc-ref-specimen h4 {
+  margin         : 0;
+  font           : 400 1.05rem/1.2 var(--sc-face-display);
+  letter-spacing : normal;
+}
+
+.sc-ref-specimen p {
+  font  : 500 0.66rem/1.4 var(--sc-face-code);
+  color : var(--sc-quiet);
+}
+
+.sc-ref-tray {
+  display               : grid;
+  grid-template-columns : repeat(6, minmax(0, 1fr));
+}
+
+.sc-ref-tray button {
+  position     : relative;
+  aspect-ratio : 1;
+}
+
+.sc-ref-tray button[aria-pressed='true'] {
+  z-index    : 1;
+  box-shadow : 0 0 0 2px var(--sc-page), 0 0 0 3.5px var(--sc-run);
+}

@@ -1,0 +1,174 @@
+.sc-ref {
+  position             : relative;
+  display              : grid;
+  gap                  : 14px;
+  min-width            : 0;
+  font-variant-numeric : tabular-nums;
+}
+
+.sc-ref > * { min-width: 0; }
+
+.sc-ref p { margin: 0; }
+
+.sc-ref small {
+  font           : 500 0.66rem/1.35 var(--sc-face-code);
+  letter-spacing : 0.01em;
+  color          : var(--sc-quiet);
+}
+
+.sc-ref [data-off] { opacity: 0; }
+
+.sc-ref-button {
+  padding       : 7px 10px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 4px;
+  font          : 500 0.7rem/1 var(--sc-face-code);
+  color         : var(--sc-quiet);
+  white-space   : nowrap;
+  transition    : color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-button:hover { color: var(--sc-ink); }
+
+.sc-ref-name {
+  margin         : 0;
+  border         : 0;
+  padding        : 0;
+  font           : 400 1.25rem/1.25 var(--sc-face-display);
+  letter-spacing : normal;
+  color          : var(--sc-ink);
+}
+
+.sc-ref-say {
+  font  : 400 0.875rem/1.45 var(--sc-face-body);
+  color : var(--sc-quiet);
+}
+
+.sc-ref-stack { display: grid; }
+
+.sc-ref-stack > div {
+  grid-area  : 1 / 1;
+  min-width  : 0;
+  visibility : hidden;
+}
+
+.sc-ref-stack > [data-at] { visibility: visible; }
+
+.sc-ref-step {
+  display               : grid;
+  grid-template-columns : auto minmax(0, 1fr) auto;
+  gap                   : 4px 10px;
+  align-items           : center;
+}
+
+.sc-ref-step output {
+  overflow    : hidden;
+  font        : 500 0.74rem/1.3 var(--sc-face-code);
+  color       : var(--sc-ink);
+  text-align  : center;
+  white-space : nowrap;
+}
+
+.sc-ref-step output span { color: var(--sc-quiet); }
+
+.sc-ref-dots {
+  display     : flex;
+  grid-column : 1 / -1;
+}
+
+.sc-ref-dots button {
+  display     : grid;
+  flex        : 1 1 0;
+  align-items : center;
+  min-width   : 0;
+  height      : 18px;
+}
+
+.sc-ref-dots button::before {
+  height     : 4px;
+  background : var(--sc-rule);
+  content    : '';
+  transition : background-color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-dots button:nth-child(even)::before { background: color-mix(in oklab, var(--sc-rule) 55%, var(--sc-page)); }
+
+.sc-ref-dots button[data-seen]::before { background: color-mix(in oklab, var(--sc-run) 42%, var(--sc-page)); }
+
+.sc-ref-dots button[aria-current]::before {
+  height     : 6px;
+  background : var(--sc-run);
+}
+
+.sc-ref-cells {
+  display           : grid;
+  grid-auto-columns : minmax(0, 1fr);
+  grid-auto-flow    : column;
+  grid-column       : 1 / -1;
+  margin-top        : 4px;
+}
+
+.sc-ref[data-narrow] .sc-ref-cells {
+  grid-auto-flow        : row;
+  grid-template-columns : repeat(9, minmax(0, 1fr));
+}
+
+.sc-ref-range {
+  width        : 100%;
+  height       : 22px;
+  margin       : 0;
+  background   : none;
+  appearance   : none;
+  accent-color : var(--sc-run);
+  cursor       : grab;
+}
+
+.sc-ref-range:active { cursor: grabbing; }
+
+.sc-ref-range::-webkit-slider-runnable-track {
+  height     : 2px;
+  background : var(--sc-rule);
+}
+
+.sc-ref-range::-moz-range-track {
+  height     : 2px;
+  background : var(--sc-rule);
+}
+
+.sc-ref-range::-webkit-slider-thumb {
+  width         : 14px;
+  height        : 14px;
+  margin-top    : -6px;
+  border-radius : 2px;
+  background    : var(--sc-run);
+  appearance    : none;
+  box-shadow    : 0 0 0 2px var(--sc-page);
+}
+
+.sc-ref-range::-moz-range-thumb {
+  width         : 14px;
+  height        : 14px;
+  border        : 0;
+  border-radius : 2px;
+  background    : var(--sc-run);
+  box-shadow    : 0 0 0 2px var(--sc-page);
+}
+
+.sc-ref-bed {
+  display               : grid;
+  grid-template-columns : minmax(0, 1fr) minmax(0, 1fr);
+  gap                   : 20px;
+  align-items           : start;
+}
+
+.sc-ref[data-narrow] .sc-ref-bed {
+  grid-template-columns : minmax(0, 1fr);
+  gap                   : 12px;
+}
+
+.sc-ref-beside {
+  display       : grid;
+  gap           : 11px;
+  align-content : start;
+  min-width     : 0;
+}

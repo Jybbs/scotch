@@ -1,13 +1,18 @@
 import { type Component, defineComponent, h } from 'vue'
 
-import { FIGURE }          from '../../lib/markdown/placements.ts'
-import { DATA_WIDGETS }    from './data/index.ts'
-import { METHODS_WIDGETS } from './methods/index.ts'
+import { FIGURE }            from '../../lib/markdown/placements.ts'
+import { DATA_WIDGETS }      from './data/index.ts'
+import { METHODS_WIDGETS }   from './methods/index.ts'
+import { REFERENCE_WIDGETS } from './reference/index.ts'
 
 /**
  * Each widget a page places, under the name the placements give it.
  */
-export const WIDGETS: Record<string, Component> = { ...DATA_WIDGETS, ...METHODS_WIDGETS }
+export const WIDGETS: Record<string, Component> = {
+  ...DATA_WIDGETS,
+  ...METHODS_WIDGETS,
+  ...REFERENCE_WIDGETS
+}
 
 /**
  * Draws the widget a placement names, setting any content the placement wraps,

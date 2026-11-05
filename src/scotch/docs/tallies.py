@@ -15,8 +15,10 @@ from collections.abc import Iterable, Sequence
 from itertools       import accumulate
 from pathlib         import PurePosixPath
 from pydantic        import BaseModel, Field, NonNegativeInt, computed_field
-from typing          import Annotated
+from typing          import Annotated, ClassVar
 from urllib.parse    import unquote
+
+from scotch.identity.schemas import Identity
 
 
 class Archive(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -214,6 +216,14 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     holds, as `Census.store` counts them.
     """
 
+    CHARTED: ClassVar[tuple[str, ...]] = (
+        "Alekhine", "Botvinnik", "Spassky", "Karpov", "Anand"
+    )
+    """
+    The files the identity page charts, in the order the palette's series take
+    them.
+    """
+
     eras: list[Era]
     """
     Each decade the dated games were played in, the earliest first.
@@ -379,6 +389,51 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                 for label, span in spans.items()
             )
         )
+
+    @property
+    def series(self) -> str:
+        """
+        Writes a table of the games each charted file holds in each decade,
+        each column headed by the file beside the palette token and the hex
+        its line takes.
+        """
+        palette = Identity().palette
+        decades = sorted(
+            {decade for archive in self.charted for decade in archive.decades}
+        )
+
+        return markdown(
+            headers = (
+                "Decade",
+                *(
+                    f"{archive.name}, `{token}`, `{getattr(palette, token).hex}`"
+                    for token, archive in zip(
+                        palette.series,
+                        self.charted,
+                        strict = False
+                    )
+                )
+            ),
+            rows = (
+                (
+                    f"{decade}s",
+                    *(f"{archive.decades.get(decade, 0):,}" for archive in self.charted)
+                )
+                for decade in decades
+            )
+        )
+
+    @computed_field
+    @property
+    def charted(self) -> list[Archive]:
+        """
+        Reads the files the identity page charts one series of the palette
+        for, in the order `CHARTED` names them, leaving out one the store
+        lacks.
+        """
+        held = {archive.name: archive for archive in self.files}
+
+        return [held[name] for name in self.CHARTED if name in held]
 
     @computed_field
     @property

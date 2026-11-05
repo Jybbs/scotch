@@ -5,16 +5,23 @@ it is defined.
 
 from collections.abc import Callable, Iterable
 from common.games    import line
+from json            import dumps
 from pathlib         import Path
 from pytest          import fixture
 from pytest_subprocess.fake_process import FakeProcess
 from shutil import copyfile
 
-from scotch.docs.census   import Census
-from scotch.docs.project  import Project
-from scotch.docs.tallies  import Archive, Era, Tally
-from scotch.games.schemas import Game, Origin
-from scotch.index.tables  import PositionIndex
+from scotch.docs.census      import Census
+from scotch.docs.project     import Project
+from scotch.docs.tallies     import Archive, Era, Tally
+from scotch.games.schemas    import Game, Origin
+from scotch.identity.schemas import Identity
+from scotch.index.tables     import PositionIndex
+
+MARK = "M0 0M0 0M0 0M0 0M0 0"
+"""
+Path data holding the five subpaths `Marks.read` measures the mark's lengths from.
+"""
 
 
 @fixture
@@ -94,11 +101,12 @@ def counted(
 def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path]:
     """
     Builds a writer that lays out a checkout under `tmp_path` holding the
-    mark and the lockup, the bibliography, a README holding the markers
-    of its badges and its install steps, each page it is given, and every
-    example line, each the demo game but the Viewer's, which takes the game
-    it opens on, and registers the answer git gives for the Markdown files
-    it tracks, the pages the writer was given.
+    mark, the wordmark, and the lockup, the bibliography, a manifest pinning
+    each face's package, a README holding the markers of its badges and
+    its install steps, each page it is given, and every example line, each
+    the demo game but the Viewer's, which takes the game it opens on, and
+    registers the answers git gives for the Markdown files it tracks, the
+    pages the writer was given, and mise gives for the tasks it lists.
     """
 
     def write(pages: dict[str, str]) -> Path:
@@ -108,10 +116,15 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
         """
         docs = tmp_path / "docs"
         (docs / "assets").mkdir(parents=True)
-        for asset in ("lockup", "mark"):
+        for asset in ("lockup", "mark", "wordmark"):
             (docs / "assets" / f"{asset}.svg").write_text(
-                '<svg viewBox="0 0 1 1"><path fill="currentColor" d="M0 0"/></svg>'
+                f'<svg viewBox="0 0 1 1"><path fill="currentColor" d="{MARK}"/></svg>'
             )
+        (docs / "package.json").write_text(
+            dumps(
+                {"devDependencies": {face.package: "1" for _, face in Identity().faces}}
+            )
+        )
         (tmp_path / ".github").mkdir()
         (tmp_path / ".github" / "README.md").write_text(
             "<!-- badges -->\n<!-- /badges -->\n\n<!-- install -->\n<!-- /install -->\n"
@@ -136,6 +149,12 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
             ["git", "grep", fp.any()],
             occurrences = 3,
             stdout      = "\0".join(f"docs/pages/{name}" for name in pages)
+        )
+
+        fp.register(
+            ["mise", "tasks", "ls", "--json", "--local"],
+            occurrences = 2,
+            stdout      = "[]"
         )
 
         return tmp_path

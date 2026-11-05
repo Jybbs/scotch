@@ -1,0 +1,73 @@
+@property --sc-sweep {
+  syntax        : '<percentage>';
+  inherits      : false;
+  initial-value : 0%;
+}
+
+.vp-doc a.sc-term {
+  padding-bottom      : 2px;
+  background-image    : 
+    repeating-conic-gradient(var(--sc-page) 0 25%, transparent 0 50%),
+    linear-gradient(90deg, var(--sc-run) var(--sc-sweep), color-mix(in oklab, currentColor 62%, var(--sc-page)) 0);
+  background-position : 0 100%, 0 100%;
+  background-repeat   : repeat-x, no-repeat;
+  background-size     : 4px 4px, 100% 4px;
+  color               : var(--sc-ink);
+  font-weight         : inherit;
+  text-decoration     : none;
+  transition          : --sc-sweep var(--sc-duration-glide) var(--sc-curve-glide), color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.vp-doc a.sc-term:hover, .vp-doc a.sc-term:focus-visible {
+  --sc-sweep : 100%;
+  color      : var(--sc-run);
+}
+
+.sc-slip {
+  position       : fixed;
+  top            : 0;
+  left           : 0;
+  z-index        : 40;
+  width          : min(19rem, calc(100vw - 24px));
+  padding        : 9px 12px 8px;
+  border         : 1px solid var(--sc-rule);
+  border-radius  : 5px;
+  background     : var(--sc-raised);
+  opacity        : 0;
+  pointer-events : none;
+  transition     : opacity var(--sc-duration-fade) var(--sc-curve-glide), transform var(--sc-duration-glide) var(--sc-curve-glide);
+  visibility     : hidden;
+}
+
+.sc-slip[data-open] {
+  opacity        : 1;
+  pointer-events : auto;
+  visibility     : visible;
+}
+
+.sc-slip::before {
+  position : absolute;
+  inset    : -9px 0;
+  z-index  : -1;
+  content  : '';
+}
+
+.sc-slip b {
+  display : block;
+  font    : 400 1rem/1.25 var(--sc-face-display);
+  color   : var(--sc-run);
+}
+
+.sc-slip span {
+  display    : block;
+  margin-top : 2px;
+  font       : 400 0.875rem/1.4 var(--sc-face-body);
+  color      : var(--sc-ink);
+}
+
+.sc-slip a {
+  display    : block;
+  margin-top : 3px;
+  font       : 500 0.66rem/1.4 var(--sc-face-code);
+  color      : var(--sc-quiet);
+}

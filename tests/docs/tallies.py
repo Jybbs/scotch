@@ -269,6 +269,39 @@ def test_the_archives_table_ranks_the_files_with_no_others_row_under_ten(tally: 
     )
 
 
+def test_the_charted_files_run_in_the_order_the_tally_names_them(
+    archive : Callable[..., Archive],
+    tally   : Tally
+):
+    """
+    Asserts that the files a tally charts follow `CHARTED` whatever order
+    the store lists them in, leaving out one the store lacks, and that the
+    table states each decade any of them holds beside each file's token
+    and hex.
+    """
+    charted = tally.model_copy(
+        update = {
+            "files": [
+                archive(3, "Karpov", {"1980": 2, "1990": 1000}),
+                archive(2, "Alekhine", {"1920": 2}),
+                archive(1, "Morphy", {"1850": 1})
+            ]
+        }
+    )
+
+    assert [file.name for file in charted.charted] == ["Alekhine", "Karpov"]
+    assert charted.series.splitlines() == [
+        (
+            "| **Decade** | **Alekhine, `series_1`, `#009b98`** | **Karpov, "
+            "`series_2`, `#1e69a6`** |"
+        ),
+        "|---|---:|---:|",
+        "| 1920s | 2 | 0 |",
+        "| 1980s | 0 | 2 |",
+        "| 1990s | 0 | 1,000 |"
+    ]
+
+
 def test_the_decades_table_counts_each_decade_and_the_share_played_by_its_end(
     tally: Tally
 ):

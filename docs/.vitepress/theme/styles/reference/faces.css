@@ -1,0 +1,110 @@
+.sc-ref-score {
+  display               : grid;
+  grid-template-columns : minmax(0, 1fr) minmax(0, 1fr);
+  gap                   : 0 22px;
+  padding               : 14px 16px;
+  border                : 1px solid var(--sc-rule);
+  border-radius         : 3px;
+  background            : var(--sc-raised);
+}
+
+.sc-ref[data-narrow] .sc-ref-score {
+  grid-template-columns : minmax(0, 1fr);
+  gap                   : 12px;
+  padding               : 12px;
+}
+
+.sc-ref-part {
+  position   : relative;
+  display    : block;
+  transition : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-part > i {
+  position       : absolute;
+  inset          : 0;
+  pointer-events : none;
+}
+
+.sc-ref-words { display: block; }
+
+.sc-ref-score[data-look] .sc-ref-part:not([data-on]) { opacity: 0.2; }
+
+.sc-ref-score h5 {
+  margin         : 0 0 6px;
+  font           : 400 1.5rem/1.2 var(--sc-face-display);
+  letter-spacing : normal;
+}
+
+.sc-ref-score p { font: 400 0.9375rem/1.6 var(--sc-face-body); }
+
+.sc-ref-moves {
+  display               : grid;
+  grid-template-columns : 1.7rem minmax(0, 1fr) minmax(0, 1fr);
+  align-content         : start;
+  font                  : 500 0.78rem/1.65 var(--sc-face-code);
+}
+
+.sc-ref-moves span {
+  padding-left  : 4px;
+  border-bottom : 1px solid color-mix(in oklab, var(--sc-rule) 55%, transparent);
+}
+
+.sc-ref-moves .sc-ref-number {
+  padding-left : 0;
+  color        : var(--sc-quiet);
+}
+
+.sc-ref-facts {
+  position : relative;
+  display  : grid;
+}
+
+.sc-ref-block {
+  position   : absolute;
+  top        : 0;
+  right      : 0;
+  left       : 0;
+  height     : 0;
+  background : var(--sc-tint);
+  transition : transform var(--sc-duration-glide) var(--sc-curve-glide), height var(--sc-duration-glide) var(--sc-curve-glide);
+}
+
+.sc-ref-fact {
+  position              : relative;
+  z-index               : 1;
+  display               : grid;
+  grid-template-columns : 8.2rem minmax(0, 1fr);
+  gap                   : 1px 12px;
+  min-width             : 0;
+  padding               : 7px 8px;
+  border-top            : 1px solid color-mix(in oklab, var(--sc-rule) 55%, transparent);
+  text-align            : left;
+}
+
+.sc-ref[data-narrow] .sc-ref-fact { grid-template-columns: minmax(0, 1fr); }
+
+.sc-ref-block + .sc-ref-fact { border-top: 0; }
+
+.sc-ref-fact > div { display: grid; }
+
+.sc-ref-fact b {
+  font-size   : 1rem;
+  font-weight : 400;
+  line-height : 1.25;
+}
+
+.sc-ref-fact[data-face='code'] b { font-size: 0.84rem; }
+
+.sc-ref-fact > span { font: 400 0.8125rem/1.4 var(--sc-face-body); }
+
+.sc-ref .sc-ref-fact code {
+  grid-column   : 2;
+  padding       : 0;
+  background    : none;
+  font          : 500 0.625rem/1.4 var(--sc-face-code);
+  color         : var(--sc-quiet);
+  overflow-wrap : anywhere;
+}
+
+.sc-ref[data-narrow] .sc-ref-fact code { grid-column: 1; }

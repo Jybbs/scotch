@@ -11,8 +11,9 @@ from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
 from pathlib         import Path
-from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, ValidationError
+from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, TypeAdapter, ValidationError
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
+from subprocess      import run
 from tomllib         import loads
 from typing          import Annotated, ClassVar, Self, assert_never
 from urllib.parse    import urlsplit
@@ -225,6 +226,11 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     The words `mise <alias>` runs the task under.
     """
 
+    description: str = ""
+    """
+    The sentence `mise tasks ls` prints beside the task.
+    """
+
     @property
     def command(self) -> str:
         """
@@ -241,6 +247,31 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         """
         return self.file is not None and "GITHUB_STEP_SUMMARY" in self.file.read_text(
             encoding = "utf-8"
+        )
+
+    @classmethod
+    def listed(cls, root: Path) -> tuple[Self, ...]:
+        """
+        Runs `mise tasks ls`, listing the tasks the repository under `root`
+        declares and leaving out the global ones.
+
+        mise prints each task's file as an absolute path with every symlink
+        resolved, so each one is joined back onto `root`.
+        """
+        listing = run(
+            ["mise", "tasks", "ls", "--json", "--local"],
+            capture_output = True,
+            check          = True,
+            cwd            = root,
+            text           = True
+        )
+        return tuple(
+            task.model_copy(
+                update = {"file": root / task.file.relative_to(root.resolve())}
+            )
+            if task.file
+            else task
+            for task in TypeAdapter(tuple[cls, ...]).validate_json(listing.stdout)
         )
 
 

@@ -1,0 +1,75 @@
+.sc-ref-zoom {
+  position      : relative;
+  overflow      : clip;
+  border-radius : 4px;
+  background    : var(--sc-page);
+  box-shadow    : 0 0 0 1px var(--sc-rule);
+}
+
+.sc-ref-zoom svg {
+  position : absolute;
+  inset    : 0;
+  width    : 100%;
+  height   : 100%;
+}
+
+.sc-ref-zoom g { fill: var(--sc-run); }
+
+.sc-ref-span {
+  fill         : none;
+  stroke       : var(--sc-ink);
+  stroke-width : 1;
+}
+
+.sc-ref-zoom img {
+  position      : absolute;
+  top           : 0;
+  left          : 0;
+  height        : auto;
+  max-width     : none;
+  border-radius : 3px;
+}
+
+.sc-ref-readout {
+  position : absolute;
+  top      : 10px;
+  left     : 12px;
+}
+
+.sc-ref-readout b {
+  display : block;
+  font    : 400 1.25rem/1.15 var(--sc-face-display);
+}
+
+.sc-ref-readout small {
+  display     : block;
+  line-height : 1.5;
+}
+
+.sc-ref-stops {
+  position : relative;
+  height   : 30px;
+}
+
+.sc-ref-stops button {
+  position    : absolute;
+  display     : grid;
+  font        : 500 0.59rem/1.35 var(--sc-face-code);
+  color       : var(--sc-quiet);
+  text-align  : center;
+  white-space : nowrap;
+  transform   : translateX(-50%);
+  transition  : color var(--sc-duration-fade);
+}
+
+.sc-ref-stops button:first-child {
+  text-align : left;
+  transform  : none;
+}
+
+.sc-ref-stops button:last-child {
+  text-align : right;
+  transform  : translateX(-100%);
+}
+
+.sc-ref-stops button[data-at] { color: var(--sc-ink); }

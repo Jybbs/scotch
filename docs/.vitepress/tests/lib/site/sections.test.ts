@@ -18,8 +18,8 @@ describe('SECTIONS', () => {
   })
 
   it('accents each section in a color of its own, never a game\'s or the run\'s', () => {
-    const colors: readonly string[] = SECTIONS.map(({ color }) => color)
-    const taken                     = [ROLES.run.light, ROLES.stored.light, ROLES.submitted.light]
+    const colors: readonly unknown[] = SECTIONS.map(({ color }) => color)
+    const taken                      = [ROLES.run.light, ROLES.stored.light, ROLES.submitted.light]
     expect(new Set(colors).size).toBe(colors.length)
     expect(taken.filter(color => colors.includes(color))).toEqual([])
   })
