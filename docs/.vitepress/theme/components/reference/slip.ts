@@ -15,7 +15,11 @@ function termAt(event: Event): HTMLElement | null {
  * it as either leaves, on Escape, on a click that may leave the page, and as the
  * page scrolls.
  */
-function useTermEvents(open: (link: HTMLElement) => void, close: () => void, onSlip: (target: Node) => boolean): void {
+function useTermEvents(
+  open   : (link: HTMLElement) => void,
+  close  : () => void,
+  onSlip : (target: Node) => boolean
+): void {
   useEventListener('click', (event: MouseEvent) => {
     if (termAt(event) || (event.target instanceof Node && onSlip(event.target))) close()
   })
@@ -64,11 +68,14 @@ export const Slip = defineComponent({
       term.value = termOf(name)
       link.setAttribute('aria-describedby', id)
       void nextTick(() => {
+        const zoom              = slip.value!.currentCSSZoom ?? 1
+        const box               = link.getClientRects()[0] ?? link.getBoundingClientRect()
         const { height, width } = slip.value!.getBoundingClientRect()
-        const { x, y }          = slipAt(link.getClientRects()[0] ?? link.getBoundingClientRect(), { height, width }, {
-          height : window.innerHeight,
-          width  : document.documentElement.clientWidth
-        })
+        const { x, y }          = slipAt(
+          { bottom: box.bottom / zoom, left: box.left / zoom, top: box.top / zoom },
+          { height: height / zoom, width: width / zoom },
+          { height: window.innerHeight / zoom, width: document.documentElement.clientWidth / zoom }
+        )
         place.value = { x: Math.round(x), y: Math.round(y) }
       })
     }

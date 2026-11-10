@@ -155,7 +155,11 @@ function pages(state: Seam): VNode {
       'aria-hidden' : 'true',
       'class'       : 'sc-ref-outline',
       'data-off'    : state.ringed.value ? undefined : '',
-      'style'       : { height: `${height}px`, left: `${left}px`, top: `${top}px`, width: `${width}px` }
+      'style'       : {
+        height    : `${height}px`,
+        transform : `translate(${left}px, ${top}px)`,
+        width     : `${width}px`
+      }
     }),
     handle(state)
   ])

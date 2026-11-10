@@ -33,6 +33,12 @@ const COUNT = palette.TOKENS.length
  * The picks the unfold makes after the first, as when and which square.
  */
 const STOPS = [[2700, 4], [4400, 11], [6100, 0]] as const
+/**
+ * The characters of the widest ratio a cell writes, which its figure reserves so
+ * the level beside it holds still as the figure counts.
+ */
+const WIDEST = Math.max(...palette.TOKENS.flatMap(token => palette.SCHEMES.flatMap(scheme =>
+  palette.GROUNDS.map(ground => palette.heldOf(token, ground, scheme).toFixed(2).length))))
 
 function card(token: Token): VNode {
   const color  = IDENTITY.palette[token]
@@ -86,7 +92,10 @@ function cell(token: Token, ground: palette.RoleName, scheme: palette.Scheme, co
     style : { background: palette.colorOf(ground, scheme), color: palette.colorOf('ink', scheme) }
   }, [
     h('svg', { 'aria-hidden': 'true', 'viewBox': '9 8 27 33' }, h('path', { d: PAWN, fill: hexOf(token), stroke: 'none' })),
-    h('span', [h('b', (1 + (held - 1) * count).toFixed(2)), h('em', palette.levelOf(held))])
+    h('span', [
+      h('b', { style: { minWidth: `${WIDEST}ch` } }, (1 + (held - 1) * count).toFixed(2)),
+      h('em', palette.levelOf(held))
+    ])
   ])
 }
 

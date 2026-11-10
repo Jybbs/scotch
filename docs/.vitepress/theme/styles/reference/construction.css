@@ -75,8 +75,8 @@
 }
 
 .sc-ref-figure > b {
-  min-width : 2ch;
-  font      : 400 3rem/1 var(--sc-face-display);
+  font                 : 400 3rem/1 var(--sc-face-display);
+  font-variant-numeric : tabular-nums;
 }
 
 .sc-ref-figure h4 {

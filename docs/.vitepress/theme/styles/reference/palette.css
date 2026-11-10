@@ -189,7 +189,11 @@
 
 .sc-ref-cell > span { white-space: nowrap; }
 
-.sc-ref-cell b { font-weight: 500; }
+.sc-ref-cell b {
+  display              : inline-block;
+  font-weight          : 500;
+  font-variant-numeric : tabular-nums;
+}
 
 .sc-ref-cell em {
   margin-left : 3px;

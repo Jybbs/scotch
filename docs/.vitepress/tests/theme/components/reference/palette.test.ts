@@ -39,6 +39,16 @@ describe('Palette', () => {
     expect(drawn.findAll('.sc-ref-cell b')[0]!.text()).toBe(held(4).toFixed(2))
   })
 
+  test('reserves the widest ratio beside each level, so a count moves nothing', ({ clock }) => {
+    onScreen()
+    const drawn  = mount(Palette)
+    clock.runAllTimers()
+    const widest = Math.max(...lib.TOKENS.flatMap(token => lib.SCHEMES.flatMap(scheme =>
+      lib.GROUNDS.map(ground => lib.heldOf(token, ground, scheme).toFixed(2).length))))
+    const styles = drawn.findAll('.sc-ref-cell b').map(figure => figure.attributes('style'))
+    expect(new Set(styles)).toEqual(new Set([`min-width: ${widest}ch;`]))
+  })
+
   test('glides one ring to the picked square, at six columns once the column is narrow', async ({ clock }) => {
     onScreen()
     reduceMotion()

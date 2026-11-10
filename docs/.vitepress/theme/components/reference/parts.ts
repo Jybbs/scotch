@@ -29,7 +29,8 @@ export function stacked(states: readonly VNodeChild[], at: number): VNode {
 
 /**
  * Draws Back, Next, the reading of the place, and a rank of cells a reader
- * presses, stepping through a named list and wrapping at either end.
+ * presses, stepping through a named list and wrapping at either end. Every
+ * reading stands in one stack, so a step to a longer name moves nothing.
  */
 export function stepper({ at, cell, names, pick }: Stepping): VNode {
   const count = names.length
@@ -41,7 +42,9 @@ export function stepper({ at, cell, names, pick }: Stepping): VNode {
       },
       type    : 'button'
     }, 'Back'),
-    h('output', { 'aria-live': 'polite' }, [h('span', `${at + 1} of ${count} · `), names[at]]),
+    h('output', { 'aria-live': 'polite' }, [
+      stacked(names.map((name, index) => [h('span', `${index + 1} of ${count} · `), name]), at)
+    ]),
     h('button', {
       class   : 'sc-ref-button',
       onClick : () => {

@@ -198,12 +198,13 @@
 
 .sc-ref-outline {
   position       : absolute;
+  top            : 0;
+  left           : 0;
   border-radius  : 3px;
   box-shadow     : 0 0 0 1.5px var(--sc-run), 0 0 0 3.5px var(--sc-page);
   pointer-events : none;
   transition     : 
-    left var(--sc-duration-glide) var(--sc-curve-glide),
-    top var(--sc-duration-glide) var(--sc-curve-glide),
+    transform var(--sc-duration-glide) var(--sc-curve-glide),
     width var(--sc-duration-glide) var(--sc-curve-glide),
     height var(--sc-duration-glide) var(--sc-curve-glide),
     opacity var(--sc-duration-fade);

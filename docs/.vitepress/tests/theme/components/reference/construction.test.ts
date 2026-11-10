@@ -28,6 +28,11 @@ describe('Construction', () => {
     expect(drawn.find('.sc-ref-figure > b').text()).toBe(String(MARKS.guides[LAST]!.length))
   })
 
+  test('reserves the digits of the longest length beside its figure', ({ clock }) => {
+    const digits = Math.max(...MARKS.guides.map(item => String(item.length).length))
+    expect(settled(clock).find('.sc-ref-figure > b').attributes('style')).toContain(`min-width: ${digits}ch`)
+  })
+
   test('draws each subpath as an outline of its own', ({ clock }) => {
     expect(settled(clock).findAll('.sc-ref-out').length).toBe(SUBPATHS.length)
   })
@@ -45,9 +50,9 @@ describe('Construction', () => {
 
   test('steps through the lengths, naming each by its units', async ({ clock }) => {
     const drawn = settled(clock)
-    expect(drawn.find('output').text()).toContain(`${MARKS.guides[LAST]!.length} units`)
+    expect(drawn.find('output [data-at]').text()).toContain(`${MARKS.guides[LAST]!.length} units`)
     await drawn.find('.sc-ref-button').trigger('click')
-    expect(drawn.find('output').text()).toContain(`${MARKS.guides[LAST - 1]!.length} units`)
+    expect(drawn.find('output [data-at]').text()).toContain(`${MARKS.guides[LAST - 1]!.length} units`)
   })
 })
 

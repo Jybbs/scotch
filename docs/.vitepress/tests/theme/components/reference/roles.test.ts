@@ -30,12 +30,12 @@ describe('Roles', () => {
     onScreen()
     const drawn = mount(Roles)
     clock.runAllTimers()
-    const card = drawn.find('.sc-ref-stack > [data-at]')
+    const card = drawn.find('.sc-ref > .sc-ref-stack > [data-at]')
     expect(card.find('b').text()).toBe('run')
     expect(card.text()).toContain(palette.colorOf('run', 'light'))
     expect(card.text()).toContain(palette.colorOf('run', 'dark'))
     expect(card.text()).toContain(':1 on the page')
-    expect(drawn.find('output').text()).toBe(`${START + 1} of ${ORDER.length} · run`)
+    expect(drawn.find('output [data-at]').text()).toBe(`${START + 1} of ${ORDER.length} · run`)
   })
 
   test('writes the page as itself rather than against itself', async ({ clock }) => {
@@ -45,7 +45,7 @@ describe('Roles', () => {
     clock.runAllTimers()
     await drawn.findAll('.sc-ref-chip')[0]!.trigger('click')
     await flushPromises()
-    expect(drawn.find('.sc-ref-stack > [data-at]').text()).toContain('The page itself')
+    expect(drawn.find('.sc-ref > .sc-ref-stack > [data-at]').text()).toContain('The page itself')
   })
 })
 
@@ -93,6 +93,16 @@ describe('Roles, the seam', () => {
 })
 
 describe('Roles, as the column or the unfold changes it', () => {
+  test('places the ring through a transform, so its glide moves nothing in the layout', ({ clock }) => {
+    onScreen()
+    reduceMotion()
+    const drawn = mount(Roles)
+    clock.runAllTimers()
+    const style = drawn.find('.sc-ref-outline').attributes('style')
+    expect(style).toMatch(/transform: translate\(-?[\d.]+px, -?[\d.]+px\)/u)
+    expect(style).not.toMatch(/(^|;\s*)(left|top):/u)
+  })
+
   test('remeasures once the column narrows', async ({ clock }) => {
     onScreen()
     reduceMotion()
@@ -112,15 +122,15 @@ describe('Roles, as the column or the unfold changes it', () => {
     clock.advanceTimersByTime(1600)
     await flushPromises()
     expect(drawn.find('.sc-ref-outline').attributes('data-off')).toBeUndefined()
-    expect(drawn.find('output').text()).toContain('ink')
+    expect(drawn.find('output [data-at]').text()).toContain('ink')
     clock.advanceTimersByTime(1500)
     await flushPromises()
-    expect(drawn.find('output').text()).toContain('submitted')
+    expect(drawn.find('output [data-at]').text()).toContain('submitted')
     clock.advanceTimersByTime(1500)
     await flushPromises()
-    expect(drawn.find('output').text()).toContain('front_paper')
+    expect(drawn.find('output [data-at]').text()).toContain('front_paper')
     clock.advanceTimersByTime(3000)
     await flushPromises()
-    expect(drawn.find('output').text()).toContain('run')
+    expect(drawn.find('output [data-at]').text()).toContain('run')
   })
 })

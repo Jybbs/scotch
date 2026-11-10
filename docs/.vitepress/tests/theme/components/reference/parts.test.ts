@@ -21,7 +21,11 @@ describe('stepper', () => {
   const NAMES = ['one', 'two', 'three']
 
   it('reads the place and the name it stands on', () => {
-    expect(drawn(() => stepper({ at: 1, names: NAMES, pick: vi.fn<(index: number) => void>() })).find('output').text()).toBe('2 of 3 · two')
+    const pick    = vi.fn<(index: number) => void>()
+    const reading = drawn(() => stepper({ at: 1, names: NAMES, pick })).find('output')
+    expect(reading.find('[data-at]').text()).toBe('2 of 3 · two')
+    expect(reading.findAll('.sc-ref-stack > div').map(state => state.text()))
+      .toEqual(['1 of 3 · one', '2 of 3 · two', '3 of 3 · three'])
   })
 
   it('wraps at either end', async () => {

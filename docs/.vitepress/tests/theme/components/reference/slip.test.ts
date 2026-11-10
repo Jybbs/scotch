@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { TERMS, addressOf } from '../../../../lib/reference/terms.ts'
 import { Slip }             from '../../../../theme/components/reference/slip.ts'
@@ -66,6 +66,22 @@ describe('Slip', () => {
     expect(link.hasAttribute('aria-describedby')).toBe(false)
     slip.unmount()
   })
+})
+
+describe('Slip, in a zoomed page', () => {
+  it.each([[1, '400px, 128px'], [2, '200px, 68px']])(
+    'places itself below the term in the lengths of a page zoomed %d times',
+    async (zoom, place) => {
+      const { link, slip } = page()
+      vi.spyOn(link, 'getClientRects').mockReturnValue([{ bottom: 120, left: 400, top: 100 }] as unknown as DOMRectList)
+      vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1600)
+      Object.defineProperty(slip.element, 'currentCSSZoom', { value: zoom })
+      over(link)
+      await flushPromises()
+      expect(slip.attributes('style')).toContain(`translate(${place})`)
+      slip.unmount()
+    }
+  )
 })
 
 describe('Slip, under a finger and the keyboard', () => {

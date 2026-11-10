@@ -30,6 +30,12 @@ const LAST         = GUIDES.length - 1
 const NAMES        = GUIDES.map(item => `${item.length} units`)
 
 /**
+ * The digits of the longest length, which the figure reserves so its count
+ * moves nothing beside it.
+ */
+const DIGITS = Math.max(...GUIDES.map(item => String(item.length).length))
+
+/**
  * Traces the outline with the pen, raises the fill behind it, and then draws
  * each length in turn.
  */
@@ -172,11 +178,12 @@ function drawing(state: Drafting, id: string): VNode {
 }
 
 function beside(state: Drafting): VNode {
-  const at    = state.at.value
-  const named = state.named.value
+  const at       = state.at.value
+  const named    = state.named.value
+  const measured = named ? Math.round(GUIDES[at]!.length * state.dash.value) : 0
   return h('div', { class: 'sc-ref-beside' }, [
     h('div', { class: 'sc-ref-figure' }, [
-      h('b', String(named ? Math.round(GUIDES[at]!.length * state.dash.value) : 0)),
+      h('b', { style: { minWidth: `${DIGITS}ch` } }, String(measured)),
       stacked([
         h('div', [h('h4', 'The outline'), h('p', 'One compound path, drawn from its five subpaths')]),
         ...GUIDES.map(item => h('div', [h('h4', item.name), h('p', item.note)]))
