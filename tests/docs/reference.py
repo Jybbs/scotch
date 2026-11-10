@@ -176,6 +176,29 @@ def test_the_pieces_tables_hold_the_board_the_license_and_each_reach(
     assert "| Black pawn | `p` | d7 | 2 |" in reference.pieces
 
 
+def test_the_read_order_and_the_root_follow_a_change_to_the_settings(
+    monkeypatch : MonkeyPatch,
+    reference   : Reference
+):
+    """
+    Asserts that the prefix, the table, and the default of `data` reach both
+    sections from `Settings` rather than from a copy of them.
+    """
+    monkeypatch.setattr(Settings.model_fields["data"], "default", Path("games"))
+    monkeypatch.setitem(Settings.model_config, "env_prefix", "CHESS_")
+    monkeypatch.setitem(
+        Settings.model_config,
+        "pyproject_toml_table_header",
+        ("tool", "chess")
+    )
+
+    assert reference.order.splitlines()[1:3] == [
+        "2. The `CHESS_` variable",
+        "3. The `[tool.chess]` table of the project's `pyproject.toml`"
+    ]
+    assert "the default `games` lands under the clone" in reference.origin
+
+
 def test_the_read_order_follows_a_change_to_the_sources(
     monkeypatch : MonkeyPatch,
     reference   : Reference
@@ -249,7 +272,7 @@ def test_the_root_follows_a_change_to_what_root_reads(
     monkeypatch.setattr("scotch.docs.reference.root", root)
 
     assert reference.origin.endswith(
-        f"`{__name__}.root` reads the working directory alone."
+        f"`{__name__}.root` reads the working directory alone.[^bidoul2019]"
     )
 
 
@@ -257,7 +280,7 @@ def test_the_root_names_the_default_and_what_root_reads(reference: Reference):
     """
     Asserts that the root section names the default of the `data` setting
     and opens its second paragraph on `root` and the summary of its
-    docstring.
+    docstring, closing on the marker citing PEP 610.
     """
     rested, summed = reference.origin.split("\n\n")
 
@@ -266,6 +289,7 @@ def test_the_root_names_the_default_and_what_root_reads(reference: Reference):
         "`scotch.cli.settings.root` reads the directory the `scotch` distribution "
         "was installed from, which an installer records in the `direct_url.json` "
         "PEP 610 specifies, or the working directory where it recorded none."
+        "[^bidoul2019]"
     )
 
 

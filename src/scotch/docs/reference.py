@@ -140,7 +140,8 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     def origin(self) -> str:
         """
         Writes what a relative path is read against, naming the default of
-        the `data` setting, above the summary the docstring of `root` gives.
+        the `data` setting, above the summary the docstring of `root` gives,
+        which closes on the marker citing PEP 610.
         """
         summary = " ".join(getdoc(root).split())
 
@@ -149,7 +150,7 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
             f"default `{Settings.model_fields['data'].default}` lands under the "
             "clone `mise run` builds from, wherever a command runs inside it."
             f"\n\n`{root.__module__}.{root.__name__}` "
-            f"{summary[0].lower()}{summary[1:]}"
+            f"{summary[0].lower()}{summary[1:]}[^bidoul2019]"
         )
 
     @property

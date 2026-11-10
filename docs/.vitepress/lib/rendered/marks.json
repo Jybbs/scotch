@@ -201,7 +201,7 @@
     {
       "height": 200,
       "name": "Link card",
-      "sentence": "A link card draws the wordmark at 60 of its 400 pixels, above the section's name and the two games' rails. The drawing shows the card at a third of its true size, 1200 by 600 pixels, with its wordmark at 180.",
+      "sentence": "The drawing shows a link card at a third of its 1200 by 600 pixels, with the wordmark at 60 of the drawing's 400 and at 180 on the card, above the section's name and the two games' rails.",
       "width": 400
     },
     {

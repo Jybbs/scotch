@@ -134,17 +134,17 @@ def test_the_stops_run_by_width_each_size_read_from_its_svg(marks: Marks):
         param(
             Card(),
             (400, 200),
-            "at 60 of its 400 pixels, above the section's name and the two games' "
-            "rails. The drawing shows the card at a third of its true size, 1200 by "
-            "600 pixels, with its wordmark at 180.",
+            "The drawing shows a link card at a third of its 1200 by 600 pixels, "
+            "with the wordmark at 60 of the drawing's 400 and at 180 on the card, "
+            "above the section's name and the two games' rails.",
             id = "declared"
         ),
         param(
             Card(height=750, width=1500, wordmark=20),
             (500, 250),
-            "at 100 of its 500 pixels, above the section's name and the two games' "
-            "rails. The drawing shows the card at a third of its true size, 1500 by "
-            "750 pixels, with its wordmark at 300.",
+            "The drawing shows a link card at a third of its 1500 by 750 pixels, "
+            "with the wordmark at 100 of the drawing's 500 and at 300 on the card, "
+            "above the section's name and the two games' rails.",
             id = "resized"
         )
     ]
@@ -169,7 +169,7 @@ def test_the_link_card_stop_draws_the_declared_card_at_a_third(
     )
 
     assert (stop.width, stop.height) == drawn
-    assert stop.sentence.endswith(said)
+    assert stop.sentence == said
 
 
 def test_the_tables_hold_each_size_and_each_length(marks: Marks):

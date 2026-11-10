@@ -11,12 +11,13 @@ from pytest          import fixture
 from pytest_subprocess.fake_process import FakeProcess
 from shutil import copyfile
 
-from scotch.docs.census      import Census
-from scotch.docs.project     import Project
-from scotch.docs.tallies     import Archive, Era, Tally
-from scotch.games.schemas    import Game, Origin
-from scotch.identity.schemas import Identity
-from scotch.index.tables     import PositionIndex
+from scotch.citations.schemas import References
+from scotch.docs.census       import Census
+from scotch.docs.project      import Project
+from scotch.docs.tallies      import Archive, Era, Tally
+from scotch.games.schemas     import Game, Origin
+from scotch.identity.schemas  import Identity
+from scotch.index.tables      import PositionIndex
 
 MARK = "M0 0M0 0M0 0M0 0M0 0"
 """
@@ -101,12 +102,13 @@ def counted(
 def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path]:
     """
     Builds a writer that lays out a checkout under `tmp_path` holding the
-    mark, the wordmark, and the lockup, the bibliography, a manifest pinning
-    each face's package, a README holding the markers of its badges and
-    its install steps, each page it is given, and every example line, each
-    the demo game but the Viewer's, which takes the game it opens on, and
-    registers the answers git gives for the Markdown files it tracks, the
-    pages the writer was given, and mise gives for the tasks it lists.
+    mark, the wordmark, and the lockup, the repository's bibliography,
+    a manifest pinning each face's package, a README holding the markers
+    of its badges and its install steps, each page it is given, and every
+    example line, each the demo game but the Viewer's, which takes the game
+    it opens on, and registers the answers git gives for the Markdown files
+    it tracks, the pages the writer was given, and mise gives for the tasks
+    it lists.
     """
 
     def write(pages: dict[str, str]) -> Path:
@@ -129,7 +131,7 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
         (tmp_path / ".github" / "README.md").write_text(
             "<!-- badges -->\n<!-- /badges -->\n\n<!-- install -->\n<!-- /install -->\n"
         )
-        (docs / "references.bib").write_text("")
+        copyfile(Path(__file__).parents[2] / References.file, docs / "references.bib")
         (docs / "public" / "games").mkdir(parents=True)
 
         for name in ("demo", "front", "methods", "viewer"):

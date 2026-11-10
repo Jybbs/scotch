@@ -410,13 +410,12 @@ class Marks(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                     height   = card.height // 3,
                     name     = "Link card",
                     sentence = (
-                        "A link card draws the wordmark at "
-                        f"{card.width // 3 * card.wordmark // 100} of its "
-                        f"{card.width // 3} pixels, above the section's name and "
-                        "the two games' rails. The drawing shows the card at a "
-                        f"third of its true size, {card.width} by {card.height} "
-                        "pixels, with its wordmark at "
-                        f"{card.width * card.wordmark // 100}."
+                        "The drawing shows a link card at a third of its "
+                        f"{card.width} by {card.height} pixels, with the wordmark "
+                        f"at {card.width // 3 * card.wordmark // 100} of the "
+                        f"drawing's {card.width // 3} and at "
+                        f"{card.width * card.wordmark // 100} on the card, above "
+                        "the section's name and the two games' rails."
                     ),
                     width = card.width // 3
                 ),
