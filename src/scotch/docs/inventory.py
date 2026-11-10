@@ -248,6 +248,8 @@ class Outputs(RootModel[list[Output]]):
                     )
                     for page, name in (
                         ("settings.md", "settings"),
+                        ("settings.md", "order"),
+                        ("settings.md", "origin"),
                         ("tasks.md", "tasks"),
                         ("identity.md", "palette"),
                         ("identity.md", "roles"),

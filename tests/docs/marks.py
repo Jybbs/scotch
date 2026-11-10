@@ -6,9 +6,10 @@ identity page sets beneath them.
 """
 
 from pathlib import Path
-from pytest  import fixture, mark, param
+from pytest  import MonkeyPatch, fixture, mark, param
 
-from scotch.docs.marks import Box, Drawing, Marks, subpaths
+from scotch.docs.marks       import Box, Drawing, Marks, subpaths
+from scotch.identity.schemas import Card, Identity
 
 
 @fixture(scope="module")
@@ -125,6 +126,50 @@ def test_the_stops_run_by_width_each_size_read_from_its_svg(marks: Marks):
         ("Link card", 400, 200),
         ("Lockup", 560, 191)
     ]
+
+
+@mark.parametrize(
+    ("card", "drawn", "said"),
+    [
+        param(
+            Card(),
+            (400, 200),
+            "at 60 of its 400 pixels, above the section's name and the two games' "
+            "rails. The drawing shows the card at a third of its true size, 1200 by "
+            "600 pixels, with its wordmark at 180.",
+            id = "declared"
+        ),
+        param(
+            Card(height=750, width=1500, wordmark=20),
+            (500, 250),
+            "at 100 of its 500 pixels, above the section's name and the two games' "
+            "rails. The drawing shows the card at a third of its true size, 1500 by "
+            "750 pixels, with its wordmark at 300.",
+            id = "resized"
+        )
+    ]
+)
+def test_the_link_card_stop_draws_the_declared_card_at_a_third(
+    card        : Card,
+    drawn       : tuple[int, int],
+    monkeypatch : MonkeyPatch,
+    said        : str
+):
+    """
+    Asserts that the link card stop is drawn at a third of the card the
+    identity declares and states the card's true size and its wordmark's
+    width, so a change to the card reaches both the drawing and its
+    sentence.
+    """
+    monkeypatch.setattr("scotch.docs.marks.Identity", lambda: Identity(card=card))
+    stop = next(
+        stop
+        for stop in Marks.read(Path(__file__).parents[2]).stops
+        if stop.name == "Link card"
+    )
+
+    assert (stop.width, stop.height) == drawn
+    assert stop.sentence.endswith(said)
 
 
 def test_the_tables_hold_each_size_and_each_length(marks: Marks):

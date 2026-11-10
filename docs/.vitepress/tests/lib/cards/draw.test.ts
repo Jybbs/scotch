@@ -59,6 +59,10 @@ describe('siteCard', () => {
     expect(card.props.style).toMatchObject({ height: draw.CARD.height, width: draw.CARD.width })
   })
 
+  it('reads its size from the card the identity declares', () => {
+    expect(draw.CARD).toEqual({ height: IDENTITY.card.height, width: IDENTITY.card.width })
+  })
+
   it.each([IDENTITY.tagline, 'EDITION', '0.1.0', 'SCOTCH.FYI', 'STORED', 'SUBMITTED'])('sets %s', text => {
     expect(texts(card)).toContain(text)
   })
@@ -83,6 +87,13 @@ describe('pageCard', () => {
   it("sets the page's title and the edition", () => {
     expect(texts(draw.pageCard(EDITION, { section: SECTIONS[0], title: 'A Page' }, SECTIONS)))
       .toEqual(expect.arrayContaining(['A Page', 'SCOTCH.FYI · 0.1.0']))
+  })
+
+  it("sets the wordmark across the share of the card's width the identity declares", () => {
+    const card = draw.pageCard(EDITION, { section: SECTIONS[0], title: 'A Page' }, SECTIONS)
+    const mark = nodes(card).find(node => node.type === 'img')
+    expect(mark?.props.width).toBe(IDENTITY.card.wordmark * IDENTITY.card.width / 100)
+    expect(mark?.props.width).toBe(180)
   })
 
   it.each([['A Page', 7], ['Matches the Rule Passes Over', 6]])('sets %s at %d units', (title, units) => {

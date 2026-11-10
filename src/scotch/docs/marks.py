@@ -13,7 +13,8 @@ from pydantic        import BaseModel, computed_field
 from re              import findall, search
 from typing          import Literal, Self
 
-from scotch.docs.tallies import markdown
+from scotch.docs.tallies     import markdown
+from scotch.identity.schemas import Identity
 
 
 class Box(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -367,6 +368,7 @@ class Marks(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         Reads the SVGs under `root` and measures each length from the mark's
         subpaths.
         """
+        card = Identity().card
         lockup, mark, wordmark = (
             Drawing.read(root / "docs/assets" / f"{name}.svg")
             for name in ("lockup", "mark", "wordmark")
@@ -405,13 +407,18 @@ class Marks(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                     width = 384
                 ),
                 Stop(
-                    height   = 200,
+                    height   = card.height // 3,
                     name     = "Link card",
                     sentence = (
-                        "A link card draws the wordmark at 60 of its 400 pixels, "
-                        "above the section's name and the two games' rails."
+                        "A link card draws the wordmark at "
+                        f"{card.width // 3 * card.wordmark // 100} of its "
+                        f"{card.width // 3} pixels, above the section's name and "
+                        "the two games' rails. The drawing shows the card at a "
+                        f"third of its true size, {card.width} by {card.height} "
+                        "pixels, with its wordmark at "
+                        f"{card.width * card.wordmark // 100}."
                     ),
-                    width = 400
+                    width = card.width // 3
                 ),
                 Stop(
                     height   = lockup.height(560),

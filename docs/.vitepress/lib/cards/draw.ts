@@ -29,10 +29,10 @@ export interface Tree {
 }
 
 /**
- * The width and the height every card is drawn at, the 2:1 ratio X's
- * large-image card takes.
+ * The width and the height every card is drawn at, read from the card the
+ * identity declares.
  */
-export const CARD = { height: 600, width: 1200 } as const
+export const CARD = { height: IDENTITY.card.height, width: IDENTITY.card.width } as const
 /**
  * The colors every card is drawn in, the roles of the dark scheme, since every
  * card draws on the dark ground.
@@ -179,7 +179,7 @@ export function pageCard(
   })
 
   return node('div', { ...CARD, background: COLORS.page, position: 'relative' },
-    at({ left: 7 * unit, top: 6.4 * unit }, wordmark(edition.wordmark, 15)),
+    at({ left: 7 * unit, top: 6.4 * unit }, wordmark(edition.wordmark, IDENTITY.card.wordmark)),
     at({ right: 7 * unit, top: 7.2 * unit },
       caps(`${edition.host} · ${edition.version}`, 1.25, fade(COLORS.ink, 0.6))),
     at({ flexDirection: 'column', gap: 2 * unit, left: 7 * unit, right: 7 * unit, top: 15.5 * unit },

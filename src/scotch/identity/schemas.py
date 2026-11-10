@@ -1,9 +1,9 @@
 """
 Holds the visual identity the site's theme and its cards are drawn in,
-meaning the `Palette` of named colors, the `Faces` each kind of text is
-set in, the `Roles` each color plays in each scheme, and the `Identity`
-gathering them beside the tagline, which `scotch render docs` writes out as
-the JSON the site's stylesheets import.
+meaning the `Palette` of named colors, the `Faces` each kind of text is set
+in, the `Roles` each color plays in each scheme, the `Card` each link card
+is drawn at, and the `Identity` gathering them beside the tagline, which
+`scotch render docs` writes out as the JSON the site's stylesheets import.
 """
 
 from math     import cbrt, floor, sumprod
@@ -54,6 +54,30 @@ def byte(channel: float) -> int:
     )
 
     return floor(min(max(encoded, 0), 1) * 255 + 0.5)
+
+
+class Card(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The size every link card is drawn at, and the share of a page's card its
+    wordmark takes.
+    """
+
+    height: int = 600
+    """
+    The card's height in pixels.
+    """
+
+    width: int = 1200
+    """
+    The card's width in pixels, twice its height for the 2:1 ratio X's
+    large-image card takes.
+    """
+
+    wordmark: int = 15
+    """
+    The share of the card's width a page's card sets the wordmark across, in
+    percent.
+    """
 
 
 class Color(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -490,8 +514,13 @@ class Roles(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
 
 class Identity(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The palette, the faces, the roles, and the tagline the site and its
-    cards are drawn in.
+    The palette, the faces, the roles, the card's size, and the tagline the
+    site and its cards are drawn in.
+    """
+
+    card: Card = Card()
+    """
+    The size each link card is drawn at.
     """
 
     faces: Faces = Faces()

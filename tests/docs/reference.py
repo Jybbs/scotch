@@ -7,7 +7,7 @@ package, and of each piece with its reach.
 from chess   import Piece
 from json    import dumps
 from pathlib import Path
-from pytest  import fixture, mark, param
+from pytest  import MonkeyPatch, fixture, mark, param
 from pytest_subprocess.fake_process import FakeProcess
 
 from scotch.cli.settings     import Settings
@@ -176,6 +176,45 @@ def test_the_pieces_tables_hold_the_board_the_license_and_each_reach(
     assert "| Black pawn | `p` | d7 | 2 |" in reference.pieces
 
 
+def test_the_read_order_follows_a_change_to_the_sources(
+    monkeypatch : MonkeyPatch,
+    reference   : Reference
+):
+    """
+    Asserts that a reordered or narrowed tuple of sources reaches the list,
+    so the page drifts from the code only where the render is not rerun.
+    """
+    monkeypatch.setattr(
+        Settings,
+        "settings_customise_sources",
+        classmethod(
+            lambda _, settings_cls, **sources: (
+                sources["env_settings"],
+                sources["init_settings"]
+            )
+        )
+    )
+
+    assert reference.order.splitlines() == [
+        "1. The `SCOTCH_` variable", "2. A keyword argument passed to `Settings`",
+        "3. The default the table above lists"
+    ]
+
+
+def test_the_read_order_lists_the_sources_in_the_order_settings_reads_them(
+    reference: Reference
+):
+    """
+    Asserts that the read order numbers each source in the order
+    `settings_customise_sources` returns it, ending on the default.
+    """
+    assert reference.order.splitlines() == [
+        "1. A keyword argument passed to `Settings`", "2. The `SCOTCH_` variable",
+        "3. The `[tool.scotch]` table of the project's `pyproject.toml`",
+        "4. The default the table above lists"
+    ]
+
+
 def test_the_roles_table_writes_each_schemes_hex_paint_and_contrast(
     reference: Reference
 ):
@@ -190,6 +229,44 @@ def test_the_roles_table_writes_each_schemes_hex_paint_and_contrast(
 
     assert f"`{color.hex}`, primary, {color.contrast(page):.2f}:1" in reference.roles
     assert reference.roles.count("\n") == 1 + len(type(identity.roles).model_fields)
+
+
+def test_the_root_follows_a_change_to_what_root_reads(
+    monkeypatch : MonkeyPatch,
+    reference   : Reference
+):
+    """
+    Asserts that the root section is written from the summary `root` carries
+    at render time rather than from a copy of it.
+    """
+
+    def root() -> Path:
+        """
+        Reads the working directory alone.
+        """
+        return Path.cwd()
+
+    monkeypatch.setattr("scotch.docs.reference.root", root)
+
+    assert reference.origin.endswith(
+        f"`{__name__}.root` reads the working directory alone."
+    )
+
+
+def test_the_root_names_the_default_and_what_root_reads(reference: Reference):
+    """
+    Asserts that the root section names the default of the `data` setting
+    and opens its second paragraph on `root` and the summary of its
+    docstring.
+    """
+    rested, summed = reference.origin.split("\n\n")
+
+    assert "the default `.cache/data` lands under the clone" in rested
+    assert summed == (
+        "`scotch.cli.settings.root` reads the directory the `scotch` distribution "
+        "was installed from, which an installer records in the `direct_url.json` "
+        "PEP 610 specifies, or the working directory where it recorded none."
+    )
 
 
 def test_the_settings_table_writes_a_row_per_field(reference: Reference):

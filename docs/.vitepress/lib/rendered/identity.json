@@ -1,4 +1,9 @@
 {
+  "card": {
+    "height": 600,
+    "width": 1200,
+    "wordmark": 15
+  },
   "faces": {
     "body": {
       "fallbacks": [

@@ -135,7 +135,7 @@ One S sets every mark, from the tab of a browser to the card a shared link shows
 | Favicon | 12 | 16 | The favicon is the S alone at 16 pixels tall, in the browser's tab. |
 | Nav mark | 17 | 24 | The nav mark is the same S at 24 pixels tall, beside the site's name. |
 | Wordmark | 384 | 102 | The front page sets the wordmark at 24rem wide, the letters added beside the same S. |
-| Link card | 400 | 200 | A link card draws the wordmark at 60 of its 400 pixels, above the section's name and the two games' rails. |
+| Link card | 400 | 200 | A link card draws the wordmark at 60 of its 400 pixels, above the section's name and the two games' rails. The drawing shows the card at a third of its true size, 1200 by 600 pixels, with its wordmark at 180. |
 | Lockup | 560 | 191 | The README sets the lockup at 560 pixels wide, with the tagline set under the wordmark. |
 <!-- /marks -->
 

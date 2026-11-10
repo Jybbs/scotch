@@ -168,9 +168,9 @@ def test_painted_resolves_a_token_a_word_and_a_mix(
 
 def test_the_identity_writes_each_faces_stack_into_its_json():
     """
-    Asserts that the JSON the site imports carries each face's computed
-    stack beside its family and fallbacks, and every palette entry under
-    its token.
+    Asserts that the JSON the site imports carries the card's size, each
+    face's computed stack beside its family and fallbacks, and every palette
+    entry under its token.
     """
     dumped = Identity().model_dump(mode="json")
 
@@ -181,6 +181,7 @@ def test_the_identity_writes_each_faces_stack_into_its_json():
         "stack"     : '"Hedvig Letters Serif", Georgia, serif',
         "fallbacks" : ["Georgia", "serif"]
     }
+    assert dumped["card"] == {"height": 600, "width": 1200, "wordmark": 15}
     assert set(dumped["palette"]) == set(Palette.model_fields)
     assert set(dumped["meanings"]["palette"]) == set(Palette.model_fields)
     assert set(dumped["meanings"]["faces"]) == set(dumped["faces"])

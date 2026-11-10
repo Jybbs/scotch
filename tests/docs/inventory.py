@@ -258,9 +258,13 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
                 )
             ),
 
-            "reference/settings.md" : "<!-- settings -->\n<!-- /settings -->\n",
-            "reference/tasks.md"    : "<!-- tasks -->\n<!-- /tasks -->\n",
-            "reference/terms.md"    : "<!-- terms -->\n<!-- /terms -->\n",
+            "reference/settings.md": "".join(
+                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
+                for name in ("settings", "order", "origin")
+            ),
+
+            "reference/tasks.md" : "<!-- tasks -->\n<!-- /tasks -->\n",
+            "reference/terms.md" : "<!-- terms -->\n<!-- /terms -->\n",
 
             "guide/commands.md": "".join(
                 f"<!-- help-{verb}-{noun} -->\n<!-- /help-{verb}-{noun} -->\n\n"
@@ -323,7 +327,8 @@ def test_shipped_declares_the_files_written_from_declarations(
     - The README's badges, then the install steps of the README and the
       Guide
     - The table of sources, then the row of sources the store page copies
-    - The Reference section's settings, tasks, identity tables, and terms
+    - The Reference section's settings with their read order and root,
+      tasks, identity tables, and terms
     - The help of each command the help lists
     - The figures and the footnotes of each Markdown file
     """
@@ -345,7 +350,7 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Region, "docs/pages/guide/index.md"),
         (Region, "docs/pages/data/index.md"),
         (Region, "docs/pages/guide/store.md"),
-        (Region, "docs/pages/reference/settings.md"),
+        *[(Region, "docs/pages/reference/settings.md")] * 3,
         (Region, "docs/pages/reference/tasks.md"),
         *[(Region, "docs/pages/reference/identity.md")] * 6,
         (Region, "docs/pages/reference/terms.md"),

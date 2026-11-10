@@ -7,14 +7,22 @@ next `scotch render docs`.
 """
 
 from chess     import Board, COLOR_NAMES, Piece, parse_square, piece_name
+from inspect   import getdoc
 from itertools import groupby
 from json      import loads
 from operator  import attrgetter
 from pathlib   import Path
 from pydantic  import BaseModel
+from pydantic_settings import (
+    DotEnvSettingsSource,
+    EnvSettingsSource,
+    InitSettingsSource,
+    PyprojectTomlConfigSettingsSource,
+    SecretsSettingsSource
+)
 from typing    import ClassVar
 
-from scotch.cli.settings     import Settings
+from scotch.cli.settings     import Settings, root
 from scotch.docs.marks       import Marks
 from scotch.docs.tallies     import markdown
 from scotch.docs.terms       import Terms
@@ -93,6 +101,56 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         Writes the table of each place a mark stands.
         """
         return Marks.read(self.root).sizes
+
+    @property
+    def order(self) -> str:
+        """
+        Writes a numbered list of the sources `Settings` reads a setting
+        from, in the order `settings_customise_sources` returns them, ending
+        on the default every setting falls back to.
+        """
+        said = {
+            EnvSettingsSource  : lambda source: f"The `{source.env_prefix}` variable",
+            InitSettingsSource : lambda _:
+                f"A keyword argument passed to `{Settings.__name__}`",
+            PyprojectTomlConfigSettingsSource: lambda source: (
+                f"The `[{'.'.join(source.toml_table_header)}]` table of the "
+                f"project's `{source.toml_file_path.name}`"
+            )
+        }
+        sources = Settings.settings_customise_sources(
+            Settings,
+            dotenv_settings      = DotEnvSettingsSource(Settings),
+            env_settings         = EnvSettingsSource(Settings),
+            file_secret_settings = SecretsSettingsSource(Settings),
+            init_settings        = InitSettingsSource(Settings, {})
+        )
+
+        return "\n".join(
+            f"{number}. {line}" for number, line in enumerate(
+                (
+                    *(said[type(source)](source) for source in sources),
+                    "The default the table above lists"
+                ),
+                start = 1
+            )
+        )
+
+    @property
+    def origin(self) -> str:
+        """
+        Writes what a relative path is read against, naming the default of
+        the `data` setting, above the summary the docstring of `root` gives.
+        """
+        summary = " ".join(getdoc(root).split())
+
+        return (
+            "A relative path is read against the project's root, so the "
+            f"default `{Settings.model_fields['data'].default}` lands under the "
+            "clone `mise run` builds from, wherever a command runs inside it."
+            f"\n\n`{root.__module__}.{root.__name__}` "
+            f"{summary[0].lower()}{summary[1:]}"
+        )
 
     @property
     def palette(self) -> str:
