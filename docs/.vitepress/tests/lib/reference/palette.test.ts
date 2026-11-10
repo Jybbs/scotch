@@ -48,6 +48,13 @@ describe('meaningOf', () => {
   })
 })
 
+describe('noRoleOf', () => {
+  it('names a chart series only for a color that is one', () => {
+    expect(palette.noRoleOf('series_6')).toBe('No role, a chart series')
+    expect(palette.noRoleOf('warning')).toBe('No role')
+  })
+})
+
 describe('onColorOf', () => {
   it('sets text on a dark color in the light ground and on a light color in the dark one', () => {
     expect(palette.onColorOf('dark')).toBe(hexOf('ground'))

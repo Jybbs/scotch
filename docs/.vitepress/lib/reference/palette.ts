@@ -80,6 +80,14 @@ export function meaningOf(token: Token): string {
 }
 
 /**
+ * Writes the label of a palette color no role takes, naming a chart's series
+ * where the color is one.
+ */
+export function noRoleOf(token: Token): string {
+  return token.startsWith('series') ? 'No role, a chart series' : 'No role'
+}
+
+/**
  * Picks the palette's lighter or darker ground for text set on a color, by which
  * of them holds more against it.
  */

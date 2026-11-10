@@ -98,10 +98,14 @@ describe('Palette, as it unfolds', () => {
     expect(drawn.findAll('.sc-ref-cell b')[0]!.text()).toBe(held(0).toFixed(2))
   })
 
-  test('writes a color no role takes as a chart series', ({ clock }) => {
+  test('names a chart series only where a color no role takes is one', async ({ clock }) => {
     onScreen()
+    reduceMotion()
     const drawn = mount(Palette)
     clock.runAllTimers()
     expect(drawn.text()).toContain('No role, a chart series')
+    await drawn.findAll('.sc-ref-square')[lib.TOKENS.indexOf('warning')]!.trigger('click')
+    await flushPromises()
+    expect(drawn.find('.sc-ref-stack > [data-at] .sc-ref-chips').text()).toBe('No role')
   })
 })

@@ -16,7 +16,7 @@
     "anchor": "mainline"
   },
   {
-    "address": "https://www.chessprogramming.org/Ply",
+    "address": "https://chessprogramming.org/Ply",
     "label": "The Chess Programming Wiki on plies",
     "name": "Ply",
     "pattern": "\\bpl(?:y|ies)\\b",
@@ -40,7 +40,7 @@
     "anchor": "the-parting-move"
   },
   {
-    "address": "https://www.chessprogramming.org/Transposition",
+    "address": "https://chessprogramming.org/Transposition",
     "label": "The Chess Programming Wiki on transpositions",
     "name": "Transposition",
     "pattern": "\\btranspositions?\\b",

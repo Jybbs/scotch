@@ -21,8 +21,9 @@ describe('linkTerms', () => {
   })
 
   it('links two terms of one sentence in the order they stand', () => {
-    const page = md.render('The mainline holds a ply.\n', PAGE)
-    expect(page.indexOf('data-term="mainline"')).toBeLessThan(page.indexOf('data-term="ply"'))
+    const page = md.render('A ply on the mainline.\n', PAGE)
+    expect(page.indexOf('data-term="ply"')).toBeGreaterThan(-1)
+    expect(page.indexOf('data-term="ply"')).toBeLessThan(page.indexOf('data-term="mainline"'))
   })
 
   it("leaves a term in a heading or a column's header to the next use", () => {

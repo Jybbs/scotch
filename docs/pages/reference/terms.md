@@ -13,7 +13,7 @@ A game's moves outside every variation its PGN records, the one line the index r
 
 ### Ply
 
-One move by one side, half of a numbered move. [The Chess Programming Wiki on plies](https://www.chessprogramming.org/Ply).
+One move by one side, half of a numbered move. [The Chess Programming Wiki on plies](https://chessprogramming.org/Ply).
 
 ### Run
 
@@ -25,5 +25,5 @@ The first move after a run, where the stored game and the submitted one stop rea
 
 ### Transposition
 
-A position reached by another order of moves, which the index keys as that same position. [The Chess Programming Wiki on transpositions](https://www.chessprogramming.org/Transposition).
+A position reached by another order of moves, which the index keys as that same position. [The Chess Programming Wiki on transpositions](https://chessprogramming.org/Transposition).
 <!-- /terms -->

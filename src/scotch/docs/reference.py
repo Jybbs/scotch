@@ -277,15 +277,17 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         """
         Writes the roles the palette color `token` takes in either scheme,
         those that mix it with another color named after those that take it
-        whole, or a sentence where it takes none and only a chart draws it.
+        whole, or a sentence where it takes none, naming a chart's series
+        where `token` is one.
         """
-        taken = [(name, *role.takes(token)) for name, role in self.identity.roles]
-        whole = [f"`{name}`" for name, pure, mix in taken if pure and not mix]
-        mixed = [f"`{name}`" for name, _, mix in taken if mix]
+        taken  = [(name, *role.takes(token)) for name, role in self.identity.roles]
+        whole  = [f"`{name}`" for name, pure, mix in taken if pure and not mix]
+        mixed  = [f"`{name}`" for name, _, mix in taken if mix]
+        series = token in self.identity.palette.series
 
         return ", ".join(
             (*whole, *((f"mixed in {', '.join(mixed)}",) if mixed else ()))
-        ) or "No role, a chart series"
+        ) or ("No role, a chart series" if series else "No role")
 
 
 def kind(field: dict[str, object]) -> str:

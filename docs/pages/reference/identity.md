@@ -4,7 +4,7 @@
 
 ## The Palette
 
-Every color on the site comes from this palette, and each one holds a stated contrast against each ground in both schemes. A role names where a color is used, so a page never sets a hex by hand.
+Every color on the site comes from this palette or from white and black, alone or mixed with a palette color, and each palette color holds a stated contrast against each ground in both schemes. A role names where a color is used, so a page never sets a hex by hand.
 
 <!-- palette -->
 | **Color** | **Token** | **Hex** | **Meaning** | **Roles** |
@@ -20,7 +20,7 @@ Every color on the site comes from this palette, and each one holds a stated con
 | Ube | `series_4` | `#8a80cb` | The fourth series color. | No role, a chart series |
 | Forest Green | `series_5` | `#1e7634` | The fifth series color. | No role, a chart series |
 | Red Violet | `series_6` | `#a738a2` | The sixth series color, the Viewer section's own, which no chart's series order takes. | No role, a chart series |
-| Mandarin Pearl | `warning` | `#f48241` | The warning state, always beside an icon and a label. | No role, a chart series |
+| Mandarin Pearl | `warning` | `#f48241` | The warning state, always beside an icon and a label. | No role |
 
 | **Token** | **On `page`, Light** | **On `page`, Dark** | **On `raised`, Light** | **On `raised`, Dark** | **On `side`, Light** | **On `side`, Dark** | **On `tint`, Light** | **On `tint`, Dark** |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|

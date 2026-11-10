@@ -55,7 +55,7 @@ function card(token: Token): VNode {
           'data-mixed' : mixed ? '' : undefined,
           'title'      : mixed ? 'Taken in a mix' : 'Taken pure'
         }, role))
-        : h('code', { 'data-mixed': '' }, 'No role, a chart series'))
+        : h('code', { 'data-mixed': '' }, palette.noRoleOf(token)))
     ])
   ])
 }

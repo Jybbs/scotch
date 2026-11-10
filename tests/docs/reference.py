@@ -91,6 +91,29 @@ def test_played_names_a_mix_after_the_roles_taking_a_color_whole(reference: Refe
     """
     assert "mixed in `alert`" in reference.played("critical")
     assert reference.played("primary").startswith("`run`")
+    assert (
+        reference.played("dark")
+                 .startswith("`front_hollow`, `ink`, `page`, mixed in")
+    )
+
+
+@mark.parametrize(
+    ("token", "worded"),
+    [
+        param("series_6", "No role, a chart series", id="series"),
+        param("warning", "No role", id="state")
+    ]
+)
+def test_played_names_a_chart_series_only_for_a_series_color(
+    reference : Reference,
+    token     : str,
+    worded    : str
+):
+    """
+    Asserts that a color no role takes reads as a chart's series only where
+    the palette counts it among its series.
+    """
+    assert reference.played(token) == worded
 
 
 def test_the_faces_table_reads_each_faces_version_from_the_manifest(
@@ -114,12 +137,28 @@ def test_the_palette_tables_hold_each_color_and_its_contrast(reference: Referenc
     """
     described, contrasts = reference.palette.split("\n\n")
     identity             = Identity()
-    primary              = identity.palette.primary
-    page                 = identity.palette.painted(identity.roles.page.light)
+    palette              = identity.palette
+    grounds              = [
+        palette.painted(getattr(role, scheme))
+        for _, role in identity.roles
+        if role.kind == "ground"
+        for scheme in ("light", "dark")
+    ]
+    light, dark = (
+        palette.painted(identity.roles.page.light),
+        palette.painted(identity.roles.page.dark)
+    )
+    ratios = " | ".join(
+        f"{palette.primary.contrast(ground):.2f}:1" for ground in grounds
+    )
 
     assert "No role, a chart series" in described
-    assert "| **Token** | **On `page`, Light** |" in contrasts
-    assert f"| `primary` | {primary.contrast(page):.2f}:1 |" in contrasts
+    assert "| **Token** | **On `page`, Light** | **On `page`, Dark** |" in contrasts
+    assert f"| `primary` | {ratios} |" in contrasts
+    assert (
+        f"| `primary` | {palette.primary.contrast(light):.2f}:1"
+        f" | {palette.primary.contrast(dark):.2f}:1 |"
+    ) in contrasts
 
 
 def test_the_pieces_tables_hold_the_board_the_license_and_each_reach(
