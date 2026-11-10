@@ -1,7 +1,7 @@
-import { type Loaded, PARTIES, type Party } from './loaded.ts'
-import { RowScroller }                      from './scroller.ts'
-import { type Sheet, rowAt }                from './sheet.ts'
-import { Threads }                          from './threads.ts'
+import { COVERED, type Loaded, PARTIES, type Party } from './loaded.ts'
+import { RowScroller }                               from './scroller.ts'
+import { type Sheet, rowAt }                         from './sheet.ts'
+import { Threads }                                   from './threads.ts'
 
 /**
  * The parts of the drawn sheets the marker reads and writes: the box the rows
@@ -64,6 +64,22 @@ export class SheetMarker {
     })
     this.#observer.observe(drawn.box)
     this.#listen()
+  }
+
+  /**
+   * Covers each stored move past the one reaching `cursor`, its button keeping
+   * its size and naming itself as covered, and shows every stored move where no
+   * cursor is given.
+   */
+  cover(cursor?: number): void {
+    const ply = cursor === undefined ? undefined : this.#shown?.loaded.plyOf('stored', cursor)
+    for (const [at, cell] of this.#cells.stored.entries()) {
+      const covered = ply !== undefined && at >= ply
+      if ('covered' in cell.dataset === covered) continue
+      cell.toggleAttribute('data-covered', covered)
+      if (covered) cell.setAttribute('aria-label', COVERED)
+      else cell.removeAttribute('aria-label')
+    }
   }
 
   /**

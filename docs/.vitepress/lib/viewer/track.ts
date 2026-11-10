@@ -13,11 +13,12 @@ export type TrackColors = Record<keyof typeof TRACK_ROLES, string>
 
 /**
  * The track's measures in pixels: the side of one square of a glyph, the width
- * of one ply's column, the gap between the two games' rows, the room above the
- * submitted row for the ply numbers, and the room below the stored row for the
- * words naming where the two meet and part.
+ * of one ply's column, the gap between the two games' rows, the spacing of the
+ * hatch over a covered position, the room above the submitted row for the ply
+ * numbers, and the room below the stored row for the words naming where the two
+ * meet and part.
  */
-export const TRACK = { cell: 5, column: 50, foot: 20, gap: 22, top: 20 } as const
+export const TRACK = { cell: 5, column: 50, foot: 20, gap: 22, hatch: 6, top: 20 } as const
 /**
  * The role each of the track's colors reads.
  */
@@ -60,14 +61,18 @@ export const TRACK_HEIGHT = TRACK.top + GLYPH * 2 + TRACK.gap + TRACK.foot
  * each tenth ply.
  */
 function drawColumn(
-  context : CanvasRenderingContext2D,
-  colors  : TrackColors,
-  cursor  : number,
-  facing  : Facing,
-  loaded  : Loaded
+  context  : CanvasRenderingContext2D,
+  colors   : TrackColors,
+  cursor   : number,
+  facing   : Facing,
+  loaded   : Loaded,
+  covered? : number
 ): void {
   const x = leftOf(cursor, loaded)
-  if (loaded.sharing(cursor)) {
+  if (covered !== undefined && cursor > covered && loaded.has('stored', cursor)) {
+    drawGlyphOf(context, colors, cursor, facing, loaded, 'submitted', x)
+    drawCovered(context, colors, x, ROWS.stored)
+  } else if (loaded.sharing(cursor)) {
     context.fillStyle = colors.tint
     context.fillRect(x - 4, TRACK.top - 4, GLYPH + 8, GLYPH * 2 + TRACK.gap + 8)
     drawGlyph(context, colors, facing, loaded.match.submitted.placements[cursor]!, x, ROWS.shared)
@@ -81,6 +86,23 @@ function drawColumn(
   if (cursor % 10 === 0 && cursor >= 0) {
     context.fillStyle = colors.quiet
     context.fillText(String(cursor), x, TRACK.top - 8)
+  }
+}
+
+/**
+ * Draws a covered position in the glyph's place as an outline hatched along
+ * its rising diagonals.
+ */
+function drawCovered(context: CanvasRenderingContext2D, colors: TrackColors, x: number, y: number): void {
+  context.fillStyle = colors.rule
+  context.fillRect(x, y, GLYPH, 1)
+  context.fillRect(x, y + GLYPH - 1, GLYPH, 1)
+  context.fillRect(x, y, 1, GLYPH)
+  context.fillRect(x + GLYPH - 1, y, 1, GLYPH)
+  for (let at = TRACK.hatch; at < GLYPH * 2; at += TRACK.hatch) {
+    for (let step = Math.max(0, at - GLYPH + 1); step < Math.min(at, GLYPH - 1); step++) {
+      context.fillRect(x + step, y + GLYPH - 1 - (at - step), 1, 1)
+    }
   }
 }
 
@@ -163,16 +185,17 @@ export function columnOf(cursor: number, loaded: Loaded): number {
  * stored row, each glyph from the side the boards face.
  */
 export function drawTrack(
-  context : CanvasRenderingContext2D,
-  colors  : TrackColors,
-  facing  : Facing,
-  loaded  : Loaded
+  context  : CanvasRenderingContext2D,
+  colors   : TrackColors,
+  facing   : Facing,
+  loaded   : Loaded,
+  covered? : number
 ): void {
   context.clearRect(0, 0, trackWidth(loaded), TRACK_HEIGHT)
   context.font         = `500 10px ${familyOf(IDENTITY.faces.code)}`
   context.textBaseline = 'alphabetic'
   for (let cursor = loaded.first; cursor <= loaded.last; cursor++) {
-    drawColumn(context, colors, cursor, facing, loaded)
+    drawColumn(context, colors, cursor, facing, loaded, covered)
   }
   context.fillStyle = loaded.shared ? colors.run : colors.quiet
   if (loaded.shared) {

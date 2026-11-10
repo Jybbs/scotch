@@ -1,12 +1,12 @@
 import { type PropType, type Ref, type VNode, defineComponent, h, shallowRef } from 'vue'
 
-import type { Match, Sample }   from '../../../lib/viewer/examples.ts'
-import * as games               from '../../../lib/viewer/games.ts'
-import { readMatch }            from '../../../lib/viewer/link.ts'
-import { type Loaded, NOTHING } from '../../../lib/viewer/loaded.ts'
-import { pgnOf }                from '../../../lib/viewer/pgn.ts'
-import { Intake }               from './intake.ts'
-import { Seat }                 from './seat.ts'
+import type { Match, Sample }            from '../../../lib/viewer/examples.ts'
+import * as games                        from '../../../lib/viewer/games.ts'
+import { readMatch }                     from '../../../lib/viewer/link.ts'
+import { COVERED, type Loaded, NOTHING } from '../../../lib/viewer/loaded.ts'
+import { pgnOf }                         from '../../../lib/viewer/pgn.ts'
+import { Intake }                        from './intake.ts'
+import { Seat }                          from './seat.ts'
 
 /**
  * Reads whether a drag carries files, as one carrying a match file does.
@@ -18,9 +18,10 @@ function carriesFiles(event: DragEvent): boolean {
 /**
  * What the band says of the loaded match: how many positions the two share, the
  * stored game, where it was played, the plies of the run, and the two moves
- * where the games part, each move in its game's color.
+ * where the games part, each move in its game's color, the stored game's move
+ * covered while `covering` is set.
  */
-function details(loaded: Loaded): VNode {
+function details(covering: boolean, loaded: Loaded): VNode {
   const stored = loaded.match.stored
   if (!stored || !loaded.shared) return h('p', { class: 'sc-viewer-details' }, NOTHING)
   const { last, meet } = loaded.shared
@@ -35,7 +36,12 @@ function details(loaded: Loaded): VNode {
           'then ',
           h('span', { 'class': 'sc-viewer-move-named', 'data-game': 'submitted' }, loaded.leaving),
           ' against ',
-          h('span', { 'class': 'sc-viewer-move-named', 'data-game': 'stored' }, loaded.parting)
+          h('span', {
+            'aria-label'   : covering ? COVERED : undefined,
+            'class'        : 'sc-viewer-move-named',
+            'data-covered' : covering ? '' : undefined,
+            'data-game'    : 'stored'
+          }, loaded.parting)
         ])
       : null
   ])
@@ -54,15 +60,16 @@ function dot(): VNode {
  * link and of the PGN.
  *
  * Args:
- *   key    : The key the half is drawn under, new for each load, so a load
+ *   covering : Whether the stored game's move where the games part is covered.
+ *   key      : The key the half is drawn under, new for each load, so a load
  *     draws it afresh.
- *   loaded : The loaded match.
- *   link   : Makes the link to the match.
+ *   loaded   : The loaded match.
+ *   link     : Makes the link to the match.
  */
-function drawMatch(key: number, loaded: Loaded, link: () => Promise<string>): VNode {
+function drawMatch(covering: boolean, key: number, loaded: Loaded, link: () => Promise<string>): VNode {
   return h('div', { class: 'sc-viewer-match', key }, [
     headline(loaded),
-    details(loaded),
+    details(covering, loaded),
     h('div', { class: 'sc-viewer-tags' }, [
       h(Seat, {
         done  : 'Link copied',
@@ -142,10 +149,11 @@ export const Band = defineComponent({
   name: 'ScotchBand',
 
   props: {
-    link    : { required: true, type: Function as PropType<() => Promise<string>> },
-    loaded  : { required: true, type: Object as PropType<Loaded> },
-    problem : { required: true, type: String },
-    sample  : { default: undefined, type: String as PropType<Sample> }
+    covering : { default: false, type: Boolean },
+    link     : { required: true, type: Function as PropType<() => Promise<string>> },
+    loaded   : { required: true, type: Object as PropType<Loaded> },
+    problem  : { required: true, type: String },
+    sample   : { default: undefined, type: String as PropType<Sample> }
   },
 
   emits: {
@@ -177,7 +185,7 @@ export const Band = defineComponent({
       'data-drag'  : drag.value > 0 ? '' : undefined,
       ...on
     }, [
-      drawMatch(keyOf(props.loaded), props.loaded, props.link),
+      drawMatch(props.covering, keyOf(props.loaded), props.loaded, props.link),
       h(Intake, {
         onFile  : take,
         problem : props.problem,

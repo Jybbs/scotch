@@ -3,6 +3,7 @@ import { type VNode, defineComponent, h } from 'vue'
 
 import type { Stat }              from '../../../lib/viewer/colophon.ts'
 import * as drives                from '../../../lib/viewer/drive.ts'
+import type { Offer }             from '../../../lib/viewer/guesses.ts'
 import { type Viewer, useViewer } from '../../../lib/viewer/state.ts'
 import { Band }                   from './band.ts'
 import { Stage }                  from './stage.ts'
@@ -13,14 +14,22 @@ import { Stage }                  from './stage.ts'
  */
 function drawStage(drive: drives.Drive, viewer: Viewer): VNode {
   return h(Stage, {
-    cursor : viewer.cursor.value,
-    facing : viewer.facing.value,
-    loaded : viewer.loaded.value,
-    onGo   : viewer.go,
-    onShow : viewer.show,
-    onTurn : viewer.turn,
-    parts  : drive.parts,
-    status : viewer.status.value
+    covered : viewer.covered.value,
+    cursor  : viewer.cursor.value,
+    facing  : viewer.facing.value,
+    guesses : viewer.guesses.value,
+    loaded  : viewer.loaded.value,
+    onCover : viewer.cover,
+    onGo    : viewer.go,
+    onShow  : viewer.show,
+    onTurn  : viewer.turn,
+    parts   : drive.parts,
+    status  : viewer.status.value,
+    taking  : viewer.guess.value !== undefined,
+    verdict : viewer.verdict.value,
+    onOffer : (offer: Offer) => {
+      drive.parts.guess.value?.settle(viewer.offer(offer))
+    }
   })
 }
 
@@ -57,6 +66,7 @@ export const Tool = defineComponent({
     }, [
       h('section', { 'aria-label': 'The two games', 'class': 'sc-viewer-stage' }, [
         h(Band, {
+          covering  : viewer.covered.value && viewer.cursor.value <= (viewer.loaded.value.shared?.last ?? 0),
           link      : drive.link,
           loaded    : viewer.loaded.value,
           onLoad    : load,
@@ -73,7 +83,7 @@ export const Tool = defineComponent({
         'aria-live' : 'polite',
         'class'     : 'sc-viewer-hidden',
         'role'      : 'status'
-      }, viewer.status.value.say),
+      }, [viewer.verdict.value?.say, viewer.status.value.say].filter(Boolean).join(' ')),
       h('dl', { class: 'sc-viewer-colophon' }, stats().map(({ label, value }) =>
         h('div', { class: 'sc-viewer-stat' }, [h('dt', label), h('dd', value)])))
     ])
