@@ -166,7 +166,7 @@ describe('drawTrack while the stored game is covered', () => {
       .toEqual(new Set(Array.from({ length: stored - shared.meet }, (_, at) => at)))
   })
 
-  it('hatches a covered position along its rising diagonals, as the covered board is', () => {
+  it('hatches a covered position along rising diagonals, as a covered move on the score sheets is', () => {
     const left  = columnAt(loaded, shared.meet + 1)
     const sums  = new Set(covered.rects
       .filter(({ fill }) => fill === 'rule')

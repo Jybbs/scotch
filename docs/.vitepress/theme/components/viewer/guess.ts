@@ -7,9 +7,9 @@ import { type Guess, tallyOf } from '../../../lib/viewer/guesses.ts'
  * button offering it and the count of the moves offered so far that match the
  * stored game's, the field marked invalid with a line saying so where the text
  * is no move in SAN. The field stays in place and disabled where the stored
- * game plays no move from the cursor, and the whole form keeps its place hidden
- * and inert while the stored game is shown, so covering it moves nothing around
- * it.
+ * game plays no move from the cursor or a step on already showed that move, and
+ * the whole form keeps its place hidden and inert while the stored game is
+ * shown, so covering it moves nothing around it.
  */
 export const GuessEntry = defineComponent({
   name: 'ScotchGuessEntry',

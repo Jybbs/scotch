@@ -51,7 +51,7 @@ export interface Verdict {
  * (Section 8.2.3.8). The castling written with zeros and the promotion written
  * without `=` are read as python-chess's `parse_san` reads them.
  */
-const SAN = /^(?:(?<castle>[O0]-[O0](?:-[O0])?)|(?<piece>[KQRBN])?(?<file>[a-h])?(?<rank>[1-8])?x?(?<to>[a-h][1-8])(?:=?(?<promotion>[QRBN]))?)[+#]?[!?]{0,2}$/u
+const SAN = /^(?:(?<castle>O-O(?:-O)?|0-0(?:-0)?)|(?<piece>[KQRBN])?(?<file>[a-h])?(?<rank>[1-8])?x?(?<to>[a-h][1-8])(?:=?(?<promotion>[QRBN]))?)[+#]?[!?]{0,2}$/u
 
 /**
  * Judges a move offered at the stored game's ply `ply` against the move the

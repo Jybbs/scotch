@@ -8,10 +8,10 @@ import { standingOf }                                  from './placements.ts'
 
 /**
  * The Viewer's covered mode: whether the stored game is covered past the
- * cursor, the stored ply a player offers a move from at the cursor where none
- * was taken there yet, what was offered at each covered ply a step on showed,
- * and the verdict on the move the last step showed, beside the calls that cover
- * the stored game and take an offered move.
+ * cursor, the stored ply a player offers a move from at the cursor until a step
+ * on shows its move, what was offered at each covered ply a step on showed, and
+ * the verdict on the move the last step showed, beside the calls that cover the
+ * stored game and take an offered move.
  */
 export interface Guessing {
   cover   : (on: boolean) => void

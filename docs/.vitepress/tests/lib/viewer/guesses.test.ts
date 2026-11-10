@@ -43,7 +43,9 @@ describe('readSan', () => {
     expect(guesses.readSan(text)).toEqual(read)
   })
 
-  it.each(['', 'Nf9', 'nf3', 'e2-e4', 'e4!!!', 'Kx', 'O-O-O-O', 'hello'])('reads no move in %j', text => {
+  it.each([
+    '', 'Nf9', 'nf3', 'e2-e4', 'e4!!!', 'Kx', 'O-0', 'O-O-O-O', 'hello'
+  ])('reads no move in %j', text => {
     expect(guesses.readSan(text)).toBeUndefined()
   })
 })
