@@ -1,4 +1,9 @@
 {
+  "card": {
+    "height": 600,
+    "width": 1200,
+    "wordmark": 15
+  },
   "faces": {
     "body": {
       "fallbacks": [
@@ -6,6 +11,8 @@
         "serif"
       ],
       "family": "Petrona",
+      "package": "@fontsource-variable/petrona",
+      "license": "SIL Open Font License 1.1",
       "stack": "Petrona, Georgia, serif"
     },
     "code": {
@@ -16,6 +23,8 @@
         "monospace"
       ],
       "family": "JetBrains Mono",
+      "package": "@fontsource-variable/jetbrains-mono",
+      "license": "SIL Open Font License 1.1",
       "stack": "\"JetBrains Mono\", ui-monospace, \"SF Mono\", Menlo, monospace"
     },
     "display": {
@@ -24,6 +33,8 @@
         "serif"
       ],
       "family": "Hedvig Letters Serif",
+      "package": "@fontsource-variable/hedvig-letters-serif",
+      "license": "SIL Open Font License 1.1",
       "stack": "\"Hedvig Letters Serif\", Georgia, serif"
     }
   },
@@ -77,5 +88,204 @@
       "hex": "#f48241"
     }
   },
-  "tagline": "Find the grandmaster game closest to yours."
+  "roles": {
+    "alert": {
+      "dark": [
+        "critical",
+        58,
+        "ground"
+      ],
+      "kind": "text",
+      "light": [
+        "critical",
+        76,
+        "dark"
+      ]
+    },
+    "data_black": {
+      "dark": [
+        "dark",
+        30,
+        "black"
+      ],
+      "kind": "fill",
+      "light": "dark"
+    },
+    "data_edge": {
+      "dark": [
+        "ground",
+        50,
+        "dark"
+      ],
+      "kind": "mark",
+      "light": "dark"
+    },
+    "front_hollow": {
+      "dark": "black",
+      "kind": "fill",
+      "light": "dark"
+    },
+    "front_paper": {
+      "dark": "ground",
+      "kind": "fill",
+      "light": "white"
+    },
+    "glyph_dark": {
+      "dark": [
+        "dark",
+        86,
+        "light"
+      ],
+      "kind": "fill",
+      "light": [
+        "ground",
+        77,
+        "primary"
+      ]
+    },
+    "glyph_light": {
+      "dark": [
+        "dark",
+        78,
+        "light"
+      ],
+      "kind": "fill",
+      "light": [
+        "ground",
+        72,
+        "light"
+      ]
+    },
+    "ink": {
+      "dark": "ground",
+      "kind": "text",
+      "light": "dark"
+    },
+    "page": {
+      "dark": "dark",
+      "kind": "ground",
+      "light": "ground"
+    },
+    "quiet": {
+      "dark": [
+        "ground",
+        66,
+        "dark"
+      ],
+      "kind": "text",
+      "light": [
+        "dark",
+        72,
+        "ground"
+      ]
+    },
+    "raised": {
+      "dark": [
+        "dark",
+        94,
+        "white"
+      ],
+      "kind": "ground",
+      "light": [
+        "ground",
+        45,
+        "white"
+      ]
+    },
+    "rule": {
+      "dark": [
+        "dark",
+        76,
+        "ground"
+      ],
+      "kind": "rule",
+      "light": [
+        "ground",
+        78,
+        "dark"
+      ]
+    },
+    "run": {
+      "dark": "light",
+      "kind": "text",
+      "light": "primary"
+    },
+    "side": {
+      "dark": [
+        "dark",
+        66,
+        "black"
+      ],
+      "kind": "ground",
+      "light": [
+        "ground",
+        45,
+        "white"
+      ]
+    },
+    "stored": {
+      "dark": "series_3",
+      "kind": "mark",
+      "light": "series_3"
+    },
+    "submitted": {
+      "dark": "series_2",
+      "kind": "mark",
+      "light": "series_2"
+    },
+    "tint": {
+      "dark": [
+        "dark",
+        88,
+        "light"
+      ],
+      "kind": "ground",
+      "light": [
+        "ground",
+        88,
+        "primary"
+      ]
+    }
+  },
+  "tagline": "Find the grandmaster game closest to yours.",
+  "meanings": {
+    "faces": {
+      "body": "The body text, a text serif with a weight axis from 100 to 900 and matching italics.",
+      "code": "The code, the move lists, and the figures, with tabular numerals wherever digits line up.",
+      "display": "The headings and the wordmark, an old-style serif with an optical-size axis from 12 to 24 at its one weight."
+    },
+    "palette": {
+      "critical": "The critical state, always beside an icon and a label, and the Reference section's own color, which marks the section on its link card and carries no state there.",
+      "dark": "The dark ground, and body text on the light ground.",
+      "ground": "The light ground, and light text on the dark ground.",
+      "light": "The board's light squares, and the lead on the dark ground.",
+      "primary": "The lead color, the logo's piece, links on the light ground, and the board's dark squares.",
+      "series_1": "The first series color.",
+      "series_2": "The second series color.",
+      "series_3": "The third series color, the clock's brass.",
+      "series_4": "The fourth series color.",
+      "series_5": "The fifth series color.",
+      "series_6": "The sixth series color, the Viewer section's own, which no chart's series order takes.",
+      "warning": "The warning state, always beside an icon and a label."
+    },
+    "roles": {
+      "alert": "A message that something failed.",
+      "data_black": "The fill of Black's share of a chart's bar.",
+      "data_edge": "The outline a chart's bar holds a white share inside.",
+      "front_hollow": "The fill of a hollow piece on the front page's backdrop.",
+      "front_paper": "The fill of a paper piece on the front page's backdrop.",
+      "glyph_dark": "The glyph a dark square draws under a page's text.",
+      "glyph_light": "The glyph a light square draws under a page's text.",
+      "ink": "The text of a page.",
+      "page": "The ground of a page.",
+      "quiet": "The text of a caption or a label.",
+      "raised": "The ground of a card standing over a page.",
+      "rule": "A line between two parts of a page.",
+      "run": "A link, and the positions two games share.",
+      "side": "The ground of the sidebar.",
+      "stored": "The stored game.",
+      "submitted": "The submitted game.",
+      "tint": "The ground of a note or a picked row."
+    }
+  }
 }

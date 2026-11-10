@@ -8,10 +8,11 @@ export type Section = (typeof SECTIONS)[number]
  * heading, beside the palette token its pages' preview cards are accented in.
  */
 export const SECTIONS = [
-  { color: 'series_1', label: 'Data',    slug: 'data'    },
-  { color: 'series_4', label: 'Guide',   slug: 'guide'   },
-  { color: 'series_5', label: 'Methods', slug: 'methods' },
-  { color: 'series_6', label: 'Viewer',  slug: 'viewer'  }
+  { color: 'series_1', label: 'Data',      slug: 'data'      },
+  { color: 'series_4', label: 'Guide',     slug: 'guide'     },
+  { color: 'series_5', label: 'Methods',   slug: 'methods'   },
+  { color: 'critical', label: 'Reference', slug: 'reference' },
+  { color: 'series_6', label: 'Viewer',    slug: 'viewer'    }
 ] as const satisfies readonly { color: Token, label: string, slug: string }[]
 
 /**

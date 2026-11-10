@@ -10,7 +10,7 @@ from collections.abc import Iterator
 from cyclopts        import App
 from functools       import cached_property
 from pathlib         import Path
-from pydantic        import BaseModel, InstanceOf, TypeAdapter
+from pydantic        import BaseModel, InstanceOf
 from subprocess      import run
 
 from scotch.docs.inventory  import Outputs
@@ -209,29 +209,9 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     @cached_property
     def tasks(self) -> tuple[Task, ...]:
         """
-        Runs `mise tasks ls`, listing the tasks the repository declares and
-        leaving out the global ones.
-
-        mise prints each task's file as an absolute path with every symlink
-        resolved, so each one is joined back onto `root`.
+        Lists the tasks the repository declares.
         """
-        listing = run(
-            ["mise", "tasks", "ls", "--json", "--local"],
-            capture_output = True,
-            check          = True,
-            cwd            = self.root,
-            text           = True
-        )
-        return tuple(
-            task.model_copy(
-                update = {
-                    "file": self.root / task.file.relative_to(self.root.resolve())
-                }
-            )
-            if task.file
-            else task
-            for task in TypeAdapter(tuple[Task, ...]).validate_json(listing.stdout)
-        )
+        return Task.listed(self.root)
 
     @cached_property
     def templates(self) -> tuple[Template, ...]:

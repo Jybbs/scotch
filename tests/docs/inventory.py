@@ -42,8 +42,8 @@ def test_an_index_adds_the_files_written_from_it(
     - The Viewer's match beside the demo game alone
     - The example run the README and the Guide carry, naming the stored game
       the demo line meets
-    - The tables the Data pages and the store page set beneath their
-      widgets, each the one its region names
+    - The tables the Data pages, the store page, and the identity page set
+      beneath their widgets, each the one its region names
     - The measured figures of each Markdown file, each the count its marker
       names, an example's under the example's name and the figure's
     """
@@ -61,7 +61,8 @@ def test_an_index_adds_the_files_written_from_it(
             "Shares <!-- demo-run -->0<!-- /demo-run --> positions.\n"
         ),
 
-        "guide/store.md": "<!-- archives -->\n<!-- /archives -->\n"
+        "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
+        "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n"
     }
     readme   = Path(".github/README.md")
     root     = checkout(pages)
@@ -77,6 +78,7 @@ def test_an_index_adds_the_files_written_from_it(
         (Region, "docs/pages/data/lengths.md"),
         (Region, "docs/pages/data/lengths.md"),
         (Region, "docs/pages/guide/store.md"),
+        (Region, "docs/pages/reference/identity.md"),
         *((Figures, f"docs/pages/{page}") for page in pages)
     ]
     assert len(Outputs.shipped(app, readme, root, index).root) == (
@@ -171,8 +173,9 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
             "data/lengths.md": "<!-- lengths -->\n<!-- /lengths -->\n\n"
                                "<!-- outcomes -->\n<!-- /outcomes -->\n",
 
-            "guide/index.md" : "<!-- example -->\n<!-- /example -->\n",
-            "guide/store.md" : "<!-- archives -->\n<!-- /archives -->\n"
+            "guide/index.md"        : "<!-- example -->\n<!-- /example -->\n",
+            "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
+            "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n"
         }
     )
 
@@ -248,6 +251,21 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
             "guide/store.md" : "<!-- source -->\n<!-- /source -->\n",
             "index.md"       : "<!-- tagline --><!-- /tagline -->\n",
 
+            "reference/identity.md": "".join(
+                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
+                for name in (
+                    "palette", "roles", "faces", "pieces", "marks", "construction"
+                )
+            ),
+
+            "reference/settings.md": "".join(
+                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
+                for name in ("settings", "order", "origin")
+            ),
+
+            "reference/tasks.md" : "<!-- tasks -->\n<!-- /tasks -->\n",
+            "reference/terms.md" : "<!-- terms -->\n<!-- /terms -->\n",
+
             "guide/commands.md": "".join(
                 f"<!-- help-{verb}-{noun} -->\n<!-- /help-{verb}-{noun} -->\n\n"
                 for verb, noun in commands(app)
@@ -291,7 +309,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     assert (root / "docs/public/favicon.svg").read_text() == (
         '<svg viewBox="0 0 1 1"><style>path{fill:#764017}'
         "@media (prefers-color-scheme:dark){path{fill:#e3c3a3}}</style>"
-        '<path d="M0 0"/></svg>'
+        '<path d="M0 0M0 0M0 0M0 0M0 0"/></svg>'
     )
 
 
@@ -302,12 +320,15 @@ def test_shipped_declares_the_files_written_from_declarations(
     Asserts that the outputs declared with no index are these, in
     this order:
 
-    - The identity's JSON, the keys of each game the site serves, and the
-      pieces' JSON
+    - The identity's JSON, the home squares of the pieces, the keys of each
+      game the site serves, the marks' JSON, the pieces' JSON, and the terms'
+      JSON
     - The favicon and each lockup
     - The README's badges, then the install steps of the README and the
       Guide
     - The table of sources, then the row of sources the store page copies
+    - The Reference section's settings with their read order and root,
+      tasks, identity tables, and terms
     - The help of each command the help lists
     - The figures and the footnotes of each Markdown file
     """
@@ -316,8 +337,11 @@ def test_shipped_declares_the_files_written_from_declarations(
 
     assert [(type(output), str(output.path)) for output in outputs] == [
         (Document, "docs/.vitepress/lib/rendered/identity.json"),
+        (Document, "docs/.vitepress/lib/rendered/homes.json"),
         (Document, "docs/.vitepress/lib/rendered/keys.json"),
+        (Document, "docs/.vitepress/lib/rendered/marks.json"),
         (Document, "docs/.vitepress/lib/rendered/pieces.json"),
+        (Document, "docs/.vitepress/lib/rendered/terms.json"),
         (Document, "docs/public/favicon.svg"),
         (Document, "docs/assets/lockup-cashmere.svg"),
         (Document, "docs/assets/lockup-walnut.svg"),
@@ -326,6 +350,10 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Region, "docs/pages/guide/index.md"),
         (Region, "docs/pages/data/index.md"),
         (Region, "docs/pages/guide/store.md"),
+        *[(Region, "docs/pages/reference/settings.md")] * 3,
+        (Region, "docs/pages/reference/tasks.md"),
+        *[(Region, "docs/pages/reference/identity.md")] * 6,
+        (Region, "docs/pages/reference/terms.md"),
         *[(Region, "docs/pages/guide/commands.md")] * len(list(commands(app))),
         (Figures, "docs/pages/page.md"),
         (Footnotes, "docs/pages/page.md")

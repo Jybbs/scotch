@@ -1,0 +1,50 @@
+[
+  {
+    "address": "../methods/keys.md",
+    "label": "Position Keys",
+    "name": "Key",
+    "pattern": "(?<=\\b(?:a|the|position's)\\s)keys?\\b",
+    "sentence": "The Zobrist hash a position is looked up by, counting the en passant file only where a legal move plays the capture.",
+    "anchor": "key"
+  },
+  {
+    "address": "https://python-chess.readthedocs.io/en/v1.11.2/pgn.html#chess.pgn.GameNode.mainline",
+    "label": "python-chess on a game's mainline",
+    "name": "Mainline",
+    "pattern": "\\bmainlines?\\b",
+    "sentence": "A game's moves outside every variation its PGN records, the one line the index reads and stores.",
+    "anchor": "mainline"
+  },
+  {
+    "address": "https://chessprogramming.org/Ply",
+    "label": "The Chess Programming Wiki on plies",
+    "name": "Ply",
+    "pattern": "\\bpl(?:y|ies)\\b",
+    "sentence": "One move by one side, half of a numbered move.",
+    "anchor": "ply"
+  },
+  {
+    "address": "../methods/runs.md",
+    "label": "The Longest Run",
+    "name": "Run",
+    "pattern": "(?<=\\b(?:a|the|longest|unbroken|shorter)\\s)runs?\\b",
+    "sentence": "An unbroken stretch of positions two games reach one ply after another.",
+    "anchor": "run"
+  },
+  {
+    "address": "../methods/runs.md",
+    "label": "The Longest Run",
+    "name": "The Parting Move",
+    "pattern": "\\b(?:the )?(?:move|position) where (?:the )?two games part\\b",
+    "sentence": "The first move after a run, where the stored game and the submitted one stop reaching the same positions.",
+    "anchor": "the-parting-move"
+  },
+  {
+    "address": "https://chessprogramming.org/Transposition",
+    "label": "The Chess Programming Wiki on transpositions",
+    "name": "Transposition",
+    "pattern": "\\btranspositions?\\b",
+    "sentence": "A position reached by another order of moves, which the index keys as that same position.",
+    "anchor": "transposition"
+  }
+]

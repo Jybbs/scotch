@@ -12,6 +12,7 @@ vi.mock('../../../theme/components/data/index.ts', () => ({
 vi.mock('../../../theme/components/methods/index.ts', () => ({
   METHODS_WIDGETS: { other: defineComponent({ setup: () => () => h('svg', { class: 'other' }) }) }
 }))
+vi.mock('../../../theme/components/reference/index.ts', () => ({ REFERENCE_WIDGETS: {} }))
 
 describe('Figure', () => {
   it('registers under the name the placements write into a page', () => {
@@ -38,7 +39,7 @@ describe('Figure', () => {
     expect(figure.find('details p').text()).toBe('kept')
   })
 
-  it('gathers the Data and Methods widgets under one record', () => {
+  it("gathers each section's widgets under one record", () => {
     expect(Object.keys(WIDGETS)).toEqual(['probe', 'other'])
   })
 })

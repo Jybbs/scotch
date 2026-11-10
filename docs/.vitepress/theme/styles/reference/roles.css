@@ -1,0 +1,284 @@
+.sc-ref-hold {
+  position  : relative;
+  overflow  : hidden;
+  min-width : 0;
+}
+
+.sc-ref-sheet {
+  display               : grid;
+  grid-template-columns : 5.6rem minmax(0, 1fr);
+  background            : var(--sc-ref-page);
+  font                  : 400 0.8125rem/1.45 var(--sc-face-body);
+  color                 : var(--sc-ref-ink);
+}
+
+.sc-ref-side {
+  display       : grid;
+  gap           : 4px;
+  align-content : start;
+  padding       : 12px 10px;
+  border-right  : 1px solid var(--sc-ref-rule);
+  background    : var(--sc-ref-side);
+}
+
+.sc-ref-side span, .sc-ref-side b {
+  font-size   : 0.75rem;
+  font-weight : 400;
+}
+
+.sc-ref-logo {
+  display       : block;
+  width         : 18px;
+  height        : 25px;
+  margin-bottom : 5px;
+  color         : var(--sc-ref-run);
+}
+
+.sc-ref-logo svg {
+  display : block;
+  width   : 100%;
+  height  : 100%;
+}
+
+.sc-ref-main {
+  display               : grid;
+  grid-template-columns : minmax(0, 1.05fr) minmax(0, 1fr);
+  gap                   : 10px 14px;
+  min-width             : 0;
+  padding               : 12px 14px 14px;
+}
+
+.sc-ref-text, .sc-ref-figures {
+  display       : grid;
+  gap           : 7px;
+  align-content : start;
+  min-width     : 0;
+}
+
+.sc-ref-sheet h5 {
+  margin : 0;
+  font   : 400 1.05rem/1.2 var(--sc-face-display);
+  color  : var(--sc-ref-ink);
+}
+
+.sc-ref .sc-ref-caption {
+  font  : 500 0.6rem/1.4 var(--sc-face-code);
+  color : var(--sc-ref-quiet);
+}
+
+.sc-ref .sc-ref-note {
+  padding    : 3px 7px;
+  background : var(--sc-ref-tint);
+  color      : var(--sc-ref-ink);
+}
+
+.sc-ref .sc-ref-alert { color: var(--sc-ref-alert); }
+
+.sc-ref-sample {
+  display       : grid;
+  gap           : 3px;
+  padding       : 7px;
+  border        : 1px solid var(--sc-ref-rule);
+  border-radius : 3px;
+  background    : var(--sc-ref-raised);
+}
+
+.sc-ref-rail {
+  display               : grid;
+  grid-template-columns : repeat(13, minmax(0, 1fr));
+  gap                   : 2px;
+  height                : 9px;
+}
+
+.sc-ref-rail i {
+  border-radius : 1px;
+  background    : var(--sc-ref-color);
+}
+
+.sc-ref-bar {
+  position : relative;
+  height   : 11px;
+  border   : 1px solid var(--sc-ref-data-edge);
+}
+
+.sc-ref-bar i {
+  position   : absolute;
+  inset      : 0 0 0 55%;
+  background : var(--sc-ref-data-black);
+}
+
+.sc-ref-set {
+  display     : flex;
+  gap         : 2px;
+  align-items : center;
+}
+
+.sc-ref-set span {
+  display : block;
+  width   : 30px;
+  height  : 30px;
+}
+
+.sc-ref-set svg {
+  display : block;
+  width   : 100%;
+  height  : 100%;
+}
+
+.sc-ref-line {
+  display    : block;
+  height     : 1px;
+  background : var(--sc-ref-rule);
+}
+
+.sc-ref[data-narrow] .sc-ref-sheet { grid-template-columns: minmax(0, 1fr); }
+
+.sc-ref[data-narrow] .sc-ref-side {
+  grid-auto-flow  : column;
+  gap             : 12px;
+  align-items     : center;
+  justify-content : start;
+  padding         : 6px 12px;
+  border-right    : 0;
+  border-bottom   : 1px solid var(--sc-ref-rule);
+}
+
+.sc-ref[data-narrow] .sc-ref-logo {
+  width  : 13px;
+  height : 18px;
+  margin : 0;
+}
+
+.sc-ref[data-narrow] .sc-ref-main {
+  grid-template-columns : minmax(0, 1fr);
+  padding               : 10px 12px 12px;
+}
+
+.sc-ref-over {
+  position : absolute;
+  top      : 0;
+  left     : 0;
+  width    : 100%;
+}
+
+.sc-ref-seam {
+  position      : absolute;
+  top           : 0;
+  bottom        : 0;
+  left          : -12px;
+  display       : grid;
+  justify-items : center;
+  width         : 25px;
+  cursor        : ew-resize;
+  touch-action  : none;
+}
+
+.sc-ref-seam::before {
+  width      : 1.5px;
+  height     : 100%;
+  background : var(--sc-run);
+  content    : '';
+}
+
+.sc-ref-seam i {
+  position   : absolute;
+  top        : 50%;
+  width      : 15px;
+  height     : 15px;
+  margin-top : -8px;
+  background : var(--sc-run);
+  box-shadow : 0 0 0 2px var(--sc-page);
+  transform  : rotate(45deg);
+}
+
+.sc-ref-seam:focus-visible {
+  outline        : 2px solid var(--sc-run);
+  outline-offset : -2px;
+}
+
+.sc-ref-outline {
+  position       : absolute;
+  top            : 0;
+  left           : 0;
+  border-radius  : 3px;
+  box-shadow     : 0 0 0 1.5px var(--sc-run), 0 0 0 3.5px var(--sc-page);
+  pointer-events : none;
+  transition     : 
+    transform var(--sc-duration-glide) var(--sc-curve-glide),
+    width var(--sc-duration-glide) var(--sc-curve-glide),
+    height var(--sc-duration-glide) var(--sc-curve-glide),
+    opacity var(--sc-duration-fade);
+}
+
+.sc-ref-chip {
+  position   : relative;
+  min-width  : 0;
+  height     : 24px;
+  background : linear-gradient(90deg, var(--sc-ref-light) 50%, var(--sc-ref-dark) 50%);
+  box-shadow : inset 0 0 0 1px var(--sc-rule);
+}
+
+.sc-ref-chip[aria-current] {
+  z-index    : 1;
+  box-shadow : 0 0 0 2px var(--sc-run), 0 0 0 3px var(--sc-page);
+}
+
+.sc-ref-roled {
+  display       : grid;
+  gap           : 7px;
+  align-content : start;
+}
+
+.sc-ref-top-line {
+  display     : flex;
+  flex-wrap   : wrap;
+  gap         : 2px 10px;
+  align-items : baseline;
+}
+
+.sc-ref-top-line b {
+  font  : 500 0.9rem/1.3 var(--sc-face-code);
+  color : var(--sc-ink);
+}
+
+.sc-ref-pair {
+  display               : grid;
+  grid-template-columns : repeat(2, minmax(0, 1fr));
+}
+
+.sc-ref-half {
+  display               : grid;
+  grid-template-columns : 2.4rem minmax(0, 1fr);
+  gap                   : 2px 9px;
+  align-items           : center;
+  min-width             : 0;
+  padding               : 9px 10px;
+}
+
+.sc-ref[data-narrow] .sc-ref-half {
+  grid-template-columns : minmax(0, 1fr);
+  padding               : 8px 6px;
+}
+
+.sc-ref-half > i {
+  display     : grid;
+  place-items : center;
+  width       : 2.4rem;
+  height      : 2.4rem;
+  border      : 1px solid var(--sc-ref-edge);
+  font        : 400 1.15rem/1 var(--sc-face-display);
+  transition  : background-color var(--sc-duration-fade), color var(--sc-duration-fade);
+}
+
+.sc-ref-half > div {
+  display       : grid;
+  gap           : 1px;
+  min-width     : 0;
+  font          : 500 0.66rem/1.35 var(--sc-face-code);
+  overflow-wrap : anywhere;
+}
+
+.sc-ref-half > div b {
+  font-size   : 0.76rem;
+  font-weight : 500;
+}

@@ -6,6 +6,7 @@ import { defineComponent, h }       from 'vue'
 import { PLACED }          from '../../../../lib/markdown/placements.ts'
 import { DATA_WIDGETS }    from '../../../../theme/components/data/index.ts'
 import { METHODS_WIDGETS } from '../../../../theme/components/methods/index.ts'
+import { REFERENCE_WIDGETS } from '../../../../theme/components/reference/index.ts'
 
 vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),
@@ -22,6 +23,10 @@ describe('DATA_WIDGETS', () => {
 
   it('holds, beside the Methods widgets, a widget under every name a page places and no other', () => {
     const placed = new Set(Object.values(PLACED).flatMap(list => list.map(placement => placement.draw)))
-    expect(new Set([...Object.keys(DATA_WIDGETS), ...Object.keys(METHODS_WIDGETS)])).toEqual(placed)
+    expect(new Set([
+      ...Object.keys(DATA_WIDGETS),
+      ...Object.keys(METHODS_WIDGETS),
+      ...Object.keys(REFERENCE_WIDGETS)
+    ])).toEqual(placed)
   })
 })

@@ -9248,6 +9248,72 @@
     "1-0",
     "1/2-1/2"
   ],
+  "charted": [
+    {
+      "address": "https://www.pgnmentor.com/players/Alekhine.zip",
+      "decades": {
+        "1900": 44,
+        "1910": 176,
+        "1920": 655,
+        "1930": 621,
+        "1940": 165
+      },
+      "games": 1661,
+      "name": "Alekhine"
+    },
+    {
+      "address": "https://www.pgnmentor.com/players/Botvinnik.zip",
+      "decades": {
+        "1920": 41,
+        "1930": 193,
+        "1940": 145,
+        "1950": 230,
+        "1960": 242,
+        "1970": 16
+      },
+      "games": 867,
+      "name": "Botvinnik"
+    },
+    {
+      "address": "https://www.pgnmentor.com/players/Spassky.zip",
+      "decades": {
+        "1950": 172,
+        "1960": 336,
+        "1970": 207,
+        "1980": 349,
+        "1990": 180,
+        "2000": 18
+      },
+      "games": 1262,
+      "name": "Spassky"
+    },
+    {
+      "address": "https://www.pgnmentor.com/players/Karpov.zip",
+      "decades": {
+        "1960": 62,
+        "1970": 454,
+        "1980": 630,
+        "1990": 814,
+        "2000": 565,
+        "2010": 244,
+        "2020": 29
+      },
+      "games": 2798,
+      "name": "Karpov"
+    },
+    {
+      "address": "https://www.pgnmentor.com/players/Anand.zip",
+      "decades": {
+        "1980": 301,
+        "1990": 973,
+        "2000": 1149,
+        "2010": 1295,
+        "2020": 476
+      },
+      "games": 4194,
+      "name": "Anand"
+    }
+  ],
   "largest": [
     {
       "games": 7426,

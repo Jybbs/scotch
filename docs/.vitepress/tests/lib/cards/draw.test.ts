@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import * as draw           from '../../../lib/cards/draw.ts'
 import { IDENTITY, hexOf } from '../../../lib/identity/tokens.ts'
@@ -59,6 +59,10 @@ describe('siteCard', () => {
     expect(card.props.style).toMatchObject({ height: draw.CARD.height, width: draw.CARD.width })
   })
 
+  it('reads its size from the card the identity declares', () => {
+    expect(draw.CARD).toEqual({ height: IDENTITY.card.height, width: IDENTITY.card.width })
+  })
+
   it.each([IDENTITY.tagline, 'EDITION', '0.1.0', 'SCOTCH.FYI', 'STORED', 'SUBMITTED'])('sets %s', text => {
     expect(texts(card)).toContain(text)
   })
@@ -85,6 +89,13 @@ describe('pageCard', () => {
       .toEqual(expect.arrayContaining(['A Page', 'SCOTCH.FYI · 0.1.0']))
   })
 
+  it("sets the wordmark across the share of the card's width the identity declares", () => {
+    const card = draw.pageCard(EDITION, { section: SECTIONS[0], title: 'A Page' }, SECTIONS)
+    const mark = nodes(card).find(node => node.type === 'img')
+    expect(mark?.props.width).toBe(IDENTITY.card.wordmark * IDENTITY.card.width / 100)
+    expect(mark?.props.width).toBe(180)
+  })
+
   it.each([['A Page', 7], ['Matches the Rule Passes Over', 6]])('sets %s at %d units', (title, units) => {
     const card = draw.pageCard(EDITION, { section: SECTIONS[0], title }, SECTIONS)
     expect(holding(card, title)?.props.style?.fontSize).toBe(units * draw.CARD.width / 100)
@@ -105,5 +116,23 @@ describe("pageCard, in its section's color", () => {
     const starts = SECTIONS.map((_, place) => runStart(place))
     expect(starts).toEqual(starts.toSorted((a, b) => a - b))
     expect(new Set(starts).size).toBe(SECTIONS.length)
+  })
+})
+
+describe('pageCard, on a card the identity resizes', () => {
+  it("follows the identity's card and wordmark share rather than fixed figures", async () => {
+    vi.resetModules()
+    vi.doMock('../../../lib/identity/tokens.ts', async original => {
+      const tokens = await original<typeof import('../../../lib/identity/tokens.ts')>()
+      return {
+        ...tokens,
+        IDENTITY: { ...tokens.IDENTITY, card: { ...tokens.IDENTITY.card, height: 750, width: 1500, wordmark: 20 } }
+      }
+    })
+    const resized = await import('../../../lib/cards/draw.ts')
+    const card    = resized.pageCard(EDITION, { section: SECTIONS[0], title: 'A Page' }, SECTIONS)
+    expect(resized.CARD).toEqual({ height: 750, width: 1500 })
+    expect(nodes(card).find(node => node.type === 'img')?.props.width).toBe(300)
+    vi.doUnmock('../../../lib/identity/tokens.ts')
   })
 })

@@ -9,8 +9,9 @@ import { Layout }   from '../../theme/layout.ts'
 vi.mock('vitepress/theme-without-fonts', () => ({
   default: {
     Layout: defineComponent({
-      setup: (_, { slots }) => () => h('main', ['home-hero-before', 'home-hero-info', 'nav-bar-title-before']
-        .map(name => h('section', { 'data-slot': name }, slots[name]?.())))
+      setup: (_, { slots }) => () => h('main', [
+        'home-hero-before', 'home-hero-info', 'layout-bottom', 'nav-bar-title-before'
+      ].map(name => h('section', { 'data-slot': name }, slots[name]?.())))
     })
   }
 }))
@@ -19,6 +20,10 @@ vi.mock('../../theme/components/front/backdrop.ts', () => ({
 }))
 
 describe('Layout', () => {
+  it("sets beneath every page the slip a term's link opens", () => {
+    expect(mount(Layout).find("[data-slot='layout-bottom'] .sc-slip").exists()).toBe(true)
+  })
+
   it('draws the backdrop before the hero', () => {
     expect(mount(Layout).find("[data-slot='home-hero-before'] .backdrop").exists()).toBe(true)
   })

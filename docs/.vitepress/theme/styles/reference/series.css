@@ -1,0 +1,114 @@
+.sc-ref-chart {
+  position     : relative;
+  touch-action : pan-y;
+}
+
+.sc-ref-chart svg {
+  display  : block;
+  width    : 100%;
+  overflow : visible;
+}
+
+.sc-ref-chart text {
+  font : 500 11px var(--sc-face-code);
+  fill : var(--sc-quiet);
+}
+
+.sc-ref-row {
+  stroke       : var(--sc-rule);
+  stroke-width : 1;
+}
+
+.sc-ref-trace {
+  fill            : none;
+  stroke-width    : 2.25;
+  stroke-linecap  : round;
+  stroke-linejoin : round;
+}
+
+.sc-ref-hair {
+  stroke       : var(--sc-ink);
+  stroke-width : 1;
+  opacity      : 0.55;
+}
+
+.sc-ref-switches {
+  display               : grid;
+  grid-template-columns : repeat(5, minmax(0, 1fr));
+  gap                   : 8px 6px;
+}
+
+.sc-ref[data-narrow] .sc-ref-switches { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+.sc-ref-switch {
+  position      : relative;
+  display       : grid;
+  gap           : 1px;
+  align-content : start;
+  min-width     : 0;
+  padding-top   : 9px;
+  text-align    : left;
+  transition    : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref[data-narrow] .sc-ref-switch { grid-column: span 2; }
+
+.sc-ref[data-narrow] .sc-ref-switch:nth-child(n + 4) { grid-column: span 3; }
+
+.sc-ref-switch::before {
+  position   : absolute;
+  top        : 0;
+  right      : 0;
+  left       : 0;
+  height     : 4px;
+  background : var(--sc-ref-color);
+  box-shadow : inset 0 0 0 1px var(--sc-ref-color);
+  content    : '';
+  transition : background-color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-switch b {
+  font        : 400 0.95rem/1.25 var(--sc-face-display);
+  white-space : nowrap;
+}
+
+.sc-ref .sc-ref-switch code, .sc-ref-switch em {
+  padding     : 0;
+  background  : none;
+  font        : 500 0.625rem/1.45 var(--sc-face-code);
+  color       : var(--sc-quiet);
+  white-space : nowrap;
+}
+
+.sc-ref-switch em {
+  font-size : 0.69rem;
+  color     : var(--sc-ink);
+}
+
+.sc-ref-switch[aria-pressed='false'] { opacity: 0.62; }
+
+.sc-ref-switch[aria-pressed='false']::before { background: transparent; }
+
+.sc-ref-switch[aria-pressed='false'] b { text-decoration: line-through; }
+
+.sc-ref-switch svg {
+  display  : block;
+  width    : 100%;
+  height   : 40px;
+  margin   : 3px 0 2px;
+  overflow : visible;
+}
+
+.sc-ref-switch path {
+  fill            : none;
+  stroke-linecap  : round;
+  stroke-linejoin : round;
+  vector-effect   : non-scaling-stroke;
+}
+
+.sc-ref-switch .sc-ref-other {
+  stroke       : var(--sc-rule);
+  stroke-width : 1;
+}
+
+.sc-ref-switch .sc-ref-spark { stroke-width: 2; }

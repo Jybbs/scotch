@@ -1,0 +1,128 @@
+.sc-ref-plan {
+  display  : block;
+  width    : 100%;
+  height   : auto;
+  overflow : visible;
+}
+
+.sc-ref-frame {
+  fill             : none;
+  stroke           : var(--sc-rule);
+  stroke-dasharray : 8 8;
+  stroke-width     : 2.5;
+}
+
+.sc-ref-base {
+  stroke       : var(--sc-rule);
+  stroke-width : 2.5;
+}
+
+.sc-ref-fill {
+  fill       : var(--sc-run);
+  transition : fill-opacity var(--sc-duration-enter) var(--sc-curve-glide);
+}
+
+.sc-ref-out {
+  fill         : none;
+  stroke       : var(--sc-run);
+  stroke-width : 3.5;
+  transition   : stroke-width var(--sc-duration-fade), opacity var(--sc-duration-fade);
+}
+
+.sc-ref-nib {
+  fill         : var(--sc-run);
+  stroke       : var(--sc-page);
+  stroke-width : 4;
+}
+
+.sc-ref-guide {
+  opacity    : 0;
+  transition : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-guide path {
+  fill         : none;
+  stroke       : var(--sc-ink);
+  stroke-width : 4;
+  transition   : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-guide .sc-ref-halo-line {
+  stroke       : var(--sc-page);
+  stroke-width : 11;
+}
+
+.sc-ref-guide text {
+  font         : 500 30px var(--sc-face-code);
+  fill         : var(--sc-ink);
+  paint-order  : stroke;
+  stroke       : var(--sc-page);
+  stroke-width : 9px;
+  transition   : fill-opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-ref-guide[data-state='seen'], .sc-ref-guide[data-state='now'] { opacity: 1; }
+
+.sc-ref-guide[data-state='seen'] path { opacity: 0.3; }
+
+.sc-ref-guide[data-state='seen'] text { fill-opacity: 0.3; }
+
+.sc-ref-figure {
+  display               : grid;
+  grid-template-columns : auto minmax(0, 1fr);
+  gap                   : 2px 14px;
+  align-items           : start;
+}
+
+.sc-ref-figure > b {
+  font                 : 400 3rem/1 var(--sc-face-display);
+  font-variant-numeric : tabular-nums;
+}
+
+.sc-ref-figure h4 {
+  margin         : 0;
+  font           : 400 1.05rem/1.25 var(--sc-face-display);
+  letter-spacing : normal;
+}
+
+.sc-ref-figure p {
+  font  : 400 0.875rem/1.4 var(--sc-face-body);
+  color : var(--sc-quiet);
+}
+
+.sc-ref-list {
+  position : relative;
+  display  : grid;
+}
+
+.sc-ref[data-narrow] .sc-ref-list { display: none; }
+
+.sc-ref-list button {
+  position              : relative;
+  z-index               : 1;
+  display               : grid;
+  grid-template-columns : 1.3rem minmax(0, 1fr) auto;
+  align-items           : center;
+  height                : 25px;
+  padding               : 0 6px;
+  font                  : 400 0.8125rem/1 var(--sc-face-body);
+  color                 : var(--sc-quiet);
+  text-align            : left;
+  transition            : color var(--sc-duration-fade);
+}
+
+.sc-ref-list button small { color: inherit; }
+
+.sc-ref-list button em { font: 500 0.72rem/1 var(--sc-face-code); }
+
+.sc-ref-list button[data-known], .sc-ref-list button[aria-pressed='true'] { color: var(--sc-ink); }
+
+.sc-ref-slide {
+  position   : absolute;
+  top        : 0;
+  right      : 0;
+  left       : 0;
+  height     : 25px;
+  background : var(--sc-tint);
+  transition : transform var(--sc-duration-glide) var(--sc-curve-glide);
+}
