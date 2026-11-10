@@ -4,16 +4,18 @@ import { afterEach, describe, expect, vi }                   from 'vitest'
 import { shallowRef }                                        from 'vue'
 
 import { EXAMPLES }    from '../../../../lib/viewer/examples.ts'
+import { Loaded }      from '../../../../lib/viewer/loaded.ts'
 import { test }        from '../../../common/clock.ts'
 import { pressed }     from '../../../common/keys.ts'
-import { meet }        from '../../../common/matches.ts'
+import { last, meet }  from '../../../common/matches.ts'
 import { mountedTool } from '../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({
   useData: () => ({ frontmatter: shallowRef({ stats: [{ label: 'Games', value: '435,321' }] }) })
 }))
 
-const stored = EXAMPLES.match.stored!
+const parting = new Loaded(EXAMPLES.match).parting!
+const stored  = EXAMPLES.match.stored!
 
 enableAutoUnmount(afterEach)
 
@@ -21,6 +23,25 @@ afterEach(() => {
   document.body.replaceChildren()
   history.replaceState(null, '', location.pathname)
 })
+
+/**
+ * Reads, at the last position the two games share, whether the live region
+ * names the stored game's next move, how many boards draw each game's arrow,
+ * and the band's stored move as a reader hears it and as it is marked.
+ */
+function parted(wrapper: VueWrapper): unknown[] {
+  const named = wrapper.get('.sc-viewer-details [data-game="stored"]')
+  const drawn = (party: string): number =>
+    wrapper.findAll(`.sc-viewer-arrow[data-game="${party}"][data-on]`).length
+  return [
+    said(wrapper)[1]!.includes(`the stored game played ${parting} next`),
+    drawn('stored'),
+    drawn('submitted'),
+    named.find('.sc-viewer-hidden').exists() ? named.get('.sc-viewer-hidden').text() : named.text(),
+    named.find('[aria-hidden="true"]').exists(),
+    named.attributes('data-covered')
+  ]
+}
 
 /**
  * Presses or releases the pointer on a square of the stored board as it faces
@@ -97,6 +118,39 @@ describe('Tool covering the stored game', () => {
   })
 })
 
+describe('Tool covering where the two games part', () => {
+  test('leaves the stored game’s next move out of the status, the boards, and the band', async ({
+    clock
+  }) => {
+    history.replaceState(null, '', `#sample=match&ply=${last}&cover=1`)
+    const { wrapper } = mountedTool()
+    await flushPromises()
+    clock.advanceTimersByTime(5000)
+    expect(parted(wrapper)).toEqual([false, 0, 2, 'A covered move', true, ''])
+  })
+
+  test('names the stored game’s next move again once the cover lifts', async ({ clock }) => {
+    history.replaceState(null, '', `#sample=match&ply=${last}&cover=1`)
+    const { root, wrapper } = mountedTool()
+    await flushPromises()
+    await pressed(root, 'C')
+    await flushPromises()
+    clock.advanceTimersByTime(5000)
+    expect(parted(wrapper)).toEqual([true, 2, 2, parting, false, undefined])
+  })
+
+  test('clears the moves offered once a match loads while covered', async ({ clock }) => {
+    const { root, wrapper } = mountedTool()
+    await pressed(root, 'c')
+    await typed(wrapper, 'Bb4')
+    await wrapper.findAll('.sc-viewer-examples button')[0]!.trigger('click')
+    await flushPromises()
+    expect([said(wrapper)[2], wrapper.find('[data-control="cover"]').attributes('aria-pressed')])
+      .toEqual(['0 of 0 offered match', 'true'])
+    clock.advanceTimersByTime(5000)
+  })
+})
+
 describe('Tool taking a move while covered', () => {
   test('shows the stored move once a typed one is offered, naming the match and counting it', async ({
     clock
@@ -155,7 +209,38 @@ describe('Tool taking a move made on the stored board', () => {
   })
 })
 
+describe('Tool stepping on with a piece picked', () => {
+  test('lets a picked piece go once the cursor steps on', async ({ clock }) => {
+    const { root, wrapper } = mountedTool()
+    await pressed(root, 'c')
+    await flushPromises()
+    point(wrapper, 61, 'pointerdown')
+    point(wrapper, 61, 'pointerup')
+    await flushPromises()
+    await pressed(root, 'ArrowRight')
+    await flushPromises()
+    expect(wrapper.find('.sc-viewer-picked').exists()).toBe(false)
+    point(wrapper, 34, 'pointerdown')
+    point(wrapper, 34, 'pointerup')
+    await flushPromises()
+    expect(said(wrapper)[2]).toBe('0 of 0 offered match')
+    clock.advanceTimersByTime(5000)
+  })
+})
+
 describe('Tool taking a move while covered at the edges of the stored game', () => {
+  test('clears the field once it takes a move, keeping text it cannot take', async ({ clock }) => {
+    const { root, wrapper } = mountedTool()
+    const input             = wrapper.find('.sc-viewer-guess-field').element as HTMLInputElement
+    const field             = (): string => input.value
+    await pressed(root, 'c')
+    await typed(wrapper, 'hello')
+    const kept = field()
+    await typed(wrapper, 'Bb4')
+    expect([kept, field()]).toEqual(['hello', ''])
+    clock.advanceTimersByTime(5000)
+  })
+
   test('marks text that is no move in SAN and stays at the cursor', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
     await pressed(root, 'c')

@@ -37,11 +37,15 @@ function details(covering: boolean, loaded: Loaded): VNode {
           h('span', { 'class': 'sc-viewer-move-named', 'data-game': 'submitted' }, loaded.leaving),
           ' against ',
           h('span', {
-            'aria-label'   : covering ? COVERED : undefined,
             'class'        : 'sc-viewer-move-named',
             'data-covered' : covering ? '' : undefined,
             'data-game'    : 'stored'
-          }, loaded.parting)
+          }, covering
+            ? [
+                h('span', { 'aria-hidden': 'true' }, loaded.parting),
+                h('span', { class: 'sc-viewer-hidden' }, COVERED)
+              ]
+            : loaded.parting)
         ])
       : null
   ])

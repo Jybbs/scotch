@@ -8,10 +8,10 @@ import { standingOf }                                  from './placements.ts'
 
 /**
  * The Viewer's covered mode: whether the stored game is covered past the
- * cursor, the stored ply a player offers a move from at the cursor, what was
- * offered at each covered ply a step on showed, and the verdict on the move the
- * last step showed, beside the calls that cover the stored game and take an
- * offered move.
+ * cursor, the stored ply a player offers a move from at the cursor where none
+ * was taken there yet, what was offered at each covered ply a step on showed,
+ * and the verdict on the move the last step showed, beside the calls that cover
+ * the stored game and take an offered move.
  */
 export interface Guessing {
   cover   : (on: boolean) => void
@@ -56,7 +56,10 @@ export function passed(
 export function useGuessing(cursor: Readonly<Ref<number>>, loaded: Readonly<Ref<Loaded>>): Guessing {
   const covered = shallowRef(false)
   const guesses = shallowRef<ReadonlyMap<number, Guess>>(new Map())
-  const guess   = computed(() => covered.value ? guessAt(cursor.value, loaded.value) : undefined)
+  const guess   = computed(() => {
+    const ply = covered.value ? guessAt(cursor.value, loaded.value) : undefined
+    return ply === undefined || guesses.value.has(ply) ? undefined : ply
+  })
   const verdict = computed(() =>
     covered.value ? verdictAt(cursor.value, guesses.value, loaded.value) : undefined)
 

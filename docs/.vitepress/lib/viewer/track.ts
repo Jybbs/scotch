@@ -101,7 +101,7 @@ function drawCovered(context: CanvasRenderingContext2D, colors: TrackColors, x: 
   context.fillRect(x + GLYPH - 1, y, 1, GLYPH)
   for (let at = TRACK.hatch; at < GLYPH * 2; at += TRACK.hatch) {
     for (let step = Math.max(0, at - GLYPH + 1); step < Math.min(at, GLYPH - 1); step++) {
-      context.fillRect(x + step, y + GLYPH - 1 - (at - step), 1, 1)
+      context.fillRect(x + step, y + at - step, 1, 1)
     }
   }
 }

@@ -65,11 +65,12 @@ describe('useGuessing taking a move', () => {
     expect([viewer.take({ typed: 'Bb4' }), viewer.guesses.value.size]).toEqual([false, 0])
   })
 
-  it('takes a move at the cursor once covered, keeping the first offered there', () => {
+  it('takes a move at the cursor once covered, then no second one there', () => {
     const viewer = covering()
     viewer.cover(true)
-    expect([viewer.guess.value, viewer.take({ typed: 'Bb4' }), viewer.take({ typed: 'Bc5' })])
-      .toEqual([meet, true, true])
+    const [before, first] = [viewer.guess.value, viewer.take({ typed: 'Bb4' })]
+    expect([before, first, viewer.guess.value, viewer.take({ typed: 'Bc5' })])
+      .toEqual([meet, true, undefined, false])
     expect(viewer.guesses.value.get(meet)).toEqual({ matched: true, offered: 'Bb4' })
   })
 

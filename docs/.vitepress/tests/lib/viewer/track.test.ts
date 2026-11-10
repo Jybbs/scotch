@@ -165,6 +165,17 @@ describe('drawTrack while the stored game is covered', () => {
     expect(ruled(covered).difference(ruled(drawn(loaded))))
       .toEqual(new Set(Array.from({ length: stored - shared.meet }, (_, at) => at)))
   })
+
+  it('hatches a covered position along its rising diagonals, as the covered board is', () => {
+    const left  = columnAt(loaded, shared.meet + 1)
+    const sums  = new Set(covered.rects
+      .filter(({ fill }) => fill === 'rule')
+      .filter(({ h, w }) => h * w === 1)
+      .filter(({ x }) => Math.floor((x - left) / track.TRACK.column) === 0)
+      .filter(({ y }) => Math.floor((y - track.ROWS.stored) / track.GLYPH) === 0)
+      .map(({ x, y }) => (x - left + y - track.ROWS.stored) % track.TRACK.hatch))
+    expect(sums).toEqual(new Set([0]))
+  })
 })
 
 describe('drawTrack with nothing matched', () => {

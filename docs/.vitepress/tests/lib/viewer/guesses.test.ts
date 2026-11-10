@@ -7,6 +7,15 @@ const stored    = EXAMPLES.match.stored!
 const submitted = EXAMPLES.match.submitted
 
 /**
+ * A side whose one move promotes White's pawn on c7 to a knight.
+ */
+const underpromoted: Side = {
+  ...stored,
+  moves      : ['c8=N'],
+  placements : ['k7/2P5/8/8/8/8/8/K7', 'k1N5/8/8/8/8/8/8/K7']
+}
+
+/**
  * A side whose one move castles White's king short.
  */
 const castled: Side = {
@@ -34,7 +43,7 @@ describe('readSan', () => {
     expect(guesses.readSan(text)).toEqual(read)
   })
 
-  it.each(['', 'Nf9', 'nf3', 'e2-e4', 'Kx', 'O-O-O-O', 'hello'])('reads no move in %j', text => {
+  it.each(['', 'Nf9', 'nf3', 'e2-e4', 'e4!!!', 'Kx', 'O-O-O-O', 'hello'])('reads no move in %j', text => {
     expect(guesses.readSan(text)).toBeUndefined()
   })
 })
@@ -53,6 +62,9 @@ describe('judge', () => {
     expect(guesses.judge(offer, stored, 7)).toBe(matched)
   })
 
+})
+
+describe('judge at a promotion', () => {
   it.each<[string, guesses.Offer, boolean]>([
     ['the promotion typed', { typed: 'c8=Q' }, true],
     ['the promotion typed without its piece, taken as a queen', { typed: 'c8' }, true],
@@ -62,6 +74,17 @@ describe('judge', () => {
     expect(guesses.judge(offer, submitted, 48)).toBe(matched)
   })
 
+  it.each<[string, guesses.Offer, boolean]>([
+    ['the underpromotion typed', { typed: 'c8=N' }, true],
+    ['the promotion typed without its piece, taken as a queen', { typed: 'c8' }, false],
+    ['the pawn dragged to the last rank, taken as a queen', { hop: { from: 50, to: 58 } }, false]
+  ])('judges %s against an underpromotion', (_, offer, matched) => {
+    expect(guesses.judge(offer, underpromoted, 0)).toBe(matched)
+  })
+
+})
+
+describe('judge at a named rook, at castling, and at a move it cannot read', () => {
   it.each<[string, guesses.Offer, boolean]>([
     ['the capture typed naming its rook’s file', { typed: 'Raxc8' }, true],
     ['the capture typed naming no square it leaves', { typed: 'Rxc8' }, false],

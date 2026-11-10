@@ -47,10 +47,11 @@ export interface Verdict {
  * A move in SAN as the PGN standard writes it (Section 8.2.3), the piece letter
  * and the file or rank or square it leaves before an optional `x` and the
  * square it reaches, an optional promotion, and either castling, followed by a
- * check or mate sign and any annotation. The zero castling takes and the
- * promotion written without `=` are read as PGN import software reads them.
+ * check or mate sign and a suffix annotation of at most two characters
+ * (Section 8.2.3.8). The castling written with zeros and the promotion written
+ * without `=` are read as python-chess's `parse_san` reads them.
  */
-const SAN = /^(?:(?<castle>[O0]-[O0](?:-[O0])?)|(?<piece>[KQRBN])?(?<file>[a-h])?(?<rank>[1-8])?x?(?<to>[a-h][1-8])(?:=?(?<promotion>[QRBN]))?)[+#]?[!?]*$/u
+const SAN = /^(?:(?<castle>[O0]-[O0](?:-[O0])?)|(?<piece>[KQRBN])?(?<file>[a-h])?(?<rank>[1-8])?x?(?<to>[a-h][1-8])(?:=?(?<promotion>[QRBN]))?)[+#]?[!?]{0,2}$/u
 
 /**
  * Judges a move offered at the stored game's ply `ply` against the move the
