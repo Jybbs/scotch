@@ -38,6 +38,7 @@ import './styles/viewer/board.css'
 import './styles/viewer/controls.css'
 import './styles/viewer/ledger.css'
 import './styles/viewer/track.css'
+import './styles/viewer/guess.css'
 
 import { FIGURE } from '../lib/markdown/placements.ts'
 import { VIEWER } from '../lib/viewer/page.ts'

@@ -89,6 +89,17 @@ export const CONTROLS: readonly Control[] = [
   }
 ]
 /**
+ * The control covering the stored game past the cursor, which presses while
+ * the stored game is covered, beside the key that takes it.
+ */
+export const COVER: Key = {
+  cap   : 'C',
+  keys  : ['c'],
+  label : 'Cover',
+  name  : 'cover',
+  title : 'Cover the stored game’s moves past this position'
+}
+/**
  * The control turning both boards to the other side, which presses while the
  * boards face Black's, beside the key that takes it.
  */

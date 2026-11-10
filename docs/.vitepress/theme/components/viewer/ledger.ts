@@ -123,6 +123,9 @@ export const Ledger = defineComponent({
     })
 
     expose({
+      cover: (cursor?: number) => {
+        marker?.cover(cursor)
+      },
       load: () => {
         marker?.load(props.loaded, sheet.value)
       },

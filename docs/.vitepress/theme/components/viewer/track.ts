@@ -115,6 +115,9 @@ export const Track = defineComponent({
     })
 
     expose({
+      cover: (cursor?: number) => {
+        strip?.cover(cursor)
+      },
       load: () => {
         strip?.load(props.loaded, props.facing)
       },

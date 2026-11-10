@@ -3,12 +3,14 @@ import { lacking }                           from './shape.ts'
 import type { Facing }                       from './trail.ts'
 
 /**
- * What a link's fragment carries beside the match: the ply in view and the side
- * the boards are turned to.
+ * What a link's fragment carries beside the match: whether the stored game is
+ * covered past the cursor, the ply in view, and the side the boards are turned
+ * to.
  */
 export interface Place {
-  ply?  : number
-  side? : Facing
+  cover? : boolean
+  ply?   : number
+  side?  : Facing
 }
 
 /**
@@ -36,19 +38,24 @@ export async function encodedOf(match: Match): Promise<string> {
 
 /**
  * Writes the fragment carrying a match, as the example it is where it is one
- * and as its encoded text otherwise, beside the ply in view and the side the
- * boards are turned to where it is Black's.
+ * and as its encoded text otherwise, beside the ply in view, the side the
+ * boards are turned to where it is Black's, and the cover where the stored game
+ * is covered.
  *
  * Args:
  *   carried : The example's name, or the match's encoded text.
- *   place   : The ply in view and the boards' side.
+ *   place   : The cover, the ply in view, and the boards' side.
  */
-export function fragmentOf(carried: { encoded: string } | { sample: Sample }, { ply, side }: Place): string {
+export function fragmentOf(
+  carried              : { encoded: string } | { sample: Sample },
+  { cover, ply, side } : Place
+): string {
   const fields = new URLSearchParams()
   if ('sample' in carried) fields.set('sample', carried.sample)
   else fields.set('match', carried.encoded)
   if (ply !== undefined) fields.set('ply', String(ply))
   if (side === 'black') fields.set('side', side)
+  if (cover) fields.set('cover', '1')
   return fields.toString()
 }
 
@@ -65,6 +72,7 @@ export async function fromLink(fragment: string): Promise<Reading> {
   const fields = new URLSearchParams(fragment)
   const ply    = Number(fields.get('ply') ?? Number.NaN)
   const place  = {
+    ...fields.get('cover') === '1' ? { cover: true } : {},
     ...Number.isInteger(ply) ? { ply } : {},
     ...fields.get('side') === 'black' ? { side: 'black' as const } : {}
   }

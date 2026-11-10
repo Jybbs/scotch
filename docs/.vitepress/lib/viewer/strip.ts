@@ -37,6 +37,7 @@ export class TrackStrip {
   readonly #go       : (to: number) => void
   readonly #observer : ResizeObserver
   readonly #parts    : TrackParts
+  #covered?          : number
   #cursor            = 0
   #dragging          = false
   #facing            : Facing = 'white'
@@ -56,6 +57,16 @@ export class TrackStrip {
     })
     this.#observer.observe(parts.scroll)
     this.#listen()
+  }
+
+  /**
+   * Covers the stored game's positions past `cursor`, or shows them all where
+   * no cursor is given, drawing the track again where the cover moved.
+   */
+  cover(cursor?: number): void {
+    if (cursor === this.#covered) return
+    this.#covered = cursor
+    this.draw()
   }
 
   /**
@@ -86,7 +97,7 @@ export class TrackStrip {
     const context = canvas.getContext('2d')
     if (!context) return
     context.setTransform(ratio, 0, 0, ratio, 0, 0)
-    track.drawTrack(context, resolved(area, track.TRACK_ROLES), facing, loaded)
+    track.drawTrack(context, resolved(area, track.TRACK_ROLES), facing, loaded, this.#covered)
   }
 
   /**
