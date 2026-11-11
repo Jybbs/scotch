@@ -297,9 +297,14 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
         root / ".github/README.md"
     ).read_text()
     assert [
-        (root / "docs/assets" / f"lockup-{name}.svg").read_text().count(hexed)
-        for name, hexed in (("cashmere", "#e3c3a3"), ("walnut", "#764017"))
-    ] == [1, 1]
+        (root / "docs/assets" / f"lockup-{scheme}.svg").read_text().count(hexed)
+        for scheme, hexed in (
+            ("dark", "#e3c3a3"),
+            ("dark", "#a1a09e"),
+            ("light", "#764017"),
+            ("light", "#4f4e4e")
+        )
+    ] == [1, 1, 1, 1]
     assert loads((root / "docs/.vitepress/lib/rendered/identity.json").read_text())[
         "tagline"
     ] == "Find the grandmaster game closest to yours."
@@ -343,8 +348,8 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/pieces.json"),
         (Document, "docs/.vitepress/lib/rendered/terms.json"),
         (Document, "docs/public/favicon.svg"),
-        (Document, "docs/assets/lockup-cashmere.svg"),
-        (Document, "docs/assets/lockup-walnut.svg"),
+        (Document, "docs/assets/lockup-dark.svg"),
+        (Document, "docs/assets/lockup-light.svg"),
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
         (Region, "docs/pages/guide/index.md"),

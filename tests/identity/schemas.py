@@ -1,8 +1,9 @@
 """
 Pins the identity the site and its cards are drawn in, meaning the font
-stack each face writes, the colors a palette entry accepts, the fill
-`Color.filled` and the stylesheet `Palette.schemed` set on an SVG drawn in
-`currentColor`, and the JSON the site's stylesheets import.
+stack each face writes, the colors a palette entry accepts, the fills
+`Identity.filled` and the stylesheet `Palette.schemed` set on an SVG drawn
+in `currentColor`, the contrast the README's lockup holds on GitHub's
+grounds, and the JSON the site's stylesheets import.
 """
 
 from pydantic import ValidationError
@@ -55,16 +56,39 @@ def test_a_color_refuses_other_than_six_hex_digits(hex: str):
         Color(hex=hex, name="Walnut")
 
 
-def test_a_color_fills_an_svg_drawn_in_current_color():
+@mark.parametrize(
+    ("scheme", "run", "quiet"),
+    [("dark", "#e3c3a3", "#a1a09e"), ("light", "#764017", "#4f4e4e")]
+)
+def test_an_identity_fills_each_group_with_its_role(scheme: str, run: str, quiet: str):
     """
-    Asserts that each fill drawn in `currentColor` takes the color's hex,
-    leaving every other attribute as it stands.
+    Asserts that each group drawn in `currentColor` takes the color its
+    `data-role` names in the scheme, leaving a fill with no role and every
+    other attribute as they stand.
     """
-    svg = '<svg><g fill="currentColor" stroke="none"><path d="M0 0"/></g></svg>'
-
-    assert Color(hex="#764017", name="Walnut").filled(svg) == (
-        '<svg><g fill="#764017" stroke="none"><path d="M0 0"/></g></svg>'
+    svg = (
+        '<svg><g data-role="run" fill="currentColor" stroke="none"/>'
+        '<g data-role="quiet" fill="currentColor"/><g fill="currentColor"/></svg>'
     )
+
+    assert Identity().filled(scheme, svg) == (
+        f'<svg><g fill="{run}" stroke="none"/><g fill="{quiet}"/>'
+        '<g fill="currentColor"/></svg>'
+    )
+
+
+@mark.parametrize(("scheme", "ground"), [("dark", "#0d1117"), ("light", "#ffffff")])
+def test_the_lockup_holds_its_contrast_on_github(scheme: str, ground: str):
+    """
+    Asserts that the lockup's wordmark holds 3:1 and its tagline 4.5:1 on
+    the ground GitHub draws a README on in the scheme.
+    """
+    page       = Color(hex=ground, name="GitHub")
+    run, quiet = (
+        Identity().colored(role, scheme).contrast(page) for role in ("run", "quiet")
+    )
+
+    assert run >= 3 and quiet >= 4.5
 
 
 def test_a_palette_names_the_tokens_its_series_take():

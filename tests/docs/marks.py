@@ -124,7 +124,7 @@ def test_the_stops_run_by_width_each_size_read_from_its_svg(marks: Marks):
         ("Nav mark", 17, 24),
         ("Wordmark", 384, 102),
         ("Link card", 400, 200),
-        ("Lockup", 560, 191)
+        ("Lockup", 560, 186)
     ]
 
 

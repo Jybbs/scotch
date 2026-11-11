@@ -53,7 +53,9 @@ describe('Marks', () => {
 describe('Marks, at each place', () => {
   test('states the scale a mark too wide for the column is shown at', ({ clock }) => {
     resized(342)
-    expect(settled(clock).find('.sc-ref-readout small').text()).toMatch(/^560 by 191 px, shown at \d+%$/u)
+    const { height, width } = MARKS.stops.at(-1)!
+    expect(settled(clock).find('.sc-ref-readout small').text())
+      .toMatch(new RegExp(`^${width} by ${height} px, shown at \\d+%$`, 'u'))
   })
 
   test("reads the link card's own size at its stop and shows the card", async ({ clock }) => {

@@ -1,7 +1,7 @@
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../docs/assets/lockup-cashmere.svg">
-  <img src="../docs/assets/lockup-walnut.svg" alt="scotch. Find the grandmaster game closest to yours." width="560">
+  <source media="(prefers-color-scheme: dark)" srcset="../docs/assets/lockup-dark.svg">
+  <img src="../docs/assets/lockup-light.svg" alt="scotch. Find the grandmaster game closest to yours." width="560">
 </picture>
 
 <!-- badges -->

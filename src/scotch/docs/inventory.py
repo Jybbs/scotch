@@ -199,14 +199,15 @@ class Outputs(RootModel[list[Output]]):
                 ),
                 *(
                     Document(
-                        path   = Path(f"docs/assets/lockup-{color.name.lower()}.svg"),
-                        render = lambda color=color: color.filled(
+                        path   = Path(f"docs/assets/lockup-{scheme}.svg"),
+                        render = lambda scheme=scheme: identity.filled(
+                            scheme,
                             (root / "docs/assets/lockup.svg").read_text(
                                 encoding = "utf-8"
                             )
                         )
                     )
-                    for color in (palette.light, palette.primary)
+                    for scheme in ("dark", "light")
                 ),
                 Region(
                     name   = "badges",

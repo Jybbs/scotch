@@ -134,7 +134,7 @@ One S sets every mark, from the tab of a browser to the card a shared link shows
 | Nav mark | 17 | 24 | The nav mark is the same S at 24 pixels tall, beside the site's name. |
 | Wordmark | 384 | 102 | The front page sets the wordmark at 24rem wide, the letters added beside the same S. |
 | Link card | 400 | 200 | The drawing shows a link card at a third of its 1200 by 600 pixels, with the wordmark at 60 of the drawing's 400 and at 180 on the card, above the section's name and the two games' rails. |
-| Lockup | 560 | 191 | The README sets the lockup at 560 pixels wide, with the tagline set under the wordmark. |
+| Lockup | 560 | 186 | The README sets the lockup at 560 pixels wide, with the tagline set under the wordmark and within its width. |
 <!-- /marks -->
 
 ## The Mark's Construction

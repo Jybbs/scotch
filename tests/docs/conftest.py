@@ -118,10 +118,15 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
         """
         docs = tmp_path / "docs"
         (docs / "assets").mkdir(parents=True)
-        for asset in ("lockup", "mark", "wordmark"):
+        for asset in ("mark", "wordmark"):
             (docs / "assets" / f"{asset}.svg").write_text(
                 f'<svg viewBox="0 0 1 1"><path fill="currentColor" d="{MARK}"/></svg>'
             )
+        (docs / "assets/lockup.svg").write_text(
+            '<svg viewBox="0 0 1 1"><g data-role="run" fill="currentColor">'
+            f'<path d="{MARK}"/></g><g data-role="quiet" fill="currentColor">'
+            f'<path d="{MARK}"/></g></svg>'
+        )
         (docs / "package.json").write_text(
             dumps(
                 {"devDependencies": {face.package: "1" for _, face in Identity().faces}}

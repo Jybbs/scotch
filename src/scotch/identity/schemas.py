@@ -8,6 +8,7 @@ is drawn at, and the `Identity` gathering them beside the tagline, which
 
 from math     import cbrt, floor, sumprod
 from pydantic import BaseModel, Field, computed_field
+from re       import sub
 from typing   import Literal, Self
 
 type Paint = str | tuple[str, int, str]
@@ -131,12 +132,6 @@ class Color(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         darker, lighter = sorted((self.luminance, other.luminance))
 
         return (lighter + 0.05) / (darker + 0.05)
-
-    def filled(self, svg: str) -> str:
-        """
-        Fills an SVG drawn in `currentColor` with the color.
-        """
-        return svg.replace('fill="currentColor"', f'fill="{self.hex}"')
 
     def mixed(self, other: Self, share: int) -> Self:
         """
@@ -532,6 +527,24 @@ class Identity(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     """
     The line the site's front page and the README set beneath the wordmark.
     """
+
+    def colored(self, role: str, scheme: Literal["dark", "light"]) -> Color:
+        """
+        Resolves the color the role named `role` takes in `scheme`.
+        """
+        return self.palette.painted(getattr(getattr(self.roles, role), scheme))
+
+    def filled(self, scheme: Literal["dark", "light"], svg: str) -> str:
+        """
+        Fills each group of an SVG drawn in `currentColor` with the color
+        the role its `data-role` names takes in `scheme`, such as the
+        lockup's wordmark in the run's color and its tagline in a caption's.
+        """
+        return sub(
+            r'data-role="(\w+)" fill="currentColor"',
+            lambda role: f'fill="{self.colored(role[1], scheme).hex}"',
+            svg
+        )
 
     @computed_field
     @property

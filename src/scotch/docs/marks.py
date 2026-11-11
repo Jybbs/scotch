@@ -424,7 +424,7 @@ class Marks(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                     name     = "Lockup",
                     sentence = (
                         "The README sets the lockup at 560 pixels wide, with the "
-                        "tagline set under the wordmark."
+                        "tagline set under the wordmark and within its width."
                     ),
                     width = 560
                 )
