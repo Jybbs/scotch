@@ -1,9 +1,10 @@
 """
 Holds `Checkout`, the repository `scotch apply`, `scotch audit repo`,
 and `scotch lift pins` read, which loads each file into its record from
-`scotch.repo.schemas` or `scotch.repo.registries` the first time a check or
-a command reads it, asks mise for the tasks it declares, and lists the files
-`scotch render docs` writes from the declarations.
+`scotch.repo.schemas` or `scotch.repo.registries` the first time a check
+or a command reads it, reads the messages `Stops` declares, asks mise for
+the tasks it declares, and lists the files `scotch render docs` writes from
+the declarations.
 """
 
 from collections.abc import Iterator
@@ -13,7 +14,8 @@ from pathlib         import Path
 from pydantic        import BaseModel, InstanceOf
 from subprocess      import run
 
-from scotch.docs.inventory  import Outputs
+from scotch.docs.inventory import Outputs
+from scotch.docs.stops     import Stops
 from scotch.repo.registries import (
     Changelog,
     Contributing,
@@ -205,6 +207,13 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             for source in (*self.workflows, *self.actions)
             for step in source.steps
         )
+
+    @cached_property
+    def stops(self) -> Stops:
+        """
+        Reads the messages `src/scotch/docs/stops.toml` declares.
+        """
+        return Stops.read(self.root / Stops.path)
 
     @cached_property
     def tasks(self) -> tuple[Task, ...]:

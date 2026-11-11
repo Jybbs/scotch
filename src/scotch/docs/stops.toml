@@ -1,0 +1,132 @@
+modules = [
+    "rust/src/boards.rs",
+    "src/scotch/citations/schemas.py",
+    "src/scotch/cli/cite.py",
+    "src/scotch/cli/fetch.py",
+    "src/scotch/cli/index.py",
+    "src/scotch/cli/match.py",
+    "src/scotch/cli/settings.py",
+    "src/scotch/cli/show.py",
+    "src/scotch/games/schemas.py",
+    "src/scotch/index/tables.py"
+]
+
+[[stops]]
+clears   = "Pass the full path, such as `$PWD/-match.json`"
+commands = ["match game"]
+message  = "Unknown option: <json>"
+when     = "`--json` names a path opening on a hyphen other than `-` alone"
+
+[[stops]]
+clears   = "Name the flag the help lists, or remove the word"
+commands = ["show position"]
+message  = "Unknown option: <token>"
+when     = "A word of the position opens on a hyphen and names no option"
+
+[[stops]]
+clears   = "Name a file that exists and that the user running the command can read"
+commands = ["match game", "match games"]
+message  = "Cannot read <pgn>: <reason>"
+when     = "The file cannot be opened, with the reason the system gives"
+
+[[stops]]
+clears   = "Pass the file holding the game, a text whose movetext follows its tag pairs"
+commands = ["match game", "match games"]
+message  = "Found no game in <pgn>"
+when     = "The file holds no game"
+
+[[stops]]
+clears   = "Choose one through `--game`, counting from 1"
+commands = ["match game"]
+message  = "Found several games in <pgn>, which --game chooses among"
+when     = "The file holds several games and `--game` names none"
+
+[[stops]]
+clears   = "Choose a game the file holds, which `scotch match games` lists"
+commands = ["match game"]
+message  = "Found no game <n> in <pgn>"
+when     = "The file holds fewer games than `--game` counts"
+
+[[stops]]
+clears   = "Correct the move or the tag each line below it names"
+commands = ["match game"]
+message  = "Found problems in the game in <pgn>:"
+when     = "Reading the game recorded an error, such as an illegal move, or its `Variant` tag names a variant other than standard chess"
+
+[[stops]]
+clears   = "Write the placement, the side to move, the castling rights, and the en passant square"
+commands = ["show position"]
+message  = "The FEN <position> stops short of its first four fields, the placement, the side to move, the castling rights, and the en passant square, which together name a position"
+when     = "A FEN holds fewer than four fields"
+
+[[stops]]
+clears   = "Correct the FEN, whose placement names eight ranks and one king of each color"
+commands = ["show position"]
+message  = "names no position: <fen>"
+when     = "A FEN names no position a game can reach"
+
+[[stops]]
+clears   = "Correct the move or the word each line below it names"
+commands = ["show position"]
+message  = "Found problems in <position>:"
+when     = "A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line"
+
+[[stops]]
+clears   = "Spell the move in SAN, or remove the word"
+commands = ["show position"]
+message  = "names no move: '<word>'"
+when     = "A word of a line of moves reads as no move, beneath the line naming the problems"
+
+[[stops]]
+clears   = "Remove the blank line, or what follows it"
+commands = ["show position"]
+message  = "holds more past the end of its moves"
+when     = "A line of moves holds text past a blank line, beneath the line naming the problems"
+
+[[stops]]
+clears   = "Pass the reference `scotch match game` printed, such as `players/Kasparov.zip:193`"
+commands = ["show game"]
+message  = "No stored game is named <reference>"
+when     = "The index holds no game under the reference"
+
+[[stops]]
+clears   = "Run `scotch index games`"
+commands = ["match game", "match games", "show game", "show position"]
+message  = "No index has been built under <index>"
+when     = "The data directory holds no index"
+
+[[stops]]
+clears   = "Run `scotch index games`, which rebuilds the index in this layout"
+commands = ["match game", "match games", "show game", "show position"]
+message  = "The index under <index> holds another layout"
+when     = "The index was built in a layout other than the one this version reads"
+
+[[stops]]
+clears   = "Run `scotch fetch games`"
+commands = ["index games"]
+message  = "No file has been fetched under <downloads>"
+when     = "The manifest records no file `sources.toml` declares"
+
+[[stops]]
+clears   = "Run `scotch fetch games`, which downloads each file named below the line again"
+commands = ["index games"]
+message  = "These files changed on disk since their fetch, which `scotch fetch games` downloads again:"
+when     = "A fetched file no longer holds the bytes the manifest records"
+
+[[stops]]
+clears   = "Run the command again once the host answers, or raise `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S`"
+commands = ["fetch games"]
+message  = "Could not fetch <address>: <error>"
+when     = "The server answers with an error status, a request fails once every retry has, or the connection breaks while the file downloads"
+
+[[stops]]
+clears   = "Pass the key an entry's `@` line opens on, or add the entry"
+commands = ["cite source"]
+message  = "<key> names no entry in <file>"
+when     = "No entry of `docs/references.bib` holds the key"
+
+[[stops]]
+clears   = "Correct the block the line opens"
+commands = ["cite source"]
+message  = "Line <line> of <file> holds a block bibtexparser could not read: <reason>"
+when     = "A block of `docs/references.bib` cannot be read"

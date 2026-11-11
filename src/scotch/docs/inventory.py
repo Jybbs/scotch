@@ -9,12 +9,13 @@ from cyclopts        import App
 from functools       import cache, partial
 from pathlib         import Path
 from pydantic        import RootModel
-from rich.console    import Console
 from subprocess      import run
 from typing          import ClassVar, Self
 
 from scotch.citations.schemas import References
+from scotch.cli.settings      import Settings
 from scotch.docs.census       import Census
+from scotch.docs.commands     import Commands, commands
 from scotch.docs.examples     import Example
 from scotch.docs.marks        import Marks
 from scotch.docs.outputs      import Document, Figures, Footnotes, Output, Region
@@ -33,8 +34,13 @@ class Outputs(RootModel[list[Output]]):
     The files `scotch render docs` writes, in the order it writes them.
     """
 
-    games    : ClassVar[Path] = Path("docs/public/games")
-    rendered : ClassVar[Path] = Path("docs/.vitepress/lib/rendered")
+    commands : ClassVar[Path]    = Path("docs/pages/reference/commands.md")
+    games    : ClassVar[Path]    = Path("docs/public/games")
+    matches  : ClassVar[Path]    = Path("docs/public/matches")
+    position : ClassVar[str]     = "1. d4 Nf6 2. c4 e6"
+    rendered : ClassVar[Path]    = Path("docs/.vitepress/lib/rendered")
+    top      : ClassVar[int]     = 3
+    demo     : ClassVar[Example] = Example(path=games / "demo.pgn", shown=0)
 
     def __iter__(self) -> Iterator[Output]:
         """
@@ -52,19 +58,24 @@ class Outputs(RootModel[list[Output]]):
         """
         Lists the files written from `index`, meaning the store the Data
         pages, the Guide's store page, the identity page, and the Viewer
-        read, the file list the Data page draws, each file `sources.toml`
-        declares beside the games the store holds from it, the examples the
-        front page, the Methods page, and the link cards draw, the match
-        the Viewer opens on beside the demo game alone, the figures each
-        Markdown file of `pages` sets inside its sentences, the example run
-        the README and the Guide carry, and the tables the Data pages, the
-        Guide's store page, and the identity page set beneath their widgets.
+        read, the examples the front page, the Methods page, and the link
+        cards draw, the match the Viewer opens on beside the demo game
+        alone, the demo's match file, the file list the Data page draws,
+        each file `sources.toml` declares beside the games the store holds
+        from it, the figures each Markdown file of `pages` sets inside
+        its sentences, the example run the README and the Guide carry, the
+        example runs the commands page sets, and the tables the Data pages,
+        the Guide's store page, and the identity page set beneath their
+        widgets.
         """
         census   = Census(index=index)
         viewer   = Example(path=Outputs.games / "viewer.pgn", shown=0)
         examples = {
-            name: Example(path=Outputs.games / f"{name}.pgn", shown=shown)
-            for name, shown in (("demo", 0), ("front", 18), ("methods", 18))
+            "demo": Outputs.demo,
+            **{
+                name: Example(path=Outputs.games / f"{name}.pgn", shown=18)
+                for name in ("front", "methods")
+            }
         }
         drawn = cache(
             lambda: {name: example.drawn(
@@ -72,6 +83,7 @@ class Outputs(RootModel[list[Output]]):
                 root
             ) for name, example in examples.items()}
         )
+        demo    = cache(lambda: examples["demo"].exported(root, index))
         figures = cache(
             lambda: {
                 **census.rules.figures,
@@ -80,9 +92,12 @@ class Outputs(RootModel[list[Output]]):
                     f"{name}-{part}": value
                     for name, showing in drawn().items()
                     for part, value in showing.figures.items()
-                }
+                },
+                "link": f"{len(demo().link):,}"
             }
         )
+        submitted = cache(lambda: Outputs.demo.game(root))
+        found     = cache(lambda: index.matches(submitted(), top=Outputs.top + 1))
 
         return [
             Document.from_value(
@@ -92,6 +107,10 @@ class Outputs(RootModel[list[Output]]):
                     for name, example in examples.items()
                     if example.shown
                 }
+            ),
+            Document(
+                path   = Outputs.matches / "demo.json",
+                render = lambda: demo().model_dump_json(indent=2) + "\n"
             ),
             Document.from_value(
                 path  = Outputs.rendered / "files.json",
@@ -136,6 +155,60 @@ class Outputs(RootModel[list[Output]]):
                     ("docs/pages/reference/identity.md", "series")
                 )
             ),
+            *(
+                Region(name=f"run-{verb}-{noun}", path=Outputs.commands, render=render)
+                for (verb, noun), render in (
+                    (
+                        ("index", "games"),
+                        lambda: ran(
+                            "scotch index games",
+                            "…",
+                            index.written(Settings.model_construct().index)
+                        )
+                    ),
+                    (
+                        ("match", "game"),
+                        lambda: ran(
+                            f"scotch match game {Outputs.demo.path}"
+                            f" --top {Outputs.top}",
+                            found()[0].report(),
+                            *(match.line for match in found()[1:])
+                        )
+                    ),
+                    (
+                        ("match", "games"),
+                        lambda: ran(
+                            f"scotch match games {examples['demo'].path}",
+                            f"{examples['demo'].path.name}:1  {found()[0].line}"
+                        )
+                    ),
+                    (
+                        ("show", "game"),
+                        lambda: ran(
+                            f"scotch show game {found()[0].game.origin.reference}",
+                            found()[0].game.pgn
+                        )
+                    ),
+                    (
+                        ("show", "position"),
+                        lambda: ran(
+                            f"scotch show position {Outputs.position}"
+                            f" --top {Outputs.top}",
+                            index.answer(Outputs.position, Outputs.top).summary
+                        )
+                    ),
+                    (
+                        ("show", "store"),
+                        lambda: ran(
+                            "scotch show store",
+                            "…",
+                            index.held,
+                            "The index was built from the files as fetched",
+                            "Next: scotch match game <pgn>"
+                        )
+                    )
+                )
+            ),
             *(Figures(path=page, values=figures) for page in pages)
         ]
 
@@ -154,7 +227,7 @@ class Outputs(RootModel[list[Output]]):
         since a region a file holds may set a figure or cite a source.
 
         Args:
-            app    : The command line whose help the Guide carries.
+            app    : The command line the commands page describes.
             readme : The README `[project].readme` names, relative to
                      `root`.
             root   : The repository's root.
@@ -169,6 +242,7 @@ class Outputs(RootModel[list[Output]]):
         references = cache(partial(References.shipped, root))
         palette    = identity.palette
         reference  = Reference(identity=identity, root=root)
+        described  = Commands(app=app)
 
         return cls(
             [
@@ -271,17 +345,50 @@ class Outputs(RootModel[list[Output]]):
                         ("identity.md", "pieces"),
                         ("identity.md", "marks"),
                         ("identity.md", "construction"),
-                        ("terms.md", "terms")
+                        ("terms.md", "terms"),
+                        ("files.md", "layout"),
+                        ("files.md", "manifest"),
+                        ("files.md", "columns"),
+                        ("files.md", "sections"),
+                        ("files.md", "warning"),
+                        ("match.md", "export"),
+                        ("match.md", "side"),
+                        ("match.md", "span")
                     )
                 ),
                 *(
                     Region(
-                        name   = f"help-{'-'.join(tokens)}",
-                        path   = Path("docs/pages/guide/commands.md"),
-                        render = lambda tokens=tokens:
-                            f"```text\n{helped(app, *tokens)}\n```"
+                        name   = f"command-{verb}-{noun}",
+                        path   = cls.commands,
+                        render = partial(described.section, verb, noun)
                     )
-                    for tokens in commands(app)
+                    for verb, noun in commands(app)
+                ),
+                Region(
+                    name   = "run-cite-source",
+                    path   = cls.commands,
+                    render = lambda: ran(
+                        "scotch cite source zobrist1970",
+                        references().cite("zobrist1970")
+                    )
+                ),
+                Region(
+                    name   = "run-fetch-games",
+                    path   = cls.commands,
+                    render = lambda: ran(
+                        "scotch fetch games",
+                        *(
+                            f"Fetched {source.address}"
+                            for source in sources.sources[:3]
+                        ),
+                        "…",
+                        f"Fetched {sources.sources[-1].address}"
+                    )
+                ),
+                Document(
+                    path   = cls.matches / "alone.json",
+                    render = lambda: cls.demo.exported(root).model_dump_json(indent=2)
+                    + "\n"
                 ),
                 *(cls.measured(index, pages, readme, root) if index else []),
                 *(
@@ -295,33 +402,12 @@ class Outputs(RootModel[list[Output]]):
         )
 
 
-def commands(app: App) -> Iterator[tuple[str, str]]:
+def ran(command: str, *lines: str) -> str:
     """
-    Yields the verb and the noun of each command the help of `app` lists,
-    leaving out each group it hides.
+    Writes `command` above the `lines` it prints, each in a block of its
+    own.
     """
-    for verb in app:
-        if not verb.startswith("-") and app[verb].show:
-            yield from ((verb, noun) for noun in app[verb] if not noun.startswith("-"))
-
-
-def helped(app: App, *tokens: str) -> str:
-    """
-    Captures the help of the command `tokens` name at 80 columns with no
-    color, each line's trailing spaces removed.
-    """
-    console = Console(color_system=None, force_terminal=False, width=80)
-
-    with console.capture() as capture:
-        app.help_print(tokens, console=console)
-
-    return "\n".join(
-        line.rstrip() for line in (
-            capture.get()
-                   .strip()
-                   .splitlines()
-        )
-    )
+    return f"```bash\n{command}\n```\n\n```text\n{'\n'.join(lines)}\n```"
 
 
 def tracked(root: Path) -> list[Path]:

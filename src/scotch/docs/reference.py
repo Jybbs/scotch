@@ -1,8 +1,10 @@
 """
 Holds `Reference`, the tables the Reference section's pages set beneath
-their drawings, each written from what declares it, meaning `Settings`,
-what `mise tasks` reports, the `Identity`, `Marks`, `Terms`, and what
-python-chess ships, so a change to any of them reaches its page through the
+their drawings, each written from what declares it, meaning `Settings`, what
+`mise tasks` reports, the `Identity`, `Marks`, `Terms`, what python-chess
+ships, the hosts `sources.toml` names, the records of the manifest and the
+match file, the `COLUMNS` of the games table, and the crate's `SECTIONS`
+of `positions.bin`, so a change to any of them reaches its page through the
 next `scotch render docs`.
 """
 
@@ -26,8 +28,12 @@ from scotch.cli.settings     import Settings, root
 from scotch.docs.marks       import Marks
 from scotch.docs.tallies     import markdown
 from scotch.docs.terms       import Terms
+from scotch.games            import readers
 from scotch.identity.schemas import Color, Identity, Role
+from scotch.index.schemas    import COLUMNS, Export, Side, Span
+from scotch.index.tables     import PositionIndex
 from scotch.repo.schemas     import Task
+from scotch.sources.schemas  import Download, Manifest, Sources
 
 
 class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -64,11 +70,34 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     """
 
     @property
+    def columns(self) -> str:
+        """
+        Writes a table of each column of `games.parquet`, its Polars type,
+        and its meaning, as `COLUMNS` declares them.
+        """
+        return markdown(
+            headers = ("Column", "Type", "Meaning"),
+            right   = False,
+            rows    = (
+                (f"`{name}`", f"`{dtype}`", meaning)
+                for name, (dtype, meaning) in COLUMNS.items()
+            )
+        )
+
+    @property
     def construction(self) -> str:
         """
         Writes the table of each length of the mark.
         """
         return Marks.read(self.root).lengths
+
+    @property
+    def export(self) -> str:
+        """
+        Writes a table of each field of the match file, as `Export` declares
+        them.
+        """
+        return fielded(Export)
 
     @property
     def faces(self) -> str:
@@ -94,6 +123,60 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
                 for slot, face in self.identity.faces
             )
         )
+
+    @property
+    def layout(self) -> str:
+        """
+        Writes a table of each file a run writes under the default data
+        directory, the command writing it, and what it holds, with one row
+        for the folder of each host `sources.toml` names.
+        """
+        settings = Settings.model_construct()
+        index    = settings.index
+        fetched  = "`scotch fetch games`"
+        built    = "`scotch index games`"
+
+        return markdown(
+            headers = ("Path", "Written By", "Holds"),
+            right   = False,
+            rows    = (
+                *(
+                    (
+                        f"`{settings.downloads / host}/`",
+                        fetched,
+                        "Each file of the host `sources.toml` declares, under the "
+                        "path its address names"
+                    )
+                    for host in sorted(
+                        {source.address.host for source in Sources.read().sources}
+                    )
+                ),
+                (
+                    f"`{Manifest.path(settings.downloads)}`",
+                    fetched, "The record of each fetched file, keyed by its address"
+                ),
+                (
+                    f"`{PositionIndex.table(index)}`",
+                    built, "One row for each stored game"
+                ),
+                (
+                    f"`{PositionIndex.path(index)}`",
+                    built, "Every position the stored games reach, beside their moves"
+                ),
+                (
+                    f"`{Manifest.path(index)}`",
+                    built, "A copy of the manifest the files were read under"
+                )
+            )
+        )
+
+    @property
+    def manifest(self) -> str:
+        """
+        Writes a table of each field the manifest records of a fetched file,
+        as `Download` declares them.
+        """
+        return fielded(Download)
 
     @property
     def marks(self) -> str:
@@ -280,6 +363,20 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         )
 
     @property
+    def sections(self) -> str:
+        """
+        Writes a table of each section of `positions.bin` in the order the
+        file holds them, as the crate's `SECTIONS` declares them.
+        """
+        return markdown(
+            headers = ("Section", "Held As", "Holds"),
+            right   = False,
+            rows    = (
+                (f"`{name}`", held, holds) for name, held, holds in readers.SECTIONS
+            )
+        )
+
+    @property
     def settings(self) -> str:
         """
         Writes a table of each setting, its `SCOTCH_` variable, its key
@@ -292,13 +389,29 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
                 (
                     f"`{Settings.model_config['env_prefix']}{name.upper()}`",
                     f"`{name}`",
-                    kind(field),
+                    typed(field),
                     f"`{field['default']}`",
                     " ".join(field["description"].split())
                 )
                 for name, field in Settings.model_json_schema()["properties"].items()
             )
         )
+
+    @property
+    def side(self) -> str:
+        """
+        Writes a table of each field of one game of the match file, as
+        `Side` declares them.
+        """
+        return fielded(Side)
+
+    @property
+    def span(self) -> str:
+        """
+        Writes a table of each field of the run the match file records, as
+        `Span` declares them.
+        """
+        return fielded(Span)
 
     @property
     def tasks(self) -> str:
@@ -332,6 +445,14 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         """
         return Terms.read().page
 
+    @property
+    def warning(self) -> str:
+        """
+        Writes the line a command reading the index prints where the files
+        changed since it was built, under the default data directory.
+        """
+        return f"```text\n{Settings.model_construct().warning}\n```"
+
     def played(self, token: str) -> str:
         """
         Writes the roles the palette color `token` takes in either scheme,
@@ -349,17 +470,19 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         ) or ("No role, a chart series" if series else "No role")
 
 
-def kind(field: dict[str, object]) -> str:
+def fielded(record: type[BaseModel]) -> str:
     """
-    Writes the type a setting's JSON schema `field` declares, with its
-    bound.
+    Writes a table of each field `record` declares, the JSON type it is
+    written as, and its meaning, from its JSON schema.
     """
-    match field:
-        case {"format": "path"}: return "A path"
-        case {"minimum": bound, "type": "integer"}: return f"An integer from {bound}"
-        case {"exclusiveMinimum": bound, "type": "number"}:
-            return f"A number above {bound}"
-        case _: return f"{field['type']}"
+    return markdown(
+        headers = ("Field", "Type", "Meaning"),
+        right   = False,
+        rows    = (
+            (f"`{name}`", typed(field), " ".join(field["description"].split()))
+            for name, field in record.model_json_schema()["properties"].items()
+        )
+    )
 
 
 def named(piece: Piece) -> str:
@@ -386,3 +509,27 @@ def reach(piece: Piece, square: str) -> int:
     board.turn = piece.color
 
     return board.pseudo_legal_moves.count()
+
+
+def typed(field: dict[str, object]) -> str:
+    """
+    Writes the JSON type a field's schema `field` declares, with its bound,
+    naming the record a nested object holds.
+    """
+    match field:
+        case {"anyOf": [inner, {"type": "null"}]}: return f"{typed(inner)}, or `null`"
+        case {"$ref": ref}:
+            return f"An object, as `{ref.rpartition('/')[2]}` holds it"
+        case {"format": "path"}: return "A path"
+        case {"type": "array", "items": {"type": "string"}}:
+            return "An array of strings"
+        case {"type": "object", "additionalProperties": {"type": "string"}}:
+            return "An object of strings"
+        case {"exclusiveMinimum": bound, "type": "integer"}:
+            return f"An integer from {bound + 1}"
+        case {"minimum": bound, "type": "integer"}: return f"An integer from {bound}"
+        case {"exclusiveMinimum": bound, "type": "number"}:
+            return f"A number above {bound}"
+        case {"format": "date-time", "type": "string"}: return "A date and a time"
+        case {"type": "integer"}: return "An integer"
+        case _: return f"A {field['type']}"

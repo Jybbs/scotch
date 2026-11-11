@@ -45,6 +45,6 @@ Each command prints plain text a reader pastes into the next command:
 - `scotch show position` takes a FEN or a line of moves, and prints each move the stored games played from that position, how those games ended, and the newest of them
 - `scotch show store` reports the files, the index, and the command to run next
 
-[The Commands](commands.md) gives each command's help, and [The Store](store.md) follows the fetch and the index, then the steps that add a source.
+[The Commands](../reference/commands.md) sets out each command, and [The Store](store.md) follows the fetch and the index, then the steps that add a source.
 
 [^edwards1994c]: Edwards, Steven J., coordinator. 1994. "Standard: Portable Game Notation Specification and Implementation Guide," Section 16.1, FEN. <https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c16.1>

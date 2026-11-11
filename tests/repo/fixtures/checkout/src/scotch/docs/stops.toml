@@ -1,0 +1,25 @@
+modules = ["rust/src/boards.rs", "src/scotch/cli/run.py"]
+
+[[stops]]
+clears   = "Name a file the command can read"
+commands = ["run game"]
+message  = "Cannot read <pgn>"
+when     = "The file cannot be opened"
+
+[[stops]]
+clears   = "Correct each line below it"
+commands = ["run game"]
+message  = "Found problems in <pgn>:"
+when     = "The game holds an error"
+
+[[stops]]
+clears   = "Correct the FEN"
+commands = ["run game"]
+message  = "names no position: <fen>"
+when     = "A FEN names no position"
+
+[[stops]]
+clears   = "Pass another word"
+commands = ["run game"]
+message  = "names no move: '<word>'"
+when     = "A word names no move"

@@ -238,4 +238,9 @@ impl Held {
 mod readers {
     #[pymodule_export]
     use super::{Held, encoded, keys, read, skipped, standing, trails};
+
+    /// Each section of `positions.bin`, by its name, beside how it is held and
+    /// what it holds, in the order the file holds them.
+    #[pymodule_export]
+    const SECTIONS: [(&str, &str, &str); 18] = crate::SECTIONS;
 }

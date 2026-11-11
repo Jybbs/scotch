@@ -6,16 +6,30 @@ itself to.
 """
 
 from abc             import ABC, abstractmethod
+from ast             import (
+    AST,
+    Attribute,
+    Call,
+    Constant,
+    GeneratorExp,
+    JoinedStr,
+    List,
+    Name,
+    Tuple,
+    parse,
+    walk
+)
 from collections.abc import Iterator
 from itertools       import combinations
 from math            import dist
 from more_itertools  import duplicates_everseen, unique_everseen
 from pathlib         import Path
 from pydantic        import BaseModel, ValidationError
-from re              import search
+from re              import findall, search, sub
 from statistics      import mode
 from typing          import ClassVar
 
+from scotch.docs.stops    import Stops
 from scotch.repo.checkout import Checkout
 from scotch.repo.schemas  import Cache, Finding, exact
 
@@ -726,6 +740,56 @@ class SitePinCheck(Check):
                 )
 
 
+class StopCheck(Check):
+    """
+    Fails where the messages `src/scotch/docs/stops.toml` declares, which
+    the commands page lists, differ from the ones the files it covers print,
+    meaning a message no such file holds, or one a Python file among them
+    raises through `SystemExit` or `ValueError` that the registry leaves
+    out.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at the registry for each message no file holds, and
+        a finding at the line of each message raised and left out of it.
+        """
+        stops    = self.checkout.stops
+        declared = {stop.template for stop in stops.stops}
+        held     = set()
+
+        for module in stops.modules:
+            path = self.checkout.root / module
+            text = path.read_text(encoding="utf-8")
+
+            if path.suffix == ".rs":
+                held.update(
+                    sub(r"\{[^{}]*\}", "{}", literal)
+                    for literal in findall(r'"((?:[^"\\]|\\.)*)"', text)
+                )
+                continue
+
+            tree = parse(text)
+            held.update(filter(None, map(templated, walk(tree))))
+
+            for node, template in raised(tree):
+                if template not in declared:
+                    yield Finding(
+                        line    = node.lineno,
+                        message = f"`{template}` is raised here and missing from"
+                                  f" `{Stops.path}`",
+                        path = path
+                    )
+
+        for stop in stops.stops:
+            if stop.template not in held:
+                yield Finding(
+                    line    = None,
+                    message = f"`{stop.message}` is held by no file `modules` names",
+                    path    = self.checkout.root / Stops.path
+                )
+
+
 class SummaryCheck(Check):
     """
     Fails where a job other than a gate, or a step of a composite action,
@@ -868,6 +932,52 @@ class WrapperCheck(Check):
                     message = f"The wrapper's bytes differ from `{wrappers[0].name}`'s",
                     path    = wrapper
                 )
+
+
+def joined(message: AST) -> list[AST]:
+    """
+    Lists each line `message` writes, meaning each element of the tuple or
+    the list a `"\\n".join` reads, the element a generator it reads yields,
+    or `message` itself where it is no such call.
+    """
+    match message:
+        case Call(func=Attribute(attr="join"), args=[Tuple() | List() as lines]):
+            return lines.elts
+        case Call(func=Attribute(attr="join"), args=[GeneratorExp(elt=line)]):
+            return [line]
+        case _: return [message]
+
+
+def raised(tree: AST) -> Iterator[tuple[Call, str]]:
+    """
+    Yields each call to `SystemExit` or `ValueError` in `tree` beside
+    each message template it raises, reading each line of a message a
+    `"\\n".join` assembles, and leaving out a message built at run time,
+    such as `str(error)`.
+    """
+    for node in walk(tree):
+        match node:
+            case Call(func=Name(id="SystemExit" | "ValueError"), args=[message]):
+                for template in filter(None, map(templated, joined(message))):
+                    yield node, template
+
+
+def templated(node: AST) -> str | None:
+    """
+    Reads the string `node` writes with each value an f-string fills in
+    as `{}`, quoted where `!r` converts it, or `None` where `node` is no
+    string.
+    """
+    match node:
+        case Constant(value=str(value)): return value
+        case JoinedStr(values=values):
+            return "".join(
+                part.value if isinstance(part, Constant)
+                else "'{}'" if part.conversion == ord("r")
+                else "{}"
+                for part in values
+            )
+        case _: return None
 
 
 def unread(error: ValidationError) -> Iterator[Finding]:
