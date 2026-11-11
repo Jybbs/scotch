@@ -15,6 +15,34 @@ from scotch.docs.commands import Commands, commands
 from scotch.docs.stops    import Stop, Stops
 
 
+def test_a_flag_answers_only_to_the_names_the_default_parameter_of_its_group_allows():
+    """
+    Asserts that a flag of a command reads as the one name it answers to
+    where the group holding the command, rather than the app, gives a flag
+    no negative name.
+    """
+
+    def run(*, flag: bool = False):
+        """
+        Runs.
+
+        Args:
+            flag: The flag.
+        """
+
+    group  = App(name="do", default_parameter=Parameter(negative=()))
+    sample = App(name="sample")
+    sample.command(group)
+    group.command(run)
+    section = Commands(app=sample, stops=Stops(modules=(), stops=())).section(
+        "do",
+        "run"
+    )
+
+    assert "| `--flag` | A flag | Off |" in section
+    assert "--no-flag" not in section
+
+
 def test_a_flag_answers_only_to_the_names_the_default_parameter_of_the_app_allows():
     """
     Asserts that `--link` reads as the one name it answers to, since the

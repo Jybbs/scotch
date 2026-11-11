@@ -12,7 +12,7 @@ modules = [
 ]
 
 [[stops]]
-clears   = "Pass the path through its folder, such as `$PWD/-match.json`"
+clears   = "Pass the full path, such as `$PWD/-match.json`"
 commands = ["match game"]
 message  = "Unknown option: <json>"
 when     = "`--json` names a path opening on a hyphen other than `-` alone"

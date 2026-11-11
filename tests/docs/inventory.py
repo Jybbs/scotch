@@ -238,13 +238,11 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
 @mark.parametrize(
     "argv",
     [
-        param(
-            ("match", "game", str(Outputs.demo.path), "--top", str(Outputs.top)),
-            id = "match-game"
-        ),
+        param(("match", "game", str(Outputs.demo.path), "--top", "1"), id="match-game"),
         param(("match", "games", str(Outputs.demo.path)), id="match-games"),
+        param(("show", "game", "Kasparov.zip:1"), id="show-game"),
         param(
-            ("show", "position", *Outputs.position.split(), "--top", str(Outputs.top)),
+            ("show", "position", "1.", "Nf3", "Nf6", "2.", "c4", "--top", "1"),
             id = "show-position"
         )
     ]
@@ -263,6 +261,8 @@ def test_each_example_run_holds_what_its_command_prints(
     alone sets is what the command prints against that index.
     """
     monkeypatch.setattr(Census, "store", tally)
+    monkeypatch.setattr(Outputs, "position", "1. Nf3 Nf6 2. c4")
+    monkeypatch.setattr(Outputs, "top", 1)
     index = scanned(
         game.model_copy(
             update = {

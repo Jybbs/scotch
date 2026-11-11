@@ -50,10 +50,8 @@ class Commands(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             for paragraph in getdoc(command.default_command).split("\n\n")
             if not paragraph.startswith("Args:")
         ]
-        arguments = command.assemble_argument_collection(
-            default_parameter = self.app.default_parameter,
-            parse_docstring   = True
-        )
+        with self.app.app_stack(list(tokens)):
+            arguments = command.assemble_argument_collection(parse_docstring=True)
         stops = self.stops.table(" ".join(tokens))
         usage = format_usage(self.app, list(tokens)).plain.strip()
 

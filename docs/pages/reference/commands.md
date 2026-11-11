@@ -1,6 +1,6 @@
 # The Commands
 
-Each command the help of `scotch` lists takes a section below, which `mise run docs:render` writes from what the command line declares, meaning the command's docstring, its usage, and the type, the bound, the default, and the help of each parameter. The messages a command exits nonzero on come from `src/scotch/docs/stops.toml`, which `mise run repo:audit` holds to the messages the code prints. Beneath each section sits an example run, its output written from the index wherever the index alone sets it. The runs write the data directory as `.cache/data`, which a run prints as its full path under the project's root, and [the Guide](../guide/index.md) walks through a first match.
+Each command the help of `scotch` lists takes a section below, which `mise run docs:render` writes from what the command line declares, meaning the command's docstring, its usage, and the type, the bound, the default, and the help of each parameter. The messages a command exits nonzero on come from `src/scotch/docs/stops.toml`, which `mise run repo:audit` holds to the messages the code prints. Beneath each section sits an example run, its output written from the index wherever the index alone sets it. The example runs write the data directory as `.cache/data`, where a real run prints its full path under the project's root. [The Guide](../guide/index.md) walks through a first match.
 
 <!-- command-cite-source -->
 ## `scotch cite source`
@@ -125,7 +125,7 @@ It exits nonzero on each message below.
 
 | **Message** | **When** | **Clears It** |
 |---|---|---|
-| `Unknown option: <json>` | `--json` names a path opening on a hyphen other than `-` alone | Pass the path through its folder, such as `$PWD/-match.json` |
+| `Unknown option: <json>` | `--json` names a path opening on a hyphen other than `-` alone | Pass the full path, such as `$PWD/-match.json` |
 | `Cannot read <pgn>: <reason>` | The file cannot be opened, with the reason the system gives | Name a file that exists and that the user running the command can read |
 | `Found no game in <pgn>` | The file holds no game | Pass the file holding the game, a text whose movetext follows its tag pairs |
 | `Found several games in <pgn>, which --game chooses among` | The file holds several games and `--game` names none | Choose one through `--game`, counting from 1 |
