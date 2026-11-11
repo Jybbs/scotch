@@ -1,7 +1,9 @@
 """
 Pins `Reference`, meaning the table of each setting, of each task under
 its group, of each color and role with its contrast, of each face with its
-package, and of each piece with its reach.
+package, of each piece with its reach, of each file a run writes under the
+data directory, of each section of `positions.bin`, and of each field of the
+match file and the manifest.
 """
 
 from chess   import Piece
@@ -11,7 +13,8 @@ from pytest  import MonkeyPatch, fixture, mark, param
 from pytest_subprocess.fake_process import FakeProcess
 
 from scotch.cli.settings     import Settings
-from scotch.docs.reference   import Reference, kind, reach
+from scotch.docs.reference   import Reference, reach, typed
+from scotch.games            import readers
 from scotch.identity.schemas import Identity
 
 
@@ -33,31 +36,6 @@ def reference(tmp_path: Path) -> Reference:
     )
 
     return Reference(root=tmp_path)
-
-
-@mark.parametrize(
-    ("field", "worded"),
-    [
-        param({"format": "path", "type": "string"}, "A path", id="path"),
-        param(
-            {"minimum": 1, "type": "integer"},
-            "An integer from 1",
-            id = "bounded-integer"
-        ),
-        param(
-            {"exclusiveMinimum": 0, "type": "number"},
-            "A number above 0",
-            id = "bounded-number"
-        ),
-        param({"type": "boolean"}, "boolean", id="otherwise")
-    ]
-)
-def test_kind_writes_the_type_a_setting_declares(field: dict[str, object], worded: str):
-    """
-    Asserts that a setting's type reads as its schema declares it, with any
-    bound it holds.
-    """
-    assert kind(field) == worded
 
 
 @mark.parametrize(
@@ -124,6 +102,43 @@ def test_the_faces_table_reads_each_faces_version_from_the_manifest(
         "| `body` | Petrona | `@fontsource-variable/petrona` ^1.2.3"
         " | SIL Open Font License 1.1 |"
     ) in reference.faces
+
+
+def test_the_field_tables_hold_a_row_per_declared_field(reference: Reference):
+    """
+    Asserts that the tables of the games table, the manifest, and the match
+    file each hold one row for each field their record declares, in the
+    order it declares them.
+    """
+    names = lambda table: [row.split("`")[1] for row in table.splitlines()[2:]]
+
+    assert [
+        names(getattr(reference, name))
+        for name in ("columns", "manifest", "export", "side", "span")
+    ] == [
+        ["game", "errors", "origin", "plies", "result", "tags"],
+        ["etag", "sha256", "size_bytes", "fetched"],
+        ["submitted", "span", "stored", "ties"],
+        ["headers", "moves", "placements"],
+        ["length", "offset", "start"]
+    ]
+
+
+def test_the_layout_table_names_each_file_under_the_default_data_directory(
+    reference: Reference
+):
+    """
+    Asserts that the layout lists the folder of each host, then the
+    manifest, then the index's files and its copy of the manifest, each
+    under the default data directory beside the command writing it.
+    """
+    assert [row.split(" | ")[:2] for row in reference.layout.splitlines()[2:]] == [
+        ["| `.cache/data/downloads/www.pgnmentor.com/`", "`scotch fetch games`"],
+        ["| `.cache/data/downloads/manifest.json`", "`scotch fetch games`"],
+        ["| `.cache/data/index/games.parquet`", "`scotch index games`"],
+        ["| `.cache/data/index/positions.bin`", "`scotch index games`"],
+        ["| `.cache/data/index/manifest.json`", "`scotch index games`"]
+    ]
 
 
 def test_the_palette_tables_hold_each_color_and_its_contrast(reference: Reference):
@@ -290,6 +305,76 @@ def test_the_root_names_the_default_and_what_root_reads(reference: Reference):
     )
 
 
+@mark.parametrize(
+    ("field", "worded"),
+    [
+        param({"type": "integer"}, "An integer", id="integer"),
+        param({"minimum": 0, "type": "integer"}, "An integer from 0", id="from-zero"),
+        param(
+            {"exclusiveMinimum": 0, "type": "integer"},
+            "An integer from 1",
+            id = "above-zero"
+        ),
+        param({"type": "string"}, "A string", id="string"),
+        param({"type": "boolean"}, "A boolean", id="boolean"),
+        param({"format": "path", "type": "string"}, "A path", id="path"),
+        param(
+            {"exclusiveMinimum": 0, "type": "number"},
+            "A number above 0",
+            id = "bounded-number"
+        ),
+        param(
+            {"format": "date-time", "type": "string"},
+            "A date and a time",
+            id = "instant"
+        ),
+        param(
+            {"type": "array", "items": {"type": "string"}},
+            "An array of strings",
+            id = "array"
+        ),
+        param(
+            {"type": "object", "additionalProperties": {"type": "string"}},
+            "An object of strings",
+            id = "mapping"
+        ),
+        param({"$ref": "#/$defs/Side"}, "An object, as `Side` holds it", id="record"),
+        param(
+            {"anyOf": [{"$ref": "#/$defs/Span"}, {"type": "null"}]},
+            "An object, as `Span` holds it, or `null`",
+            id = "optional-record"
+        ),
+        param(
+            {"anyOf": [{"type": "string"}, {"type": "null"}]},
+            "A string, or `null`",
+            id = "optional-string"
+        )
+    ]
+)
+def test_typed_writes_the_json_type_a_field_declares(
+    field  : dict[str, object],
+    worded : str
+):
+    """
+    Asserts that a field's JSON schema reads as the type a setting, a match
+    file, or a manifest takes, with its bound and the record it nests.
+    """
+    assert typed(field) == worded
+
+
+def test_the_sections_table_follows_the_order_the_crate_declares(reference: Reference):
+    """
+    Asserts that the sections of `positions.bin` take a row each in the
+    order `SECTIONS` holds them, opening on the magic number.
+    """
+    rows = reference.sections.splitlines()[2:]
+
+    assert [row.split("`")[1] for row in rows] == [
+        name for name, *_ in readers.SECTIONS
+    ]
+    assert rows[0].startswith("| `magic` | 8 bytes |")
+
+
 def test_the_settings_table_writes_a_row_per_field(reference: Reference):
     """
     Asserts that the table holds a row for each field `Settings` declares,
@@ -354,4 +439,15 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
             "", "| **Task** | **Alias** | **Description** |",
             "|---|---|---|", r"| `repo:ci` | `ci` | A \| B. |"
         )
+    )
+
+
+def test_the_warning_names_the_default_downloads_folder(reference: Reference):
+    """
+    Asserts that the warning sits in a text block naming the downloads
+    folder under the default data directory.
+    """
+    assert reference.warning == (
+        "```text\nThe files under .cache/data/downloads have changed since the"
+        " index was built from them, so run `scotch index games` to rebuild it\n```"
     )

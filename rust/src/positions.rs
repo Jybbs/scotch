@@ -35,6 +35,90 @@ use crate::{boards::Board, codes::Reader};
 /// The number opening the file, which changes with its layout.
 const MAGIC: u64 = u64::from_le_bytes(*b"scotch-1");
 
+/// Each section of the file `image` writes, in the order it writes them, by
+/// its name, beside how it is held and what it holds. A slot is a game's place
+/// in the file, the games sorted by their moves.
+pub const SECTIONS: [(&str, &str, &str); 18] = [
+    (
+        "magic",
+        "8 bytes",
+        "The bytes `scotch-1`, which change with the layout",
+    ),
+    (
+        "count",
+        "An integer",
+        "The positions the stored games reach",
+    ),
+    (
+        "games",
+        "A compact vector",
+        "Each slot's game, its row in `games.parquet`",
+    ),
+    ("slots", "A compact vector", "Each game's slot"),
+    (
+        "standings",
+        "A compact vector",
+        "Each slot's rank among games tied on a run",
+    ),
+    (
+        "dates",
+        "A compact vector",
+        "Each slot's `Date` tag as a number",
+    ),
+    (
+        "results",
+        "A compact vector",
+        "Each slot's result, as its place among a win for White, a draw, a win for Black, and any other",
+    ),
+    (
+        "plies",
+        "A compact vector",
+        "The moves each slot's mainline holds",
+    ),
+    (
+        "offsets",
+        "An Elias-Fano sequence",
+        "The byte of `moves` each slot's moves open at, beside the byte past the last",
+    ),
+    (
+        "once",
+        "An Elias-Fano sequence",
+        "The leading bits of each key one position of one game reaches",
+    ),
+    (
+        "blocks",
+        "A compact vector",
+        "The block of slots holding the game reaching each key of `once`",
+    ),
+    (
+        "shared",
+        "An Elias-Fano sequence",
+        "The leading bits of each key several positions reach",
+    ),
+    (
+        "boundaries",
+        "An Elias-Fano sequence",
+        "The byte of `lists` each key of `shared` opens its list at, beside the byte past the last",
+    ),
+    ("started", "A vector", "Each slot whose tags name its start"),
+    (
+        "fens",
+        "A vector",
+        "The `FEN` tag of each slot `started` lists",
+    ),
+    (
+        "variants",
+        "A vector",
+        "The `Variant` tag of each slot `started` lists",
+    ),
+    (
+        "lists",
+        "Bytes",
+        "The slots reaching each key of `shared`, by the ply each reaches it at",
+    ),
+    ("moves", "Bytes", "Each slot's mainline, encoded"),
+];
+
 /// The bits a block of slots is numbered in.
 const BLOCK_BITS: u32 = 16;
 
@@ -913,6 +997,27 @@ mod tests {
 
     use super::*;
     use crate::codes::Writer;
+
+    /// Pins `SECTIONS` to the order `Positions::parsed` reads the file in,
+    /// which opens on the magic number and leaves `lists` and `moves` as the
+    /// bytes past the last section it reads.
+    #[test]
+    fn sections_follow_the_order_the_file_is_read_in() {
+        let source = include_str!("positions.rs");
+        let body = &source[source.find("fn parsed(").unwrap()..];
+        let body = &body[..body.find("Ok(Self").unwrap()];
+        let read = body.lines().filter_map(|line| {
+            let (name, value) = line.trim().strip_prefix("let ")?.split_once(" = ")?;
+
+            value.contains("section").then_some(name)
+        });
+        let expected = ["magic"].into_iter().chain(read).chain(["lists", "moves"]);
+
+        assert_eq!(
+            SECTIONS.map(|(name, ..)| name).to_vec(),
+            expected.collect_vec()
+        );
+    }
 
     /// Writes the mainline `moves` names from the standard starting position.
     fn encoded(moves: &str) -> Vec<u8> {

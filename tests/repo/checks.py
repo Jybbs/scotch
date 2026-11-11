@@ -36,6 +36,7 @@ from scotch.repo.checks  import (
     ScriptCheck,
     SettingsCheck,
     SitePinCheck,
+    StopCheck,
     SummaryCheck,
     TaskCheck,
     VitestCheck,
@@ -863,6 +864,69 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             )],
             [],
             id = "exact-wrangler-version"
+        ),
+        param(
+            StopCheck,
+            [("src/scotch/docs/stops.toml", "Cannot read <pgn>", "Cannot open <pgn>")],
+            [
+                (
+                    "src/scotch/cli/run.py",
+                    17,
+                    "`Cannot read {}` is raised here and missing from"
+                    " `src/scotch/docs/stops.toml`"
+                ),
+                (
+                    "src/scotch/docs/stops.toml", None,
+                    "`Cannot open <pgn>` is held by no file `modules` names"
+                )
+            ],
+            id = "message-reworded"
+        ),
+        param(
+            StopCheck,
+            [("src/scotch/cli/run.py", "names no move: {word!r}", "no move: {word!r}")],
+            [
+                (
+                    "src/scotch/cli/run.py",
+                    12,
+                    "`no move: '{}'` is raised here and missing from"
+                    " `src/scotch/docs/stops.toml`"
+                ),
+                (
+                    "src/scotch/docs/stops.toml", None,
+                    "`names no move: '<word>'` is held by no file `modules` names"
+                )
+            ],
+            id = "generated-line-reworded"
+        ),
+        param(
+            StopCheck,
+            [("rust/src/boards.rs", "names no position", "holds no position")],
+            [(
+                "src/scotch/docs/stops.toml", None,
+                "`names no position: <fen>` is held by no file `modules` names"
+            )],
+            id = "crate-message-reworded"
+        ),
+        param(
+            StopCheck,
+            [(
+                "src/scotch/cli/run.py", 'f"Found problems in {pgn}:"',
+                'f"Found {pgn}:"'
+            )],
+            [
+                (
+                    "src/scotch/cli/run.py",
+                    15,
+                    "`Found {}:` is raised here and missing from"
+                    " `src/scotch/docs/stops.toml`"
+                ),
+                (
+                    "src/scotch/docs/stops.toml", None,
+                    "`Found problems in <pgn>:` is held by no file `modules` names"
+                )
+            ],
+            id = "joined-line-reworded"
         ),
         param(
             SummaryCheck,

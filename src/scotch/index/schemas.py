@@ -7,9 +7,9 @@ Holds the records a command reads a match or a position through:
 - `Answer`, what `scotch show position` prints for a position
 
 The Polars schemas sit beside them, meaning `GAMES`, the index's Parquet
-table of stored games, `ROWS`, the games `PositionIndex.rows` lays out
-before the index numbers them, and `RUNS`, the runs `PositionIndex.runs`
-finds.
+table of stored games, built from the type and the meaning `COLUMNS` gives
+each column, `ROWS`, the games `PositionIndex.rows` lays out before the
+index numbers them, and `RUNS`, the runs `PositionIndex.runs` finds.
 """
 
 from base64   import urlsafe_b64encode
@@ -21,23 +21,23 @@ from zlib     import compress
 from scotch.docs.project  import Project
 from scotch.games.schemas import Game
 
-GAMES = Schema(
-    [
-        # The game's place in the index's order, from 0
-        ("game", UInt32),
-        # Each error the reader recorded
-        ("errors", List(String)),
-        # The file the game was read from and its place there, as `Origin` holds it
-        ("origin", Struct({"address": String, "place": UInt32})),
-        # The moves of the mainline, whose positions the index keys
-        ("plies", UInt16),
-        # The `Result` tag
-        ("result", String),
-        # Every other tag pair, each as a `name` and a `value`
-        ("tags", List(Struct({"name": String, "value": String})))
-    ]
-)
-ROWS = Schema(
+COLUMNS = {
+    "game"   : (UInt32, "The game's place in the index's order, from 0"),
+    "errors" : (List(String), "Each error the reader recorded"),
+    "origin" : (
+        Struct({"address": String, "place": UInt32}),
+        "The address of the file the game was read from and its place there,"
+        " counting from 1, as `Origin` holds them"
+    ),
+    "plies"  : (UInt16, "The moves of the mainline, whose positions the index keys"),
+    "result" : (String, "The `Result` tag"),
+    "tags"   : (
+        List(Struct({"name": String, "value": String})),
+        "Every other tag pair, each as a `name` and a `value`"
+    )
+}
+GAMES = Schema({name: dtype for name, (dtype, _) in COLUMNS.items()})
+ROWS  = Schema(
     {
         **{name: dtype for name, dtype in GAMES.items() if name != "game"},
         # The `Date` tag as `Game.dated` reads it
@@ -346,13 +346,13 @@ class Export(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     span: Span | None = None
     """
-    The run of positions the two games share, or `None` where no stored game
-    shares a position with the submitted game.
+    The run of positions the two games share, left empty where no stored
+    game shares a position with the submitted game.
     """
 
     stored: Side | None = None
     """
-    The stored game, or `None` where no stored game shares a position with
+    The stored game, left empty where no stored game shares a position with
     the submitted game.
     """
 

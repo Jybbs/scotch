@@ -80,6 +80,17 @@ class Settings(
 
         return indexed != fetched
 
+    @property
+    def warning(self) -> str:
+        """
+        Writes the line `opened` prints where the files changed since the
+        index was built from them.
+        """
+        return (
+            f"The files under {self.downloads} have changed since the index was"
+            " built from them, so run `scotch index games` to rebuild it"
+        )
+
     @field_validator("data")
     @classmethod
     def anchor(cls, data: Path) -> Path:
@@ -104,11 +115,7 @@ class Settings(
             raise SystemExit(f"The index under {self.index} holds another layout")
 
         if self.stale:
-            print(
-                f"The files under {self.downloads} have changed since the index"
-                " was built from them, so run `scotch index games` to rebuild it",
-                file = stderr
-            )
+            print(self.warning, file=stderr)
 
         return index
 

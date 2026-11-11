@@ -97,17 +97,13 @@ def store():
         print(f"{source.file}  {download.summary if download else 'not fetched'}")
 
     try:
-        positions = PositionIndex.read(settings.index).positions
+        index = PositionIndex.read(settings.index)
     except FileNotFoundError, SchemaError:
         current = False
         print(f"No index in this layout has been built under {settings.index}")
     else:
-        count   = positions.games
         current = not settings.stale
-        print(
-            f"The index holds {count:,} {'game' if count == 1 else 'games'} and"
-            f" {positions.positions:,} positions"
-        )
+        print(index.held)
         print(
             "The index was built from the files as fetched"
             if current
