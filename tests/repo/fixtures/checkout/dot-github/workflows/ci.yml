@@ -37,4 +37,9 @@ jobs:
 name: CI
 on:
   pull_request:
+    paths:
+      - '**'
+      - '!docs/.vitepress/**'
+      - '!docs/pages/**'
+      - '!docs/public/**'
   workflow_dispatch:

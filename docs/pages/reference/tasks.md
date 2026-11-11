@@ -22,6 +22,7 @@ Every task the repository declares sits below under its group, beside its alias 
 |---|---|---|
 | `gha:cut` |  | Cut the draft release a version bump on `main` calls for |
 | `gha:prune` |  | Delete each tool cache and Cargo cache a newer one replaced |
+| `gha:reuse` |  | Copy the coverage total `♟️ CI` attached for the tree on `main` |
 | `gha:scoresheet` |  | Write the workflow run's summary and exit with its verdict |
 | `gha:total` |  | Write the total the package's suite covered as a whole number into `coverage.json` in the folder given, creating the folder where missing, which the published site serves |
 
@@ -69,7 +70,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `site:coverage` |  | Run the site's suite under coverage, failing where statements, branches, functions, or lines fall below the `fail_under` that `pyproject.toml` sets, writing the HTML report, and passing any further arguments to Vitest |
 | `site:cruft` | `cruft` | Report an unused file, export, or dependency in the site, and an import cycle, passing any further arguments to knip |
 | `site:install` |  | Install the site's packages from `docs/bun.lock`, pruning any it no longer names |
-| `site:links` | `links` | Check every link, asset, and heading fragment in the built site, the README, and the contributor guide with no network, passing any further arguments to lychee |
+| `site:links` | `links` | Check every link, asset, and heading fragment in the site `site:press` built, the README, and the contributor guide with no network, passing any further arguments to lychee |
 | `site:lint` | `lint` | Lint the site's TypeScript with Oxlint, as annotations under GitHub Actions, passing any further arguments to Oxlint |
 | `site:press` | `press` | Build the site and a card per page into `docs/.vitepress/dist`, failing on a link between pages that leads nowhere, and passing any further arguments to VitePress |
 | `site:serve` | `serve` | Serve the site locally, reloading a page as it is edited, and passing any further arguments to VitePress |

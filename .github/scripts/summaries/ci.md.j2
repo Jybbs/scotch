@@ -1,11 +1,8 @@
 {% extends "base.md.j2" %}
 {% block details %}
-{%- with coverage = run.needs.check.outputs.coverage, site = run.needs.check.outputs["site-coverage"] %}
+{%- with coverage = run.needs.check.outputs.coverage %}
 {%- if coverage %}
 The [coverage report]({{ coverage }}) shows each line the suite leaves out.
-{% endif %}
-{%- if site %}
-The [site's coverage report]({{ site }}) shows each line the site's suite leaves out.
 {% endif %}
 {%- endwith %}
 {%- endblock %}

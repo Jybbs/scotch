@@ -73,6 +73,31 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         """
         return Changelog.read(self.root / ".github" / "release.yml")
 
+    @property
+    def checks(self) -> tuple[tuple[Workflow, str, str], ...]:
+        """
+        Pairs each pull-request workflow with the name of each check its
+        rows report and each task the check's leg runs, leaving out a task
+        another task of that leg depends on, such as the `site:install` a
+        row runs ahead of `mise run --skip-deps site:links`.
+        """
+        depends = {task.name: set(task.depends) for task in self.tasks}
+        legs    = [
+            (workflow, name, task)
+            for workflow in self.requested
+            for job in workflow.rows
+            for name, task in job.checks
+        ]
+        return tuple(
+            (workflow, name, task)
+            for workflow, name, task in legs
+            if not any(
+                task in depends.get(other, ())
+                for peer, label, other in legs
+                if peer is workflow and label == name
+            )
+        )
+
     @cached_property
     def contributing(self) -> Contributing:
         """
@@ -230,6 +255,21 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         return tuple(
             map(Template.read, sorted(self.root.glob(".github/ISSUE_TEMPLATE/*.md")))
         )
+
+    @cached_property
+    def tracked(self) -> tuple[Path, ...]:
+        """
+        Lists each file `git ls-files` reports git tracks, relative to
+        `root`.
+        """
+        listing = run(
+            ["git", "ls-files", "-z"],
+            capture_output = True,
+            check          = True,
+            cwd            = self.root,
+            text           = True
+        )
+        return tuple(Path(name) for name in listing.stdout.split("\0") if name)
 
     @cached_property
     def validation(self) -> Validation:

@@ -21,17 +21,34 @@ jobs:
           retention-days: 1
     timeout-minutes: 15
   coverage:
-    name: 🎯 Coverage
+    name: ☂️ Coverage
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-26.04
     steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Read the total the merged pull request attached
+        id: reuse
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: .mise/tasks/gha/reuse.py "$RUNNER_TEMP/total"
       - name: Install the tools
+        if: ${{ steps.reuse.outputs.found != 'true' }}
         uses: $/.github/actions/provision
         with:
           shared-key: scotch-python
           tools: python rust uv
       - name: Run the suite under coverage
+        if: ${{ steps.reuse.outputs.found != 'true' }}
         run: mise run py:coverage
       - name: Write the total the badge reads
+        if: ${{ steps.reuse.outputs.found != 'true' }}
         run: mise run gha:total -- "$RUNNER_TEMP/total"
       - name: Attach the total
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -95,6 +112,7 @@ on:
       - .mise/bin/**
       - .mise/config.toml
       - .mise/mise.lock
+      - .mise/tasks/gha/reuse.py
       - .mise/tasks/gha/total
       - .mise/tasks/py/coverage
       - .mise/tasks/site/**
