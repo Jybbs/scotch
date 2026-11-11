@@ -150,14 +150,18 @@ def test_a_license_reads_its_identifier_and_holders(
 def test_a_job_pairs_each_legs_check_name_with_its_tasks():
     """
     Asserts that a job names each leg's check from the matrix expression in
-    its `name`, beside each task the leg runs.
+    its `name`, beside each task the leg runs other than a task of the `gha`
+    group, which the job's tasks still list.
     """
     job = Job.model_validate(
         {
             "id"       : "check",
             "name"     : "${{ matrix.name }}",
             "runs-on"  : "ubuntu-26.04",
-            "steps"    : [{"run": "mise run ${{ matrix.task }}"}],
+            "steps"    : [
+                {"run": "mise run ${{ matrix.task }}"},
+                {"run": "mise run gha:total -- out"}
+            ],
             "strategy" : {
                 "matrix": {
                     "include": [
@@ -170,6 +174,7 @@ def test_a_job_pairs_each_legs_check_name_with_its_tasks():
     )
 
     assert job.checks == (("Lockfiles", "lock:check"), ("Coverage", "py:coverage"))
+    assert "gha:total" in job.tasks
 
 
 def test_a_job_reads_one_need_as_a_list():
@@ -534,13 +539,14 @@ def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
     """
     Asserts that a workflow reads its events from the `on` key YAML 1.1
     loads as `True`, a pull request among them, and gives each job its key
-    as its id. It also finds the gate, its rows, and the tasks each row runs
-    across its matrix, and lists its steps as declared and once for each
-    leg, none of them saving a cache.
+    as its id, beside the name GitHub shows for it. It also finds the gate,
+    its rows, and the tasks each row runs across its matrix, and lists its
+    steps as declared and once for each leg, none of them saving a cache.
     """
     workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
 
     assert set(workflow.triggers) == {"pull_request", "workflow_dispatch"}
+    assert workflow.name == "CI"
     assert workflow.requests
     assert [job.id for job in workflow.jobs] == ["check", "scoresheet"]
     assert workflow.gate.name == "🖋️ Scoresheet"

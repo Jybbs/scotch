@@ -258,13 +258,13 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             ContributingCheck,
             [(
                 ".github/CONTRIBUTING.md",
-                "| `Coverage` | `mise run py:coverage` | A test fails |\n",
+                "| `CI / Coverage` | `mise run py:coverage` | A test fails |\n",
                 ""
             )],
             [(
                 ".github/CONTRIBUTING.md",
                 None,
-                "The checks table leaves out `Coverage`, "
+                "The checks table leaves out `CI / Coverage`, "
                 "which a pull-request workflow runs"
             )],
             id = "checks-table-row-missing"
@@ -275,20 +275,24 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 ".github/CONTRIBUTING.md",
                 None,
-                "The checks table runs `Lockfiles` through `mise run lock:check` where "
-                "its row runs `mise lockfile`"
+                "The checks table runs `CI / Lockfiles` through `mise run lock:check` "
+                "where its row runs `mise lockfile`"
             )],
             id = "checks-table-command"
         ),
         param(
             ContributingCheck,
             [(
-                ".github/CONTRIBUTING.md", "| `Coverage` |",
-                "| `Links` | `mise links` | A link leads nowhere |\n| `Coverage` |"
+                ".github/CONTRIBUTING.md",
+                "| `CI / Coverage` |",
+                "| `CI / Links` | `mise links` | A link leads nowhere |\n"
+                "| `CI / Coverage` |"
             )],
             [(
-                ".github/CONTRIBUTING.md", None,
-                "The checks table names `Links`, which no pull-request workflow runs"
+                ".github/CONTRIBUTING.md",
+                None,
+                "The checks table names `CI / Links`, "
+                "which no pull-request workflow runs"
             )],
             id = "checks-table-row-extra"
         ),
@@ -298,7 +302,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 ".github/CONTRIBUTING.md",
                 None,
-                "The checks table runs `Coverage` through `mise run py:coverage` "
+                "The checks table runs `CI / Coverage` through `mise run py:coverage` "
                 "where its row runs `mise run py:unlisted`"
             )],
             id = "checks-table-unlisted-task"
@@ -665,6 +669,20 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             ],
             [],
             id = "row-outside-pull-requests"
+        ),
+        param(
+            RowCheck,
+            [
+                (
+                    ".github/workflows/ci.yml",
+                    "        run: mise run ${{ matrix.task }}\n",
+                    "        run: mise run ${{ matrix.task }}\n"
+                    "      - name: Write the total\n"
+                    "        run: mise run gha:total -- out\n"
+                )
+            ],
+            [],
+            id = "workflow-step-in-a-row"
         ),
         param(
             RulesetCheck,

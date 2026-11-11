@@ -919,13 +919,15 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
     def checks(self) -> tuple[tuple[str, str], ...]:
         """
         Pairs the name each leg of the job's matrix reports its check under
-        with each task the leg runs.
+        with each task the leg runs, leaving out each task of the `gha`
+        group, whose tasks run the steps only a workflow takes.
         """
         return tuple(
             (filled(leg, self.name), task)
             for leg in self.legs
             for step in self.steps
             for task in step.expand(leg).tasks
+            if not task.startswith("gha:")
         )
 
     @property
@@ -1045,6 +1047,12 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
     triggers: dict[str, Trigger | None]
     """
     The events the workflow fires on, each beside the filters it declares.
+    """
+
+    name: str = ""
+    """
+    The name GitHub shows for the workflow, which opens the name of each
+    check its jobs report.
     """
 
     @property

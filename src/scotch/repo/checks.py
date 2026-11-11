@@ -151,13 +151,14 @@ class ContributingCheck(Check):
     def scan(self) -> Iterator[Finding]:
         """
         Yields a finding at `.github/CONTRIBUTING.md` for each such row, a
-        row's command being `mise` and its task's first alias, or `mise run`
-        and its name.
+        row naming its check by the workflow's name and the job's joined by
+        ` / `, as GitHub lists the check, and its command being `mise` and
+        its task's first alias, or `mise run` and its name.
         """
         contributing = self.checkout.contributing
         commands     = {task.name: task.command for task in self.checkout.tasks}
         rows         = {
-            name: commands.get(run, f"mise run {run}")
+            f"{workflow.name} / {name}": commands.get(run, f"mise run {run}")
             for workflow in self.checkout.requested
             for job in workflow.rows
             for name, run in job.checks
@@ -566,7 +567,7 @@ class RowCheck(Check):
             (workflow.path, task)
             for workflow in self.checkout.requested
             for job in workflow.rows
-            for task in job.tasks
+            for _, task in job.checks
         }
         ci      = self.checkout.task("repo:ci")
         depends = set(ci.depends) if ci else set()

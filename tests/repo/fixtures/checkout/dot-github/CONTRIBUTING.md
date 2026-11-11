@@ -4,5 +4,5 @@
 
 | **Check** | **Runs Locally** | **Fails When** |
 |---|---|---|
-| `Lockfiles` | `mise lockfile` | A lockfile drifts |
-| `Coverage` | `mise run py:coverage` | A test fails |
+| `CI / Lockfiles` | `mise lockfile` | A lockfile drifts |
+| `CI / Coverage` | `mise run py:coverage` | A test fails |

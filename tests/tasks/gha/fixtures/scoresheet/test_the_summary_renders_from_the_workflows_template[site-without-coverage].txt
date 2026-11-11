@@ -1,0 +1,9 @@
+## 🖋️ Scoresheet
+
+| **Job** | **Result** |
+|---|---|
+| `check` | success |
+| `links` | skipped |
+| `press` | failure |
+
+The run checked `560c4d8` on `4/ci-gate`.

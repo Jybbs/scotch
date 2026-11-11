@@ -6,7 +6,6 @@ jobs:
     name: ${{ matrix.name }}
     outputs:
       coverage: ${{ steps.coverage.outputs.artifact-url }}
-      site-coverage: ${{ steps.site-coverage.outputs.artifact-url }}
     runs-on: ubuntu-26.04
     steps:
       - name: Install the tools
@@ -23,6 +22,13 @@ jobs:
         if: ${{ !cancelled() && matrix.task == 'py:coverage' }}
         run: |
           python3 -c 'import tomllib; print("path=" + tomllib.load(open("pyproject.toml", "rb"))["tool"]["coverage"]["html"]["directory"])' >> "$GITHUB_OUTPUT"
+      - name: Write the total and the tree beside the report
+        env:
+          REPORT: ${{ steps.report.outputs.path }}
+        if: ${{ steps.report.outputs.path }}
+        run: |
+          mise run gha:total -- "$REPORT"
+          git rev-parse 'HEAD^{tree}' > "$REPORT/tree"
       - name: Attach the coverage report
         id: coverage
         if: ${{ !cancelled() && steps.report.outputs.path }}
@@ -30,19 +36,6 @@ jobs:
         with:
           name: coverage
           path: ${{ steps.report.outputs.path }}
-          retention-days: 14
-      - name: Read the folder of the site's coverage report
-        id: site-report
-        if: ${{ !cancelled() && matrix.task == 'site:coverage' }}
-        run: |
-          node --eval "const { default: config } = await import('./docs/.vitepress/vitest.config.ts'); console.log('path=' + config.test.coverage.reportsDirectory)" --input-type=module >> "$GITHUB_OUTPUT"
-      - name: Attach the site's coverage report
-        id: site-coverage
-        if: ${{ !cancelled() && steps.site-report.outputs.path }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
-        with:
-          name: site-coverage
-          path: ${{ steps.site-report.outputs.path }}
           retention-days: 14
     strategy:
       fail-fast: false
@@ -58,7 +51,7 @@ jobs:
             shared-key: scotch-python
             task: py:check
             tools: python rust uv
-          - name: 🎯 Coverage
+          - name: ☂️ Coverage
             shared-key: scotch-python
             task: py:coverage
             tools: python rust uv
@@ -77,27 +70,6 @@ jobs:
             shared-key: scotch-crate
             task: rs:test
             tools: python rust
-          - name: 🎯 Site Coverage
-            shared-key: scotch-wasm
-            task: site:coverage
-            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
-          - name: ✂️ Knip
-            shared-key: scotch-wasm
-            task: site:cruft
-            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
-          - name: 🔗 Links
-            task: site:links
-            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
-          - name: ⚓ Oxlint
-            task: site:lint
-            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
-          - name: 📰 Press
-            task: site:press
-            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
-          - name: 🧷 Types
-            shared-key: scotch-wasm
-            task: site:typecheck
-            tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
     timeout-minutes: 15
   scoresheet:
     if: always()
@@ -118,6 +90,11 @@ jobs:
 name: ♟️ CI
 on:
   pull_request:
+    paths:
+      - '**'
+      - '!docs/.vitepress/**'
+      - '!docs/pages/**'
+      - '!docs/public/**'
   workflow_dispatch:
 permissions:
   contents: read

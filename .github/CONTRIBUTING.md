@@ -27,23 +27,24 @@ A change to `.github/labels.toml`, a ruleset under `.github/rulesets/`, or `.git
 
 ## ⏱️ Checks
 
-Every pull request runs `♟️ CI`, whose rows each run one task, so the command beside each check below runs the same task on a laptop:
+A pull request runs `♟️ CI` wherever it changes a file outside the site's pages, its public files, and `docs/.vitepress/`, and runs `♟️ Site` wherever it changes a file the site is built or checked from, so a change to the crate, the composite action, or the toolchain's pins runs both. Each row runs one task, so the command beside each check below runs the same task on a laptop:
 
 | **Check** | **Runs Locally** | **Fails When** |
 |---|---|---|
-| `🩺 Advisories` | `mise run lock:audit` | A package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves carries a published advisory, or an advisory database cannot be reached |
-| `🔐 Lockfiles` | `mise lockfile` | `uv.lock`, `.mise/mise.lock`, `rust/Cargo.lock`, `docs/bun.lock`, or the lockfile beside a task script drifts from its manifest |
-| `🪻 Prose` | `mise check` | *Prose* reports a rewrite or a lint finding, each shown as an annotation on the line it concerns |
-| `🎯 Coverage` | `mise coverage` | A test fails under coverage, or the suite covers less than 95% of the package |
-| `📋 Audit` | `mise audit` | A check under `src/scotch/repo/` finds a file stating a fact otherwise than its source does, such as a pin, a label, a ruleset's required check, or a row of this table |
-| `🔦 Workflows` | `mise run repo:lint` | [zizmor](https://docs.zizmor.sh/) reports a finding in a workflow or in the composite action |
-| `📎 Clippy` | `mise run rs:check` | rustfmt reports a rewrite in the crate under `rust/`, or [Clippy](https://doc.rust-lang.org/clippy/) reports a lint under any of its features |
-| `🦀 Crate` | `mise run rs:test` | A test of the crate under `rust/` fails |
-| `🎯 Site Coverage` | `mise run site:coverage` | A site test fails under coverage, or the site's coverage falls below 95% on statements, branches, functions, or lines |
-| `✂️ Knip` | `mise cruft` | knip reports an unused file, export, or dependency in the site, or an import cycle |
-| `🔗 Links` | `mise links` | A link, an asset, or a heading fragment in the built site, the README, or this guide names nothing the build wrote |
-| `⚓ Oxlint` | `mise lint` | Oxlint reports a finding in the site's TypeScript |
-| `📰 Press` | `mise press` | VitePress fails to build a page, or a link between pages leads nowhere |
-| `🧷 Types` | `mise typecheck` | `tsc` reports a type error in the site's TypeScript, or a single-file component appears that `tsc` cannot read |
+| `♟️ CI / 🩺 Advisories` | `mise run lock:audit` | A package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves carries a published advisory, or an advisory database cannot be reached |
+| `♟️ CI / 🔐 Lockfiles` | `mise lockfile` | `uv.lock`, `.mise/mise.lock`, `rust/Cargo.lock`, `docs/bun.lock`, or the lockfile beside a task script drifts from its manifest |
+| `♟️ CI / 🪻 Prose` | `mise check` | *Prose* reports a rewrite or a lint finding, each shown as an annotation on the line it concerns |
+| `♟️ CI / ☂️ Coverage` | `mise coverage` | A test fails under coverage, or the suite covers less than 95% of the package |
+| `♟️ CI / 📋 Audit` | `mise audit` | A check under `src/scotch/repo/` finds a file stating a fact otherwise than its source does, such as a pin, a label, a ruleset's required check, or a row of this table |
+| `♟️ CI / 🔦 Workflows` | `mise run repo:lint` | [zizmor](https://docs.zizmor.sh/) reports a finding in a workflow or in the composite action |
+| `♟️ CI / 📎 Clippy` | `mise run rs:check` | rustfmt reports a rewrite in the crate under `rust/`, or [Clippy](https://doc.rust-lang.org/clippy/) reports a lint under any of its features |
+| `♟️ CI / 🦀 Crate` | `mise run rs:test` | A test of the crate under `rust/` fails |
+| `♟️ Site / 📰 Press` | `mise press` | VitePress fails to build a page, or a link between pages leads nowhere |
+| `♟️ Site / 🔗 Links` | `mise links` | A link, an asset, or a heading fragment in the site the `📰 Press` row built, the README, or this guide names nothing the build wrote |
+| `♟️ Site / ☂️ Coverage` | `mise run site:coverage` | A site test fails under coverage, or the site's coverage falls below 95% on statements, branches, functions, or lines |
+| `♟️ Site / 📋 Audit` | `mise audit` | The same checks the `♟️ CI` row runs, among them the regions and footnotes of each page under `docs/pages/` |
+| `♟️ Site / ✂️ Knip` | `mise cruft` | knip reports an unused file, export, or dependency in the site, or an import cycle |
+| `♟️ Site / ⚓ Oxlint` | `mise lint` | Oxlint reports a finding in the site's TypeScript |
+| `♟️ Site / 🧷 Types` | `mise typecheck` | `tsc` reports a type error in the site's TypeScript, or a single-file component appears that `tsc` cannot read |
 
-The workflow ends on a `🖋️ Scoresheet` gate that waits on every row and fails where any of them fails, so it is the one check the ruleset on `main` requires, on a branch up to date with `main`. On a laptop, `mise ci` runs every row's task in one go.
+Each workflow ends on a `🖋️ Scoresheet` gate that waits on every row and fails where any of them fails, and the ruleset on `main` requires that one check, on a branch up to date with `main`, so a pull request merges once every workflow it ran has passed. On a laptop, `mise ci` runs every row's task of both workflows in one go.

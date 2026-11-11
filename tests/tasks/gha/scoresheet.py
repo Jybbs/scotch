@@ -111,17 +111,25 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
             id = "ci-without-coverage"
         ),
         param(
-            "ci",
+            "site",
             {
-                "check": {
+                "check" : {
                     "result"  : "success",
-                    "outputs" : {
-                        "coverage"      : "https://example.test/artifacts/1",
-                        "site-coverage" : "https://example.test/artifacts/2"
-                    }
-                }
+                    "outputs" : {"coverage": "https://example.test/artifacts/2"}
+                },
+                "links" : {"result": "success", "outputs": {}},
+                "press" : {"result": "success", "outputs": {}}
             },
-            id = "ci-with-both-reports"
+            id = "site-with-coverage"
+        ),
+        param(
+            "site",
+            {
+                "check" : {"result": "success", "outputs": {}},
+                "links" : {"result": "skipped", "outputs": {}},
+                "press" : {"result": "failure", "outputs": {}}
+            },
+            id = "site-without-coverage"
         ),
         param(
             "deploy",

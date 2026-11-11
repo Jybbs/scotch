@@ -65,8 +65,9 @@ class Run:
 
     commit: str
     """
-    The commit the run checked, which `ci.yml` sets to the head of the pull
-    request's branch rather than the merge commit the runner checks out.
+    The commit the run checked, which each pull-request workflow sets to the
+    head of the pull request's branch rather than the merge commit the
+    runner checks out.
     """
 
     needs: Mapping[str, Need]
