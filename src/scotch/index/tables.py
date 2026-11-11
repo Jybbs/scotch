@@ -40,6 +40,17 @@ class PositionIndex:
     games     : LazyFrame
     positions : readers.Positions
 
+    @property
+    def held(self) -> str:
+        """
+        Writes the count of games and of positions the index holds, as
+        `scotch show store` prints it.
+        """
+        return (
+            f"The index holds {counted(self.positions.games)} and"
+            f" {self.positions.positions:,} positions"
+        )
+
     def answer(self, position: str, top: int) -> Answer:
         """
         Reads what the stored games did from `position`, a Forsyth–Edwards
@@ -338,6 +349,13 @@ class PositionIndex:
         )
         self.positions.write(self.path(directory))
 
+    def written(self, directory: Path) -> str:
+        """
+        Writes the count of games the index holds beside `directory`, as
+        `scotch index games` prints it once it writes the index there.
+        """
+        return f"Indexed {counted(self.positions.games)} into {directory}"
+
 
 @dataclass(frozen=True, kw_only=True)
 class Batch:
@@ -358,11 +376,9 @@ class Batch:
         each problem of a game left out naming its place in the file and
         its players.
         """
-        count = self.rows.height + len(self.left)
-
         return "\n".join(
             (
-                f"Read {count:,} {'game' if count == 1 else 'games'} from"
+                f"Read {counted(self.rows.height + len(self.left))} from"
                 f" {self.source.address}",
                 *(
                     f"Left out game {game.origin.place:,} of {game.origin.address},"
@@ -386,3 +402,11 @@ class Batch:
             rows   = PositionIndex.rows(game for game in games if not game.problems),
             source = source
         )
+
+
+def counted(count: int) -> str:
+    """
+    Writes `count` with its thousands separated, followed by game or games
+    to agree with it.
+    """
+    return f"{count:,} {'game' if count == 1 else 'games'}"

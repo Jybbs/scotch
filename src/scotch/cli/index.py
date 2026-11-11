@@ -65,10 +65,7 @@ def games():
     rmtree(settings.index, ignore_errors=True)
     index.write(settings.index)
     manifest.write(settings.index)
-    count = index.positions.games
-    print(
-        f"Indexed {count:,} {'game' if count == 1 else 'games'} into {settings.index}"
-    )
+    print(index.written(settings.index))
 
 
 index_group = App(name="index")

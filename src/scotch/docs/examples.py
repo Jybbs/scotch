@@ -158,7 +158,7 @@ class Example(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
                         carries a problem, or where no stored game shares a
                         position with it.
         """
-        submitted = Game.first(root / self.path)
+        submitted = self.game(root)
 
         if not (matches := index.matches(submitted, top=2)):
             raise ValueError(f"No stored game shares a position with {self.path}")
@@ -180,6 +180,12 @@ class Example(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         `index` matches it to, as the Viewer reads a match, or the game
         alone where no index is given.
         """
-        submitted = Game.first(root / self.path)
+        submitted = self.game(root)
 
         return Export.from_match(index.match(submitted) if index else None, submitted)
+
+    def game(self, root: Path) -> Game:
+        """
+        Reads the first game of the example's file under `root`.
+        """
+        return Game.first(root / self.path)

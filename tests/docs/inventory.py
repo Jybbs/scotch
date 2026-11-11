@@ -1,8 +1,8 @@
 """
 Pins the files `scotch render docs` writes, meaning the outputs `Outputs`
-declares with and without an index, the commands whose help a page carries
-and the help it carries for each, the figures the index measures, and the
-Markdown files git tracks or would track, and that every declared output
+declares with and without an index, the section and the example run the
+commands page carries for each command, the figures the index measures, and
+the Markdown files git tracks or would track, and that every declared output
 renders into a fresh checkout and then reports no drift.
 """
 
@@ -16,8 +16,10 @@ from pytest          import CaptureFixture, MonkeyPatch, mark, param
 from tomllib         import loads as from_toml
 
 from scotch.cli              import app
+from scotch.cli.settings     import Settings
 from scotch.docs.census      import Census
-from scotch.docs.inventory   import Outputs, commands, helped, tracked
+from scotch.docs.commands    import Commands, commands
+from scotch.docs.inventory   import Outputs, tracked
 from scotch.docs.outputs     import Document, Figures, Footnotes, Region
 from scotch.docs.project     import Project
 from scotch.docs.tallies     import Tally
@@ -26,11 +28,25 @@ from scotch.identity.schemas import Identity
 from scotch.index.tables     import PositionIndex
 from scotch.sources.schemas  import Sources
 
+RUNS = (
+    "index-games", "match-game", "match-games",
+    "show-game", "show-position", "show-store"
+)
+
+
+def marked(*names: str) -> str:
+    """
+    Writes an empty region for each of `names`, as a page holds it before
+    its first render.
+    """
+    return "".join(f"<!-- {name} -->\n<!-- /{name} -->\n\n" for name in names)
+
 
 def test_an_index_adds_the_files_written_from_it(
     checkout    : Callable[..., Path],
-    index       : PositionIndex,
     monkeypatch : MonkeyPatch,
+    scanned     : Callable[[Iterable[Game]], PositionIndex],
+    stored      : list[Game],
     tally       : Tally
 ):
     """
@@ -44,10 +60,25 @@ def test_an_index_adds_the_files_written_from_it(
       the demo line meets
     - The tables the Data pages, the store page, and the identity page set
       beneath their widgets, each the one its region names
+    - The demo game's match file
+    - The example run of each command whose output the index sets, the
+      commands page's
     - The measured figures of each Markdown file, each the count its marker
-      names, an example's under the example's name and the figure's
+      names, an example's under the example's name and the figure's, and the
+      length of the demo's address
     """
     monkeypatch.setattr(Census, "store", tally)
+    index = scanned(
+        game.model_copy(
+            update = {
+                "origin": Origin(
+                    address = "https://www.pgnmentor.com/players/Kasparov.zip",
+                    place   = place
+                )
+            }
+        )
+        for place, game in enumerate(stored, start=1)
+    )
     pages = {
         "data/index.md": "<!-- decades -->\n<!-- /decades -->\n",
 
@@ -62,7 +93,9 @@ def test_an_index_adds_the_files_written_from_it(
         ),
 
         "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
-        "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n"
+        "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
+        "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n",
+        "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n"
     }
     readme   = Path(".github/README.md")
     root     = checkout(pages)
@@ -70,6 +103,7 @@ def test_an_index_adds_the_files_written_from_it(
 
     assert [(type(output), str(output.path)) for output in measured] == [
         (Document, "docs/.vitepress/lib/rendered/examples.json"),
+        (Document, "docs/public/matches/demo.json"),
         (Document, "docs/.vitepress/lib/rendered/store.json"),
         (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
@@ -79,6 +113,7 @@ def test_an_index_adds_the_files_written_from_it(
         (Region, "docs/pages/data/lengths.md"),
         (Region, "docs/pages/guide/store.md"),
         (Region, "docs/pages/reference/identity.md"),
+        *[(Region, "docs/pages/reference/commands.md")] * len(RUNS),
         *((Figures, f"docs/pages/{page}") for page in pages)
     ]
     assert len(Outputs.shipped(app, readme, root, index).root) == (
@@ -108,7 +143,7 @@ def test_an_index_adds_the_files_written_from_it(
     assert text["guide/index.md"].startswith(
         "<!-- example -->\n```bash\nscotch match game"
         " docs/public/games/demo.pgn\n```\n\n```text\n"
-        "Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??\n"
+        "Kasparov.zip:1  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??\n"
     )
     assert "Holds <!-- games -->10<!-- /games --> games and" in text["guide/index.md"]
     assert "<!-- undated -->0<!-- /undated --> undated." in text["guide/index.md"]
@@ -118,6 +153,19 @@ def test_an_index_adds_the_files_written_from_it(
         tally.outcomes
     )
     assert tally.archives in text["guide/store.md"]
+    assert loads((root / "docs/public/matches/demo.json").read_text())["stored"][
+        "headers"
+    ]["White"] == "Kasparov, Gary"
+    assert "<!-- link -->1,766<!-- /link -->" in text["reference/match.md"]
+    assert all(
+        f"<!-- run-{run} -->\n```bash\nscotch {run.replace('-', ' ', 1)}"
+        in text["reference/commands.md"]
+        for run in RUNS
+    )
+    assert "Indexed 3 games into .cache/data/index\n" in text["reference/commands.md"]
+    assert '\n[White "Kasparov, Gary"]\n' in text["reference/commands.md"]
+    assert "The index holds 3 games and" in text["reference/commands.md"]
+    assert "scotch show game Kasparov.zip:1\n" in text["reference/commands.md"]
 
 
 @mark.parametrize(
@@ -175,6 +223,7 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
 
             "guide/index.md"        : "<!-- example -->\n<!-- /example -->\n",
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
+            "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
             "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n"
         }
     )
@@ -187,47 +236,61 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
 
 
 @mark.parametrize(
-    "tokens",
-    [param(tokens, id="-".join(tokens)) for tokens in commands(app)]
+    "argv",
+    [
+        param(("match", "game", str(Outputs.demo.path), "--top", "1"), id="match-game"),
+        param(("match", "games", str(Outputs.demo.path)), id="match-games"),
+        param(("show", "game", "Kasparov.zip:1"), id="show-game"),
+        param(
+            ("show", "position", "1.", "Nf3", "Nf6", "2.", "c4", "--top", "1"),
+            id = "show-position"
+        )
+    ]
 )
-def test_helped_writes_the_help_the_command_prints(
+def test_each_example_run_holds_what_its_command_prints(
+    argv        : tuple[str, ...],
     capsys      : CaptureFixture[str],
+    checkout    : Callable[..., Path],
     monkeypatch : MonkeyPatch,
-    tokens      : tuple[str, str]
+    scanned     : Callable[[Iterable[Game]], PositionIndex],
+    stored      : list[Game],
+    tally       : Tally
 ):
     """
-    Asserts that the help a page carries for a command is the help the
-    command prints under `--help` at eighty columns, with each line's
-    trailing spaces removed.
+    Asserts that the output beneath each example run whose lines the index
+    alone sets is what the command prints against that index.
     """
-    monkeypatch.setenv("COLUMNS", "80")
-    invoke(*tokens, "--help")
-
-    assert helped(app, *tokens) == "\n".join(
-        line.rstrip() for line in (
-            capsys.readouterr()
-                  .out.strip()
-                  .splitlines()
+    monkeypatch.setattr(Census, "store", tally)
+    monkeypatch.setattr(Outputs, "position", "1. Nf3 Nf6 2. c4")
+    monkeypatch.setattr(Outputs, "top", 1)
+    index = scanned(
+        game.model_copy(
+            update = {
+                "origin": Origin(
+                    address = "https://www.pgnmentor.com/players/Kasparov.zip",
+                    place   = place
+                )
+            }
         )
+        for place, game in enumerate(stored, start=1)
     )
+    root = checkout({"reference/commands.md": marked(*(f"run-{run}" for run in RUNS))})
 
+    for output in Outputs.measured(
+        index,
+        tracked(root),
+        Path(".github/README.md"),
+        root
+    ):
+        if output.path == Outputs.commands:
+            output.write(root)
 
-def test_commands_lists_each_command_the_help_shows():
-    """
-    Asserts that the commands a page carries the help of are the verb and
-    noun of every command `scotch --help` lists, leaving out each hidden
-    group.
-    """
-    assert list(commands(app)) == [
-        ("cite", "source"),
-        ("fetch", "games"),
-        ("index", "games"),
-        ("match", "game"),
-        ("match", "games"),
-        ("show", "game"),
-        ("show", "position"),
-        ("show", "store")
-    ]
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(Settings, "opened", lambda _: index)
+    invoke(*argv)
+    printed = capsys.readouterr().out
+
+    assert f"```text\n{printed}```" in (root / Outputs.commands).read_text()
 
 
 def test_every_declared_output_renders_and_then_holds_its_rendering(
@@ -267,10 +330,21 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
             "reference/tasks.md" : "<!-- tasks -->\n<!-- /tasks -->\n",
             "reference/terms.md" : "<!-- terms -->\n<!-- /terms -->\n",
 
-            "guide/commands.md": "".join(
-                f"<!-- help-{verb}-{noun} -->\n<!-- /help-{verb}-{noun} -->\n\n"
-                for verb, noun in commands(app)
-            )
+            "reference/commands.md": marked(
+                *(f"command-{verb}-{noun}" for verb, noun in commands(app)),
+                "run-cite-source",
+                "run-fetch-games"
+            ),
+
+            "reference/files.md": marked(
+                "layout",
+                "manifest",
+                "columns",
+                "sections",
+                "warning"
+            ),
+
+            "reference/match.md": marked("export", "side", "span")
         }
     )
     outputs = Outputs.shipped(app, Path(".github/README.md"), root)
@@ -280,7 +354,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
 
     data  = (root / "docs/pages/data/index.md").read_text()
     front = (root / "docs/pages/index.md").read_text()
-    help_ = (root / "docs/pages/guide/commands.md").read_text()
+    pages = (root / "docs/pages/reference/commands.md").read_text()
     store = (root / "docs/pages/guide/store.md").read_text()
 
     assert [*output.problems(root) for output in outputs] == []
@@ -291,9 +365,15 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
         "sources": [Sources.read().sources[0].model_dump(mode="json")]
     }
     assert all(
-        f"<!-- help-{verb}-{noun} -->\n```text\n{helped(app, verb, noun)}\n```" in help_
+        f"<!-- command-{verb}-{noun} -->\n{Commands(app=app).section(verb, noun)}\n"
+        in pages
         for verb, noun in commands(app)
     )
+    assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in pages
+    assert pages.count("Fetched https://www.pgnmentor.com/players/") == 4
+    assert loads(
+        (root / "docs/public/matches/alone.json").read_text()
+    )["stored"] is None
     assert Project.installed().badges(Path(".github/README.md")) in (
         root / ".github/README.md"
     ).read_text()
@@ -334,8 +414,10 @@ def test_shipped_declares_the_files_written_from_declarations(
       Guide
     - The table of sources, then the row of sources the store page copies
     - The Reference section's settings with their read order and root,
-      tasks, identity tables, and terms
-    - The help of each command the help lists
+      tasks, identity tables, terms, data files, and match file
+    - The section of each command the help lists, then the example runs of
+      the commands whose output no index sets
+    - The demo game's match file read with no index
     - The figures and the footnotes of each Markdown file
     """
     readme  = Path(".github/README.md")
@@ -360,7 +442,12 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Region, "docs/pages/reference/tasks.md"),
         *[(Region, "docs/pages/reference/identity.md")] * 6,
         (Region, "docs/pages/reference/terms.md"),
-        *[(Region, "docs/pages/guide/commands.md")] * len(list(commands(app))),
+        *[(Region, "docs/pages/reference/files.md")] * 5,
+        *[(Region, "docs/pages/reference/match.md")] * 3,
+        *[(Region, "docs/pages/reference/commands.md")] * (len(
+            list(commands(app))
+        ) + 2),
+        (Document, "docs/public/matches/alone.json"),
         (Figures, "docs/pages/page.md"),
         (Footnotes, "docs/pages/page.md")
     ]

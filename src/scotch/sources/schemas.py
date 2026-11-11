@@ -29,7 +29,7 @@ class Download(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     etag: str | None
     """
     The entity tag the server sent with the file, which a later fetch sends
-    back through `If-None-Match`, or `None` where it sent none.
+    back through `If-None-Match`, left empty where it sent none.
     """
 
     sha256: str
@@ -170,13 +170,20 @@ class Manifest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         """
         return {address: entry.sha256 for address, entry in self.downloads.items()}
 
+    @staticmethod
+    def path(directory: Path) -> Path:
+        """
+        Names the manifest's file in `directory`.
+        """
+        return directory / "manifest.json"
+
     @classmethod
     def read(cls, directory: Path) -> Self:
         """
         Reads the `manifest.json` in `directory`, or an empty manifest where
         none was written there.
         """
-        if not (path := directory / "manifest.json").is_file():
+        if not (path := cls.path(directory)).is_file():
             return cls()
 
         return cls.model_validate_json(path.read_bytes())
@@ -207,7 +214,7 @@ class Manifest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         directory where it is missing.
         """
         directory.mkdir(exist_ok=True, parents=True)
-        (directory / "manifest.json").write_text(
+        self.path(directory).write_text(
             self.model_dump_json(indent=2) + "\n",
             encoding = "utf-8"
         )
