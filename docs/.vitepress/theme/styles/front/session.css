@@ -30,11 +30,20 @@
 .sc-front-terminal header span { margin-inline: auto; }
 
 .sc-front-terminal pre {
-  margin      : 0;
-  padding     : 14px 16px;
-  overflow    : hidden;
-  font        : 400 0.875rem/1.75 var(--sc-face-code);
-  white-space : pre-wrap;
+  display         : flex;
+  flex-direction  : column;
+  justify-content : flex-end;
+  margin          : 0;
+  padding         : 14px 16px;
+  overflow        : hidden;
+  font            : 400 0.875rem/1.75 var(--sc-face-code);
+  white-space     : pre-wrap;
+  overflow-wrap   : anywhere;
+}
+
+.sc-front-terminal pre::after {
+  content : '';
+  flex    : 1;
 }
 
 .sc-front-prompt { color: var(--sc-series-4); }
