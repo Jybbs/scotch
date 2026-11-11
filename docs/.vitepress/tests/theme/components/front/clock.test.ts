@@ -37,7 +37,8 @@ describe('Clock as drawn', () => {
   })
 
   it('fills the whole line where it holds one step', () => {
-    const line = mount(Clock, { props: { at: 0, label: 'Steps', names: ['One'], pick: vi.fn<(step: number) => void>() } }).element
+    const props = { at: 0, label: 'Steps', names: ['One'], pick: vi.fn<(step: number) => void>() }
+    const line  = mount(Clock, { props }).element
     expect((line as HTMLElement).style.getPropertyValue('--sc-front-clock')).toBe('100%')
   })
 
@@ -74,5 +75,12 @@ describe('Clock under input', () => {
     line.dispatchEvent(new PointerEvent('pointermove', { clientX: 100 }))
     expect(pick.mock.calls).toEqual([[1], [4]])
     expect(line.setPointerCapture).toHaveBeenCalledWith(1)
+  })
+
+  it('picks the first step under a press on a line with no width', () => {
+    const { line, pick } = clocked()
+    vi.mocked(line.getBoundingClientRect).mockReturnValue(new DOMRect(100, 0, 0, 20))
+    line.dispatchEvent(new PointerEvent('pointerdown', { clientX: 100, pointerId: 1 }))
+    expect(pick).toHaveBeenCalledWith(0)
   })
 })

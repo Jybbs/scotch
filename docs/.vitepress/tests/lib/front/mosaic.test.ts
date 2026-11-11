@@ -64,6 +64,14 @@ describe('mosaicOf', () => {
     expect(cut.within![1]).toBeGreaterThan(cut.outside![1])
   })
 
+  it("sets both pieces of a cut cell the mark fills whole at the cell's middle", () => {
+    const middle = MOSAIC_TUNING.cell / 2
+    for (const cell of mosaicOf(SQUARE, { ...MOSAIC_TUNING, whole: 2 }).cells) {
+      expect(cell.cut).toBe(true)
+      expect(cell.outside).toEqual([middle, middle])
+    }
+  })
+
   it('leaves out a cell the outline only grazes', () => {
     expect(mosaicOf(TRIANGLE).cells.map(cell => [cell.left, cell.top])).not.toContainEqual([25, 0])
   })

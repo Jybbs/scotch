@@ -1,13 +1,21 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount }                        from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { frontOf }      from '../../../../lib/front/example.ts'
+import { lastOf }       from '../../../../lib/front/plies.ts'
+import { squareAt }     from '../../../../lib/methods/squares.ts'
 import { Split }        from '../../../../theme/components/front/split.ts'
 import { test }         from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 
-const { start } = frontOf().example.run
+const front     = frontOf()
+const { start } = front.example.run
+
+vi.mock('../../../../lib/front/example.ts', async original => {
+  const example = await original<typeof import('../../../../lib/front/example.ts')>()
+  return { ...example, frontOf: vi.fn<typeof example.frontOf>(example.frontOf) }
+})
 
 vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),
@@ -54,22 +62,51 @@ describe('Split', () => {
     expect(split.find('.sc-front-split').attributes('data-apart')).toBe('')
     expect(split.find('.sc-front-cover span').text()).toBe('White to move')
     expect(split.find('.sc-data-say').text())
-      .toBe('positions shared. Your game parted at 7. O-O. How the stored game went on waits in the Viewer.')
+      .toBe('positions shared. Your game parted at 7. O-O. '
+          + 'The link scotch match game --link prints opens both games in the Viewer.')
     expect(split.findAll('.sc-data-read dd').map(value => value.text())).toEqual(['9...e5', 'Hidden'])
   })
 
+})
+
+describe('Split past the run', () => {
   test("keeps the stored board at the run's last position as the reader's plays on", async () => {
     reduceMotion()
     const split  = mount(Split)
     await flushPromises()
     const pieces = (game: string): string[] => split
       .findAll(`.sc-front-board[data-game='${game}'] .sc-run-piece`)
-      .map(node => (node.element as HTMLElement).style.transform)
-    expect(pieces('submitted')).not.toEqual(pieces('stored'))
+      .filter(node => (node.element as HTMLElement).style.opacity === '1')
+      .map(node => `${node.attributes('data-id')} ${(node.element as HTMLElement).style.transform}`)
+      .toSorted()
+    const standing = front.example.stored[lastOf(front)]!.standing
+      .map(({ id, square }) => `${id} ${squareAt(square)}`)
+      .toSorted()
+    expect(pieces('stored')).toEqual(standing)
+    expect(pieces('submitted')).not.toEqual(standing)
     expect(split.find(".sc-front-board[data-game='stored'] .sc-front-landed").attributes('style'))
       .toContain('opacity: 1')
   })
 
+  test('names Black under the cover where the run ends on a move of White', async () => {
+    reduceMotion()
+    const early = { ...front.example, run: { length: 5, start } }
+    vi.mocked(frontOf).mockReturnValueOnce({ ...front, example: early })
+    const split = mount(Split)
+    await flushPromises()
+    expect(split.find('.sc-front-cover span').text()).toBe('Black to move')
+  })
+
+  it.each([[5, undefined], [6, '']])('splits the boards only past the run, at %i', async (step, apart) => {
+    reduceMotion()
+    const split = mount(Split)
+    await flushPromises()
+    const line  = split.find('.sc-front-clock')
+    vi.spyOn(line.element, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 1100, 20))
+    Object.assign(line.element, { setPointerCapture: vi.fn<(id: number) => void>() })
+    await line.trigger('pointerdown', { clientX: step * 100, pointerId: 1 })
+    expect(split.find('.sc-front-split').attributes('data-apart')).toBe(apart)
+  })
 })
 
 describe('Split on the clock', () => {

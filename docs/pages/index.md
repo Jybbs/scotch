@@ -16,4 +16,4 @@ Each position is keyed by its Zobrist hash, so a game reaching a stored position
 
 ## Viewer
 
-The front page's example reaches its stored game by another order of moves at ply <!-- front-start -->7<!-- /front-start --> and shares <!-- front-run -->6<!-- /front-run --> positions with it before the two part, and the [Viewer](viewer/index.md) steps through both games from there to show how the grandmaster went on.
+The front page's example reaches its stored game by another order of moves at ply <!-- front-start -->7<!-- /front-start --> and shares <!-- front-run -->6<!-- /front-run --> positions with it before the two part, and the link `scotch match game --link` prints for it opens both games in the [Viewer](viewer/index.md), which steps through them from there to show how the grandmaster went on.

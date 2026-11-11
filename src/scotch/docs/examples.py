@@ -37,7 +37,8 @@ class Shown(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     keys: tuple[str, ...]
     """
     The Zobrist key of each position the frames hold, written in decimal as
-    text, since a JSON number keeps an integer exact only up to `2**53`.
+    text, since JavaScript reads a JSON number as a double, which keeps an
+    integer exact only up to `2**53`, per RFC 8259 section 6.
     """
 
     played: tuple[tuple[str, str], ...]

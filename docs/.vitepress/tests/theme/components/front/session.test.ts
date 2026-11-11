@@ -32,11 +32,11 @@ describe('Session', () => {
     await flushPromises()
     const lines = session.findAll('pre > div').map(line => line.text())
     expect(lines[0]).toBe('❯ scotch fetch games')
-    expect(lines.at(-2)).toBe('parting at your 7. O-O')
+    expect(lines.at(-2)).toMatch(/^Shares 6 positions, /u)
     expect(lines.at(-1)).toBe('❯')
     expect(session.findAll('.sc-front-cursor')).toHaveLength(1)
     expect(session.find('.sc-data-say').text())
-      .toBe('positions shared, step III of III, from scotch match game front.pgn')
+      .toBe('positions shared, step III of III, from scotch match game docs/public/games/front.pgn')
   })
 
   test('names each command figure once it has printed', async () => {

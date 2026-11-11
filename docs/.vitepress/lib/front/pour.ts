@@ -16,10 +16,11 @@ export interface Placed {
 
 /**
  * How the pieces pour: the milliseconds a pour and a lift take, the share of
- * the drawing's diagonal a piece starts from, the turn in radians a piece takes
- * at the start of its course where its drift is furthest from its middle, the
- * share of its course over which a piece fades in, and the most milliseconds
- * its drift holds a piece back before its course starts.
+ * the drawing's diagonal a piece starts from, twice the widest turn in radians a
+ * piece takes at the start of its course, which a piece whose drift is furthest
+ * from its middle takes, the share of its course over which a piece fades in,
+ * and the most milliseconds its drift holds a piece back before its course
+ * starts.
  */
 export interface PourTuning {
   fade  : number

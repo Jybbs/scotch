@@ -64,7 +64,7 @@
   margin      : 0;
   padding     : 0;
   border      : 0;
-  font        : 400 clamp(2.5rem, 4vw + 1rem, 3rem) / 1.1 var(--sc-face-display);
+  font        : 400 clamp(2.75rem, 4vw + 1rem, 3rem) / 1.1 var(--sc-face-display);
   text-wrap   : balance;
 }
 

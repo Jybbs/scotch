@@ -1,6 +1,7 @@
-import { counted }            from '../data/numbers.ts'
-import { STORE }              from '../data/store.ts'
-import { type Front, moveAt } from './example.ts'
+import { counted }    from '../data/numbers.ts'
+import { STORE }      from '../data/store.ts'
+import type { Front } from './example.ts'
+import { lastOf }     from './plies.ts'
 
 /**
  * One beat of the session: the command it types into, how many of that
@@ -43,32 +44,34 @@ export function beatsOf(commands: readonly Command[]): Beat[] {
 }
 
 /**
- * Lists the three commands a reader runs from a fresh clone, each beside what
- * it prints, the match naming the front page's example and the move where the
- * reader's game parts from the stored one.
+ * Lists the three commands a reader runs from a fresh clone, each beside the
+ * last lines it prints, the match's report on the front page's example ending
+ * on the run the two games share, ahead of the line naming the stored game's
+ * move where they part.
  */
 export function commandsOf(front: Front): Command[] {
   const { length, start } = front.example.run
+  const plies             = `plies ${start} to ${lastOf(front)}`
   return [
     {
       command : 'scotch fetch games',
       figure  : counted(STORE.files.length),
-      out     : [`${counted(STORE.files.length)} archives from PGN Mentor`],
+      out     : STORE.files.slice(-2).map(({ address }) => `Fetched ${address}`),
       unit    : 'archives',
       verb    : 'Fetch'
     },
     {
       command : 'scotch index games',
       figure  : counted(STORE.positions),
-      out     : [`${counted(STORE.games)} games`, `${counted(STORE.positions)} positions keyed`],
+      out     : [`Indexed ${counted(STORE.games)} games into .cache/data/index`],
       unit    : 'positions',
       verb    : 'Index'
     },
     {
-      command : 'scotch match game front.pgn',
+      command : 'scotch match game docs/public/games/front.pgn',
       figure  : String(length),
-      out     : [`${length} positions shared from ply ${start}`,
-                 `parting at your ${moveAt(front, 'submitted', start + length)}`],
+      out     : [`Shares ${length} positions, ${plies} of the submitted game `
+               + `and ${plies} of the stored game`],
       unit    : 'positions shared',
       verb    : 'Match'
     }

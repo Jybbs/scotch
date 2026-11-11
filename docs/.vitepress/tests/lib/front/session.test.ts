@@ -31,19 +31,23 @@ describe('beatsOf', () => {
 describe('commandsOf', () => {
   it('lists the three commands a reader runs from a fresh clone', () => {
     expect(commands.map(each => each.command))
-      .toEqual(['scotch fetch games', 'scotch index games', 'scotch match game front.pgn'])
+      .toEqual(['scotch fetch games', 'scotch index games', 'scotch match game docs/public/games/front.pgn'])
   })
 
-  it("names the store's own figures", () => {
-    expect(commands[0]!.figure).toBe(counted(STORE.files.length))
-    expect(commands[1]!.out)
-      .toEqual([`${counted(STORE.games)} games`, `${counted(STORE.positions)} positions keyed`])
+  it("prints the last archives the fetch writes and the store's own counts", () => {
+    expect(commands[0]).toMatchObject({
+      figure : counted(STORE.files.length),
+      out    : STORE.files.slice(-2).map(({ address }) => `Fetched ${address}`)
+    })
+    expect(commands[1]!.out).toEqual([`Indexed ${counted(STORE.games)} games into .cache/data/index`])
   })
 
-  it("names the run the match finds and the reader's parting move", () => {
+  it('stops the match report on the run the two games share, ahead of the parting', () => {
     expect(commands[2]).toMatchObject({
       figure : '6',
-      out    : ['6 positions shared from ply 7', 'parting at your 7. O-O']
+      out    : ['Shares 6 positions, plies 7 to 12 of the submitted game '
+              + 'and plies 7 to 12 of the stored game']
     })
+    expect(commands[2]!.out.join(' ')).not.toContain('Qc2')
   })
 })

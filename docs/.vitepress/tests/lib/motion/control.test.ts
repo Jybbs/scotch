@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount }            from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
-import { defineComponent, nextTick }       from 'vue'
+import { flushPromises, mount }                from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, nextTick }           from 'vue'
 
 import { MOTION_KEY, type Motion, useMotion } from '../../../lib/motion/control.ts'
 import { reduceMotion }                       from '../../common/motion.ts'
@@ -51,6 +51,17 @@ describe('useMotion', () => {
     first.toggle()
     await flushPromises()
     expect(second.moving.value).toBe(false)
+  })
+
+  it('marks no root element where no document exists, as on the server', async () => {
+    vi.resetModules()
+    vi.doMock('@vueuse/core', async original =>
+      ({ ...await original<typeof import('@vueuse/core')>(), defaultDocument: undefined }))
+    const served = await import('../../../lib/motion/control.ts')
+    delete document.documentElement.dataset.motion
+    served.useMotion()
+    expect(document.documentElement.dataset.motion).toBeUndefined()
+    vi.doUnmock('@vueuse/core')
   })
 
   it('reads a choice kept from an earlier page of the visit', async () => {

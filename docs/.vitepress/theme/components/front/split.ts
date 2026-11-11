@@ -72,7 +72,7 @@ function readoutOf(front: Front, ply: number): Readout {
   const met     = ply === front.example.run.start
   const reading = readingAt(front, ply)
   const parted  = `Your game parted at ${moveAt(front, 'submitted', last + 1)}. `
-                + 'How the stored game went on waits in the Viewer.'
+                + 'The link scotch match game --link prints opens both games in the Viewer.'
   return {
     big      : String(reading.figure),
     readings : [

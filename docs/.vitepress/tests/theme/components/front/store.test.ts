@@ -2,13 +2,18 @@
 import { flushPromises, mount }            from '@vue/test-utils'
 import { afterEach, describe, expect, vi } from 'vitest'
 
-import { counted }            from '../../../../lib/data/numbers.ts'
-import { SQUARES, decadesOf } from '../../../../lib/front/census.ts'
-import { Store }              from '../../../../theme/components/front/store.ts'
-import { test }               from '../../../common/clock.ts'
-import { reduceMotion }       from '../../../common/motion.ts'
+import { counted }                     from '../../../../lib/data/numbers.ts'
+import { SQUARES, decadesOf, fillsOf } from '../../../../lib/front/census.ts'
+import { Store }                       from '../../../../theme/components/front/store.ts'
+import { test }                        from '../../../common/clock.ts'
+import { reduceMotion }                from '../../../common/motion.ts'
 
 const decades = decadesOf()
+
+vi.mock('../../../../lib/front/census.ts', async original => {
+  const census = await original<typeof import('../../../../lib/front/census.ts')>()
+  return { ...census, fillsOf: vi.fn<typeof census.fillsOf>(census.fillsOf) }
+})
 
 vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),
@@ -20,6 +25,14 @@ afterEach(() => {
 })
 
 describe('Store', () => {
+  test('leaves a square no decade fills empty', async () => {
+    vi.mocked(fillsOf).mockReturnValueOnce([])
+    const store = mount(Store)
+    await flushPromises()
+    expect(store.findAll('.sc-front-store > span')).toHaveLength(SQUARES)
+    expect(store.findAll('.sc-front-store i')).toHaveLength(0)
+  })
+
   test('draws the store as one board of 64 squares, a row per decade beside it', async () => {
     const store = mount(Store)
     await flushPromises()

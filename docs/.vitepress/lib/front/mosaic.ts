@@ -52,8 +52,8 @@ export interface Mosaic {
  * each of its edges, the share of a cell the mark must fill for the cell to
  * hold a piece and the share past which it holds one whole, how far each cut
  * piece moves from its cell's middle toward the middle of its part, the seed
- * the pieces are drawn from, the widest turn a piece's course takes from the
- * line out of the mark's middle, the share of the scroll at which the first
+ * the pieces are drawn from, twice the widest turn a piece's course takes from
+ * the line out of the mark's middle, the share of the scroll at which the first
  * piece pours and the share the pours spread across from it, and how many
  * units of height a cell's drift moves its place in the order by.
  */

@@ -413,16 +413,6 @@ class Roles(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     The outline a chart's bar holds a white share inside.
     """
 
-    front_hollow: Role = Role(dark="black", kind="fill", light="dark")
-    """
-    The fill of a hollow piece on the front page's backdrop.
-    """
-
-    front_paper: Role = Role(dark="ground", kind="fill", light="white")
-    """
-    The fill of a paper piece on the front page's backdrop.
-    """
-
     glyph_dark: Role = Role(
         dark  = ("dark", 86, "light"),
         kind  = "fill",

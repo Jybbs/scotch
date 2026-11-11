@@ -8,13 +8,11 @@ import { ORDER, heldLine }        from '../../../lib/reference/roles.ts'
 import { DRAWINGS, svgOf }        from '../../../lib/site/pieces.ts'
 
 /**
- * Colors one of python-chess's pieces in a role's color in one scheme, its
- * outline in another role's color or in none.
+ * Colors python-chess's pawn in a role's color in one scheme, with no outline.
  */
-function glyph(role: palette.RoleName, piece: 'N' | 'P', edge: palette.RoleName | null, scheme: palette.Scheme): VNode {
-  const stroke = edge ? palette.colorOf(edge, scheme) : 'none'
-  const body   = DRAWINGS[piece].replaceAll('fill="#fff"', `fill="${palette.colorOf(role, scheme)}"`)
-    .replaceAll('stroke="#000"', `stroke="${stroke}"`)
+function glyph(role: palette.RoleName, scheme: palette.Scheme): VNode {
+  const body = DRAWINGS.P.replaceAll('fill="#fff"', `fill="${palette.colorOf(role, scheme)}"`)
+    .replaceAll('stroke="#000"', 'stroke="none"')
   return h('span', { 'data-role': role, 'innerHTML': svgOf(body) })
 }
 
@@ -56,10 +54,8 @@ export function sheet(scheme: palette.Scheme): VNode {
         ]),
         h('div', { 'class': 'sc-ref-bar', 'data-role': 'data_edge' }, h('i', { 'data-role': 'data_black' })),
         h('div', { class: 'sc-ref-set' }, [
-          glyph('front_paper', 'N', 'ink', scheme),
-          glyph('front_hollow', 'N', 'quiet', scheme),
-          glyph('glyph_light', 'P', null, scheme),
-          glyph('glyph_dark', 'P', null, scheme)
+          glyph('glyph_light', scheme),
+          glyph('glyph_dark', scheme)
         ]),
         h('i', { 'class': 'sc-ref-line', 'data-role': 'rule' })
       ])

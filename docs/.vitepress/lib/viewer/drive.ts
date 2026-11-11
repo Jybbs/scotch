@@ -177,8 +177,7 @@ export function useDrive(viewer: Viewer): Drive {
   const drive = (fresh: boolean): void => {
     const loaded = viewer.loaded.value
     const cursor = viewer.cursor.value
-    const glide  = fresh ? 'jump' : 'glide'
-    const reach  = moving.value ? glide : 'still'
+    const reach  = moving.value ? (fresh ? 'jump' : 'glide') : 'still'
     if (fresh) {
       for (const party of PARTIES) parts[party].value?.board?.load(loaded.sideOf(party))
       parts.ledger.value?.load()
