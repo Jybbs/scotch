@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount }                        from '@vue/test-utils'
+import { flushPromises, mount }                            from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { frontOf }      from '../../../../lib/front/example.ts'
@@ -97,7 +97,10 @@ describe('Split past the run', () => {
     expect(split.find('.sc-front-cover span').text()).toBe('Black to move')
   })
 
-  it.each([[5, undefined], [6, '']])('splits the boards only past the run, at %i', async (step, apart) => {
+  it.each([
+    [5, undefined, 'Both games, one position.'],
+    [6, '', 'Your game parted at']
+  ])('splits the boards only past the run, at %i', async (step, apart, say) => {
     reduceMotion()
     const split = mount(Split)
     await flushPromises()
@@ -106,6 +109,7 @@ describe('Split past the run', () => {
     Object.assign(line.element, { setPointerCapture: vi.fn<(id: number) => void>() })
     await line.trigger('pointerdown', { clientX: step * 100, pointerId: 1 })
     expect(split.find('.sc-front-split').attributes('data-apart')).toBe(apart)
+    expect(split.find('.sc-data-say').text()).toContain(say)
   })
 })
 

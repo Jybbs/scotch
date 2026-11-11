@@ -1,6 +1,6 @@
 .VPHome {
   --sc-front-fade   : 1;
-  --sc-front-square : color-mix(in oklab, var(--sc-ink) 8%, var(--sc-page));
+  --sc-front-square : color-mix(in oklab, var(--sc-ink) 8%, transparent);
   --sc-front-side   : 72px;
 }
 
