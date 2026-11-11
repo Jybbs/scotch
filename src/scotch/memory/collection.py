@@ -11,8 +11,9 @@ from gc     import freeze
 
 def freeze_at_exit():
     """
-    Registers `gc.freeze` to run at exit, which moves every object the
-    process holds into the permanent generation, so the collections Python
-    still runs while the interpreter shuts down examine none of them.
+    Registers `gc.freeze` to run at exit, which moves every object
+    the garbage collector tracks into the permanent generation, so the
+    collections Python still runs while the interpreter shuts down examine
+    none of them.
     """
     register(freeze)

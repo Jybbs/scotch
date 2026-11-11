@@ -1,9 +1,9 @@
 """
 Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
-names. Each verb's group sits in the module under `cli/` named for the
-verb, which the app imports only once a command of that group, or its help,
-is run.
+names. Each verb's group sits in the module under `cli/` named for the verb,
+which the app imports the first time a run looks that group up, so `scotch
+--help` imports none of them.
 """
 
 from cyclopts           import App, Parameter
