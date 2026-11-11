@@ -13,7 +13,7 @@ jobs:
       - name: Build the site and check its links
         run: mise run site:links
       - name: Attach the site
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           if-no-files-found: error
           name: site
@@ -34,7 +34,7 @@ jobs:
       - name: Write the total the badge reads
         run: mise run gha:total -- "$RUNNER_TEMP/total"
       - name: Attach the total
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           if-no-files-found: error
           name: total
@@ -64,7 +64,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_TOKEN }}
           command: pages deploy --branch=main --project-name=scotch docs/.vitepress/dist
-          wranglerVersion: 4.149.0
+          wranglerVersion: 4.160.0
     timeout-minutes: 10
   scoresheet:
     if: always()
