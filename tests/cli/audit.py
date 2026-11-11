@@ -9,7 +9,8 @@ from pathlib       import Path
 from pytest        import CaptureFixture, mark
 from pytest_subprocess.fake_process import FakeProcess
 
-from scotch.repo.schemas import Finding, Format
+from scotch.repo.formats import Format
+from scotch.repo.schemas import Finding
 
 
 @mark.usefixtures("answered", "inside")

@@ -15,9 +15,7 @@ from polars          import (
     String,
     UInt8,
     col,
-    collect_all,
     concat,
-    lit,
     read_parquet_schema,
     scan_parquet,
     struct
@@ -106,9 +104,17 @@ class PositionIndex:
 
     def listed(self, numbers: Iterable[int]) -> list[Game]:
         """
-        Reads back the stored game at each of `numbers`, each through a
-        filter on `game` that decodes the one row group holding it.
+        Reads back the stored game at each of `numbers`, in that order,
+        through one filter on `game` that decodes only the row groups
+        holding them.
         """
+        numbers = list(numbers)
+        rows    = (
+            self.games.filter(col("game").is_in(numbers))
+                .collect()
+                .rows_by_key("game", include_key=True, named=True, unique=True)
+        )
+
         return [
             Game(
                 errors = row["errors"],
@@ -118,11 +124,7 @@ class PositionIndex:
                     "Result": row["result"]
                 }
             )
-            for frame in collect_all(
-                self.games.filter(col("game") == lit(number, dtype=GAMES["game"]))
-                for number in numbers
-            )
-            for row in frame.iter_rows(named=True)
+            for row in map(rows.__getitem__, numbers)
         ]
 
     def match(self, submitted: Game) -> Match | None:

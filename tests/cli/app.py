@@ -53,7 +53,7 @@ def test_help_text(
         for module, distributions in packages_distributions().items()
         if {*map(normalized, distributions)}
         & {*map(normalized, requires("scotch"))} - {
-            "cyclopts", "markdown-it-py", "pydantic", "rich"
+            "cyclopts", "markdown-it-py", "rich"
         }
     )
 )
@@ -63,12 +63,10 @@ def test_the_help_loads_no_package_behind_the_commands(
 ):
     """
     Asserts that `scotch --help` imports no module of a dependency the
-    manifest declares beside the ones that render the help and Pydantic,
-    which `scotch.repo.schemas` loads as it runs to define the `Format` that
-    the `--output-format` of `scotch audit repo` defaults to. The global
+    manifest declares beside the ones that render the help. The global
     lazy import mode defers each import a command's module makes until the
-    command reads the name it binds, whereas the module itself runs once the
-    app registers the command.
+    command reads the name it binds, whereas registering the command runs
+    its module and resolves the type of each parameter it takes.
     """
     assert module not in help_modules
 

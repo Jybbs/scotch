@@ -7,7 +7,8 @@ from scotch.cli           import app
 from scotch.cli.settings  import root
 from scotch.repo.checkout import Checkout
 from scotch.repo.checks   import Check
-from scotch.repo.schemas  import Format, Level
+from scotch.repo.formats  import Format
+from scotch.repo.schemas  import Level
 
 
 def repo(*, output_format: Format = Format.TEXT) -> int:
