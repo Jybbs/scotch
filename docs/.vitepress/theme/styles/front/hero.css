@@ -26,22 +26,12 @@
 .VPHome .VPHomeHero .main { width: 100%; }
 
 .sc-lockup {
-  position      : relative;
-  isolation     : isolate;
   display       : grid;
   width         : min(32rem, 100%);
   margin-inline : auto;
   justify-items : center;
   gap           : 14px;
   text-align    : center;
-}
-
-.sc-lockup::before {
-  content    : '';
-  position   : absolute;
-  inset      : -24px -48px;
-  z-index    : -1;
-  background : var(--sc-page);
 }
 
 .sc-lockup .sc-wordmark {
