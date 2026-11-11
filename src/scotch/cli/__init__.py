@@ -1,76 +1,65 @@
 """
 Exposes the `scotch` command, whose help opens on the summary the package
 metadata carries and whose `--version` flag prints the version that metadata
-names, each subcommand sitting in a group named for the verb it runs. The
-modules of the hidden `apply`, `audit`, `lift`, and `render` groups import
-this module's `app` back, which the global lazy import mode binds only when
-one of their commands runs, after this module has defined it.
+names. Each verb's group sits in the module under `cli/` named for the verb,
+which the app imports the first time a run looks that group up, so `scotch
+--help` imports none of them.
 """
 
 from cyclopts           import App, Parameter
-from importlib.metadata import metadata
-
-from scotch.cli      import apply, audit, fetch, index, lift, match, render, show
-from scotch.cli.cite import source
+from importlib.metadata import distributions
 
 app = App(
     default_parameter = Parameter(negative=()),
-    help              = metadata("scotch")["Summary"],
+    help              = next(distributions(name="scotch")).metadata["Summary"],
     name              = "scotch"
 )
 app.command(
-    App(
-        help = "Sends the registries under .github/ to the repository on GitHub.",
-        name = "apply",
-        show = False
-    )
+    "scotch.cli.apply:apply_group",
+    help = "Sends the registries under .github/ to the repository on GitHub.",
+    name = "apply",
+    show = False
 )
-app["apply"].command(apply.labels)
-app["apply"].command(apply.rulesets)
 app.command(
-    App(
-        help = "Reports where the repository's configuration has drifted from itself.",
-        name = "audit",
-        show = False
-    )
+    "scotch.cli.audit:audit_group",
+    help = "Reports where the repository's configuration has drifted from itself.",
+    name = "audit",
+    show = False
 )
-app["audit"].command(audit.repo)
 app.command(
-    App(help="Prints the footnote definition citing a source.", name="cite")
+    "scotch.cli.cite:cite_group",
+    help = "Prints the footnote definition citing a source.",
+    name = "cite"
 )
-app["cite"].command(source)
 app.command(
-    App(help="Downloads the files the store draws its games from.", name="fetch")
+    "scotch.cli.fetch:fetch_group",
+    help = "Downloads the files the store draws its games from.",
+    name = "fetch"
 )
-app["fetch"].command(fetch.games)
 app.command(
-    App(help="Builds the index of stored games from the fetched files.", name="index")
+    "scotch.cli.index:index_group",
+    help = "Builds the index of stored games from the fetched files.",
+    name = "index"
 )
-app["index"].command(index.games)
 app.command(
-    App(
-        help = "Lists, tries, and writes the lift of each lagging pin.",
-        name = "lift",
-        show = False
-    )
+    "scotch.cli.lift:lift_group",
+    help = "Lists, tries, and writes the lift of each lagging pin.",
+    name = "lift",
+    show = False
 )
-app["lift"].command(lift.pins)
 app.command(
-    App(help="Matches a submitted game against the stored games.", name="match")
+    "scotch.cli.match:match_group",
+    help = "Matches a submitted game against the stored games.",
+    name = "match"
 )
-app["match"].command(match.game)
-app["match"].command(match.games)
 app.command(
-    App(
-        help = "Writes the files the site and the Markdown restate from a declaration.",
-        name = "render",
-        show = False
-    )
+    "scotch.cli.render:render_group",
+    help = "Writes the files the site and the Markdown restate from a declaration.",
+    name = "render",
+    show = False
 )
-app["render"].command(render.docs)
 app.command(
-    App(help="Prints a stored game, a position, or what the store holds.", name="show")
+    "scotch.cli.show:show_group",
+    help = "Prints a stored game, a position, or what the store holds.",
+    name = "show"
 )
-app["show"].command(show.game)
-app["show"].command(show.position)
-app["show"].command(show.store)

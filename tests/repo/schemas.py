@@ -9,11 +9,11 @@ from pathlib       import Path
 from pydantic      import ValidationError
 from pytest        import mark, param, raises
 
+from scotch.repo.formats import Format
 from scotch.repo.schemas import (
     Action,
     Cache,
     Finding,
-    Format,
     Issue,
     Job,
     Level,

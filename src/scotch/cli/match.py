@@ -2,10 +2,11 @@
 Holds the `scotch match` commands, meaning `game`, which matches one game of
 a Portable Game Notation (PGN) file or of standard input against the index
 of stored games and prints how the stored game continued, and `games`, which
-matches every game a file holds.
+matches every game a file holds. `match_group` registers them as the group
+the app imports by its path.
 """
 
-from cyclopts       import Parameter
+from cyclopts       import App, Parameter
 from cyclopts.types import ExistingFile, NonNegativeInt, PositiveInt
 from pathlib        import Path
 from sys            import stdin
@@ -170,3 +171,8 @@ def games(pgn: ExistingFile):
 
     if not place:
         raise SystemExit(f"Found no game in {pgn}")
+
+
+match_group = App(name="match")
+match_group.command(game)
+match_group.command(games)

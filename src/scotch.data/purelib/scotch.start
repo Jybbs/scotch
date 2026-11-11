@@ -1,1 +1,2 @@
 scotch.imports.filters:start
+scotch.memory.collection:freeze_at_exit

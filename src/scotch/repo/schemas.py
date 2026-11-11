@@ -19,6 +19,8 @@ from typing          import Annotated, ClassVar, Self, assert_never
 from urllib.parse    import urlsplit
 from yaml            import AliasToken, AnchorToken, SafeLoader, YAMLError, load, scan
 
+from scotch.repo.formats import Format
+
 
 class Author(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
     """
@@ -81,15 +83,6 @@ class ConfigFile(BaseModel, extra="ignore", frozen=True, use_attribute_docstring
             ]
 
         raise ValidationError.from_exception_data(str(path), details) from None
-
-
-class Format(StrEnum):
-    """
-    The shape `scotch audit repo` prints each finding in.
-    """
-
-    GITHUB = auto()
-    TEXT   = auto()
 
 
 class Level(StrEnum):

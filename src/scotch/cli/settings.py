@@ -4,7 +4,7 @@ arguments, `SCOTCH_` environment variables, and the `[tool.scotch]` table of
 the project's `pyproject.toml`.
 """
 
-from importlib.metadata import distribution
+from importlib.metadata import distributions
 from pathlib            import Path
 from polars.exceptions  import SchemaError
 from pydantic           import NonNegativeInt, PositiveFloat, field_validator
@@ -139,6 +139,6 @@ def root() -> Path:
     an installer records in the `direct_url.json` PEP 610 specifies, or the
     working directory where it recorded none.
     """
-    origin = distribution("scotch").origin
+    origin = next(distributions(name="scotch")).origin
 
     return Path.from_uri(origin.url) if hasattr(origin, "dir_info") else Path.cwd()

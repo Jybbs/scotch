@@ -121,8 +121,8 @@ def test_the_root_falls_back_to_the_working_directory(
     such as one from a wheel, leaves the working directory as the root.
     """
     monkeypatch.setattr(
-        "scotch.cli.settings.distribution",
-        lambda name: SimpleNamespace(origin=None)
+        "scotch.cli.settings.distributions",
+        lambda name: iter([SimpleNamespace(origin=None)])
     )
     monkeypatch.chdir(tmp_path)
 
@@ -147,9 +147,9 @@ def test_the_root_reads_a_clone_whose_path_holds_a_space(
     """
     clone = tmp_path / "a clone"
     monkeypatch.setattr(
-        "scotch.cli.settings.distribution",
-        lambda name: SimpleNamespace(
-            origin = SimpleNamespace(dir_info=None, url=clone.as_uri())
+        "scotch.cli.settings.distributions",
+        lambda name: iter(
+            [SimpleNamespace(origin=SimpleNamespace(dir_info=None, url=clone.as_uri()))]
         )
     )
 

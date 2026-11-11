@@ -1,10 +1,11 @@
 """
 Holds the `scotch lift` commands, which report every pin of the repository
 lagging its newest release, try the lift in a scratch clone, and write it,
-run by the `lock:lift` task.
+run by the `lock:lift` task. `lift_group` registers them as the group the
+app imports by its path.
 """
 
-from cyclopts   import Parameter
+from cyclopts   import App, Parameter
 from datetime   import date
 from os         import environ, fsdecode
 from pydantic   import ValidationError
@@ -130,3 +131,7 @@ def pins(
         )
     except ValidationError as error:
         raise SystemExit(str(error)) from None
+
+
+lift_group = App(name="lift")
+lift_group.command(pins)
