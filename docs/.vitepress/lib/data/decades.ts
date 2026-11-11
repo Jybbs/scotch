@@ -47,7 +47,7 @@ export const FIRST_CELL = 1850
  * The decades the axes of the strip and the rating list name besides the first,
  * the strip's axis naming its last cell as well.
  */
-export const NAMED = [1900, 1950, 2000] as const
+const NAMED = [1900, 1950, 2000] as const
 /**
  * The narrowest a cell is drawn on whole pixels, below which every cell takes a
  * share of a pixel.

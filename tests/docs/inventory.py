@@ -38,6 +38,7 @@ def test_an_index_adds_the_files_written_from_it(
     from the index and its census:
 
     - The examples, holding the front page's and the Methods page's alone
+    - The files the Data page lists, each beside its games by decade
     - The store the Data pages, the store page, and the Viewer read
     - The Viewer's match beside the demo game alone
     - The example run the README and the Guide carry, naming the stored game
@@ -70,6 +71,7 @@ def test_an_index_adds_the_files_written_from_it(
 
     assert [(type(output), str(output.path)) for output in measured] == [
         (Document, "docs/.vitepress/lib/rendered/examples.json"),
+        (Document, "docs/.vitepress/lib/rendered/files.json"),
         (Document, "docs/.vitepress/lib/rendered/store.json"),
         (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
@@ -288,7 +290,11 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     assert "|---|---|---|" in data
     assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
     assert from_toml(store.split("```toml\n")[1].split("\n```")[0]) == {
-        "sources": [Sources.read().sources[0].model_dump(mode="json")]
+        "floors"  : Sources.read().floors,
+        "sources" : [Sources.read().sources[0].model_dump(
+            exclude_none = True,
+            mode         = "json"
+        )]
     }
     assert all(
         f"<!-- help-{verb}-{noun} -->\n```text\n{helped(app, verb, noun)}\n```" in help_

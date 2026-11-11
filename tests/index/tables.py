@@ -44,8 +44,9 @@ def test_a_batch_leaves_out_each_game_with_a_problem(tmp_path: Path):
         tmp_path,
         "Four.pgn",
         body = (
-            b'1. e4 *\n\n1. e4 e5 2. Qxf7 *\n\n[Variant "Atomic"]\n\n1. d4 *\n\n'
-            b"1. c4 *\n"
+            b'1. e4 *\n\n[Event "?"]\n1. e4 e5 2. Qxf7 *\n\n'
+            b'[Variant "Atomic"]\n\n1. d4 *\n\n'
+            b'[Event "?"]\n1. c4 *\n'
         )
     )
     batch = Batch.read(tmp_path, source)
@@ -83,7 +84,9 @@ def test_a_game_read_from_a_source_reads_back_with_its_origin(tmp_path: Path):
     back from the index with the file's address and its place there.
     """
     stored = list(
-        land(tmp_path, "Two.pgn", body=b"1. e4 *\n\n1. d4 *\n").games(tmp_path)
+        land(tmp_path, "Two.pgn", body=b'1. e4 *\n\n[Event "?"]\n1. d4 *\n').games(
+            tmp_path
+        )
     )
 
     assert PositionIndex.build(stored).game(1) == stored[1]
@@ -133,6 +136,58 @@ def test_a_game_that_leaves_a_stored_game_and_returns_matches_the_longer_run(
     assert match.span == Span(length=9, offset=-4, start=10)
 
 
+@mark.parametrize(
+    ("floor", "kept", "summary"),
+    [
+        param(
+            0,
+            [1, 2, 3],
+            "Read 3 games from https://example.com/R.pgn",
+            id = "no-floor"
+        ),
+        param(
+            2500,
+            [2, 3],
+            "Read 3 games from https://example.com/R.pgn, 1 left below 2500",
+            id = "floor"
+        ),
+        param(
+            2501,
+            [3],
+            "Read 3 games from https://example.com/R.pgn, 2 left below 2501",
+            id = "floor-past-a-rating"
+        )
+    ]
+)
+def test_a_batch_counts_each_game_rated_below_its_floor(
+    floor    : int,
+    kept     : list[int],
+    summary  : str,
+    tmp_path : Path
+):
+    """
+    Asserts that a batch keeps each game rated at its floor or above and
+    counts the rest on its summary line, a game at the floor kept and one a
+    point below it counted.
+    """
+    source = land(
+        tmp_path,
+        "R.pgn",
+        body = (
+            b'[WhiteElo "2499"]\n\n1. e4 *\n\n[WhiteElo "2500"]\n\n1. d4 *\n\n'
+            b'[BlackElo "2501"]\n\n1. c4 *\n'
+        )
+    )
+    batch = Batch.read(tmp_path, source, floor)
+
+    assert (
+        batch.rows.get_column("origin")
+             .struct.field("place")
+             .to_list()
+    ) == kept
+    assert batch.summary == summary
+
+
 def test_a_game_two_batches_repeat_is_indexed_once_under_the_first(tmp_path: Path):
     """
     Asserts that a game a second file repeats, with the same Seven Tag
@@ -162,9 +217,11 @@ def test_a_game_two_batches_repeat_is_indexed_once_under_the_first(tmp_path: Pat
 def test_a_reference_names_the_stored_game_read_from_it():
     """
     Asserts that `<file>:<n>` finds the game at the place `n` of the file
-    `file`, whose name is read without its percent-encoding and may hold a
-    colon, and that a reference naming no stored game finds nothing, a place
-    written with a leading zero among them.
+    whose address names the path `file` under its host, read without its
+    percent-encoding and possibly holding a colon, so two files of one name
+    under two folders name their games apart, and that a reference naming
+    no stored game finds nothing, a place written with a leading zero and a
+    file named without its folder among them.
     """
     games = [
         line(
@@ -172,17 +229,20 @@ def test_a_reference_names_the_stored_game_read_from_it():
             origin = Origin(address="https://example.com/a/My%20File.zip", place=2)
         ),
         line("d4", origin=Origin(address="https://example.com/b/Other.zip", place=2)),
-        line("c4", origin=Origin(address="https://example.com/c/A%3AB.zip", place=2))
+        line("c4", origin=Origin(address="https://example.com/c/A%3AB.zip", place=2)),
+        line("g3", origin=Origin(address="https://example.com/c/Other.zip", place=2))
     ]
     index = PositionIndex.build(games)
 
-    assert index.referenced("My File.zip:2") == games[0]
-    assert index.referenced("Other.zip:2") == games[1]
-    assert index.referenced("A:B.zip:2") == games[2]
-    assert index.referenced("Other.zip:02") is None
-    assert index.referenced("Other.zip:3") is None
-    assert index.referenced("Missing.zip:2") is None
-    assert index.referenced("Other.zip") is None
+    assert index.referenced("a/My File.zip:2") == games[0]
+    assert index.referenced("b/Other.zip:2") == games[1]
+    assert index.referenced("c/A:B.zip:2") == games[2]
+    assert index.referenced("c/Other.zip:2") == games[3]
+    assert index.referenced("b/Other.zip:02") is None
+    assert index.referenced("b/Other.zip:3") is None
+    assert index.referenced("Other.zip:2") is None
+    assert index.referenced("a/Missing.zip:2") is None
+    assert index.referenced("b/Other.zip") is None
 
 
 @mark.parametrize(
@@ -774,7 +834,13 @@ def test_a_merge_keeps_the_first_of_each_game_in_order(batches: list[list[Game]]
     """
     stored = [*batch for batch in batches]
     index  = PositionIndex.merge(
-        Batch(left=(), rows=PositionIndex.rows(batch), source=declare(f"{number}.pgn"))
+        Batch(
+            below  = 0,
+            floor  = 0,
+            left   = (),
+            rows   = PositionIndex.rows(batch),
+            source = declare(f"{number}.pgn")
+        )
         for number, batch in enumerate(batches)
     )
 

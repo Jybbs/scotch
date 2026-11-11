@@ -17,7 +17,7 @@ mise doctor project
 
 ## A First Match
 
-A fresh clone holds no games, so `mise run data:fetch` downloads the archives the store reads and `mise run data:index` builds the index from them. `scotch match game` then matches one game of a Portable Game Notation (PGN) file. The demo game below matches a game <!-- demo-white -->Kasparov<!-- /demo-white --> played, in the output that `mise run docs:render` writes from the index.
+A fresh clone holds no games, so `mise run data:fetch` downloads the files the store reads and `mise run data:index` builds the index from them. `scotch match game` then matches one game of a Portable Game Notation (PGN) file. The demo game below matches a game <!-- demo-white -->Kasparov<!-- /demo-white --> played, in the output that `mise run docs:render` writes from the index.
 
 <!-- example -->
 ```bash
@@ -25,7 +25,7 @@ scotch match game docs/public/games/demo.pgn
 ```
 
 ```text
-Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??
+players/Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??
 Shares 43 positions, plies 0 to 42 of the submitted game and plies 0 to 42 of the stored game
 Parts at r1b2k1r/p3q3/1p1N1p1p/2Ppn3/6pP/2QBP1B1/P3KPP1/3R4 w - - 0 22, where the submitted game played 22. c6 and the stored game played 22. Bc2
 Continues 22. Bc2 Ba6+ 23. Ke1 Bc4 24. Nxc4 dxc4 25. Rd6 Re8 26. Bxe5 fxe5 27. Qxc4 Qf7 28. Qe4 g3 29. fxg3 1-0

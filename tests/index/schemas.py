@@ -178,7 +178,7 @@ def test_a_report_names_the_file_the_stored_game_was_read_from(
 
     assert match.report() == snapshot
     assert match.line == (
-        "White.zip:1234  White, W vs. Black, B, Event, 2000.01.02, 2 positions"
+        "players/White.zip:1234  White, W vs. Black, B, Event, 2000.01.02, 2 positions"
     )
 
 

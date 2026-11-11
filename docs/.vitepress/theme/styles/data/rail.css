@@ -1,0 +1,186 @@
+.sc-data-rail {
+  display   : grid;
+  min-width : 0;
+}
+
+.sc-data-stamp {
+  display        : inline-flex;
+  align-items    : center;
+  gap            : 5px;
+  color          : var(--sc-data-quiet);
+  font           : 600 0.62rem/1 var(--sc-face-code);
+  letter-spacing : 0.08em;
+  text-transform : uppercase;
+  white-space    : nowrap;
+}
+
+.sc-data-stamp::before {
+  width         : 7px;
+  height        : 7px;
+  border-radius : 50%;
+  background    : var(--sc-data-hue);
+  content       : '';
+}
+
+.sc-data-rail-card {
+  position      : relative;
+  display       : grid;
+  gap           : 9px;
+  min-width     : 0;
+  padding       : 13px 16px 13px 20px;
+  overflow      : hidden;
+  border        : 1px solid var(--sc-data-rule);
+  border-radius : 8px 8px 8px 0;
+  background    : var(--sc-raised);
+}
+
+.sc-data-rail-card::before {
+  position   : absolute;
+  inset      : 0 auto 0 0;
+  width      : 4px;
+  background : var(--sc-data-hue);
+  content    : '';
+  transition : background-color var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-rail-top {
+  display               : grid;
+  grid-template-columns : minmax(0, 1fr) auto;
+  align-items           : baseline;
+  gap                   : 12px;
+}
+
+.sc-data-rail .sc-data-rail-name {
+  min-width     : 0;
+  margin        : 0;
+  overflow      : hidden;
+  font          : 400 1.32rem/1.15 var(--sc-face-display);
+  text-overflow : ellipsis;
+  white-space   : nowrap;
+}
+
+.sc-data-rail-top b {
+  font                 : 500 0.9rem/1 var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+  text-align           : right;
+}
+
+.sc-data-rail-top small {
+  margin-left    : 6px;
+  color          : var(--sc-data-quiet);
+  font           : 500 0.62rem/1 var(--sc-face-code);
+  letter-spacing : 0.06em;
+  text-transform : uppercase;
+}
+
+.sc-data-rail-sub,
+.sc-data-rail-tab {
+  display     : flex;
+  align-items : center;
+  min-width   : 0;
+  overflow    : hidden;
+  white-space : nowrap;
+}
+
+.sc-data-rail-sub {
+  gap   : 10px;
+  color : var(--sc-data-quiet);
+  font  : 400 0.8rem/1.2 var(--sc-face-body);
+}
+
+.sc-data-rail code {
+  min-width     : 0;
+  padding       : 0;
+  overflow      : hidden;
+  background    : none;
+  color         : var(--sc-data-ink);
+  font          : 500 0.72rem/1 var(--sc-face-code);
+  text-overflow : ellipsis;
+  white-space   : nowrap;
+}
+
+.sc-data-rail-cells {
+  --sc-data-empty       : color-mix(in oklab, var(--sc-data-rule) 45%, transparent);
+  display               : grid;
+  grid-template-columns : repeat(var(--sc-data-n), minmax(0, 1fr));
+  gap                   : 2px;
+  height                : 16px;
+}
+
+.sc-data-rail-cells i {
+  border-radius    : 2px;
+  background-color : color-mix(in oklab, var(--sc-data-hue) calc(var(--sc-data-v, 0) * 100%), var(--sc-data-empty));
+  transition       : background-color var(--sc-duration-settle) var(--sc-curve-glide);
+  transition-delay : calc(var(--sc-data-k, 0) * 14ms);
+}
+
+.sc-data-rail-moves {
+  display     : flex;
+  align-items : stretch;
+  gap         : 4px;
+  height      : 16px;
+}
+
+.sc-data-rail-moves code {
+  display       : inline-grid;
+  place-items   : center;
+  padding       : 0 6px;
+  overflow      : visible;
+  border-radius : 2px;
+  background    : color-mix(in oklab, var(--sc-data-hue) 22%, transparent);
+  font-size     : 0.68rem;
+}
+
+.sc-data-rail-scale {
+  position             : relative;
+  height               : 12px;
+  color                : var(--sc-data-quiet);
+  font                 : 500 0.6rem/1 var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+}
+
+.sc-data-rail-scale span {
+  position    : absolute;
+  top         : 0;
+  transform   : translateX(-50%);
+  white-space : nowrap;
+  transition  : left var(--sc-duration-glide) var(--sc-curve-glide);
+}
+
+.sc-data-rail-scale .sc-data-before { transform: translateX(-100%); }
+
+.sc-data-rail-scale .sc-data-after,
+.sc-data-rail-scale .sc-data-rank { transform: none; }
+
+.sc-data-rail-scale .sc-data-rank { left: 0; }
+
+.sc-data-rail-tab {
+  justify-self  : start;
+  gap           : 8px;
+  max-width     : calc(100% - 16px);
+  padding       : 6px 12px 7px;
+  border        : 1px solid var(--sc-data-rule);
+  border-top    : 0;
+  border-radius : 0 0 6px 6px;
+  background    : var(--sc-data-page);
+  color         : var(--sc-data-quiet);
+  font          : 400 0.78rem/1 var(--sc-face-body);
+}
+
+.sc-data-rail-tab > span:first-child {
+  font           : 600 0.6rem/1.3 var(--sc-face-code);
+  letter-spacing : 0.09em;
+  text-transform : uppercase;
+}
+
+.sc-data-rail-tab code { flex: none; }
+
+.sc-data-rail-twin {
+  color                : var(--sc-data-quiet);
+  font                 : 500 0.72rem/1 var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+}
+
+@media (width < 40rem) {
+  .sc-data-rail-twin { display: none; }
+}

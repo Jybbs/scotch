@@ -92,7 +92,8 @@ def test_an_index_build_reports_each_file_and_each_game_left_out(
         ("players/A.zip", zipped(("A.pgn", '[White "A"]\n\n1. e4 *\n'))),
         (
             "players/B.pgn",
-            b'[White "A"]\n\n1. e4 *\n\n[White "B"]\n\n1. e4 e5 2. Qxf7 *\n\n1. d4 *\n'
+            b'[White "A"]\n\n1. e4 *\n\n[White "B"]\n\n1. e4 e5 2. Qxf7 *\n\n'
+            b'[White "C"]\n\n1. d4 *\n'
         )
     )
 

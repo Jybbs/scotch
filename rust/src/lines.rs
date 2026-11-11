@@ -17,6 +17,7 @@ pub fn is_blank(line: &str) -> bool {
 
 /// The lines of a text, each read with its terminator, where `\n`, `\r\n`,
 /// and a lone `\r` each end a line.
+#[derive(Clone)]
 pub struct Lines<'a> {
     rest: &'a str,
 }

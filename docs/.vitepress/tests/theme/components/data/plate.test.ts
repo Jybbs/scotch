@@ -28,8 +28,8 @@ describe('Plate', () => {
   })
 
   it('reads one line where it holds no readings, and sets no head with neither figure nor sentence', () => {
-    const plate = mount(Plate, { props: { line: 'Read from 250 archives' } })
-    expect(plate.find('.sc-data-line').text()).toBe('Read from 250 archives')
+    const plate = mount(Plate, { props: { line: 'Read from 1,465 files' } })
+    expect(plate.find('.sc-data-line').text()).toBe('Read from 1,465 files')
     expect(plate.find('.sc-data-line').attributes('aria-live')).toBe('polite')
     expect(plate.find('.sc-data-head').exists()).toBe(false)
     expect(plate.find('.sc-data-tools').exists()).toBe(false)

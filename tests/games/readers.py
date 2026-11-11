@@ -8,6 +8,8 @@ python-chess reads and keys, the store's own reader before the crate:
   the same games through the WebAssembly build of the crate
 - Each quirk of python-chess's reader on malformed text, read as python-chess
   reads it under a visitor skipping every variation
+- Where one game opens for each set of tags as python-chess's reader does
+  not, and whether a text holds more past its first game
 - The positions `keys` reads no key for, and the move it stops at
 - The key of a position whose en passant capture no legal move plays, which
   leaves out what `zobrist_hash` reads, so two positions FIDE's Laws of Chess
@@ -24,7 +26,7 @@ from io                import StringIO
 from pathlib           import Path
 from pytest            import mark, param
 
-from scotch.games.readers import keys, read
+from scotch.games.readers import keys, read, trails
 
 
 class Mainline(GameBuilder):
@@ -165,19 +167,11 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
 @mark.parametrize(
     "text",
     [
-        param('[Event "A"]\n1. e4 e5 1-0\n[Event "B"]\n1. d4 *\n', id="joined-games"),
-        param("-----\n\n1. e4 *\n", id="row-of-dashes"),
-        param('[Event "A"]\n\n\n1. e4 *\n', id="two-blank-lines-after-the-tags"),
         param("1. e4 hello e5 Qh9 *\n", id="words-naming-no-move"),
         param("[hello\n1. e4 *\n", id="line-holding-no-tag-pair"),
         param("1. e4 Qh5 ) e5 *\n", id="stray-close-resumes-the-mainline"),
         param("( 1. e4 ) e5 *\n", id="open-before-any-move"),
         param("1. e4 {a\n\nb} e5 *\n", id="comment-across-a-blank-line"),
-        param(
-            '[FEN "garbage"]\n\n1. e4 {a\n\nb} e5\n\n1. d4 *\n',
-            id = "unreadable-fen-skips-a-comment"
-        ),
-        param('[Event "A"]\r\r1. e4 e5\r\r1. d4 *\r', id="carriage-returns"),
         param(
             '1. e4 *\n\n\ufeff[Event "B"]\n\n1. d4 *\n',
             id = "byte-order-mark-on-a-later-game"
@@ -231,3 +225,72 @@ def test_each_quirk_of_the_reader_reads_as_python_chess_reads_it(text: str):
         ]
         for game in iter(partial(read_game, handle, Visitor=Mainline), None)
     ]
+
+
+@mark.parametrize(
+    ("text", "read_as"),
+    [
+        param(
+            '[Event "A"]\n1. e4 e5 1-0\n[Event "B"]\n1. d4 *\n',
+            [("A", ["e2e4", "e7e5"], []), ("B", ["d2d4"], [])],
+            id = "result-ends-the-moves-before-the-next-tags"
+        ),
+        param(
+            '[Event "A"]\n\n\n1. e4 *\n',
+            [("A", ["e2e4"], [])],
+            id = "blank-lines-after-the-tags-leave-the-game-whole"
+        ),
+        param(
+            '[Event "A"]\r\r1. e4 e5\r\r1. d4 *\r',
+            [("A", ["e2e4", "e7e5"], [])],
+            id = "moves-past-a-blank-line-hold-no-tags"
+        ),
+        param(
+            "-----\n\n1. e4 *\n",
+            [("?", ["0000", "0000"], [])],
+            id = "moves-after-a-first-tagless-game-hold-no-tags"
+        ),
+        param(
+            '[FEN "garbage"]\n\n1. e4 {a\n\nb} e5\n\n1. d4 *\n',
+            [("?", [], ["expected 8 rows in position part of fen: 'garbage'"])],
+            id = "unreadable-fen-leaves-the-rest-tagless"
+        )
+    ]
+)
+def test_each_set_of_tags_opens_one_game_where_python_chess_reads_otherwise(
+    read_as : list[tuple[str, list[str], list[str]]],
+    text    : str
+):
+    """
+    Asserts that the crate reads one game for each set of tags where
+    python-chess's reader reads the text otherwise, so a game's moves end
+    at its result, blank lines after its tags leave it whole, and text past
+    the first game holding no tag pair yields no game, each game read as its
+    `Event` tag, its moves in UCI, and its errors.
+    """
+    assert [
+        (dict(tags).get("Event"), moves, errors) for tags, moves, _, errors in read(
+            text
+        )
+    ] == read_as
+
+
+@mark.parametrize(
+    ("text", "trailing"),
+    [
+        param("1. e4 *\n\n\n", False, id="blank-lines"),
+        param("1. e4\n\ne5\n", True, id="tagless-moves"),
+        param('1. e4 *\n\n[Event "B"]\n1. d4 *\n', True, id="another-game"),
+        param("", False, id="no-game")
+    ]
+)
+def test_trails_reads_whether_more_than_blank_lines_follow_the_first_game(
+    text     : str,
+    trailing : bool
+):
+    """
+    Asserts that `trails` reads a text as holding more past its first game
+    where another game or tagless text follows it, and not where only blank
+    lines or no game at all follow.
+    """
+    assert trails(text) is trailing

@@ -12,7 +12,7 @@ from functools           import partial
 from hashlib             import file_digest
 from importlib.resources import read_text
 from pathlib             import Path
-from pydantic            import AwareDatetime, BaseModel, Field, HttpUrl, NonNegativeInt, model_validator
+from pydantic            import AwareDatetime, BaseModel, Field, HttpUrl, NonNegativeInt, PositiveInt, model_validator
 from tomllib             import loads
 from typing              import Self
 from zipfile             import Path as ZipPath, ZipFile, is_zipfile
@@ -91,24 +91,44 @@ class Source(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     home: HttpUrl
     """
-    The home page of the site providing the file.
+    The heading the provider's site lists the file under within its
+    section, such as `World Championships`, or `None` where the section
+    holds no headings.
     """
 
     provider: str
     """
-    The name of the site providing the file.
+    The home page of the site providing the file.
     """
 
     section: str
     """
+    The moves opening every game of an archive of one opening, as the
+    provider's site writes them, such as `1.e4 c5 2.Nf3 d6`, or `None` for
+    a file of any other kind.
+    """
+
+    title: str
+    """
+    The name of the site providing the file.
+    """
+
+    group: str | None = None
+    """
     The section of the provider's site listing the file.
+    """
+
+    moves: str | None = None
+    """
+    The name the provider's site gives the file, such as `Magnus Carlsen`,
+    `World Championship 2018`, or `Sicilian, Najdorf`.
     """
 
     @property
     def file(self) -> str:
         """
-        Reads the file's name from its address without its percent-encoding,
-        such as `Carlsen.zip`.
+        Reads the path the file's address names under its host without its
+        percent-encoding, such as `players/Carlsen.zip`.
         """
         return Origin(address=str(self.address), place=1).file
 
@@ -221,14 +241,49 @@ class Sources(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
     sources: tuple[Source, ...]
     """
+    The rating a game of a section's files reaches the store at, keyed by
+    the section, read as the higher of its `WhiteElo` and `BlackElo` tags,
+    and a section left out keeping every game.
+    """
+
+    floors: dict[str, PositiveInt] = {}
+    """
     The files, each declared once.
     """
+
+    @property
+    def figures(self) -> dict[str, str]:
+        """
+        Names the figures a page sets from the sources, meaning the files
+        declared, the files each section declares under `<section>-files`,
+        and each section's floor under `<section>-floor`, each count written
+        with a comma between each three digits and each floor as a rating is
+        written, with none.
+        """
+        sections = Counter(row.section.lower() for row in self.sources)
+
+        return {
+            "files": f"{len(self.sources):,}",
+            **{f"{section}-files": f"{count:,}" for section, count in sections.items()},
+            **{
+                f"{section.lower()}-floor": str(floor)
+                for section, floor in self.floors.items()
+            }
+        }
+
+    def floor(self, source: Source) -> int:
+        """
+        Reads the rating a game of `source` reaches the store at, 0 where
+        the floors leave its section out.
+        """
+        return self.floors.get(source.section, 0)
 
     @model_validator(mode="after")
     def once(self) -> Self:
         """
-        Refuses an address two rows declare and a provider two rows give
-        different home pages, since each row restates its provider's.
+        Refuses an address two rows declare, a provider two rows give
+        different home pages, since each row restates its provider's, and a
+        floor naming a section no row declares.
         """
         addresses = Counter(row.address for row in self.sources)
         homes     = Counter(
@@ -241,6 +296,11 @@ class Sources(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
         if split := [provider for provider, count in homes.items() if count > 1]:
             raise ValueError(f"rows give {', '.join(split)} more than one home page")
+
+        if unknown := self.floors.keys() - {row.section for row in self.sources}:
+            raise ValueError(
+                f"floors name {', '.join(sorted(unknown))}, which no row declares"
+            )
 
         return self
 

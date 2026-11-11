@@ -11,7 +11,6 @@ from functools       import cached_property
 from importlib.resources.abc import Traversable
 from itertools               import islice
 from operator                import itemgetter
-from pathlib                 import PurePosixPath
 from pydantic                import BaseModel, Field, PositiveInt
 from typing       import Self
 from urllib.parse import unquote, urlsplit
@@ -104,16 +103,17 @@ class Origin(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     @property
     def file(self) -> str:
         """
-        Reads the file's name from its address without its percent-encoding,
-        such as `Carlsen.zip`.
+        Reads the path the file's address names under its host without its
+        percent-encoding, such as `players/Carlsen.zip`, which tells apart
+        two files of one name the provider lists in two sections.
         """
-        return unquote(PurePosixPath(urlsplit(self.address).path).name)
+        return unquote(urlsplit(self.address).path.removeprefix("/"))
 
     @property
     def reference(self) -> str:
         """
-        Names the game as `<file>:<n>`, such as `Carlsen.zip:12`, which
-        `scotch show game` reads back.
+        Names the game as `<file>:<n>`, such as `players/Carlsen.zip:12`,
+        which `scotch show game` reads back.
         """
         return f"{self.file}:{self.place}"
 
@@ -255,6 +255,22 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             return self.errors
 
         return tuple(dict.fromkeys((*self.errors, f"unsupported variant: {variant}")))
+
+    @property
+    def rating(self) -> int:
+        """
+        Reads the higher of the `WhiteElo` and `BlackElo` tags, the PGN
+        standard's tags for each player's rating, section 9.1.2, each read
+        where it holds digits alone, or 0 where neither does.
+        """
+        return max(
+            (
+                int(rating)
+                for tag in ("WhiteElo", "BlackElo")
+                if (rating := self.tags.get(tag, "")).isascii() and rating.isdecimal()
+            ),
+            default = 0
+        )
 
     @property
     def roster(self) -> tuple[str, ...]:
@@ -417,7 +433,10 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         Reads every game the PGN text `text` carries, in the order it holds
         them, each read and keyed by the `readers` extension module as
         python-chess's `read_game` reads it under a visitor skipping every
-        variation, each move a variation holds left unread.
+        variation, each move a variation holds left unread, save that each
+        set of tags opens one game. A game's moves end at its result, blank
+        lines after its tags leave it whole, and text past the first game
+        holding no tag pair yields no game.
         """
         for tags, moves, keys, errors in readers.read(text):
             yield cls(

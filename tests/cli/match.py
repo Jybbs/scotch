@@ -48,7 +48,7 @@ def test_a_file_holding_several_games_exits_where_none_is_chosen(
     Asserts that a match against a file holding two games, with no `--game`
     choosing one, exits nonzero naming the file and the option.
     """
-    path = pgn("1. e4 e5 *\n\n1. d4 d5 *\n")
+    path = pgn('1. e4 e5 *\n\n[Event "?"]\n1. d4 d5 *\n')
 
     assert invoke("match", "game", str(path)) == (
         f"Found several games in {path}, which --game chooses among"
@@ -66,7 +66,7 @@ def test_game_chooses_one_game_of_a_file_holding_several(
     five positions with the stored game, rather than the first, which shares
     four.
     """
-    path = pgn("1. e4 e5 2. Nf3 d6 *\n\n1. e4 e5 2. Nf3 Nc6 3. Bc4 *\n")
+    path = pgn('1. e4 e5 2. Nf3 d6 *\n\n[Event "?"]\n1. e4 e5 2. Nf3 Nc6 3. Bc4 *\n')
 
     assert invoke("match", "game", str(path), "--game", "2") == 0
     assert capsys.readouterr().out == snapshot
@@ -417,7 +417,7 @@ def test_link_prints_the_address_opening_the_export_last(
 
     printed = capsys.readouterr().out.splitlines()
 
-    assert printed[0].startswith("White.zip:1  White, W vs. Black, B")
+    assert printed[0].startswith("players/White.zip:1  White, W vs. Black, B")
     assert Export.model_validate_json(
         decompress(urlsafe_b64decode(printed[-1].partition("/viewer#match=")[2]))
     ) == Export.from_match(PositionIndex.build([indexed]).match(game), game)
@@ -472,10 +472,10 @@ def test_games_prints_one_line_for_each_game_of_a_file(
     """
     path = pgn(
         "1. e4 e5 2. Nf3 d6 *\n\n"
-        "1. e4 e5 2. Qxf7 *\n\n"
+        '[Event "?"]\n1. e4 e5 2. Qxf7 *\n\n'
         '[Variant "Atomic"]\n\n1. e4 *\n\n'
         '[FEN "4k3/8/8/8/8/8/8/4K2R w K - 0 1"]\n\n1. O-O *\n\n'
-        "1. e4 e5 2. Nf3 Nc6 3. Bc4 *\n"
+        '[Event "?"]\n1. e4 e5 2. Nf3 Nc6 3. Bc4 *\n'
     )
 
     assert invoke("match", "games", str(path)) == 0
@@ -556,7 +556,7 @@ def test_a_match_warns_where_the_files_changed_since_the_index_was_built(
     monkeypatch.setattr("scotch.cli.settings.stderr", stderr := StringIO())
 
     assert invoke("match", command, str(pgn("1. e4 e5 2. Nf3 d6 *"))) == 0
-    assert "White.zip:1  White, W vs. Black, B" in capsys.readouterr().out
+    assert "players/White.zip:1  White, W vs. Black, B" in capsys.readouterr().out
     assert stderr.getvalue() == (
         f"The files under {data / 'downloads'} have changed since the index was"
         " built from them, so run `scotch index games` to rebuild it\n"

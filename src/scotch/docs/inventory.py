@@ -52,12 +52,13 @@ class Outputs(RootModel[list[Output]]):
         """
         Lists the files written from `index`, meaning the store the Data
         pages, the Guide's store page, the identity page, and the Viewer
-        read, the examples the front page, the Methods page, and the link
-        cards draw, the match the Viewer opens on beside the demo game
-        alone, the figures each Markdown file of `pages` sets inside its
-        sentences, the example run the README and the Guide carry, and the
-        tables the Data pages, the Guide's store page, and the identity page
-        set beneath their widgets.
+        read, the file list the Data page draws, each file `sources.toml`
+        declares beside the games the store holds from it, the examples the
+        front page, the Methods page, and the link cards draw, the match
+        the Viewer opens on beside the demo game alone, the figures each
+        Markdown file of `pages` sets inside its sentences, the example run
+        the README and the Guide carry, and the tables the Data pages, the
+        Guide's store page, and the identity page set beneath their widgets.
         """
         census   = Census(index=index)
         viewer   = Example(path=Outputs.games / "viewer.pgn", shown=0)
@@ -91,6 +92,13 @@ class Outputs(RootModel[list[Output]]):
                     for name, example in examples.items()
                     if example.shown
                 }
+            ),
+            Document.from_value(
+                path  = Outputs.rendered / "files.json",
+                value = lambda: [
+                    listed.model_dump(mode="json")
+                    for listed in census.store.listed(Sources.read().sources)
+                ]
             ),
             Document.from_value(
                 path  = Outputs.rendered / "store.json",
@@ -155,7 +163,7 @@ class Outputs(RootModel[list[Output]]):
         """
         identity   = Identity()
         sources    = Sources.read()
-        declared   = {"files": f"{len(sources.sources):,}", "tagline": identity.tagline}
+        declared   = sources.figures | {"tagline": identity.tagline}
         pages      = tracked(root)
         project    = Project.installed()
         references = cache(partial(References.shipped, root))
@@ -222,13 +230,14 @@ class Outputs(RootModel[list[Output]]):
                     name   = "sources",
                     path   = Path("docs/pages/data/index.md"),
                     render = lambda: markdown(
-                        headers = ("Provider", "Section", "File"),
+                        headers = ("Provider", "Section", "File", "Name"),
                         right   = False,
                         rows    = (
                             (
                                 f"[{source.provider}]({source.home})",
                                 source.section,
-                                f"[`{source.file}`]({source.address})"
+                                f"[`{source.file}`]({source.address})",
+                                source.title
                             )
                             for source in sources.sources
                         )
@@ -238,7 +247,11 @@ class Outputs(RootModel[list[Output]]):
                     name   = "source",
                     path   = Path("docs/pages/guide/store.md"),
                     render = lambda: "\n".join(
-                        ("```toml", Sources.text().partition("\n\n")[0], "```")
+                        (
+                            "```toml",
+                            "\n\n".join(Sources.text().split("\n\n", 2)[:2]),
+                            "```"
+                        )
                     )
                 ),
                 *(

@@ -4,11 +4,11 @@ The longest run is one reading of closeness among several, and the measures belo
 
 ## Ties on the Longest Run
 
-Of the sampled games, <!-- tied -->47%<!-- /tied --> share their longest run with more than one stored game, and the match names the first of them beside the count of the rest, as [The Longest Run](runs.md) sets out.
+Of the sampled games, <!-- tied -->50%<!-- /tied --> share their longest run with more than one stored game, and the match names the first of them beside the count of the rest, as [The Longest Run](runs.md) sets out.
 
 ## Runs Through Crowded Positions
 
-In <!-- crowded -->8%<!-- /crowded --> of the sampled games, the longest run lies wholly in positions more than <!-- crowd -->100<!-- /crowd --> other stored games reach, so the match shows a well-trodden line rather than a game that reached a position few others did.
+In <!-- crowded -->10%<!-- /crowded --> of the sampled games, the longest run lies wholly in positions more than <!-- crowd -->100<!-- /crowd --> other stored games reach, so the match shows a well-trodden line rather than a game that reached a position few others did.
 
 ## Rarer Positions by Another Order
 

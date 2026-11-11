@@ -33,10 +33,10 @@ def recorded(body: bytes, data: Path, folder: str, source: Source):
     Records `source` in the manifest of `folder` under `data` as a download
     of `body`.
     """
-    (data / source.file).write_bytes(body)
+    (data / "body").write_bytes(body)
     Manifest.read(data / folder).recording(
         source.address,
-        Download.from_file(data / source.file, etag=None)
+        Download.from_file(data / "body", etag=None)
     ).write(data / folder)
 
 
@@ -66,7 +66,7 @@ def test_game_prints_the_stored_game_a_reference_names(
     Asserts that `scotch show game` prints the stored game a reference names
     as PGN python-chess reads back with the game's tags and moves.
     """
-    assert invoke("show", "game", "White.zip:1") == 0
+    assert invoke("show", "game", "players/White.zip:1") == 0
 
     read = read_game(StringIO(capsys.readouterr().out))
 
@@ -89,6 +89,24 @@ def test_position_prints_each_move_and_each_game(
     """
     assert invoke("show", "position", position) == 0
     assert capsys.readouterr().out == snapshot(name="position")
+
+
+@mark.usefixtures("indexed")
+def test_position_reads_the_moves_past_blank_lines_after_the_tags(
+    capsys: CaptureFixture[str]
+):
+    """
+    Asserts that `scotch show position` reads a line of moves its tags and
+    blank lines open on as it reads the moves alone, since blank lines after
+    the tags leave the game whole.
+    """
+    first, second = (
+        (invoke("show", "position", position), capsys.readouterr().out)
+        for position in ("1. e4 e5 2. Nf3", '[Event "A"]\n\n\n1. e4 e5 2. Nf3')
+    )
+
+    assert first == second
+    assert first[0] == 0
 
 
 @mark.usefixtures("indexed")
@@ -122,7 +140,10 @@ def test_position_with_no_argument_reports_the_starting_position(
 
 @mark.parametrize(
     "argv",
-    [param(("game", "White.zip:1"), id="game"), param(("position",), id="position")]
+    [
+        param(("game", "players/White.zip:1"), id="game"),
+        param(("position",), id="position")
+    ]
 )
 def test_a_missing_index_exits_naming_where_it_was_looked_for(
     argv : tuple[str, ...],
@@ -246,15 +267,8 @@ def test_position_names_each_word_naming_no_move_and_each_illegal_move(
         ),
         param(
             "1. e4\n\ne5",
-            "Found problems in 1. e4\n\ne5:\nholds more past the blank line ending"
-                " its moves",
+            "Found problems in 1. e4\n\ne5:\nholds more past the end of its moves",
             id = "move-past-a-blank-line"
-        ),
-        param(
-            '[Event "A"]\n\n\n1. e4 e5',
-            'Found problems in [Event "A"]\n\n\n1. e4 e5:\nholds more past the blank'
-                " line ending its moves",
-            id = "two-blank-lines-after-the-tags"
         ),
         param(
             "1. e4 ( e5",
@@ -413,7 +427,10 @@ def test_store_reads_an_index_under_another_layout_as_none_built(
 
 @mark.parametrize(
     "argv",
-    [param(("game", "White.zip:1"), id="game"), param(("position",), id="position")]
+    [
+        param(("game", "players/White.zip:1"), id="game"),
+        param(("position",), id="position")
+    ]
 )
 @mark.usefixtures("indexed")
 def test_a_command_opening_the_index_warns_where_the_files_changed(

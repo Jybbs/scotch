@@ -1,12 +1,13 @@
 """
 Holds `Tally`, the counts `Census.store` draws from the index, beside the
-`Era` of one decade's games, the `Archive` of one fetched file, the `Rank`
-of one row of the archives the store keeps the most games from, the `Rules`
-measuring what the longest-run rule leaves out, `ended`, which reads the
-moves a share of games end by, and `markdown`, which writes each table.
-Their properties write the tables the Data pages and the Guide's store
-page set beneath their widgets and the figures the pages set inside their
-sentences, which `scotch render docs` writes between each pair of markers.
+`Era` of one decade's games, the `Archive` of one fetched file, the `Listed`
+file the Data page's file list shows, the `Rank` of one row of the files the
+store keeps the most games from, the `Rules` measuring what the longest-run
+rule leaves out, `ended`, which reads the moves a share of games end by,
+and `markdown`, which writes each table. Their properties write the tables
+the Data pages and the Guide's store page set beneath their widgets and the
+figures the pages set inside their sentences, which `scotch render docs`
+writes between each pair of markers.
 """
 
 from bisect          import bisect_left
@@ -15,10 +16,11 @@ from collections.abc import Iterable, Sequence
 from itertools       import accumulate
 from pathlib         import PurePosixPath
 from pydantic        import BaseModel, Field, NonNegativeInt, computed_field
-from typing          import Annotated, ClassVar
+from typing          import Annotated, ClassVar, Self
 from urllib.parse    import unquote
 
 from scotch.identity.schemas import Identity
+from scotch.sources.schemas  import Source
 
 
 class Archive(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -47,6 +49,13 @@ class Archive(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     undated: Annotated[NonNegativeInt, Field(exclude=True)]
     """
     The count of its games whose `Date` tag names no year.
+    """
+
+    year: Annotated[int | None, Field(exclude=True)] = None
+    """
+    The year the most of its games were played in, the earliest of those
+    tied, or `None` where none is dated, which the file list reads for the
+    year an event was played.
     """
 
     @computed_field
@@ -209,6 +218,72 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         }
 
 
+class Listed(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    One file `sources.toml` declares as the Data page's file list shows it,
+    its name and the heading its provider's site lists it under beside the
+    games the store holds from it.
+    """
+
+    decades: dict[str, NonNegativeInt]
+    """
+    The count of the games the store holds from it played in each decade,
+    under the decade's first year.
+    """
+
+    file: str
+    """
+    The path its address names under the host, such as
+    `players/Carlsen.zip`.
+    """
+
+    games: NonNegativeInt
+    """
+    The count of its games the store holds.
+    """
+
+    group: str | None
+    """
+    The heading its provider's site lists it under within its section.
+    """
+
+    moves: str | None
+    """
+    The moves opening every game of an archive of one opening.
+    """
+
+    section: str
+    """
+    The section of its provider's site listing it.
+    """
+
+    title: str
+    """
+    The name its provider's site gives it.
+    """
+
+    year: int | None
+    """
+    The year the most of the games the store holds from it were played in.
+    """
+
+    @classmethod
+    def of(cls, archive: Archive, source: Source) -> Self:
+        """
+        Lists `source` beside the games `archive` counts.
+        """
+        return cls(
+            decades = archive.decades,
+            file    = source.file,
+            games   = archive.games,
+            group   = source.group,
+            moves   = source.moves,
+            section = source.section,
+            title   = source.title,
+            year    = archive.year
+        )
+
+
 class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     The stored games counted by how many moves they play, by result and by
@@ -259,12 +334,12 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     @property
     def archives(self) -> str:
         """
-        Writes a table of the archives the store keeps the most games from,
+        Writes a table of the files the store keeps the most games from,
         each row beside its share of the store and the share it and the rows
         above it hold.
         """
         return markdown(
-            headers = ("Archive", "Games", "Share of the Store", "Held Down to Here"),
+            headers = ("File", "Games", "Share of the Store", "Held Down to Here"),
             rows    = (
                 (
                     rank.name,
@@ -464,6 +539,27 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                 others = others
             )
             for (name, games, others), total in zip(rows, held, strict=True)
+        ]
+
+    def listed(self, sources: Iterable[Source]) -> list[Listed]:
+        """
+        Lists each of `sources` in its order beside the games the store
+        holds from it, none where the store holds no game from it.
+        """
+        held = {archive.address: archive for archive in self.files}
+
+        return [
+            Listed.of(
+                held.get(address := str(source.address))
+                or Archive(
+                    address = address,
+                    decades = {},
+                    games   = 0,
+                    undated = 0
+                ),
+                source
+            )
+            for source in sources
         ]
 
 
