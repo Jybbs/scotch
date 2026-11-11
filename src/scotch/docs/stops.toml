@@ -12,13 +12,13 @@ modules = [
 ]
 
 [[stops]]
-clears   = "Pass a path opening on `./`, such as `./-match.json`"
+clears   = "Pass the path through its folder, such as `$PWD/-match.json`"
 commands = ["match game"]
 message  = "Unknown option: <json>"
 when     = "`--json` names a path opening on a hyphen other than `-` alone"
 
 [[stops]]
-clears   = "Name the flag the help lists, or quote the moves after `--`"
+clears   = "Name the flag the help lists, or remove the word"
 commands = ["show position"]
 message  = "Unknown option: <token>"
 when     = "A word of the position opens on a hyphen and names no option"

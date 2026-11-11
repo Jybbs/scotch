@@ -37,7 +37,7 @@
 
 ## The Demo's File
 
-[`demo.json`](/matches/demo.json) is the file `scotch match game docs/public/games/demo.pgn --json` writes, which `mise run docs:render` writes from the index. Where no stored game shares a position with the submitted game, `span` and `stored` are `null` and `ties` is 0, as [`alone.json`](/matches/alone.json) holds for the demo game read with no index.
+[`demo.json`](/matches/demo.json) is the file `scotch match game docs/public/games/demo.pgn --json` writes, which `mise run docs:render` writes from the index. Where no stored game shares a position with the submitted game, `span` and `stored` are `null` and `ties` is 0, as [`alone.json`](/matches/alone.json) holds for the demo game matched against no stored game.
 
 ## The Address
 

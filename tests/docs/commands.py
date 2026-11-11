@@ -15,6 +15,17 @@ from scotch.docs.commands import Commands, commands
 from scotch.docs.stops    import Stop, Stops
 
 
+def test_a_flag_answers_only_to_the_names_the_default_parameter_of_the_app_allows():
+    """
+    Asserts that `--link` reads as the one name it answers to, since the
+    default parameter of the `scotch` app gives a flag no negative name.
+    """
+    section = Commands(app=app).section("match", "game")
+
+    assert "| `--link` | A flag | Off |" in section
+    assert "--no-link" not in section
+
+
 def test_a_required_variadic_parameter_takes_one_or_more_words():
     """
     Asserts that the keys `scotch cite source` requires read as one or more

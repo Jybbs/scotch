@@ -1,6 +1,6 @@
 # The Commands
 
-Each command the help of `scotch` lists takes a section below, which `mise run docs:render` writes from what the command line declares, meaning the command's docstring, its usage, and the type, the bound, the default, and the help of each parameter. The messages a command exits nonzero on come from `src/scotch/docs/stops.toml`, which `mise run repo:audit` holds to the messages the code prints. Beneath each section sits an example run, its output written from the index wherever the index alone sets it, and [the Guide](../guide/index.md) walks through a first match.
+Each command the help of `scotch` lists takes a section below, which `mise run docs:render` writes from what the command line declares, meaning the command's docstring, its usage, and the type, the bound, the default, and the help of each parameter. The messages a command exits nonzero on come from `src/scotch/docs/stops.toml`, which `mise run repo:audit` holds to the messages the code prints. Beneath each section sits an example run, its output written from the index wherever the index alone sets it. The runs write the data directory as `.cache/data`, which a run prints as its full path under the project's root, and [the Guide](../guide/index.md) walks through a first match.
 
 <!-- command-cite-source -->
 ## `scotch cite source`
@@ -117,7 +117,7 @@ scotch match game [OPTIONS] PGN
 | `PGN` | A path | Required | The PGN file holding the game, or - for standard input. |
 | `--game` | An integer from 1 | None | The game to match, counting from 1, where the file holds several. |
 | `--json` | A path | None | The file the match is written to as JSON, or - to print the JSON alone. |
-| `--link`, `--no-link` | A flag | Off | Prints the address of the Viewer opening the match. |
+| `--link` | A flag | Off | Prints the address of the Viewer opening the match. |
 | `--plies` | An integer from 1 | None | The most plies of the stored game's continuation to print. |
 | `--top` | An integer from 0 | `0` | The count of further stored games to list after the match. |
 
@@ -125,7 +125,7 @@ It exits nonzero on each message below.
 
 | **Message** | **When** | **Clears It** |
 |---|---|---|
-| `Unknown option: <json>` | `--json` names a path opening on a hyphen other than `-` alone | Pass a path opening on `./`, such as `./-match.json` |
+| `Unknown option: <json>` | `--json` names a path opening on a hyphen other than `-` alone | Pass the path through its folder, such as `$PWD/-match.json` |
 | `Cannot read <pgn>: <reason>` | The file cannot be opened, with the reason the system gives | Name a file that exists and that the user running the command can read |
 | `Found no game in <pgn>` | The file holds no game | Pass the file holding the game, a text whose movetext follows its tag pairs |
 | `Found several games in <pgn>, which --game chooses among` | The file holds several games and `--game` names none | Choose one through `--game`, counting from 1 |
@@ -256,7 +256,7 @@ It exits nonzero on each message below.
 
 | **Message** | **When** | **Clears It** |
 |---|---|---|
-| `Unknown option: <token>` | A word of the position opens on a hyphen and names no option | Name the flag the help lists, or quote the moves after `--` |
+| `Unknown option: <token>` | A word of the position opens on a hyphen and names no option | Name the flag the help lists, or remove the word |
 | `The FEN <position> stops short of its first four fields, the placement, the side to move, the castling rights, and the en passant square, which together name a position` | A FEN holds fewer than four fields | Write the placement, the side to move, the castling rights, and the en passant square |
 | `names no position: <fen>` | A FEN names no position a game can reach | Correct the FEN, whose placement names eight ranks and one king of each color |
 | `Found problems in <position>:` | A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line | Correct the move or the word each line below it names |

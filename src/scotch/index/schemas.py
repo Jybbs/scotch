@@ -29,7 +29,9 @@ COLUMNS = {
         "The address of the file the game was read from and its place there,"
         " counting from 1, as `Origin` holds them"
     ),
-    "plies"  : (UInt16, "The moves of the mainline, whose positions the index keys"),
+    "plies"  : (
+        UInt16, "The count of the mainline's plies, whose positions the index keys"
+    ),
     "result" : (String, "The `Result` tag"),
     "tags"   : (
         List(Struct({"name": String, "value": String})),

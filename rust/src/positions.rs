@@ -73,7 +73,7 @@ pub const SECTIONS: [(&str, &str, &str); 18] = [
     (
         "plies",
         "A compact vector",
-        "The moves each slot's mainline holds",
+        "The count of each slot's mainline plies, whose positions the index keys",
     ),
     (
         "offsets",

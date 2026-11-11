@@ -50,9 +50,12 @@ class Commands(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             for paragraph in getdoc(command.default_command).split("\n\n")
             if not paragraph.startswith("Args:")
         ]
-        arguments = command.assemble_argument_collection(parse_docstring=True)
-        stops     = self.stops.table(" ".join(tokens))
-        usage     = format_usage(self.app, list(tokens)).plain.strip()
+        arguments = command.assemble_argument_collection(
+            default_parameter = self.app.default_parameter,
+            parse_docstring   = True
+        )
+        stops = self.stops.table(" ".join(tokens))
+        usage = format_usage(self.app, list(tokens)).plain.strip()
 
         return "\n\n".join(
             filter(
@@ -134,8 +137,8 @@ def fallback(argument: Argument) -> str:
 
 def spelled(argument: Argument) -> str:
     """
-    Writes the name of `argument` as the usage line writes it, a positional
-    one in capitals and an option under each name it answers to.
+    Writes the name of `argument` as the help lists it, a positional one in
+    capitals and an option under each name it answers to.
     """
     if argument.field_info.kind is Parameter.KEYWORD_ONLY:
         return ", ".join(f"`{name}`" for name in argument.names)

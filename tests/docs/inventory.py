@@ -8,13 +8,15 @@ renders into a fresh checkout and then reports no drift.
 
 from chess.svg       import PIECES
 from collections.abc import Callable, Iterable
+from common.app      import invoke
 from common.games    import line
 from json            import loads
 from pathlib         import Path
-from pytest          import MonkeyPatch, mark, param
+from pytest          import CaptureFixture, MonkeyPatch, mark, param
 from tomllib         import loads as from_toml
 
 from scotch.cli              import app
+from scotch.cli.settings     import Settings
 from scotch.docs.census      import Census
 from scotch.docs.commands    import Commands, commands
 from scotch.docs.inventory   import Outputs, tracked
@@ -231,6 +233,64 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
             output.write(root)
 
     assert (root / "docs/pages/data/index.md").read_text().endswith(sentence)
+
+
+@mark.parametrize(
+    "argv",
+    [
+        param(
+            ("match", "game", str(Outputs.demo.path), "--top", str(Outputs.top)),
+            id = "match-game"
+        ),
+        param(("match", "games", str(Outputs.demo.path)), id="match-games"),
+        param(
+            ("show", "position", *Outputs.position.split(), "--top", str(Outputs.top)),
+            id = "show-position"
+        )
+    ]
+)
+def test_each_example_run_holds_what_its_command_prints(
+    argv        : tuple[str, ...],
+    capsys      : CaptureFixture[str],
+    checkout    : Callable[..., Path],
+    monkeypatch : MonkeyPatch,
+    scanned     : Callable[[Iterable[Game]], PositionIndex],
+    stored      : list[Game],
+    tally       : Tally
+):
+    """
+    Asserts that the output beneath each example run whose lines the index
+    alone sets is what the command prints against that index.
+    """
+    monkeypatch.setattr(Census, "store", tally)
+    index = scanned(
+        game.model_copy(
+            update = {
+                "origin": Origin(
+                    address = "https://www.pgnmentor.com/players/Kasparov.zip",
+                    place   = place
+                )
+            }
+        )
+        for place, game in enumerate(stored, start=1)
+    )
+    root = checkout({"reference/commands.md": marked(*(f"run-{run}" for run in RUNS))})
+
+    for output in Outputs.measured(
+        index,
+        tracked(root),
+        Path(".github/README.md"),
+        root
+    ):
+        if output.path == Outputs.commands:
+            output.write(root)
+
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(Settings, "opened", lambda _: index)
+    invoke(*argv)
+    printed = capsys.readouterr().out
+
+    assert f"```text\n{printed}```" in (root / Outputs.commands).read_text()
 
 
 def test_every_declared_output_renders_and_then_holds_its_rendering(

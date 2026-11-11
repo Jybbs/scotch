@@ -35,7 +35,7 @@ A run writes its files under the data directory [Settings](settings.md) names, w
 | `game` | `UInt32` | The game's place in the index's order, from 0 |
 | `errors` | `List(String)` | Each error the reader recorded |
 | `origin` | `Struct({'address': String, 'place': UInt32})` | The address of the file the game was read from and its place there, counting from 1, as `Origin` holds them |
-| `plies` | `UInt16` | The moves of the mainline, whose positions the index keys |
+| `plies` | `UInt16` | The count of the mainline's plies, whose positions the index keys |
 | `result` | `String` | The `Result` tag |
 | `tags` | `List(Struct({'name': String, 'value': String}))` | Every other tag pair, each as a `name` and a `value` |
 <!-- /columns -->
@@ -54,7 +54,7 @@ A run writes its files under the data directory [Settings](settings.md) names, w
 | `standings` | A compact vector | Each slot's rank among games tied on a run |
 | `dates` | A compact vector | Each slot's `Date` tag as a number |
 | `results` | A compact vector | Each slot's result, as its place among a win for White, a draw, a win for Black, and any other |
-| `plies` | A compact vector | The moves each slot's mainline holds |
+| `plies` | A compact vector | The count of each slot's mainline plies, whose positions the index keys |
 | `offsets` | An Elias-Fano sequence | The byte of `moves` each slot's moves open at, beside the byte past the last |
 | `once` | An Elias-Fano sequence | The leading bits of each key one position of one game reaches |
 | `blocks` | A compact vector | The block of slots holding the game reaching each key of `once` |
@@ -69,7 +69,7 @@ A run writes its files under the data directory [Settings](settings.md) names, w
 
 ## The Manifest Copy
 
-`scotch index games` copies the manifest the files were read under beside the index. A command reading the index compares that copy with the manifest a later fetch wrote, and where the two record different bytes for a file, `scotch match game` and every other such command print the line below before their output, written here under the default data directory:
+`scotch index games` copies the manifest the files were read under beside the index. A command reading the index compares that copy with the manifest a later fetch wrote, and where the two record different bytes for a file, `scotch match game` and every other such command print the line below before their output, written here with the data directory as `.cache/data`, which a run prints as its full path under the project's root:
 
 <!-- warning -->
 ```text
