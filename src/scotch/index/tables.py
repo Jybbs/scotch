@@ -62,7 +62,7 @@ class PositionIndex:
             ValueError: Where a FEN stops short of its first four fields or
                         names no position, or where a line of moves carries
                         a problem, a word naming no move, or more past the
-                        blank line ending its moves.
+                        blank line or the result ending its moves.
         """
         fen, moves, fields = None, (), position.split()
 

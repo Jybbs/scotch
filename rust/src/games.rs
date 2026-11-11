@@ -166,6 +166,7 @@ fn next(lines: &mut Lines<'_>, first: bool) -> Option<Game> {
         keyed,
         depth: 0,
         moved: false,
+        failed: false,
     };
     reader.movetext(lines, line);
 
@@ -239,13 +240,16 @@ struct Mainline {
     depth: u32,
     /// Whether a move has been played, which a variation needs to open.
     moved: bool,
+    /// Whether a move python-chess cannot read has been met, past which a
+    /// result ends the game wherever it stands.
+    failed: bool,
 }
 
 impl Mainline {
     /// Reads the movetext from `line` to the blank line or the result ending
     /// the game, as the movetext loop of python-chess's reader does save for
-    /// the result, which ends the game wherever it stands and leaves the rest
-    /// of its line unread.
+    /// the result, which ends the game on the mainline or past an illegal
+    /// move and leaves the rest of its line unread.
     fn movetext<'a>(&mut self, lines: &mut Lines<'a>, mut line: &'a str) {
         let mut fresh = true;
 
@@ -278,7 +282,7 @@ impl Mainline {
                         fresh = false;
                         break;
                     }
-                    Kind::Result if self.depth == 0 || !self.game.errors.is_empty() => {
+                    Kind::Result if self.depth == 0 || self.failed => {
                         if self.depth == 0 && self.tags.get("Result") == Some("*") {
                             self.tags.set("Result", &line[start..end]);
                         }
@@ -360,6 +364,7 @@ impl Mainline {
             Err(error) => {
                 self.game.errors.push(error);
                 self.depth = 1;
+                self.failed = true;
             }
         }
     }
@@ -438,6 +443,15 @@ mod tests {
         assert_eq!(games.len(), 2);
         assert_eq!(games[0].errors.len(), 1);
         assert_eq!(moves(&games[1]), ["d2d4"]);
+    }
+
+    #[test]
+    fn a_result_inside_a_variation_past_an_unknown_variant_leaves_the_game_open() {
+        let [game] = read("[Variant \"Foo\"]\n\n1. e4 e5 (1... c5 2. Nf3 1-0) 2. Nf3 *\n")
+            .try_into()
+            .unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5", "g1f3"]);
     }
 
     #[test]

@@ -241,7 +241,7 @@ Reports what the stored games played from one position.
 
 Prints how many stored games reach it, each move they played from it with how many games played it and how those games ended, the games ending at the position under `end`, and then the games themselves, newest first, each named as `<file>:<n>`. A game reaching the position twice counts once, under the move it played from its first reach. A line of moves is read as PGN, so it may hold move numbers, comments, annotation marks, and a result beside its moves.
 
-Warns where the files changed since the index was built, and exits nonzero naming the problem where a token opening on a hyphen names no option, where a Forsyth–Edwards Notation names no position or stops short of its first four fields, since a placement alone would read as white to move with no castling rights, where a line of moves holds an illegal move, a word naming no move, a `(` or a `{` never closed, a `(` before any move, a `)` with none open, or more past the blank line ending its moves, where no index has been built, or where the one built holds another layout.
+Warns where the files changed since the index was built, and exits nonzero naming the problem where a token opening on a hyphen names no option, where a Forsyth–Edwards Notation names no position or stops short of its first four fields, since a placement alone would read as white to move with no castling rights, where a line of moves holds an illegal move, a word naming no move, a `(` or a `{` never closed, a `(` before any move, a `)` with none open, or more past the blank line or the result ending its moves, where no index has been built, or where the one built holds another layout.
 
 ```text
 scotch show position [OPTIONS] [ARGS...]

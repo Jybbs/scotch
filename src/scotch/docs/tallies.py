@@ -306,7 +306,7 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
 
     files: list[Archive]
     """
-    Each fetched file, in the order of their addresses.
+    Each file the store keeps a game from, in the order of their addresses.
     """
 
     games: NonNegativeInt
