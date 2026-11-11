@@ -2,10 +2,10 @@
 Holds the `scotch show` commands, meaning `game`, which prints a stored game
 as Portable Game Notation (PGN), `position`, which reports what the stored
 games played from one position, and `store`, which reports what the store
-holds.
+holds. `show_group` registers them as the group the app imports by its path.
 """
 
-from cyclopts          import Parameter
+from cyclopts          import App, Parameter
 from cyclopts.types    import PositiveInt
 from polars.exceptions import SchemaError
 from re                import match
@@ -121,3 +121,9 @@ def store():
         if current
         else "Next: scotch index games"
     )
+
+
+show_group = App(name="show")
+show_group.command(game)
+show_group.command(position)
+show_group.command(store)

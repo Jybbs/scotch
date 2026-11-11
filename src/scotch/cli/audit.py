@@ -1,10 +1,12 @@
 """
-Holds the `scotch audit` commands, which report where the repository's own
-configuration has drifted from itself, run by the `repo:audit` task.
+Holds the `scotch audit` commands, which report where the repository's
+own configuration has drifted from itself, run by the `repo:audit` task.
+`audit_group` registers them as the group the app imports by its path.
 """
 
-from scotch.cli           import app
-from scotch.cli.settings  import root
+from cyclopts import App
+
+from scotch.cli           import app, root
 from scotch.repo.checkout import Checkout
 from scotch.repo.checks   import Check
 from scotch.repo.formats  import Format
@@ -34,3 +36,7 @@ def repo(*, output_format: Format = Format.TEXT) -> int:
         print(finding.render(output_format))
 
     return int(any(finding.level is Level.ERROR for finding in findings))
+
+
+audit_group = App(name="audit")
+audit_group.command(repo)

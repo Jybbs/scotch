@@ -4,10 +4,9 @@ arguments, `SCOTCH_` environment variables, and the `[tool.scotch]` table of
 the project's `pyproject.toml`.
 """
 
-from importlib.metadata import distribution
-from pathlib            import Path
-from polars.exceptions  import SchemaError
-from pydantic           import NonNegativeInt, PositiveFloat, field_validator
+from pathlib           import Path
+from polars.exceptions import SchemaError
+from pydantic          import NonNegativeInt, PositiveFloat, field_validator
 from pydantic_settings  import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -15,6 +14,7 @@ from pydantic_settings  import (
 )
 from sys                import stderr
 
+from scotch.cli             import root
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Manifest
 
@@ -132,13 +132,3 @@ class Settings(
             root() / "pyproject.toml"
         )
 
-
-def root() -> Path:
-    """
-    Reads the directory the `scotch` distribution was installed from, which
-    an installer records in the `direct_url.json` PEP 610 specifies, or the
-    working directory where it recorded none.
-    """
-    origin = distribution("scotch").origin
-
-    return Path.from_uri(origin.url) if hasattr(origin, "dir_info") else Path.cwd()

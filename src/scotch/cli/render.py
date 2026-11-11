@@ -1,13 +1,15 @@
 """
-Holds the `scotch render` commands, which write the files the site and the
-repository's Markdown carry from the declarations they restate, run by the
-`docs:render` task.
+Holds the `scotch render` commands, which write the files the site and
+the repository's Markdown carry from the declarations they restate, run by
+the `docs:render` task. `render_group` registers them as the group the app
+imports by its path.
 """
 
+from cyclopts          import App
 from polars.exceptions import SchemaError
 
-from scotch.cli            import app
-from scotch.cli.settings   import Settings, root
+from scotch.cli            import app, root
+from scotch.cli.settings   import Settings
 from scotch.docs.inventory import Outputs
 from scotch.index.tables   import PositionIndex
 from scotch.repo.schemas   import Pyproject
@@ -58,3 +60,7 @@ def docs():
 
         if written:
             print(f"Rendered {output.path}")
+
+
+render_group = App(name="render")
+render_group.command(docs)

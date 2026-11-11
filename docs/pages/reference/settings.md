@@ -26,7 +26,7 @@ A command takes each setting from the first of these that names it:
 <!-- origin -->
 A relative path is read against the project's root, so the default `.cache/data` lands under the clone `mise run` builds from, wherever a command runs inside it.
 
-`scotch.cli.settings.root` reads the directory the `scotch` distribution was installed from, which an installer records in the `direct_url.json` PEP 610 specifies, or the working directory where it recorded none.[^bidoul2019]
+`scotch.cli.root` reads the directory the `scotch` distribution was installed from, which an installer records in the `direct_url.json` PEP 610 specifies, or the working directory where it recorded none.[^bidoul2019]
 <!-- /origin -->
 
 [^bidoul2019]: Bidoul, Stéphane, and Chris Jerdonek. 2019. "PEP 610 – Recording the Direct URL Origin of installed distributions," Specification. <https://peps.python.org/pep-0610/#specification>

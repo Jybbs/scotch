@@ -1,8 +1,10 @@
 """
 Holds `games`, the `scotch fetch games` command, which downloads each file
-the store's sources declare, run by the `data:fetch` task.
+the store's sources declare, run by the `data:fetch` task. `fetch_group`
+registers it as the group the app imports by its path.
 """
 
+from cyclopts import App
 from requests import RequestException
 
 from scotch.cli.settings     import Settings
@@ -45,3 +47,7 @@ def games():
         manifest = manifest.recording(source.address, download)
         manifest.write(settings.downloads)
         print(f"{'Unchanged' if download is known else 'Fetched'} {source.address}")
+
+
+fetch_group = App(name="fetch")
+fetch_group.command(games)

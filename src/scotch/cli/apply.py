@@ -2,16 +2,17 @@
 Holds the `scotch apply` commands, which send the registries under
 `.github/` to the repository the checkout's remote names on GitHub, run by
 the `repo:labels` and `repo:rulesets` tasks once their prompt is answered.
+`apply_group` registers them as the group the app imports by its path.
 """
 
+from cyclopts   import App
 from json       import loads
 from pathlib    import Path
 from pydantic   import ValidationError
 from shlex      import join
 from subprocess import PIPE, run
 
-from scotch.cli           import app
-from scotch.cli.settings  import root
+from scotch.cli           import app, root
 from scotch.repo.checkout import Checkout
 
 
@@ -132,3 +133,8 @@ def rulesets():
             *omitted,
             sep = "\n"
         )
+
+
+apply_group = App(name="apply")
+apply_group.command(labels)
+apply_group.command(rulesets)

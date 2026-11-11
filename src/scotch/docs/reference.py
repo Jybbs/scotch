@@ -22,7 +22,8 @@ from pydantic_settings import (
 )
 from typing    import ClassVar
 
-from scotch.cli.settings     import Settings, root
+from scotch.cli              import root
+from scotch.cli.settings     import Settings
 from scotch.docs.marks       import Marks
 from scotch.docs.tallies     import markdown
 from scotch.docs.terms       import Terms

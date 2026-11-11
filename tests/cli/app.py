@@ -2,15 +2,18 @@
 Pins what the `scotch` command itself defines, meaning the script
 `[project.scripts]` declares, the help text the docstrings of the app and
 of each group and command it registers render, the version its metadata
-carries, and the dependencies its help leaves unimported.
+carries, the dependencies its help leaves unimported, and the root it reads
+the project's `pyproject.toml` from.
 """
 
 from common.app         import invoke
 from importlib.metadata import entry_points, packages_distributions, requires, version
-from pytest             import CaptureFixture, MonkeyPatch, mark, param
+from pathlib            import Path
+from pytest             import CaptureFixture, Config, MonkeyPatch, mark, param
 from syrupy.assertion   import SnapshotAssertion
+from types              import SimpleNamespace
 
-from scotch.cli          import app
+from scotch.cli          import app, root
 from scotch.repo.schemas import normalized
 
 
@@ -69,6 +72,50 @@ def test_the_help_loads_no_package_behind_the_commands(
     its module and resolves the type of each parameter it takes.
     """
     assert module not in help_modules
+
+
+def test_the_root_falls_back_to_the_working_directory(
+    monkeypatch : MonkeyPatch,
+    tmp_path    : Path
+):
+    """
+    Asserts that an install recording no directory it was installed from,
+    such as one from a wheel, leaves the working directory as the root.
+    """
+    monkeypatch.setattr(
+        "scotch.cli.distributions",
+        lambda name: iter([SimpleNamespace(origin=None)])
+    )
+    monkeypatch.chdir(tmp_path)
+
+    assert root() == tmp_path
+
+
+def test_the_root_is_the_directory_the_package_was_installed_from(pytestconfig: Config):
+    """
+    Asserts that the root is the clone the editable install records in its
+    `direct_url.json`, which holds the `pyproject.toml` the settings read.
+    """
+    assert root() == pytestconfig.rootpath
+
+
+def test_the_root_reads_a_clone_whose_path_holds_a_space(
+    monkeypatch : MonkeyPatch,
+    tmp_path    : Path
+):
+    """
+    Asserts that the root decodes the percent-encoded `file:` address an
+    installer writes for a clone whose path holds a space.
+    """
+    clone = tmp_path / "a clone"
+    monkeypatch.setattr(
+        "scotch.cli.distributions",
+        lambda name: iter(
+            [SimpleNamespace(origin=SimpleNamespace(dir_info=None, url=clone.as_uri()))]
+        )
+    )
+
+    assert root() == clone
 
 
 def test_the_scotch_script_loads_the_app():

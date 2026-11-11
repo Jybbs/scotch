@@ -1,14 +1,15 @@
 """
 Holds the `scotch cite` commands, which print the footnote definition of
 a source `docs/references.bib` holds, for pasting into an issue or a pull
-request.
+request. `cite_group` registers them as the group the app imports by its
+path.
 """
 
-from cyclopts import Parameter
+from cyclopts import App, Parameter
 from typing   import Annotated
 
 from scotch.citations.schemas import References
-from scotch.cli.settings      import root
+from scotch.cli               import root
 
 
 def source(*keys: Annotated[str, Parameter(required=True)]):
@@ -35,3 +36,7 @@ def source(*keys: Annotated[str, Parameter(required=True)]):
         raise SystemExit("\n".join(unknown))
 
     print(references.cite(*keys))
+
+
+cite_group = App(name="cite")
+cite_group.command(source)

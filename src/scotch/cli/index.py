@@ -1,10 +1,12 @@
 """
 Holds `games`, the `scotch index games` command, which builds the index
 of stored games from the files `scotch fetch games` downloaded, run by the
-`data:index` task.
+`data:index` task. `index_group` registers it as the group the app imports
+by its path.
 """
 
 from concurrent.futures import ProcessPoolExecutor
+from cyclopts           import App
 from functools          import partial
 from shutil             import rmtree
 
@@ -67,3 +69,7 @@ def games():
     print(
         f"Indexed {count:,} {'game' if count == 1 else 'games'} into {settings.index}"
     )
+
+
+index_group = App(name="index")
+index_group.command(games)
