@@ -82,18 +82,18 @@ def test_an_identity_fills_each_group_with_its_role(scheme: str, run: str, quiet
 @mark.parametrize(("scheme", "ground"), [("dark", "#0d1117"), ("light", "#ffffff")])
 def test_the_lockup_holds_its_contrast_on_github(scheme: str, ground: str):
     """
-    Asserts that the lockup's wordmark holds 3:1 and its tagline 4.5:1 on
-    the ground GitHub draws a README on in the scheme, in the roles the
-    lockup's groups name in the order it draws them.
+    Asserts that the lockup's wordmark holds 3:1 and its tagline 4.5:1
+    on the ground GitHub draws a README on in the scheme, in the roles
+    `Identity.filled` fills, the wordmark's run before the tagline's quiet.
     """
-    lockup            = Path(__file__).parents[2] / "docs/assets/lockup.svg"
+    drawn = (Path(__file__).parents[2] / "docs/assets/lockup.svg").read_text()
     page              = Color(hex=ground, name="GitHub")
+    roles             = findall(r'data-role="(\w+)" fill="currentColor"', drawn)
     wordmark, tagline = (
-        Identity().colored(role, scheme).contrast(page)
-        for role in findall(r'data-role="(\w+)"', lockup.read_text())
+        Identity().colored(role, scheme).contrast(page) for role in roles
     )
 
-    assert wordmark >= 3 and tagline >= 4.5
+    assert roles == ["run", "quiet"] and wordmark >= 3 and tagline >= 4.5
 
 
 def test_a_palette_names_the_tokens_its_series_take():
