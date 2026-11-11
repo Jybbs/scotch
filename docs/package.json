@@ -10,26 +10,26 @@
         "@fontsource/jetbrains-mono"                : "5.3.0",
         "@fontsource/petrona"                       : "5.3.0",
         "@resvg/resvg-js"     : "2.6.2",
-        "@types/node"         : "26.6.5",
-        "@vitest/coverage-v8" : "5.0.5",
+        "@types/node"         : "26.6.6",
+        "@vitest/coverage-v8" : "5.1.0",
         "@vue/test-utils"     : "2.5.1",
         "@vue/tsconfig"       : "0.9.1",
         "@vueuse/core"        : "15.0.0",
         "fast-check" : "4.10.2",
         "happy-dom"  : "21.0.4",
-        "knip"       : "6.41.0",
-        "oxlint"     : "1.88.0",
-        "satori"     : "0.62.0",
+        "knip"       : "6.45.0",
+        "oxlint"     : "1.93.0",
+        "satori"     : "0.63.2",
         "smol-toml"  : "1.9.1",
         "typescript" : "7.0.2",
-        "vite"       : "8.3.4",
-        "vitepress"  : "2.0.0-alpha.20",
-        "vitest"     : "5.0.5",
-        "vue"        : "3.5.44"
+        "vite"       : "8.3.8",
+        "vitepress"  : "2.0.0-alpha.21",
+        "vitest"     : "5.1.0",
+        "vue"        : "3.5.45"
     },
     "overrides"       : {
-        "fflate"    : "0.7.5",
-        "glob"      : "14.0.3",
-        "minimatch" : "11.0.4"
+        "fflate"    : "0.8.3",
+        "glob"      : "14.0.4",
+        "minimatch" : "11.0.7"
     }
 }

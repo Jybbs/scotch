@@ -42,10 +42,10 @@ describe('projectFacts', () => {
     ['Homepage', 'project.urls.Homepage'],
     ['version', 'project.version'],
     ['fail_under', 'tool.coverage.report.fail_under']
-  ])('fails by name where the manifest leaves out %s', ([key, name], { repo }) => {
+  ])('fails by name with a TypeError where the manifest leaves out %s', ([key, name], { repo }) => {
     const kept = MANIFEST.split('\n').filter(line => !line.startsWith(`${key} `))
     const file = repo.write('pyproject.toml', kept.join('\n'))
-    expect(() => projectFacts(repo.metaUrl)).toThrow(`no ${name} in ${file}`)
+    expect(() => projectFacts(repo.metaUrl)).toThrow(new TypeError(`no ${name} in ${file}`))
   })
 
   test('reads the manifest of the repository a module sits in at any depth', ({ repo }) => {

@@ -20,7 +20,7 @@ export interface ProjectFacts {
 }
 
 function required(value: unknown, file: string, key: string): string {
-  if (typeof value !== 'string') throw new Error(`no ${key} in ${file}`)
+  if (typeof value !== 'string') throw new TypeError(`no ${key} in ${file}`)
   return value
 }
 
@@ -63,7 +63,7 @@ export function projectFacts(metaUrl: string): ProjectFacts {
   const homepage = required(manifest.project?.urls?.Homepage, file, 'project.urls.Homepage')
   const gate     = manifest.tool?.coverage?.report?.fail_under
 
-  if (typeof gate !== 'number') throw new Error(`no tool.coverage.report.fail_under in ${file}`)
+  if (typeof gate !== 'number') throw new TypeError(`no tool.coverage.report.fail_under in ${file}`)
 
   return {
     description : required(manifest.project?.description, file, 'project.description'),
