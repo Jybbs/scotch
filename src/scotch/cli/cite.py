@@ -9,7 +9,7 @@ from cyclopts import App, Parameter
 from typing   import Annotated
 
 from scotch.citations.schemas import References
-from scotch.cli               import root
+from scotch.cli.settings      import root
 
 
 def source(*keys: Annotated[str, Parameter(required=True)]):

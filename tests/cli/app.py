@@ -2,18 +2,26 @@
 Pins what the `scotch` command itself defines, meaning the script
 `[project.scripts]` declares, the help text the docstrings of the app and
 of each group and command it registers render, the version its metadata
-carries, the dependencies its help leaves unimported, and the root it reads
-the project's `pyproject.toml` from.
+carries, the dependencies and the group modules its help leaves unimported,
+and the help and the version an install recording no directory prints
+outside any project.
 """
 
 from common.app         import invoke
-from importlib.metadata import entry_points, packages_distributions, requires, version
-from pathlib            import Path
-from pytest             import CaptureFixture, Config, MonkeyPatch, mark, param
-from syrupy.assertion   import SnapshotAssertion
-from types              import SimpleNamespace
+from importlib.metadata import (
+    entry_points,
+    metadata,
+    packages_distributions,
+    requires,
+    version
+)
+from pathlib          import Path
+from pytest           import CaptureFixture, MonkeyPatch, mark, param
+from subprocess       import run
+from syrupy.assertion import SnapshotAssertion
+from sys              import executable
 
-from scotch.cli          import app, root
+from scotch.cli          import app
 from scotch.repo.schemas import normalized
 
 
@@ -71,51 +79,51 @@ def test_the_help_loads_no_package_behind_the_commands(
     command reads the name it binds, whereas registering the command runs
     its module and resolves the type of each parameter it takes.
     """
-    assert module not in help_modules
+    assert module not in {name.partition(".")[0] for name in help_modules}
 
 
-def test_the_root_falls_back_to_the_working_directory(
-    monkeypatch : MonkeyPatch,
-    tmp_path    : Path
+@mark.parametrize("verb", sorted(verb for verb in app if not verb.startswith("-")))
+def test_the_help_imports_no_group_module(help_modules: frozenset[str], verb: str):
+    """
+    Asserts that `scotch --help` imports none of the modules under `cli/`
+    holding a verb's group, which the app registers by its import path.
+    """
+    assert f"scotch.cli.{verb}" not in help_modules
+
+
+@mark.parametrize(
+    ("flag", "printed"),
+    [
+        param("--help", metadata("scotch")["Summary"], id="help"),
+        param("--version", version("scotch"), id="version")
+    ]
+)
+def test_an_install_recording_no_directory_runs_outside_any_project(
+    flag     : str,
+    printed  : str,
+    tmp_path : Path
 ):
     """
-    Asserts that an install recording no directory it was installed from,
-    such as one from a wheel, leaves the working directory as the root.
+    Asserts that `scotch --help` and `scotch --version` exit zero and print
+    the summary and the version the metadata carries, run in an interpreter
+    of its own from a directory holding no `pyproject.toml`, where the
+    install records no directory it was installed from, as one from a wheel
+    does.
     """
-    monkeypatch.setattr(
-        "scotch.cli.distributions",
-        lambda name: iter([SimpleNamespace(origin=None)])
+    source = (
+        "import importlib.metadata, sys; "
+        "importlib.metadata.Distribution.origin = None; "
+        "from scotch.cli import app; app(sys.argv[1:])"
     )
-    monkeypatch.chdir(tmp_path)
-
-    assert root() == tmp_path
-
-
-def test_the_root_is_the_directory_the_package_was_installed_from(pytestconfig: Config):
-    """
-    Asserts that the root is the clone the editable install records in its
-    `direct_url.json`, which holds the `pyproject.toml` the settings read.
-    """
-    assert root() == pytestconfig.rootpath
-
-
-def test_the_root_reads_a_clone_whose_path_holds_a_space(
-    monkeypatch : MonkeyPatch,
-    tmp_path    : Path
-):
-    """
-    Asserts that the root decodes the percent-encoded `file:` address an
-    installer writes for a clone whose path holds a space.
-    """
-    clone = tmp_path / "a clone"
-    monkeypatch.setattr(
-        "scotch.cli.distributions",
-        lambda name: iter(
-            [SimpleNamespace(origin=SimpleNamespace(dir_info=None, url=clone.as_uri()))]
-        )
+    ran = run(
+        [executable, "-c", source, flag],
+        capture_output = True,
+        cwd            = tmp_path,
+        text           = True
     )
 
-    assert root() == clone
+    assert ran.returncode == 0
+    assert printed in " ".join(ran.stdout.split())
 
 
 def test_the_scotch_script_loads_the_app():

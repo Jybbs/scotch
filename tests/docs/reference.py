@@ -283,8 +283,8 @@ def test_the_root_names_the_default_and_what_root_reads(reference: Reference):
 
     assert "the default `.cache/data` lands under the clone" in rested
     assert summed == (
-        "`scotch.cli.root` reads the directory the `scotch` distribution was "
-        "installed from, which an installer records in the `direct_url.json` "
+        "`scotch.cli.settings.root` reads the directory the `scotch` distribution "
+        "was installed from, which an installer records in the `direct_url.json` "
         "PEP 610 specifies, or the working directory where it recorded none."
         "[^bidoul2019]"
     )

@@ -1,14 +1,15 @@
 """
 Pins where `Settings` reads each setting from, meaning a keyword argument,
 then a `SCOTCH_` environment variable, then the `[tool.scotch]` table of the
-`pyproject.toml` at the project's root.
+`pyproject.toml` at the project's root, and how it finds that root.
 """
 
 from pathlib  import Path
 from pydantic import ValidationError
 from pytest   import Config, MonkeyPatch, mark, param, raises
+from types    import SimpleNamespace
 
-from scotch.cli.settings import Settings
+from scotch.cli.settings import Settings, root
 
 
 @mark.parametrize(
@@ -110,3 +111,46 @@ def test_the_fetched_files_sit_beside_the_index(project: Path):
         project / "table" / "index"
     )
 
+
+def test_the_root_falls_back_to_the_working_directory(
+    monkeypatch : MonkeyPatch,
+    tmp_path    : Path
+):
+    """
+    Asserts that an install recording no directory it was installed from,
+    such as one from a wheel, leaves the working directory as the root.
+    """
+    monkeypatch.setattr(
+        "scotch.cli.settings.distributions",
+        lambda name: iter([SimpleNamespace(origin=None)])
+    )
+    monkeypatch.chdir(tmp_path)
+
+    assert root() == tmp_path
+
+
+def test_the_root_is_the_directory_the_package_was_installed_from(pytestconfig: Config):
+    """
+    Asserts that the root is the clone the editable install records in its
+    `direct_url.json`, which holds the `pyproject.toml` the settings read.
+    """
+    assert root() == pytestconfig.rootpath
+
+
+def test_the_root_reads_a_clone_whose_path_holds_a_space(
+    monkeypatch : MonkeyPatch,
+    tmp_path    : Path
+):
+    """
+    Asserts that the root decodes the percent-encoded `file:` address an
+    installer writes for a clone whose path holds a space.
+    """
+    clone = tmp_path / "a clone"
+    monkeypatch.setattr(
+        "scotch.cli.settings.distributions",
+        lambda name: iter(
+            [SimpleNamespace(origin=SimpleNamespace(dir_info=None, url=clone.as_uri()))]
+        )
+    )
+
+    assert root() == clone

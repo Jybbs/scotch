@@ -8,8 +8,8 @@ imports by its path.
 from cyclopts          import App
 from polars.exceptions import SchemaError
 
-from scotch.cli            import app, root
-from scotch.cli.settings   import Settings
+from scotch.cli            import app
+from scotch.cli.settings   import Settings, root
 from scotch.docs.inventory import Outputs
 from scotch.index.tables   import PositionIndex
 from scotch.repo.schemas   import Pyproject

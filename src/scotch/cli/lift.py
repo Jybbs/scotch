@@ -14,7 +14,8 @@ from subprocess import CalledProcessError
 from sys        import stderr
 from typing     import Annotated
 
-from scotch.cli           import app, root
+from scotch.cli           import app
+from scotch.cli.settings  import root
 from scotch.pins.managers import Pins
 from scotch.pins.schemas  import Report, coupled
 from scotch.pins.trees    import Tree

@@ -1,35 +1,18 @@
 """
-Exposes the `scotch` command, whose help opens on the sentence
-`[project].description` declares and whose `--version` flag prints
-the version the package metadata names, beside `root`, which finds the
-`pyproject.toml` holding that sentence. Each verb's group sits in the module
-under `cli/` named for the verb, which the app imports only once a command
-of that group, or its help, is run.
+Exposes the `scotch` command, whose help opens on the summary the package
+metadata carries and whose `--version` flag prints the version that metadata
+names. Each verb's group sits in the module under `cli/` named for the
+verb, which the app imports only once a command of that group, or its help,
+is run.
 """
 
 from cyclopts           import App, Parameter
 from importlib.metadata import distributions
-from pathlib            import Path
-from tomllib            import loads
-
-
-def root() -> Path:
-    """
-    Reads the directory the `scotch` distribution was installed from, which
-    an installer records in the `direct_url.json` PEP 610 specifies, or the
-    working directory where it recorded none.
-    """
-    origin = next(distributions(name="scotch")).origin
-
-    return Path.from_uri(origin.url) if hasattr(origin, "dir_info") else Path.cwd()
-
 
 app = App(
     default_parameter = Parameter(negative=()),
-    help              = loads((root() / "pyproject.toml").read_text(encoding="utf-8"))[
-        "project"
-    ]["description"],
-    name = "scotch"
+    help              = next(distributions(name="scotch")).metadata["Summary"],
+    name              = "scotch"
 )
 app.command(
     "scotch.cli.apply:apply_group",

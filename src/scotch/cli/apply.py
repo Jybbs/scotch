@@ -12,7 +12,8 @@ from pydantic   import ValidationError
 from shlex      import join
 from subprocess import PIPE, run
 
-from scotch.cli           import app, root
+from scotch.cli           import app
+from scotch.cli.settings  import root
 from scotch.repo.checkout import Checkout
 
 

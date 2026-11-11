@@ -43,7 +43,7 @@ def bibliography(bibtex: Path, monkeypatch: MonkeyPatch, tmp_path: Path) -> Path
 def help_modules() -> frozenset[str]:
     """
     Runs `scotch --help` in an interpreter of its own and reads back the
-    top-level name of every module that interpreter imported by its end.
+    name of every module that interpreter imported by its end.
     """
     source = (
         "import sys; from scotch.cli import app; "
@@ -57,7 +57,7 @@ def help_modules() -> frozenset[str]:
         text           = True
     )
 
-    return frozenset(name.partition(".")[0] for name in imported.stderr.split())
+    return frozenset(imported.stderr.split())
 
 
 @fixture

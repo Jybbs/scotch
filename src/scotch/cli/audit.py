@@ -6,7 +6,8 @@ own configuration has drifted from itself, run by the `repo:audit` task.
 
 from cyclopts import App
 
-from scotch.cli           import app, root
+from scotch.cli           import app
+from scotch.cli.settings  import root
 from scotch.repo.checkout import Checkout
 from scotch.repo.checks   import Check
 from scotch.repo.formats  import Format
