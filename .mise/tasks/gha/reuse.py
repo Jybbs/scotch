@@ -192,14 +192,17 @@ class Merge:
 
 def gh(*arguments: str) -> str:
     """
-    Runs `gh` with `arguments` and reads what it prints.
+    Runs `gh` with `arguments` and reads what it prints, empty where it
+    exits nonzero, so a lookup that fails finds no run and the job runs
+    the suite.
     """
-    return run(
+    done = run(
         ["gh", *arguments],
         capture_output = True,
-        check          = True,
+        check          = False,
         text           = True
-    ).stdout
+    )
+    return done.stdout if done.returncode == 0 else ""
 
 
 if __name__ == "__main__":

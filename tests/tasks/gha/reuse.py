@@ -9,22 +9,21 @@ runs through pytest-subprocess, so no case reaches git or GitHub.
 
 from collections.abc import Mapping
 from pathlib         import Path
-from pytest          import mark, param, raises
+from pytest          import mark, param
 from pytest_subprocess.fake_process import FakePopen, FakeProcess
-from subprocess import CalledProcessError
-from types      import ModuleType
+from types import ModuleType
 
 
 def attach(fp: FakeProcess, reports: Mapping[int, Mapping[str, str] | None]):
     """
-    Registers `gh run list` listing the runs `reports` names, newest first,
-    and `gh run download` unpacking for each run the files its entry holds,
-    or failing for a run whose entry is `None`, as `gh` does for a run that
-    attached no `coverage` artifact.
+    Registers `gh run list` listing the runs `reports` names, newest first
+    as the highest number, and `gh run download` unpacking for each run the
+    files its entry holds, or failing for a run whose entry is `None`, as
+    `gh` does for a run that attached no `coverage` artifact.
     """
     fp.register(
         ["gh", "run", "list", fp.any()],
-        stdout = "".join(f"{number}\n" for number in reports)
+        stdout = "".join(f"{number}\n" for number in sorted(reports, reverse=True))
     )
 
     for number, files in reports.items():
@@ -56,15 +55,51 @@ def pulled(fp: FakeProcess, *heads: str):
     )
 
 
-def test_a_failed_lookup_fails_the_job(fp: FakeProcess, task: ModuleType):
+@mark.parametrize(
+    ("command", "printed"),
+    [
+        param(("api",), "b2c3\n", id="pull-requests"),
+        param(("run", "list"), "12\n", id="runs")
+    ]
+)
+def test_a_failed_lookup_reports_no_total(
+    command  : tuple[str, ...],
+    fp       : FakeProcess,
+    printed  : str,
+    task     : ModuleType,
+    tmp_path : Path
+):
     """
-    Asserts that a `gh api` call that fails stops the job rather than
-    reading as no pull request.
+    Asserts that a `gh` lookup that fails, whether of the merged pull
+    request or of its runs, reads as no run, so `found` reads `false` and
+    the job runs the suite, even where `gh` printed an answer before it
+    failed.
     """
-    fp.register(["gh", "api", fp.any()], returncode=1)
+    outputs = tmp_path / "outputs"
 
-    with raises(CalledProcessError):
-        task.Merge(commit="a1b2", tree="t0").heads
+    fp.register(["gh", *command, fp.any()], returncode=1, stdout=printed)
+    pulled(fp)
+    attach(fp, {12: {"coverage.json": "97\n", "tree": "t0\n"}})
+    task.Merge(commit="a1b2", tree="t0").reuse(tmp_path / "total", outputs)
+
+    assert outputs.read_text() == "found=false\n"
+
+
+def test_a_run_without_the_artifact_downloads_no_report(
+    fp       : FakeProcess,
+    task     : ModuleType,
+    tmp_path : Path
+):
+    """
+    Asserts that a run whose `gh run download` fails yields no report, even
+    where the download left the files of a matching report behind.
+    """
+    fp.register(["gh", "run", "download", "12", fp.any()], returncode=1)
+    (tmp_path / "12").mkdir()
+    (tmp_path / "12" / "coverage.json").write_text("97\n")
+    (tmp_path / "12" / "tree").write_text("t0\n")
+
+    assert task.Report.download(tmp_path / "12", 12) is None
 
 
 def test_the_merge_reads_the_commit_and_its_tree_from_head(
@@ -96,6 +131,14 @@ def test_the_merge_reads_the_commit_and_its_tree_from_head(
         param({12: {"coverage.json": "97\n", "tree": "t1\n"}}, None, id="other-tree"),
         param({12: {"coverage.json": "97\n"}}, None, id="no-tree"),
         param({12: {"tree": "t0\n"}}, None, id="no-total"),
+        param(
+            {
+                11 : {"coverage.json": "96\n", "tree": "t0\n"},
+                12 : {"tree": "t0\n"}
+            },
+            96,
+            id = "newer-run-without-total"
+        ),
         param({12: {"coverage.json": "1e3\n", "tree": "t0\n"}}, None, id="not-whole"),
         param({12: {"coverage.json": "101\n", "tree": "t0\n"}}, None, id="above-100"),
         param({12: None}, None, id="no-artifact"),

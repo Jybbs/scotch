@@ -25,6 +25,7 @@ from scotch.repo.schemas import (
     Script,
     Step,
     Task,
+    Trigger,
     Workflow,
     exact,
     normalized,
@@ -347,15 +348,16 @@ def test_a_task_runs_through_its_alias_where_it_has_one(
 
 def test_a_step_reads_the_tasks_tools_and_summary_its_inputs_and_script_name():
     """
-    Asserts that a step reads the tasks its script runs through `mise
-    run`, the tools its `tools` input names as a set, the cache each of
-    its `tools` and `shared-key` inputs names, whether it saves them, and
-    whether its script names the step summary.
+    Asserts that a step reads the tasks its script runs through `mise run`,
+    reading past a flag ahead of a task's name, the tools its `tools` input
+    names as a set, the cache each of its `tools` and `shared-key` inputs
+    names, whether it saves them, and whether its script names the step
+    summary.
     """
     step = Step.model_validate(
         {
             "run": (
-                "mise run lock:check && mise run py:test\n"
+                "mise run lock:check && mise run --skip-deps py:test\n"
                 'echo x >> "$GITHUB_STEP_SUMMARY"'
             ),
             "with": {"save": "true", "tools": "uv python"}
@@ -397,26 +399,22 @@ def test_a_task_without_a_file_writes_no_summary():
     assert not Task(depends=(), file=None, name="repo:inline").writes_summary
 
 
-def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
+def test_a_workflow_fires_only_on_its_events(sample: Sample):
     """
-    Asserts that a workflow lists each job its gate does not wait for, and
-    nothing where it has no gate at all.
+    Asserts that a workflow fires on an event it declares with no filter for
+    every path, through the filter of one that declares a filter, and never
+    on an event it does not declare.
     """
-    sample.edit(".github/workflows/ci.yml", new="needs: []", old="needs: check")
+    workflows = sample.root / ".github" / "workflows"
+    ci        = Workflow.read(workflows / "ci.yml")
+    site      = Workflow.read(workflows / "site.yml")
+    run       = Path("src/scotch/cli/run.py")
 
-    assert Workflow.read(
-        sample.root / ".github" / "workflows" / "ci.yml"
-    ).ungated == ("check",)
-
-    sample.edit(
-        ".github/workflows/ci.yml",
-        new = "mise run py:test",
-        old = "mise run gha:scoresheet"
-    )
-    workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
-
-    assert workflow.gate is None
-    assert workflow.ungated == ()
+    assert ci.fires("workflow_dispatch", run)
+    assert ci.fires("pull_request", run)
+    assert not site.fires("pull_request", run)
+    assert site.fires("pull_request", Path("rust/src/boards.rs"))
+    assert not ci.fires("push", run)
 
 
 @mark.parametrize(
@@ -489,6 +487,81 @@ def test_a_job_reads_whether_it_runs_always(always: bool, condition: str):
     ).always is always
 
 
+@mark.parametrize(
+    ("paths", "path", "fires"),
+    [
+        param((), "src/scotch/cli/run.py", True, id="no-filter"),
+        param(
+            ("**",),
+            "src/scotch/cli/run.py",
+            True,
+            id = "double-star-crossing-slashes"
+        ),
+        param(
+            ("src/*",),
+            "src/scotch/cli/run.py",
+            False,
+            id = "star-stopping-at-a-slash"
+        ),
+        param(("src/*",), "src/run.py", True, id="star-within-a-folder"),
+        param(
+            ("**", "!docs/pages/**"),
+            "docs/pages/index.md",
+            False,
+            id = "later-negation"
+        ),
+        param(
+            ("**", "!docs/pages/**"),
+            "docs/assets/a.svg",
+            True,
+            id = "negation-elsewhere"
+        ),
+        param(
+            ("!docs/pages/**", "docs/**"),
+            "docs/pages/index.md",
+            True,
+            id = "later-pattern-taking-back-in"
+        ),
+        param(("!docs/**",), "docs/pages/index.md", False, id="negation-alone"),
+        param(("rust/**",), "pyproject.toml", False, id="unmatched")
+    ]
+)
+def test_a_trigger_fires_where_the_last_matching_pattern_takes_the_path_in(
+    fires : bool,
+    path  : str,
+    paths : tuple[str, ...]
+):
+    """
+    Asserts that a filter declaring no pattern fires on every path, and
+    that otherwise the last pattern matching a path decides, a `**` segment
+    spanning folders, a `*` stopping at a `/`, and a pattern opening on `!`
+    leaving the path out.
+    """
+    assert Trigger(paths=paths).fires(Path(path)) is fires
+
+
+def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
+    """
+    Asserts that a workflow lists each job its gate does not wait for, and
+    nothing where it has no gate at all.
+    """
+    sample.edit(".github/workflows/ci.yml", new="needs: []", old="needs: check")
+
+    assert Workflow.read(
+        sample.root / ".github" / "workflows" / "ci.yml"
+    ).ungated == ("check",)
+
+    sample.edit(
+        ".github/workflows/ci.yml",
+        new = "mise run py:test",
+        old = "mise run gha:scoresheet"
+    )
+    workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
+
+    assert workflow.gate is None
+    assert workflow.ungated == ()
+
+
 def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     """
     Asserts that a workflow lists each cache its steps save and, relative to
@@ -505,10 +578,10 @@ def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     ci   = Workflow.read(root / ".github" / "workflows" / "ci.yml")
 
     assert warm.saved == {Cache.CARGO, Cache.TOOLS}
-    assert warm.paths[0] == ".github/actions/provision/action.yml"
+    assert warm.triggers["push"].paths[0] == ".github/actions/provision/action.yml"
     assert warm.unfiltered([root / ".mise" / "config.toml"], root) == []
     assert warm.unfiltered([root / "uv.lock"], root) == [Path("uv.lock")]
-    assert ci.paths == ()
+    assert "push" not in ci.triggers
     assert ci.unfiltered([], root) == [Path(".github/workflows/ci.yml")]
 
     sample.edit(

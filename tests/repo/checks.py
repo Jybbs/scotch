@@ -22,6 +22,7 @@ from scotch.repo.checks  import (
     CommandCheck,
     ContributingCheck,
     ExactPinCheck,
+    FilterCheck,
     GateCheck,
     InputCheck,
     KitCheck,
@@ -201,6 +202,44 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "loose-build-pin"
         ),
         param(
+            FilterCheck,
+            [(".github/workflows/ci.yml", "'!docs/pages/**'", "'!src/**'")],
+            [
+                (
+                    f"src/scotch/{path}",
+                    None,
+                    "No workflow ending on a gate fires on a pull request "
+                    "changing the file"
+                )
+                for path in ("cli/run.py", "docs/stops.toml")
+            ],
+            id = "tracked-file-firing-nothing"
+        ),
+        param(
+            FilterCheck,
+            [(".github/workflows/site.yml", "      - rust/**\n", "")],
+            [
+                (
+                    ".github/workflows/site.yml", None,
+                    f"The `pull_request` filter leaves out `rust/{path}`, "
+                    "which every gated workflow builds from"
+                )
+                for path in ("Cargo.toml", "src/boards.rs")
+            ],
+            id = "crate-firing-one-workflow"
+        ),
+        param(
+            FilterCheck,
+            [(".github/workflows/site.yml", "      - .mise/mise.lock\n", "")],
+            [(
+                ".github/workflows/site.yml",
+                None,
+                "The `pull_request` filter leaves out `.mise/mise.lock`, "
+                "which every gated workflow builds from"
+            )],
+            id = "untracked-pin-firing-one-workflow"
+        ),
+        param(
             GateCheck,
             [(
                 ".github/workflows/warm.yml", "mise run gha:scoresheet",
@@ -271,7 +310,10 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             ContributingCheck,
-            [(".github/CONTRIBUTING.md", "`mise lockfile`", "`mise run lock:check`")],
+            [(
+                ".github/CONTRIBUTING.md", "`CI / Lockfiles` | `mise lockfile`",
+                "`CI / Lockfiles` | `mise run lock:check`"
+            )],
             [(
                 ".github/CONTRIBUTING.md",
                 None,
@@ -700,7 +742,10 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             RulesetCheck,
-            [(".github/workflows/ci.yml", "  pull_request:\n", "  push:\n")],
+            [
+                (".github/workflows/ci.yml", "  pull_request:\n", "  push:\n"),
+                (".github/workflows/site.yml", "  pull_request:\n", "  push:\n")
+            ],
             [(
                 ".github/rulesets/main.json",
                 None,

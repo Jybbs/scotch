@@ -1,9 +1,8 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "links"
-#MISE depends     = ["site:install"]
+#MISE depends     = ["site:install", "site:press"]
 #MISE description = "Check every link, asset, and heading fragment in the site `site:press` built, the README, and the contributor guide with no network, passing any further arguments to lychee"
 #MISE dir         = "docs"
-#MISE wait_for    = ["site:press"]
 
 dist="$PWD/.vitepress/dist"
 home=$(node --eval "import { projectFacts } from './.vitepress/lib/site/manifest.ts'; console.log(projectFacts(import.meta.url).homepage)" --input-type=module)

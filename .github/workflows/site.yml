@@ -34,8 +34,10 @@ jobs:
         with:
           name: site
           path: docs/.vitepress/dist
+      - name: Install the site's packages
+        run: mise run site:install
       - name: Check the site's links
-        run: mise run site:links
+        run: mise run --skip-deps site:links
     timeout-minutes: 15
   check:
     name: ${{ matrix.name }}

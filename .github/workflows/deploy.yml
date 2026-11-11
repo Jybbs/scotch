@@ -11,9 +11,7 @@ jobs:
         with:
           tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
       - name: Build the site and check its links
-        run: |
-          mise run site:press
-          mise run site:links
+        run: mise run site:links
       - name: Attach the site
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:

@@ -275,9 +275,28 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
 
     paths: tuple[str, ...] = ()
     """
-    The paths at least one of which a push has to touch for the workflow to
-    fire.
+    The paths at least one of which the event has to touch for the workflow
+    to fire.
     """
+
+    def fires(self, path: Path) -> bool:
+        """
+        Reads whether a change to `path` fires the event, as it does for
+        every path where the filter declares no pattern. Otherwise the
+        last pattern matching the path decides, as it does for GitHub, so
+        a pattern opening on `!` leaves out a path an earlier pattern took
+        in, and each pattern reads through `PurePath.full_match`, where `*`
+        stops at a `/` and a `**` segment spans any number of folders.
+        """
+        last = next(
+            (
+                pattern
+                for pattern in reversed(self.paths)
+                if path.full_match(pattern.removeprefix("!"))
+            ),
+            "!"
+        )
+        return not self.paths or not last.startswith("!")
 
 
 class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -762,9 +781,11 @@ class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     @property
     def tasks(self) -> tuple[str, ...]:
         """
-        Lists the mise tasks the step's script runs through `mise run`.
+        Lists the mise tasks the step's script runs through `mise
+        run`, reading past any flag ahead of the task's name, such as
+        `--skip-deps`.
         """
-        return tuple(findall(r"\bmise run ([\w:-]+)", self.run))
+        return tuple(findall(r"\bmise run (?:--?[\w-]+ )*([\w:-]+)", self.run))
 
     @property
     def tools(self) -> frozenset[str]:
@@ -1051,8 +1072,8 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
 
     name: str = ""
     """
-    The name GitHub shows for the workflow, which opens the name of each
-    check its jobs report.
+    The name GitHub shows for the workflow, which its checks list shows
+    ahead of the name of each check its jobs report.
     """
 
     @property
@@ -1071,14 +1092,6 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         Expands every job's steps once for each leg of the job's matrix.
         """
         return tuple(*job.instances for job in self.jobs)
-
-    @property
-    def paths(self) -> tuple[str, ...]:
-        """
-        Reads the path filter a push to the workflow declares, empty where
-        it declares none.
-        """
-        return push.paths if (push := self.triggers.get("push")) else ()
 
     @property
     def requests(self) -> bool:
@@ -1122,19 +1135,16 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
 
         return tuple(job.id for job in self.rows if job.id not in gate.needs)
 
-    def filters(self, path: Path) -> bool:
+    def fires(self, event: str, path: Path) -> bool:
         """
-        Reads whether the `push` filter takes `path` in, where the last
-        pattern matching it decides and a pattern opening on `!` leaves
-        it out.
+        Reads whether a change to `path` fires the workflow on `event`,
+        which it never does where the workflow does not fire on `event` and
+        always does where the event declares no filter.
         """
-        last = next(
-            (pattern for pattern in reversed(self.paths) if path.full_match(
-                pattern.removeprefix("!")
-            )),
-            "!"
-        )
-        return not last.startswith("!")
+        if event not in self.triggers:
+            return False
+
+        return (trigger := self.triggers[event]) is None or trigger.fires(path)
 
     @classmethod
     def read(cls, path: Path) -> Self:
@@ -1157,17 +1167,13 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
 
     def unfiltered(self, paths: Iterable[Path], root: Path) -> list[Path]:
         """
-        Lists each of `paths`, and the workflow's own file, that the `push`
-        filter leaves out, each relative to `root`, the directory the
-        patterns are relative to. The last pattern matching a path decides,
-        as it does for GitHub, so a pattern opening on `!` leaves out a
-        path an earlier pattern took in, and each pattern reads through
-        `PurePath.full_match`, where `*` stops at a `/` and a `**` segment
-        spans any number of folders.
+        Lists each of `paths`, and the workflow's own file, that a push
+        leaves the workflow unfired by, each relative to `root`, the
+        directory the patterns are relative to.
         """
         relative = {path.relative_to(root) for path in {*paths, self.path}}
 
-        return sorted(path for path in relative if not self.filters(path))
+        return sorted(path for path in relative if not self.fires("push", path))
 
 
 def exact(version: str) -> Match[str] | None:
