@@ -22,9 +22,9 @@ jobs:
             shared-key: scotch-python
             task: py:coverage
             tools: python uv
-  brief:
+  scoresheet:
     if: always()
-    name: ⏱️ Brief
+    name: 🖋️ Scoresheet
     needs: check
     runs-on: ubuntu-26.04
     steps:
@@ -33,7 +33,7 @@ jobs:
         with:
           tools: python uv
       - name: Write the summary
-        run: mise run gha:brief
+        run: mise run gha:scoresheet
 name: CI
 on:
   pull_request:

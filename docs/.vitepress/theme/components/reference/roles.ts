@@ -28,7 +28,7 @@ interface Seam {
 /**
  * The roles the unfold rings in turn, as when and which.
  */
-const LOOKS = [[1500, 'ink'], [3000, 'submitted'], [4500, 'front_paper'], [6000, ORDER[START]!]] as const
+const LOOKS = [[1500, 'ink'], [3000, 'submitted'], [4500, 'glyph_light'], [6000, ORDER[START]!]] as const
 
 /**
  * Holds the ring around the picked part, measuring it once mounted and again

@@ -47,8 +47,14 @@ describe('motionSheet', () => {
     expect(sheet.motionSheet()).toContain(`  --sc-curve-${name}: cubic-bezier(${points.join(', ')});`)
   })
 
-  it('drops every duration to zero for a reader who prefers reduced motion', () => {
-    const [, reduced] = sheet.motionSheet().split('@media (prefers-reduced-motion: reduce) {')
-    expect(reduced?.match(/: 0ms;/gu)).toHaveLength(Object.keys(timing.DURATIONS).length)
+  it.each([
+    [
+      'for a reader who prefers reduced motion',
+      "@media (prefers-reduced-motion: reduce) {\n:root:not([data-motion='playing']) {"
+    ],
+    ['while the motion switch has paused the drawings', ":root[data-motion='paused'] {"]
+  ])('drops every duration to zero %s', (_, opening) => {
+    const [, rule] = sheet.motionSheet().split(opening)
+    expect(rule?.split('}')[0]?.match(/: 0ms;/gu)).toHaveLength(Object.keys(timing.DURATIONS).length)
   })
 })

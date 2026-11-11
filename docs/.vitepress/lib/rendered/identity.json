@@ -120,16 +120,6 @@
       "kind": "mark",
       "light": "dark"
     },
-    "front_hollow": {
-      "dark": "black",
-      "kind": "fill",
-      "light": "dark"
-    },
-    "front_paper": {
-      "dark": "ground",
-      "kind": "fill",
-      "light": "white"
-    },
     "glyph_dark": {
       "dark": [
         "dark",
@@ -272,8 +262,6 @@
       "alert": "A message that something failed.",
       "data_black": "The fill of Black's share of a chart's bar.",
       "data_edge": "The outline a chart's bar holds a white share inside.",
-      "front_hollow": "The fill of a hollow piece on the front page's backdrop.",
-      "front_paper": "The fill of a paper piece on the front page's backdrop.",
       "glyph_dark": "The glyph a dark square draws under a page's text.",
       "glyph_light": "The glyph a light square draws under a page's text.",
       "ink": "The text of a page.",

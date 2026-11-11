@@ -13,7 +13,17 @@ export const CURVES: Readonly<Record<'glide' | 'sway', CubicBezierPoints>> = {
  * The length of each kind of motion in milliseconds, which a transition reads
  * through its custom property and an animation a script runs reads from here.
  */
-export const DURATIONS = { enter: 300, fade: 200, glide: 420, lag: 60, move: 180, settle: 480 } as const
+export const DURATIONS = {
+  enter  : 300,
+  fade   : 200,
+  glide  : 420,
+  lag    : 60,
+  lift   : 720,
+  move   : 180,
+  part   : 900,
+  pour   : 1200,
+  settle : 480
+} as const
 
 /**
  * Solves a cubic Bézier curve for the progress it reaches at a share of its

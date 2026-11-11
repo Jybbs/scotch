@@ -68,7 +68,7 @@ def test_the_scripts_are_the_tasks_declaring_inline_metadata(answered: Sample):
     Asserts that the checkout reads inline metadata from each task file that
     carries a `script` block, and from no other.
     """
-    assert [script.path.name for script in answered.checkout.scripts] == ["brief"]
+    assert [script.path.name for script in answered.checkout.scripts] == ["scoresheet"]
 
 
 def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):

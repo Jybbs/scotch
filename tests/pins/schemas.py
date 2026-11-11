@@ -213,7 +213,7 @@ def test_a_report_names_its_pins_and_holds_every_lift_of_a_held_name():
                 current = "2.24.0",
                 name    = "minijinja",
                 newest  = "3.0.3",
-                path    = Path(".mise/tasks/gha/brief.py")
+                path    = Path(".mise/tasks/gha/scoresheet.py")
             ),
             lift(
                 current = "1.44.2",
@@ -339,7 +339,7 @@ def test_an_exact_pin_lifts_to_the_release_a_package_resolves():
     to, dated by the resolved package's earliest upload, and rewrites the
     version beside the name as the file spells it.
     """
-    path = Path(".mise/tasks/gha/brief.py")
+    path = Path(".mise/tasks/gha/scoresheet.py")
     pin  = Exact(
         follows = True,
         path    = path,

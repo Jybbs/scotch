@@ -6,7 +6,7 @@ import type { RoleName } from './palette.ts'
  */
 export const ORDER = [
   'page', 'side', 'raised', 'tint', 'rule', 'ink', 'quiet', 'run', 'alert', 'submitted', 'stored',
-  'data_black', 'data_edge', 'front_paper', 'front_hollow', 'glyph_light', 'glyph_dark'
+  'data_black', 'data_edge', 'glyph_light', 'glyph_dark'
 ] as const satisfies readonly RoleName[]
 /**
  * The place of the role the drawing opens on and closes on.

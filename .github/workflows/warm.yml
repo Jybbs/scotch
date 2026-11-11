@@ -73,9 +73,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: .mise/tasks/gha/prune.py
     timeout-minutes: 5
-  brief:
+  scoresheet:
     if: always()
-    name: ⏱️ Brief
+    name: 🖋️ Scoresheet
     needs:
       - cargo
       - kit
@@ -89,7 +89,7 @@ jobs:
       - name: Write the summary
         env:
           NEEDS: ${{ toJSON(needs) }}
-        run: mise run gha:brief
+        run: mise run gha:scoresheet
     timeout-minutes: 5
 name: ♟️ Warm
 on:

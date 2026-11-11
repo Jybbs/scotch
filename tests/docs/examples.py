@@ -89,15 +89,18 @@ def test_a_shown_game_draws_frames_up_to_the_plies_shown_and_every_move(
     known : Path
 ):
     """
-    Asserts that each `Shown` game holds the frames of its first `shown`
-    plies beside its starting position, and lists every move of its mainline
-    beside the piece the move sets down, such as the king for `13. Ke2`.
+    Asserts that each `Shown` game holds the frames and the keys of its
+    first `shown` plies beside its starting position, and lists every move
+    of its mainline beside the piece the move sets down, such as the king
+    for `13. Ke2`.
     """
     drawn = Example(path=Path("demo.pgn"), shown=2).drawn(index, known)
 
     assert [[frame.san for frame in game.frames] for game in (
         drawn.stored, drawn.submitted
     )] == [[None, "d4", "Nf6"]] * 2
+    assert drawn.stored.keys == drawn.submitted.keys
+    assert len(drawn.stored.keys) == 3
     assert len(drawn.stored.played) == 57
     assert drawn.stored.played[:3] == (("d4", "P"), ("Nf6", "n"), ("c4", "P"))
     assert ("Ke2", "K") in drawn.stored.played
@@ -116,7 +119,12 @@ def test_a_shown_game_names_each_player_by_every_word_before_the_comma():
         "White" : "Lékó, Péter"
     }
 
-    assert Shown(frames=(), headers=headers, played=()).figures == {
+    assert Shown(
+        frames  = (),
+        headers = headers,
+        keys    = (),
+        played  = ()
+    ).figures == {
         "black" : "Cobo Arteaga",
         "event" : "Havana",
         "white" : "Lékó",
@@ -146,7 +154,9 @@ def test_an_example_dumps_only_what_the_site_reads(index: PositionIndex, known: 
     )
 
     assert set(dumped) == {"parting", "span", "stored", "submitted"}
-    assert set(dumped["stored"]) == set(dumped["submitted"]) == {"frames", "played"}
+    assert set(dumped["stored"]) == set(dumped["submitted"]) == {
+        "frames", "keys", "played"
+    }
 
 
 @mark.parametrize(

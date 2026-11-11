@@ -128,7 +128,7 @@ describe('Roles, as the column or the unfold changes it', () => {
     expect(drawn.find('output [data-at]').text()).toContain('submitted')
     clock.advanceTimersByTime(1500)
     await flushPromises()
-    expect(drawn.find('output [data-at]').text()).toContain('front_paper')
+    expect(drawn.find('output [data-at]').text()).toContain('glyph_light')
     clock.advanceTimersByTime(3000)
     await flushPromises()
     expect(drawn.find('output [data-at]').text()).toContain('run')

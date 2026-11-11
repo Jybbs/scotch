@@ -1,9 +1,9 @@
-import { usePreferredReducedMotion } from '@vueuse/core'
 import { type PropType, type Ref, type VNode, defineComponent, h, shallowRef, useId, watch } from 'vue'
 
 import * as example                   from '../../../lib/methods/example.ts'
 import * as motion                    from '../../../lib/methods/motion.ts'
 import { type Stepping, useStepping } from '../../../lib/methods/stepping.ts'
+import { useMotion }                  from '../../../lib/motion/control.ts'
 import { RunBoard }                   from './board.ts'
 
 interface Drawn {
@@ -155,15 +155,15 @@ export const Run = defineComponent({
   },
 
   setup: props => {
-    const last      = props.example.submitted.length - 1
-    const opening   = example.openingOf(props.example)
-    const board     = shallowRef<{ show: (ply: number, how?: motion.How) => void } | null>(null)
-    const head      = shallowRef<HTMLElement | null>(null)
-    const list      = shallowRef<HTMLElement | null>(null)
-    const reduced   = usePreferredReducedMotion()
-    const running   = [] as Animation[]
-    const headStyle = { opacity: '1', transform: example.timelineAt(props.tuning.gap, opening) }
-    const drawn     = {
+    const last       = props.example.submitted.length - 1
+    const opening    = example.openingOf(props.example)
+    const board      = shallowRef<{ show: (ply: number, how?: motion.How) => void } | null>(null)
+    const head       = shallowRef<HTMLElement | null>(null)
+    const list       = shallowRef<HTMLElement | null>(null)
+    const { moving } = useMotion()
+    const running    = [] as Animation[]
+    const headStyle  = { opacity: '1', transform: example.timelineAt(props.tuning.gap, opening) }
+    const drawn      = {
       example  : props.example,
       id       : useId(),
       last     : last,
@@ -171,7 +171,7 @@ export const Run = defineComponent({
     }
 
     watch(drawn.stepping.ply, (to, from) => {
-      const how = motion.howOf(from, reduced.value === 'reduce', to)
+      const how = motion.howOf(from, !moving.value, to)
       board.value?.show(to, how)
       motion.settleAll(running)
       motion.moveNode(head.value!, how, running, {

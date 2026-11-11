@@ -2,6 +2,7 @@ import { createMarkdownRenderer } from 'vitepress'
 import { describe, expect, it }   from 'vitest'
 
 import { FRONT, frontPage } from '../../../lib/markdown/front.ts'
+import { SECTIONS }         from '../../../lib/site/sections.ts'
 
 const md   = await createMarkdownRenderer('/tmp', { config: frontPage })
 const PAGE = [
@@ -11,30 +12,27 @@ const PAGE = [
   '',
   'An opening paragraph.',
   '',
-  '## The Store',
+  '## Data',
   '',
   'The **[Data](data/index.md)** section names each file.',
   '',
-  '## The Method',
+  '## Methods',
   '',
   'Read [an aside](https://example.org) first, then **[Methods](methods/index.md)**.',
-  '',
-  '## No Section',
-  '',
-  'Nothing links a section.',
   ''
 ].join('\n')
 
 describe('frontPage', () => {
-  const html = md.render(PAGE, { relativePath: FRONT })
+  const html    = md.render(PAGE, { relativePath: FRONT })
+  const entries = [...html.matchAll(/<section class="sc-entry" style="([^"]+)">([^]*?)<\/section>/gu)]
 
   it('drops the heading and the tagline, which the hero draws', () => {
     expect(html).not.toContain('<h1')
     expect(html).not.toContain('Find the grandmaster game')
   })
 
-  it('keeps the paragraph after the tagline outside every card', () => {
-    expect(html).toMatch(/^<p>An opening paragraph\.<\/p>\n<article /u)
+  it('keeps the paragraph after the tagline outside every entry', () => {
+    expect(html).toMatch(/^<p>An opening paragraph\.<\/p>\n<section /u)
   })
 
   it('drops a tagline written as a paragraph as well', () => {
@@ -47,10 +45,29 @@ describe('frontPage', () => {
       .toBe('')
   })
 
-  it('sets each section whole inside a card of its own, in order', () => {
-    const cards = [...html.matchAll(/<article class="sc-card">([^]*?)<\/article>/gu)].map(([, card]) => card!)
-    expect(cards.map(card => /<h2[^>]*>([^<]+?) </u.exec(card)?.[1]))
-      .toEqual(['The Store', 'The Method', 'No Section'])
+  it("sets each section whole inside an entry in its section's color, in order", () => {
+    expect(entries.map(([, style]) => style))
+      .toEqual(['--sc-entry: var(--sc-series-1)', '--sc-entry: var(--sc-series-5)'])
+    expect(entries[1]![2]).toContain('href="https://example.org"')
+  })
+
+  const opened = [[0, 'I', 'Data'], [1, 'II', 'Methods']] as const
+
+  it.each(opened)('opens entry %i on %s beside %s, under its question', (index, numeral, label) => {
+    const section = SECTIONS.find(each => each.label === label) as { question: string, slug: string }
+    const entry   = entries[index]![2]!
+    const asked   = section.question
+    expect(entry).toContain(`<span aria-hidden="true" class="sc-entry-numeral">${numeral}</span>`)
+    expect(entry).toContain(`<a class="sc-entry-kicker" href="/${section.slug}/">${label}</a>`)
+    expect(entry).toMatch(new RegExp(`<h2[^>]*>${RegExp.escape(asked)}`, 'u'))
+  })
+
+})
+
+describe('frontPage on other pages', () => {
+  it('raises on a heading naming no section the front page opens', () => {
+    expect(() => md.render('## Reference\n\nText.\n', { relativePath: FRONT }))
+      .toThrow("the front page's heading Reference names no section it opens")
   })
 
   it('keeps a front page opening on no heading whole', () => {

@@ -1,92 +1,57 @@
-import examples from '../rendered/examples.json' with { type: 'json' }
+import examples                    from '../rendered/examples.json' with { type: 'json' }
+import { type Example, exampleOf } from '../methods/example.ts'
+import { numbered }                from '../viewer/games.ts'
 
-interface Arc {
-  moves  : Move[]
-  shared : boolean[]
-}
-
-export type Game = (typeof GAMES)[number]
-export type Kind = (typeof KINDS)[number]
-
-export interface Move {
-  kind : Kind
-  san  : string
+/**
+ * The front page's example as its widgets read it: the line and the stored game
+ * it meets by another order of moves, the moves each plays in SAN, and the
+ * Zobrist key of each position each reaches as 16 hex digits.
+ */
+export interface Front {
+  example : Example
+  keys    : Readonly<Record<Game, readonly string[]>>
+  moves   : Readonly<Record<Game, readonly string[]>>
 }
 
 /**
- * The two games the oval plays, an arc each, how many plies it shows, and, for
- * each of those plies, whether either arc reaches a position there the two
- * games share.
+ * The two games of a match.
  */
-export interface Oval {
-  bot    : Arc
-  shared : boolean[]
-  shown  : number
-  top    : Arc
-}
+export type Game = 'stored' | 'submitted'
 
-interface Rendered {
-  span      : { length: number, offset: number, start: number }
-  stored    : Side
-  submitted : Side
-}
+type Raw = typeof examples.front
 
-interface Side {
-  frames : unknown[]
-  played : string[][]
+/**
+ * Writes a key `scotch render docs` writes in decimal as the 16 hex digits of
+ * its 64 bits.
+ */
+function hexOf(key: string): string {
+  return BigInt(key).toString(16).padStart(16, '0')
 }
 
 /**
- * The oval's two arcs in the order the field lays their pieces out, the
- * submitted line's top arc first and the stored game's bottom arc after it.
+ * Reads the front page's example out of the JSON `scotch render docs` writes.
  */
-export const GAMES = ['top', 'bot'] as const
-/**
- * The kinds of piece the set draws, each named by its lowercase symbol in
- * Forsyth–Edwards Notation.
- */
-export const KINDS = ['b', 'k', 'n', 'p', 'q', 'r'] as const
-
-function arcOf(side: Side, length: number, shown: number, start: number): Arc {
+export function frontOf(raw: Raw = examples.front): Front {
+  const each = <T>(read: (side: Raw[Game]) => T): Record<Game, T> =>
+    ({ stored: read(raw.stored), submitted: read(raw.submitted) })
   return {
-    moves  : side.played.map(([san = '', symbol = '']) => ({ kind: kindOf(symbol), san })),
-    shared : Array.from({ length: shown }, (_, k) => k + 1 >= start && k + 1 < start + length)
+    example : exampleOf(raw),
+    keys    : each(side => side.keys.map(hexOf)),
+    moves   : each(side => side.played.map(([san]) => san!))
   }
 }
 
-function kindOf(symbol: string): Kind {
-  const kind = KINDS.find(each => each === symbol.toLowerCase())
-  if (!kind) throw new Error(`no piece of the set has the symbol ${symbol}`)
-  return kind
+/**
+ * Writes the move reaching a ply of a game behind its number, such as `7. O-O`,
+ * or `Start` for the starting position.
+ */
+export function moveAt(front: Front, game: Game, ply: number): string {
+  return ply ? numbered({ headers: {}, moves: [...front.moves[game]] }, ply - 1) : 'Start'
 }
 
 /**
- * Names the piece of the oval playing ply `k` of one game, the key the scene
- * finds that piece by while a loose piece makes way.
+ * Reads whether the two games' keys match at a ply.
  */
-export function moteId(game: Game, k: number): string {
-  return `${k}${game}`
-}
-
-/**
- * Reads the two games the front page's oval plays from an example the index
- * matched, the submitted line on the top arc and the stored game it meets on
- * the bottom arc, each with every move it plays and, for each ply the oval
- * shows, whether the position that ply reaches is one the two games share,
- * counted from the span the match found in each game. The oval shows as many
- * plies as the shorter of the two drawn games holds frames for, and marks each
- * one at which either arc reaches a shared position.
- */
-export function ovalOf(example: Rendered = examples.front): Oval {
-  const { span, stored, submitted } = example
-  const shown                       = Math.min(stored.frames.length, submitted.frames.length) - 1
-  const bot                         = arcOf(stored, span.length, shown, span.start + span.offset)
-  const top                         = arcOf(submitted, span.length, shown, span.start)
-
-  return {
-    bot    : bot,
-    shared : top.shared.map((on, k) => on || bot.shared[k]!),
-    shown  : shown,
-    top    : top
-  }
+export function same(front: Front, ply: number): boolean {
+  return front.keys.submitted[ply] === front.keys.stored[ply]
 }

@@ -91,10 +91,7 @@ def test_played_names_a_mix_after_the_roles_taking_a_color_whole(reference: Refe
     """
     assert "mixed in `alert`" in reference.played("critical")
     assert reference.played("primary").startswith("`run`")
-    assert (
-        reference.played("dark")
-                 .startswith("`front_hollow`, `ink`, `page`, mixed in")
-    )
+    assert reference.played("dark").startswith("`ink`, `page`, mixed in")
 
 
 @mark.parametrize(

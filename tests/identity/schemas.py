@@ -1,12 +1,15 @@
 """
 Pins the identity the site and its cards are drawn in, meaning the font
-stack each face writes, the colors a palette entry accepts, the fill
-`Color.filled` and the stylesheet `Palette.schemed` set on an SVG drawn in
-`currentColor`, and the JSON the site's stylesheets import.
+stack each face writes, the colors a palette entry accepts, the fills
+`Identity.filled` and the stylesheet `Palette.schemed` set on an SVG drawn
+in `currentColor`, the contrast the README's lockup holds on GitHub's
+grounds, and the JSON the site's stylesheets import.
 """
 
+from pathlib  import Path
 from pydantic import ValidationError
 from pytest   import approx, mark, param, raises
+from re       import findall
 
 from scotch.identity.schemas import Color, Face, Identity, Palette, Role, byte
 
@@ -55,16 +58,42 @@ def test_a_color_refuses_other_than_six_hex_digits(hex: str):
         Color(hex=hex, name="Walnut")
 
 
-def test_a_color_fills_an_svg_drawn_in_current_color():
+@mark.parametrize(
+    ("scheme", "run", "quiet"),
+    [("dark", "#e3c3a3", "#a1a09e"), ("light", "#764017", "#4f4e4e")]
+)
+def test_an_identity_fills_each_group_with_its_role(scheme: str, run: str, quiet: str):
     """
-    Asserts that each fill drawn in `currentColor` takes the color's hex,
-    leaving every other attribute as it stands.
+    Asserts that each group drawn in `currentColor` has its `data-role` and
+    its fill replaced by the color that role takes in the scheme, leaving a
+    fill with no role and every other attribute as they stand.
     """
-    svg = '<svg><g fill="currentColor" stroke="none"><path d="M0 0"/></g></svg>'
-
-    assert Color(hex="#764017", name="Walnut").filled(svg) == (
-        '<svg><g fill="#764017" stroke="none"><path d="M0 0"/></g></svg>'
+    svg = (
+        '<svg><g data-role="run" fill="currentColor" stroke="none"/>'
+        '<g data-role="quiet" fill="currentColor"/><g fill="currentColor"/></svg>'
     )
+
+    assert Identity().filled(scheme, svg) == (
+        f'<svg><g fill="{run}" stroke="none"/><g fill="{quiet}"/>'
+        '<g fill="currentColor"/></svg>'
+    )
+
+
+@mark.parametrize(("scheme", "ground"), [("dark", "#0d1117"), ("light", "#ffffff")])
+def test_the_lockup_holds_its_contrast_on_github(scheme: str, ground: str):
+    """
+    Asserts that the lockup's wordmark holds 3:1 and its tagline 4.5:1
+    on the ground GitHub draws a README on in the scheme, in the roles
+    `Identity.filled` fills, the wordmark's run before the tagline's quiet.
+    """
+    drawn = (Path(__file__).parents[2] / "docs/assets/lockup.svg").read_text()
+    page              = Color(hex=ground, name="GitHub")
+    roles             = findall(r'data-role="(\w+)" fill="currentColor"', drawn)
+    wordmark, tagline = (
+        Identity().colored(role, scheme).contrast(page) for role in roles
+    )
+
+    assert roles == ["run", "quiet"] and wordmark >= 3 and tagline >= 4.5
 
 
 def test_a_palette_names_the_tokens_its_series_take():

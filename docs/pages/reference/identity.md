@@ -10,8 +10,8 @@ Every color on the site comes from this palette or from white and black, alone o
 | **Color** | **Token** | **Hex** | **Meaning** | **Roles** |
 |---|---|---|---|---|
 | Brick Red | `critical` | `#c43e47` | The critical state, always beside an icon and a label, and the Reference section's own color, which marks the section on its link card and carries no state there. | mixed in `alert` |
-| Near Black | `dark` | `#1a1a1a` | The dark ground, and body text on the light ground. | `front_hollow`, `ink`, `page`, mixed in `alert`, `data_black`, `data_edge`, `glyph_dark`, `glyph_light`, `quiet`, `raised`, `rule`, `side`, `tint` |
-| Cararra | `ground` | `#f2f1ee` | The light ground, and light text on the dark ground. | `front_paper`, `ink`, `page`, mixed in `alert`, `data_edge`, `glyph_dark`, `glyph_light`, `quiet`, `raised`, `rule`, `side`, `tint` |
+| Near Black | `dark` | `#1a1a1a` | The dark ground, and body text on the light ground. | `ink`, `page`, mixed in `alert`, `data_black`, `data_edge`, `glyph_dark`, `glyph_light`, `quiet`, `raised`, `rule`, `side`, `tint` |
+| Cararra | `ground` | `#f2f1ee` | The light ground, and light text on the dark ground. | `ink`, `page`, mixed in `alert`, `data_edge`, `glyph_dark`, `glyph_light`, `quiet`, `raised`, `rule`, `side`, `tint` |
 | Cashmere | `light` | `#e3c3a3` | The board's light squares, and the lead on the dark ground. | `run`, mixed in `glyph_dark`, `glyph_light`, `tint` |
 | Walnut | `primary` | `#764017` | The lead color, the logo's piece, links on the light ground, and the board's dark squares. | `run`, mixed in `glyph_dark`, `tint` |
 | Persian Green | `series_1` | `#009b98` | The first series color. | No role, a chart series |
@@ -48,8 +48,6 @@ A page never names a color, because each part takes a role that resolves to one 
 | `alert` | text | A message that something failed. | `#98383c`, critical 76% dark, 6.27:1 | `#de8d8b`, critical 58% ground, 6.87:1 |
 | `data_black` | fill | The fill of Black's share of a chart's bar. | `#1a1a1a`, dark, 15.41:1 | `#010101`, dark 30% black, 1.20:1 |
 | `data_edge` | mark | The outline a chart's bar holds a white share inside. | `#1a1a1a`, dark, 15.41:1 | `#7d7c7b`, ground 50% dark, 4.18:1 |
-| `front_hollow` | fill | The fill of a hollow piece on the front page's backdrop. | `#1a1a1a`, dark, 15.41:1 | `#000000`, black, 1.21:1 |
-| `front_paper` | fill | The fill of a paper piece on the front page's backdrop. | `#ffffff`, white, 1.13:1 | `#f2f1ee`, ground, 15.41:1 |
 | `glyph_dark` | fill | The glyph a dark square draws under a page's text. | `#d6c6bb`, ground 77% primary, 1.47:1 | `#322e2b`, dark 86% light, 1.29:1 |
 | `glyph_light` | fill | The glyph a light square draws under a page's text. | `#eee4d9`, ground 72% light, 1.11:1 | `#403a35`, dark 78% light, 1.55:1 |
 | `ink` | text | The text of a page. | `#1a1a1a`, dark, 15.41:1 | `#f2f1ee`, ground, 15.41:1 |
@@ -136,7 +134,7 @@ One S sets every mark, from the tab of a browser to the card a shared link shows
 | Nav mark | 17 | 24 | The nav mark is the same S at 24 pixels tall, beside the site's name. |
 | Wordmark | 384 | 102 | The front page sets the wordmark at 24rem wide, the letters added beside the same S. |
 | Link card | 400 | 200 | The drawing shows a link card at a third of its 1200 by 600 pixels, with the wordmark at 60 of the drawing's 400 and at 180 on the card, above the section's name and the two games' rails. |
-| Lockup | 560 | 191 | The README sets the lockup at 560 pixels wide, with the tagline set under the wordmark. |
+| Lockup | 560 | 186 | The README sets the lockup at 560 pixels wide, with the tagline set under the wordmark and within its width. |
 <!-- /marks -->
 
 ## The Mark's Construction

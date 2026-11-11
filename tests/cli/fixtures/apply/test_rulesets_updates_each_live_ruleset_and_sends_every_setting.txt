@@ -1,7 +1,7 @@
 gh api --jq .[] | [.name, .id] --paginate repos/{owner}/{repo}/rulesets?includes_parents=false
 gh api --jq .node_id repos/{owner}/{repo}
 gh api --input - --method PUT --silent repos/{owner}/{repo}/rulesets/7
-  {"bypass_actors":[],"conditions":{"ref_name":{"exclude":[],"include":["refs/heads/main"]}},"enforcement":"active","name":"main branch protection","rules":[{"type":"deletion"},{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"⏱️ Brief","integration_id":15368}],"strict_required_status_checks_policy":true}}],"target":"branch"}
+  {"bypass_actors":[],"conditions":{"ref_name":{"exclude":[],"include":["refs/heads/main"]}},"enforcement":"active","name":"main branch protection","rules":[{"type":"deletion"},{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"🖋️ Scoresheet","integration_id":15368}],"strict_required_status_checks_policy":true}}],"target":"branch"}
 gh api --input - --method POST --silent repos/{owner}/{repo}/rulesets
   {"bypass_actors":[],"conditions":{"ref_name":{"exclude":[],"include":["refs/tags/*"]}},"enforcement":"active","name":"release tag protection","rules":[{"type":"update"},{"type":"deletion"}],"target":"tag"}
 gh api --input - --method PATCH --silent repos/{owner}/{repo}

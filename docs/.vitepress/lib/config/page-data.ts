@@ -12,15 +12,6 @@ import { VIEWER }                 from '../viewer/page.ts'
 type TransformedPage = Pick<PageData, 'frontmatter' | 'relativePath'>
 
 /**
- * The buttons beneath the front page's lockup, each linking a page that
- * explains what the tool does.
- */
-export const ACTIONS = [
-  { link: '/guide/', text: 'Read the Guide', theme: 'brand' },
-  { link: '/methods/runs', text: 'How Matching Works', theme: 'alt' }
-] as const
-
-/**
  * Reads the first sentence of a page's opening paragraph as plain text, the
  * description its head carries, leaving out the heading, every marker a task
  * writes a region between, a link's address, a footnote's marker, and the
@@ -41,8 +32,8 @@ export function leadOf(markdown: string): string | undefined {
 
 /**
  * Adds what VitePress needs to lay out one page, so no page carries a framework
- * option of its own. The front page takes the home layout and its hero's
- * buttons, the Viewer's page takes the tool as its layout with no sidebar and
+ * option of its own. The front page takes the home layout and a hero holding
+ * the lockup alone, the Viewer's page takes the tool as its layout with no sidebar and
  * the figures the strip closing the tool names, and every page but the front
  * one takes the first sentence of its own prose as its description.
  *
@@ -59,7 +50,7 @@ export function pageData(
   metaUrl : string
 ): Partial<PageData> | undefined {
   if (page.relativePath === FRONT) {
-    return { frontmatter: { ...page.frontmatter, hero: { actions: ACTIONS }, layout: 'home' } }
+    return { frontmatter: { ...page.frontmatter, hero: {}, layout: 'home' } }
   }
   const description = leadOf(fs.readFileSync(path.join(context.siteConfig.srcDir, page.relativePath), 'utf8'))
   if (page.relativePath === VIEWER.page) {

@@ -2,6 +2,7 @@ import { type Component, defineComponent, h } from 'vue'
 
 import { FIGURE }            from '../../lib/markdown/placements.ts'
 import { DATA_WIDGETS }      from './data/index.ts'
+import { FRONT_WIDGETS }     from './front/index.ts'
 import { METHODS_WIDGETS }   from './methods/index.ts'
 import { REFERENCE_WIDGETS } from './reference/index.ts'
 
@@ -10,6 +11,7 @@ import { REFERENCE_WIDGETS } from './reference/index.ts'
  */
 export const WIDGETS: Record<string, Component> = {
   ...DATA_WIDGETS,
+  ...FRONT_WIDGETS,
   ...METHODS_WIDGETS,
   ...REFERENCE_WIDGETS
 }

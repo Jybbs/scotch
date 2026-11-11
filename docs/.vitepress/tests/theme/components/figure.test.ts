@@ -9,6 +9,9 @@ import { Figure, WIDGETS } from '../../../theme/components/figure.ts'
 vi.mock('../../../theme/components/data/index.ts', () => ({
   DATA_WIDGETS: { probe: defineComponent({ setup: () => () => h('svg', { class: 'probe' }) }) }
 }))
+vi.mock('../../../theme/components/front/index.ts', () => ({
+  FRONT_WIDGETS: { front: defineComponent({ setup: () => () => h('svg', { class: 'front' }) }) }
+}))
 vi.mock('../../../theme/components/methods/index.ts', () => ({
   METHODS_WIDGETS: { other: defineComponent({ setup: () => () => h('svg', { class: 'other' }) }) }
 }))
@@ -40,6 +43,6 @@ describe('Figure', () => {
   })
 
   it("gathers each section's widgets under one record", () => {
-    expect(Object.keys(WIDGETS)).toEqual(['probe', 'other'])
+    expect(Object.keys(WIDGETS)).toEqual(['probe', 'front', 'other'])
   })
 })

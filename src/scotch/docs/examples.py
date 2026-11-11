@@ -34,6 +34,13 @@ class Shown(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     The game's tags, keyed by their names.
     """
 
+    keys: tuple[str, ...]
+    """
+    The Zobrist key of each position the frames hold, written in decimal as
+    text, since JavaScript reads a JSON number as a double, which keeps an
+    integer exact only up to `2**53`, per RFC 8259 section 6.
+    """
+
     played: tuple[tuple[str, str], ...]
     """
     Each move of the game's mainline in SAN beside the symbol of the piece
@@ -63,6 +70,7 @@ class Shown(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         return cls(
             frames  = game.frames[: shown + 1],
             headers = game.tags,
+            keys    = tuple(map(str, game.keys[: shown + 1])),
             played  = tuple((frame.san, frame.landed) for frame in game.frames[1:])
         )
 

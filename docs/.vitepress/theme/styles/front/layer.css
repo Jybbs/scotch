@@ -1,0 +1,16 @@
+.sc-front-layer {
+  --sc-front-layer : calc(100lvh - var(--vp-nav-height));
+
+  position       : sticky;
+  top            : var(--vp-nav-height);
+  z-index        : 0;
+  height         : var(--sc-front-layer);
+  margin-bottom  : calc(var(--sc-front-layer) * -1);
+  pointer-events : none;
+}
+
+.sc-front-mark {
+  display : block;
+  width   : 100%;
+  height  : 100%;
+}

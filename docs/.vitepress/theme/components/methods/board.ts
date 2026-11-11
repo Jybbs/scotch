@@ -25,11 +25,10 @@ function drawBoard(
   ply     : number
 ): VNode[] {
   const stamped = cellOf(example, ply) === 'run'
-  const pieces  = Array.from(squares.placedAt(example, ply), ([id, placed]) => piece(id, placed))
+  const pieces  = Array.from(squares.placedAt(example, ply), ([id, placed]) => drawPiece(id, placed))
   return [
     h('div', { 'aria-hidden': 'true', 'class': 'sc-run-board', 'ref': board }, [
-      h('div', { class: 'sc-run-squares' }, readingOrder.map(square =>
-        h('i', { 'class': 'sc-run-square', 'data-shade': squares.shadeOf(square) }))),
+      drawSquares(),
       washes(squares.marksAt(example, ply)),
       h('div', { class: 'sc-run-layer' }, pieces),
       h('span', { class: 'sc-run-stamp', style: { opacity: stamped ? '1' : '0' } }, 'One position')
@@ -49,7 +48,19 @@ function drawKey(key: Ref<HTMLElement | null>): VNode {
   return h('div', { 'aria-hidden': 'true', 'class': 'sc-run-key', 'ref': key }, parts)
 }
 
-function piece(id: string, placed: squares.Placed): VNode {
+function washes(marks: readonly (squares.Mark | undefined)[]): VNode {
+  return h('div', { class: 'sc-run-washes' }, readingOrder.map(square => h('i', {
+    'class'     : 'sc-run-wash',
+    'data-kind' : marks[square],
+    'style'     : { opacity: marks[square] ? '1' : '0' }
+  })))
+}
+
+/**
+ * Draws one piece of a board's layer on its square, named for the piece it
+ * stays as the board moves it.
+ */
+export function drawPiece(id: string, placed: squares.Placed): VNode {
   return h('span', {
     'class'      : 'sc-run-piece',
     'data-ghost' : placed.ghost ? '' : undefined,
@@ -60,12 +71,13 @@ function piece(id: string, placed: squares.Placed): VNode {
   })
 }
 
-function washes(marks: readonly (squares.Mark | undefined)[]): VNode {
-  return h('div', { class: 'sc-run-washes' }, readingOrder.map(square => h('i', {
-    'class'     : 'sc-run-wash',
-    'data-kind' : marks[square],
-    'style'     : { opacity: marks[square] ? '1' : '0' }
-  })))
+/**
+ * Draws a board's squares in the order the page reads them, the eighth rank
+ * first.
+ */
+export function drawSquares(): VNode {
+  return h('div', { class: 'sc-run-squares' }, readingOrder.map(square =>
+    h('i', { 'class': 'sc-run-square', 'data-shade': squares.shadeOf(square) })))
 }
 
 /**

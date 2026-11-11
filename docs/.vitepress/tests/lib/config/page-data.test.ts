@@ -1,17 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
-import { ACTIONS, leadOf, pageData } from '../../../lib/config/page-data.ts'
-import { VIEWER }                    from '../../../lib/viewer/page.ts'
-import { pageAt }                    from '../../common/pages.ts'
-import { test }                      from '../../common/repo.ts'
+import { leadOf, pageData } from '../../../lib/config/page-data.ts'
+import { VIEWER }           from '../../../lib/viewer/page.ts'
+import { test }             from '../../common/repo.ts'
 
 const built = (srcDir: string): { siteConfig: { srcDir: string } } => ({ siteConfig: { srcDir } })
 
 describe('pageData', () => {
-  test("lays the front page out on the home layout with the hero's buttons", ({ repo }) => {
+  test('lays the front page out on the home layout with a hero holding the lockup alone', ({ repo }) => {
     const page = { frontmatter: { kept: true }, relativePath: 'index.md' }
     expect(pageData(page, built(repo.root), repo.metaUrl))
-      .toEqual({ frontmatter: { hero: { actions: ACTIONS }, kept: true, layout: 'home' } })
+      .toEqual({ frontmatter: { hero: {}, kept: true, layout: 'home' } })
   })
 
   test('describes every other page by the first sentence of its prose', ({ repo }) => {
@@ -34,12 +33,6 @@ describe('pageData', () => {
     repo.write('guide/empty.md', '# Empty\n')
     expect(pageData({ frontmatter: {}, relativePath: 'guide/empty.md' }, built(repo.root), repo.metaUrl))
       .toBeUndefined()
-  })
-})
-
-describe('ACTIONS', () => {
-  it.each(ACTIONS)('links $text to a page the site builds, which no build check reads', ({ link }) => {
-    expect(pageAt(link)).toBeDefined()
   })
 })
 

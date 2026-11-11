@@ -1,7 +1,7 @@
-import { usePreferredReducedMotion } from '@vueuse/core'
 import { type ShallowRef, nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
 
-import { type Address, useAddress } from './address.ts'
+import { useMotion }                    from '../motion/control.ts'
+import { type Address, useAddress }     from './address.ts'
 import { COVER, FLIP, controlOf, idle } from './controls.ts'
 import type { GameBoard, Reach }        from './gameboard.ts'
 import { PARTIES, type Party }          from './loaded.ts'
@@ -172,13 +172,13 @@ export function marksOf({ cursor, loaded }: Viewer): { matched: 'no' | 'yes', sh
 /**
  * Drives the Viewer's parts from its state. Each load and each step moves the
  * boards, marks the root with whether the boards share a position, and paints
- * the sheets and the track, gliding on a step unless the reader prefers reduced
- * motion, then rewrites the page's address once the boards' moves land. The
+ * the sheets and the track, gliding on a step unless the site's drawings hold
+ * still, then rewrites the page's address once the boards' moves land. The
  * Viewer opens on the match a link's fragment carries where the page was
  * reached through one.
  */
 export function useDrive(viewer: Viewer): Drive {
-  const reduced      = usePreferredReducedMotion()
+  const { moving }   = useMotion()
   const address      = useAddress(viewer)
   const parts: Parts = {
     guess     : shallowRef(),
@@ -193,7 +193,7 @@ export function useDrive(viewer: Viewer): Drive {
   const drive = (fresh: boolean): void => {
     const loaded = viewer.loaded.value
     const cursor = viewer.cursor.value
-    const reach  = reduced.value === 'reduce' ? 'still' : fresh ? 'jump' : 'glide'
+    const reach  = moving.value ? (fresh ? 'jump' : 'glide') : 'still'
     if (fresh) {
       for (const party of PARTIES) parts[party].value?.board?.load(loaded.sideOf(party))
       parts.ledger.value?.load()

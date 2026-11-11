@@ -1,0 +1,134 @@
+.sc-front-split {
+  --sc-front-board : min(236px, 47%);
+  --sc-front-gap   : 10px;
+
+  position     : relative;
+  width        : 100%;
+  aspect-ratio : 100 / 52;
+  max-height   : 300px;
+}
+
+.sc-front-half {
+  position     : absolute;
+  top          : 30px;
+  left         : 50%;
+  width        : var(--sc-front-board);
+  aspect-ratio : 1;
+  translate    : -50% 0;
+  transition   : translate var(--sc-duration-part) var(--sc-curve-glide);
+}
+
+.sc-front-half[data-game='stored'] { z-index: 1; }
+
+.sc-front-board {
+  position      : relative;
+  width         : 100%;
+  aspect-ratio  : 1;
+  overflow      : hidden;
+  border-radius : 3px;
+  box-shadow    : 0 0 0 1px var(--sc-rule), 0 0 0 3px var(--sc-entry);
+  transition    : box-shadow var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-front-landed {
+  position    : absolute;
+  top         : 0;
+  left        : 0;
+  width       : 12.5%;
+  height      : 12.5%;
+  background  : color-mix(in oklab, var(--sc-entry) 42%, transparent);
+  will-change : transform, opacity;
+}
+
+.sc-front-split[data-apart] .sc-front-half[data-game='submitted'] { translate: calc(-100% - var(--sc-front-gap)) 0; }
+
+.sc-front-split[data-apart] .sc-front-half[data-game='stored'] { translate: var(--sc-front-gap) 0; }
+
+.sc-front-split[data-apart] .sc-front-board[data-game='submitted'] { box-shadow: 0 0 0 1px var(--sc-rule), 0 0 0 3px var(--sc-submitted); }
+
+.sc-front-split[data-apart] .sc-front-board[data-game='stored'] { box-shadow: 0 0 0 1px var(--sc-rule), 0 0 0 3px var(--sc-stored); }
+
+.sc-front-split[data-apart] .sc-front-board[data-game='stored'] .sc-run-layer { opacity: 0.28; }
+
+.sc-front-board .sc-run-layer { transition: opacity var(--sc-duration-settle) var(--sc-curve-glide); }
+
+.sc-front-cover {
+  position         : absolute;
+  inset            : 0;
+  z-index          : 2;
+  display          : grid;
+  place-content    : center;
+  justify-items    : center;
+  gap              : 6px;
+  border-radius    : 3px;
+  background       : color-mix(in oklab, var(--sc-raised) 62%, transparent);
+  opacity          : 0;
+  pointer-events   : none;
+  transition       : opacity var(--sc-duration-settle) var(--sc-curve-glide);
+  backdrop-filter  : blur(2.5px);
+}
+
+.sc-front-cover b {
+  color : var(--sc-stored);
+  font  : 400 4rem/1 var(--sc-face-display);
+}
+
+.sc-front-cover span {
+  padding        : 4px 7px;
+  border-radius  : 3px;
+  background     : var(--sc-raised);
+  box-shadow     : 0 0 0 1px var(--sc-stored);
+  color          : var(--sc-ink);
+  font           : 600 0.65rem/1.2 var(--sc-face-code);
+  letter-spacing : 0.14em;
+  text-transform : uppercase;
+}
+
+.sc-front-split[data-apart] .sc-front-cover {
+  opacity          : 1;
+  transition-delay : var(--sc-duration-settle);
+}
+
+.sc-front-caption {
+  position       : absolute;
+  top            : 0;
+  left           : 50%;
+  translate      : -50% 0;
+  color          : var(--sc-ink);
+  font           : 600 0.65rem/1 var(--sc-face-code);
+  letter-spacing : 0.14em;
+  text-transform : uppercase;
+  white-space    : nowrap;
+  transition     : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-front-caption:not([data-game='both']) { opacity: 0; }
+
+.sc-front-caption[data-game='submitted'] { left: calc(50% - var(--sc-front-gap) - var(--sc-front-board) / 2); }
+
+.sc-front-caption[data-game='stored'] { left: calc(50% + var(--sc-front-gap) + var(--sc-front-board) / 2); }
+
+.sc-front-split[data-apart] .sc-front-caption[data-game='both'] { opacity: 0; }
+
+.sc-front-split[data-apart] .sc-front-caption:not([data-game='both']) {
+  opacity          : 1;
+  transition-delay : var(--sc-duration-glide);
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .sc-front-cover {
+    background      : var(--sc-raised);
+    backdrop-filter : none;
+  }
+}
+
+@media (width < 40rem) {
+  .sc-front-split {
+    --sc-front-board : 47%;
+    --sc-front-gap   : 6px;
+
+    aspect-ratio : 100 / 60;
+  }
+
+  .sc-front-cover b { font-size: 2.6rem; }
+}

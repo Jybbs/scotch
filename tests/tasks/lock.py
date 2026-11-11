@@ -78,7 +78,10 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
             "exit 0",
             "exit 0",
             '[ "$3" = --script ] && exit 1 || exit 0',
-            ["uv lock --check", "uv lock --check --script .mise/tasks/gha/brief.py"],
+            [
+                "uv lock --check",
+                "uv lock --check --script .mise/tasks/gha/scoresheet.py"
+            ],
             "",
             id = "script-lock-lagging"
         ),

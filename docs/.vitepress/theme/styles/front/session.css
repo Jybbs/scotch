@@ -1,0 +1,69 @@
+.sc-front-terminal {
+  display            : grid;
+  grid-template-rows : 30px 1fr;
+  height             : 260px;
+  overflow           : hidden;
+  border-radius      : 9px;
+  background         : var(--sc-dark);
+  box-shadow         : 0 0 0 1px var(--sc-rule);
+  color              : var(--sc-ground);
+}
+
+.sc-front-terminal header {
+  display        : flex;
+  align-items    : center;
+  gap            : 7px;
+  padding        : 0 12px;
+  background     : color-mix(in oklab, var(--sc-ground) 10%, var(--sc-dark));
+  color          : color-mix(in oklab, var(--sc-ground) 62%, var(--sc-dark));
+  font           : 500 0.65rem/1 var(--sc-face-code);
+  letter-spacing : 0.06em;
+}
+
+.sc-front-terminal header i {
+  width         : 9px;
+  height        : 9px;
+  border-radius : 50%;
+  background    : color-mix(in oklab, var(--sc-ground) 22%, var(--sc-dark));
+}
+
+.sc-front-terminal header span { margin-inline: auto; }
+
+.sc-front-terminal pre {
+  display         : flex;
+  flex-direction  : column;
+  justify-content : flex-end;
+  margin          : 0;
+  padding         : 14px 16px;
+  overflow        : hidden;
+  font            : 400 0.875rem/1.75 var(--sc-face-code);
+  white-space     : pre-wrap;
+  overflow-wrap   : anywhere;
+}
+
+.sc-front-terminal pre::after {
+  content : '';
+  flex    : 1;
+}
+
+.sc-front-prompt { color: var(--sc-series-4); }
+
+.sc-front-out {
+  padding-left : 2ch;
+  color        : color-mix(in oklab, var(--sc-ground) 70%, var(--sc-dark));
+}
+
+.sc-front-cursor {
+  display        : inline-block;
+  width          : 0.55em;
+  height         : 1.05em;
+  vertical-align : -0.18em;
+  background     : var(--sc-ground);
+  animation      : sc-front-blink 1s steps(1) infinite;
+}
+
+@keyframes sc-front-blink {
+  50% { opacity: 0; }
+}
+
+:root:not([data-motion='playing']) .sc-front-cursor { animation: none; }
