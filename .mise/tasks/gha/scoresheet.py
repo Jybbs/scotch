@@ -5,14 +5,14 @@
 # requires-python = ">=3.15"
 # ///
 """
-Writes the summary of the workflow run the `⏱️ Brief` gate ends, from the
-`needs` context the gate passes as `NEEDS`, and exits with status 1 where
-any job the gate waited on failed or was canceled.
+Writes the summary of the workflow run the `🖋️ Scoresheet` gate ends, from
+the `needs` context the gate passes as `NEEDS`, and exits with status 1
+where any job the gate waited on failed or was canceled.
 
 The summary fills in the template under `.github/scripts/summaries/` named
 for the workflow's file, falling back to `base.md.j2`, through minijinja,
-which the inline metadata above declares and `brief.py.lock` beside this
-script pins.
+which the inline metadata above declares and `scoresheet.py.lock` beside
+this script pins.
 """
 
 from collections.abc import Mapping

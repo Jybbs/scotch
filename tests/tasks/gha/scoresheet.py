@@ -1,5 +1,5 @@
 """
-Pins the summary `gha:brief` writes for each workflow from the `needs`
+Pins the summary `gha:scoresheet` writes for each workflow from the `needs`
 context the gate passes, the template it falls back to, and the status the
 gate exits with for the results it reads.
 

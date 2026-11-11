@@ -92,7 +92,7 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         Names the task script `add_script` writes, relative to the checkout,
         as the tasks pass it to `uv`.
         """
-        return Path(".mise") / "tasks" / "gha" / "brief.py"
+        return Path(".mise") / "tasks" / "gha" / "scoresheet.py"
 
     @property
     def stand_ins(self) -> Path:

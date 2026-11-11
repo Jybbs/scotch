@@ -201,28 +201,33 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             GateCheck,
-            [(".github/workflows/warm.yml", "mise run gha:brief", "mise run py:test")],
+            [(
+                ".github/workflows/warm.yml", "mise run gha:scoresheet",
+                "mise run py:test"
+            )],
             [(
                 ".github/workflows/warm.yml", None,
-                "The workflow ends on no gate job running `gha:brief`"
+                "The workflow ends on no gate job running `gha:scoresheet`"
             )],
             id = "no-gate"
         ),
         param(
             GateCheck,
-            [(".github/workflows/warm.yml", "    name: ⏱️ Brief\n", "")],
-            [(".github/workflows/warm.yml", None, "The gate `brief` sets no name")],
+            [(".github/workflows/warm.yml", "    name: 🖋️ Scoresheet\n", "")],
+            [(
+                ".github/workflows/warm.yml", None, "The gate `scoresheet` sets no name"
+            )],
             id = "unnamed-gate"
         ),
         param(
             GateCheck,
-            [(".github/workflows/warm.yml", "name: ⏱️ Brief", "name: Brief")],
+            [(".github/workflows/warm.yml", "name: 🖋️ Scoresheet", "name: Scoresheet")],
             [
                 (
                     ".github/workflows/warm.yml",
                     None,
-                    "The gate `brief` is named `Brief` where the other gates are named "
-                    "`⏱️ Brief`"
+                    "The gate `scoresheet` is named `Scoresheet` where the other "
+                    "gates are named `🖋️ Scoresheet`"
                 )
             ],
             id = "renamed-gate"
@@ -235,7 +240,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             )],
             [(
                 ".github/workflows/warm.yml", None,
-                "The gate `brief` does not run under `always()`"
+                "The gate `scoresheet` does not run under `always()`"
             )],
             id = "conditional-gate"
         ),
@@ -244,7 +249,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(".github/workflows/warm.yml", "      - kit\n", "      - nothing\n")],
             [(
                 ".github/workflows/warm.yml", None,
-                "The gate `brief` does not wait for `kit`"
+                "The gate `scoresheet` does not wait for `kit`"
             )],
             id = "ungated-job"
         ),
@@ -663,13 +668,13 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         param(
             RulesetCheck,
             [(
-                ".github/rulesets/main.json", '"context": "⏱️ Brief"',
-                '"context": "Brief"'
+                ".github/rulesets/main.json", '"context": "🖋️ Scoresheet"',
+                '"context": "Scoresheet"'
             )],
             [(
                 ".github/rulesets/main.json",
                 None,
-                "The ruleset requires `Brief`, "
+                "The ruleset requires `Scoresheet`, "
                 "which no pull-request workflow's gate reports"
             )],
             id = "required-check-with-no-gate"
@@ -680,7 +685,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 ".github/rulesets/main.json",
                 None,
-                "The ruleset requires `⏱️ Brief`, "
+                "The ruleset requires `🖋️ Scoresheet`, "
                 "which no pull-request workflow's gate reports"
             )],
             id = "required-check-outside-pull-requests"
@@ -763,10 +768,10 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             ScriptCheck,
-            [(".mise/tasks/gha/brief", '">=3.14"', '">=3.13"')],
+            [(".mise/tasks/gha/scoresheet", '">=3.14"', '">=3.13"')],
             [
                 (
-                    ".mise/tasks/gha/brief", None,
+                    ".mise/tasks/gha/scoresheet", None,
                     "`requires-python` is `>=3.13` where the manifest declares `>=3.14`"
                 )
             ],
@@ -774,10 +779,10 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             ScriptCheck,
-            [(".mise/tasks/gha/brief", "minijinja==2.24.0", "minijinja==2.23.0")],
+            [(".mise/tasks/gha/scoresheet", "minijinja==2.24.0", "minijinja==2.23.0")],
             [
                 (
-                    ".mise/tasks/gha/brief",
+                    ".mise/tasks/gha/scoresheet",
                     None,
                     "`minijinja` is pinned to `2.23.0` where `uv.lock` resolves "
                     "`2.24.0`"
@@ -788,7 +793,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         param(
             ScriptCheck,
             [(
-                ".mise/tasks/gha/brief", '"minijinja==2.24.0"',
+                ".mise/tasks/gha/scoresheet", '"minijinja==2.24.0"',
                 '"minijinja==2.24.0", "rich==14.0.0"'
             )],
             [],
@@ -911,8 +916,8 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 (
                     ".github/actions/provision/action.yml",
                     "  steps:\n",
-                    "  steps:\n    - name: Brief\n"
-                    "      run: mise run gha:brief\n      shell: bash\n"
+                    "  steps:\n    - name: Scoresheet\n"
+                    "      run: mise run gha:scoresheet\n      shell: bash\n"
                 )
             ],
             [

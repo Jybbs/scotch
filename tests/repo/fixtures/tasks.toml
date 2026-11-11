@@ -1,7 +1,7 @@
 [[tasks]]
 depends = []
-file    = ".mise/tasks/gha/brief"
-name    = "gha:brief"
+file    = ".mise/tasks/gha/scoresheet"
+name    = "gha:scoresheet"
 
 [[tasks]]
 aliases = ["lockfile"]

@@ -66,9 +66,9 @@ jobs:
           command: pages deploy --branch=main --project-name=scotch docs/.vitepress/dist
           wranglerVersion: 4.149.0
     timeout-minutes: 10
-  brief:
+  scoresheet:
     if: always()
-    name: ⏱️ Brief
+    name: 🖋️ Scoresheet
     needs:
       - coverage
       - deploy
@@ -82,7 +82,7 @@ jobs:
       - name: Write the summary
         env:
           NEEDS: ${{ toJSON(needs) }}
-        run: mise run gha:brief
+        run: mise run gha:scoresheet
     timeout-minutes: 5
 name: ♟️ Deploy
 on:

@@ -938,10 +938,10 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
     @property
     def gate(self) -> bool:
         """
-        Reads whether the job runs `gha:brief`, the task the `⏱️ Brief` gate
-        runs.
+        Reads whether the job runs `gha:scoresheet`, the task the `🖋️
+        Scoresheet` gate runs.
         """
-        return "gha:brief" in self.tasks
+        return "gha:scoresheet" in self.tasks
 
     @property
     def instances(self) -> tuple[Step, ...]:
@@ -1057,10 +1057,10 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
     @property
     def gate(self) -> Job | None:
         """
-        Finds the job running `gha:brief`.
+        Finds the job running `gha:scoresheet`.
 
         Returns:
-            The gate, or `None` where no job runs `gha:brief`.
+            The gate, or `None` where no job runs `gha:scoresheet`.
         """
         return next((job for job in self.jobs if job.gate), None)
 

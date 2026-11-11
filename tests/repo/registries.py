@@ -260,13 +260,13 @@ def test_a_ruleset_creates_or_updates_the_live_one_of_its_name(
                 "parameters" : {
                     "strict_required_status_checks_policy" : True,
                     "required_status_checks"               : [
-                        {"context": "⏱️ Brief", "integration_id": 15368}
+                        {"context": "🖋️ Scoresheet", "integration_id": 15368}
                     ]
                 }
             }
         ]
     }
-    assert ruleset.contexts == ("⏱️ Brief",)
+    assert ruleset.contexts == ("🖋️ Scoresheet",)
 
 
 @mark.parametrize(

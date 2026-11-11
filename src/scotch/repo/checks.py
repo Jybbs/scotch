@@ -211,8 +211,11 @@ class GateCheck(Check):
         for workflow in self.checkout.workflows:
             if (gate := workflow.gate) is None:
                 yield Finding(
-                    message = "The workflow ends on no gate job running `gha:brief`",
-                    path    = workflow.path
+                    message = (
+                        "The workflow ends on no gate job running "
+                        "`gha:scoresheet`"
+                    ),
+                    path = workflow.path
                 )
                 continue
 

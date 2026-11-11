@@ -177,7 +177,7 @@ def test_a_job_reads_one_need_as_a_list():
     Asserts that a job's `needs` reads a single job as a list of one.
     """
     assert Job.model_validate(
-        {"id": "brief", "needs": "check", "runs-on": "ubuntu-26.04"}
+        {"id": "scoresheet", "needs": "check", "runs-on": "ubuntu-26.04"}
     ).needs == ("check",)
 
 
@@ -285,11 +285,11 @@ def test_a_script_reads_its_inline_metadata(sample: Sample):
     under the name PEP 503 normalizes.
     """
     sample.edit(
-        ".mise/tasks/gha/brief",
+        ".mise/tasks/gha/scoresheet",
         new = '["Mini_Jinja==2.24.0", "rich"]',
         old = '["minijinja==2.24.0"]'
     )
-    script = Script.read(sample.root / ".mise" / "tasks" / "gha" / "brief")
+    script = Script.read(sample.root / ".mise" / "tasks" / "gha" / "scoresheet")
 
     assert script.dependencies == ("Mini_Jinja==2.24.0", "rich")
     assert script.python == ">=3.14"
@@ -406,7 +406,7 @@ def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
     sample.edit(
         ".github/workflows/ci.yml",
         new = "mise run py:test",
-        old = "mise run gha:brief"
+        old = "mise run gha:scoresheet"
     )
     workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
 
@@ -480,7 +480,7 @@ def test_a_job_reads_whether_it_runs_always(always: bool, condition: str):
     wrapped in `${{ }}`, and under no other condition.
     """
     assert Job.model_validate(
-        {"id": "brief", "if": condition, "runs-on": "ubuntu-26.04"}
+        {"id": "scoresheet", "if": condition, "runs-on": "ubuntu-26.04"}
     ).always is always
 
 
@@ -542,8 +542,8 @@ def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
 
     assert set(workflow.triggers) == {"pull_request", "workflow_dispatch"}
     assert workflow.requests
-    assert [job.id for job in workflow.jobs] == ["check", "brief"]
-    assert workflow.gate.name == "⏱️ Brief"
+    assert [job.id for job in workflow.jobs] == ["check", "scoresheet"]
+    assert workflow.gate.name == "🖋️ Scoresheet"
     assert [job.tasks for job in workflow.rows] == [frozenset(
         {"lock:check", "py:coverage"}
     )]

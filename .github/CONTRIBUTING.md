@@ -46,4 +46,4 @@ Every pull request runs `♟️ CI`, whose rows each run one task, so the comman
 | `📰 Press` | `mise press` | VitePress fails to build a page, or a link between pages leads nowhere |
 | `🧷 Types` | `mise typecheck` | `tsc` reports a type error in the site's TypeScript, or a single-file component appears that `tsc` cannot read |
 
-The workflow ends on a `⏱️ Brief` gate that waits on every row and fails where any of them fails, so it is the one check the ruleset on `main` requires, on a branch up to date with `main`. On a laptop, `mise ci` runs every row's task in one go.
+The workflow ends on a `🖋️ Scoresheet` gate that waits on every row and fails where any of them fails, so it is the one check the ruleset on `main` requires, on a branch up to date with `main`. On a laptop, `mise ci` runs every row's task in one go.

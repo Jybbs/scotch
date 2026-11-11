@@ -99,9 +99,9 @@ jobs:
             task: site:typecheck
             tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
     timeout-minutes: 15
-  brief:
+  scoresheet:
     if: always()
-    name: ⏱️ Brief
+    name: 🖋️ Scoresheet
     needs: check
     runs-on: ubuntu-26.04
     steps:
@@ -113,7 +113,7 @@ jobs:
         env:
           COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           NEEDS: ${{ toJSON(needs) }}
-        run: mise run gha:brief
+        run: mise run gha:scoresheet
     timeout-minutes: 5
 name: ♟️ CI
 on:

@@ -23,16 +23,16 @@ jobs:
           save: 'true'
           shared-key: scotch-python
           tools: python uv
-  brief:
+  scoresheet:
     if: ${{ always() }}
-    name: ⏱️ Brief
+    name: 🖋️ Scoresheet
     needs:
       - cargo
       - kit
     runs-on: ubuntu-26.04
     steps:
       - name: Write the summary
-        run: mise run gha:brief
+        run: mise run gha:scoresheet
 name: Warm
 on:
   push:

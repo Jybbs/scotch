@@ -183,7 +183,7 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
         old = '["setuptools==84.0.0"]'
     )
     answered.edit(
-        ".mise/tasks/gha/brief",
+        ".mise/tasks/gha/scoresheet",
         new = '["minijinja==2.24.0", "rich==13.0.0"]',
         old = '["minijinja==2.24.0"]'
     )
@@ -242,8 +242,8 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
     ] == [
         ("uv.lock", "minijinja", "3.0.3"),
         ("pyproject.toml", "minijinja", "3.1.0"),
-        (".mise/tasks/gha/brief", "minijinja", "3.0.3"),
-        (".mise/tasks/gha/brief", "rich", "14.0.0")
+        (".mise/tasks/gha/scoresheet", "minijinja", "3.0.3"),
+        (".mise/tasks/gha/scoresheet", "rich", "14.0.0")
     ]
 
 
@@ -503,8 +503,8 @@ def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
 @mark.parametrize(
     ("kept", "expected"),
     [
-        param((), ("GHSA-brief", "GHSA-minijinja"), id="script-advisory-cleared"),
-        param(("GHSA-brief",), ("GHSA-minijinja",), id="script-advisory-kept")
+        param((), ("GHSA-minijinja", "GHSA-scoresheet"), id="script-advisory-cleared"),
+        param(("GHSA-scoresheet",), ("GHSA-minijinja",), id="script-advisory-kept")
     ]
 )
 def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
@@ -593,7 +593,7 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     fp.register(
         [*audit, "--script", fp.any(max=1, min=1)],
         returncode = 1,
-        stdout     = audited("GHSA-brief")
+        stdout     = audited("GHSA-scoresheet")
     )
     fp.register([*audit, "--project", fp.any(max=1, min=1)], stdout=audited())
     fp.register([*audit, "--project", fp.any(max=1, min=1)], stdout=audited(*kept))
@@ -636,14 +636,14 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
             edits      = (
                 Edit(
                     name     = "minijinja",
-                    path     = Path(".mise/tasks/gha/brief"),
+                    path     = Path(".mise/tasks/gha/scoresheet"),
                     spelling = Spelling.REQUIREMENT,
                     version  = "3.0.3"
                 ),
             ),
             name     = "minijinja",
             newest   = "3.0.3",
-            path     = Path(".mise/tasks/gha/brief"),
+            path     = Path(".mise/tasks/gha/scoresheet"),
             released = datetime(2026, 10, 23, 8, tzinfo=UTC)
         )
     ]
