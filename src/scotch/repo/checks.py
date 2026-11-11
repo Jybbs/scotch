@@ -151,16 +151,15 @@ class ContributingCheck(Check):
     def scan(self) -> Iterator[Finding]:
         """
         Yields a finding at `.github/CONTRIBUTING.md` for each such row, a
-        row's command being `mise` and its task's first alias, or `mise run`
-        and its name.
+        row naming its check by the workflow's name and the job's joined by
+        ` / `, as GitHub lists the check, and its command being `mise` and
+        its task's first alias, or `mise run` and its name.
         """
         contributing = self.checkout.contributing
         commands     = {task.name: task.command for task in self.checkout.tasks}
         rows         = {
-            name: commands.get(run, f"mise run {run}")
-            for workflow in self.checkout.requested
-            for job in workflow.rows
-            for name, run in job.checks
+            f"{workflow.name} / {name}": commands.get(run, f"mise run {run}")
+            for workflow, name, run in self.checkout.checks
         }
 
         for name, command in rows.items():
@@ -206,6 +205,59 @@ class ExactPinCheck(Check):
                 message = f"`{requirement}` is not an exact `==` pin",
                 path    = self.checkout.pyproject.path
             )
+
+
+class FilterCheck(Check):
+    """
+    Fails where the `pull_request` filters of the workflows ending on a gate
+    leave a tracked file firing none of them, or leave a file every one of
+    them builds from firing only some of them, those files being:
+
+    - Each file git tracks under the crate's folder, which the package and
+      the site both build from
+    - The provisioning action's manifest and the mise config and lockfile,
+      which set the tools every job installs
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at each tracked file no gated workflow fires on,
+        and at each gated workflow for each shared file it does not fire on.
+        """
+        root   = self.checkout.root
+        gated  = [workflow for workflow in self.checkout.requested if workflow.gate]
+        crate  = self.checkout.crate.path.parent.relative_to(root)
+        shared = {
+            *(
+                action.path.relative_to(root)
+                for action in self.checkout.actions
+                if action.provisions
+            ),
+            *(path for path in self.checkout.tracked if path.is_relative_to(crate)),
+            self.checkout.mise.lockfile.relative_to(root),
+            self.checkout.mise.path.relative_to(root)
+        }
+
+        for path in self.checkout.tracked:
+            if not any(workflow.fires("pull_request", path) for workflow in gated):
+                yield Finding(
+                    message = (
+                        "No workflow ending on a gate fires on a pull request "
+                        "changing the file"
+                    ),
+                    path = root / path
+                )
+
+        for workflow in gated:
+            for path in sorted(shared):
+                if not workflow.fires("pull_request", path):
+                    yield Finding(
+                        message = (
+                            f"The `pull_request` filter leaves out `{path}`, "
+                            "which every gated workflow builds from"
+                        ),
+                        path = workflow.path
+                    )
 
 
 class GateCheck(Check):
@@ -562,12 +614,7 @@ class RowCheck(Check):
         Yields a finding at the workflow for each row task `repo:ci` leaves
         out, and at `repo:ci` for each dependency no row runs.
         """
-        rows = {
-            (workflow.path, task)
-            for workflow in self.checkout.requested
-            for job in workflow.rows
-            for task in job.tasks
-        }
+        rows    = {(workflow.path, task) for workflow, _, task in self.checkout.checks}
         ci      = self.checkout.task("repo:ci")
         depends = set(ci.depends) if ci else set()
 

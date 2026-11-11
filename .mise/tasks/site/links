@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "links"
-#MISE depends     = ["site:press"]
-#MISE description = "Check every link, asset, and heading fragment in the built site, the README, and the contributor guide with no network, passing any further arguments to lychee"
+#MISE depends     = ["site:install", "site:press"]
+#MISE description = "Check every link, asset, and heading fragment in the site `site:press` built, the README, and the contributor guide with no network, passing any further arguments to lychee"
 #MISE dir         = "docs"
 
 dist="$PWD/.vitepress/dist"

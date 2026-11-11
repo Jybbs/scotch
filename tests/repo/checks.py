@@ -22,6 +22,7 @@ from scotch.repo.checks  import (
     CommandCheck,
     ContributingCheck,
     ExactPinCheck,
+    FilterCheck,
     GateCheck,
     InputCheck,
     KitCheck,
@@ -201,6 +202,60 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "loose-build-pin"
         ),
         param(
+            FilterCheck,
+            [(".github/workflows/ci.yml", "'!docs/pages/**'", "'!src/**'")],
+            [
+                (
+                    f"src/scotch/{path}",
+                    None,
+                    "No workflow ending on a gate fires on a pull request "
+                    "changing the file"
+                )
+                for path in ("cli/run.py", "docs/stops.toml")
+            ],
+            id = "tracked-file-firing-nothing"
+        ),
+        param(
+            FilterCheck,
+            [(".github/workflows/site.yml", "      - rust/**\n", "")],
+            [
+                (
+                    ".github/workflows/site.yml", None,
+                    f"The `pull_request` filter leaves out `rust/{path}`, "
+                    "which every gated workflow builds from"
+                )
+                for path in ("Cargo.toml", "src/boards.rs")
+            ],
+            id = "crate-firing-one-workflow"
+        ),
+        param(
+            FilterCheck,
+            [(".github/workflows/site.yml", "      - .mise/mise.lock\n", "")],
+            [(
+                ".github/workflows/site.yml",
+                None,
+                "The `pull_request` filter leaves out `.mise/mise.lock`, "
+                "which every gated workflow builds from"
+            )],
+            id = "untracked-pin-firing-one-workflow"
+        ),
+        *[
+            param(
+                FilterCheck,
+                [(".github/workflows/site.yml", f"      - {path}\n", "")],
+                [(
+                    ".github/workflows/site.yml", None,
+                    f"The `pull_request` filter leaves out `{path}`, "
+                    "which every gated workflow builds from"
+                )],
+                id = f"{kind}-firing-one-workflow"
+            )
+            for kind, path in (
+                ("action", ".github/actions/provision/action.yml"),
+                ("config", ".mise/config.toml")
+            )
+        ],
+        param(
             GateCheck,
             [(
                 ".github/workflows/warm.yml", "mise run gha:scoresheet",
@@ -258,37 +313,44 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             ContributingCheck,
             [(
                 ".github/CONTRIBUTING.md",
-                "| `Coverage` | `mise run py:coverage` | A test fails |\n",
+                "| `CI / Coverage` | `mise run py:coverage` | A test fails |\n",
                 ""
             )],
             [(
                 ".github/CONTRIBUTING.md",
                 None,
-                "The checks table leaves out `Coverage`, "
+                "The checks table leaves out `CI / Coverage`, "
                 "which a pull-request workflow runs"
             )],
             id = "checks-table-row-missing"
         ),
         param(
             ContributingCheck,
-            [(".github/CONTRIBUTING.md", "`mise lockfile`", "`mise run lock:check`")],
+            [(
+                ".github/CONTRIBUTING.md", "`CI / Lockfiles` | `mise lockfile`",
+                "`CI / Lockfiles` | `mise run lock:check`"
+            )],
             [(
                 ".github/CONTRIBUTING.md",
                 None,
-                "The checks table runs `Lockfiles` through `mise run lock:check` where "
-                "its row runs `mise lockfile`"
+                "The checks table runs `CI / Lockfiles` through `mise run lock:check` "
+                "where its row runs `mise lockfile`"
             )],
             id = "checks-table-command"
         ),
         param(
             ContributingCheck,
             [(
-                ".github/CONTRIBUTING.md", "| `Coverage` |",
-                "| `Links` | `mise links` | A link leads nowhere |\n| `Coverage` |"
+                ".github/CONTRIBUTING.md",
+                "| `CI / Coverage` |",
+                "| `CI / Links` | `mise links` | A link leads nowhere |\n"
+                "| `CI / Coverage` |"
             )],
             [(
-                ".github/CONTRIBUTING.md", None,
-                "The checks table names `Links`, which no pull-request workflow runs"
+                ".github/CONTRIBUTING.md",
+                None,
+                "The checks table names `CI / Links`, "
+                "which no pull-request workflow runs"
             )],
             id = "checks-table-row-extra"
         ),
@@ -298,7 +360,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 ".github/CONTRIBUTING.md",
                 None,
-                "The checks table runs `Coverage` through `mise run py:coverage` "
+                "The checks table runs `CI / Coverage` through `mise run py:coverage` "
                 "where its row runs `mise run py:unlisted`"
             )],
             id = "checks-table-unlisted-task"
@@ -667,6 +729,20 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "row-outside-pull-requests"
         ),
         param(
+            RowCheck,
+            [
+                (
+                    ".github/workflows/ci.yml",
+                    "        run: mise run ${{ matrix.task }}\n",
+                    "        run: mise run ${{ matrix.task }}\n"
+                    "      - name: Write the total\n"
+                    "        run: mise run gha:total -- out\n"
+                )
+            ],
+            [],
+            id = "workflow-step-in-a-row"
+        ),
+        param(
             RulesetCheck,
             [(
                 ".github/rulesets/main.json", '"context": "🖋️ Scoresheet"',
@@ -682,7 +758,10 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             RulesetCheck,
-            [(".github/workflows/ci.yml", "  pull_request:\n", "  push:\n")],
+            [
+                (".github/workflows/ci.yml", "  pull_request:\n", "  push:\n"),
+                (".github/workflows/site.yml", "  pull_request:\n", "  push:\n")
+            ],
             [(
                 ".github/rulesets/main.json",
                 None,
