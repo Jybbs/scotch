@@ -536,9 +536,10 @@ class Identity(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
 
     def filled(self, scheme: Literal["dark", "light"], svg: str) -> str:
         """
-        Fills each group of an SVG drawn in `currentColor` with the color
-        the role its `data-role` names takes in `scheme`, such as the
-        lockup's wordmark in the run's color and its tagline in a caption's.
+        Replaces each group's `data-role` and `currentColor` fill with the
+        color that role takes in `scheme`, wherever the `data-role` comes
+        directly before the fill, such as the lockup's wordmark in the run's
+        color and its tagline in a caption's.
         """
         return sub(
             r'data-role="(\w+)" fill="currentColor"',

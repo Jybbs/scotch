@@ -6,8 +6,10 @@ in `currentColor`, the contrast the README's lockup holds on GitHub's
 grounds, and the JSON the site's stylesheets import.
 """
 
+from pathlib  import Path
 from pydantic import ValidationError
 from pytest   import approx, mark, param, raises
+from re       import findall
 
 from scotch.identity.schemas import Color, Face, Identity, Palette, Role, byte
 
@@ -62,9 +64,9 @@ def test_a_color_refuses_other_than_six_hex_digits(hex: str):
 )
 def test_an_identity_fills_each_group_with_its_role(scheme: str, run: str, quiet: str):
     """
-    Asserts that each group drawn in `currentColor` takes the color its
-    `data-role` names in the scheme, leaving a fill with no role and every
-    other attribute as they stand.
+    Asserts that each group drawn in `currentColor` has its `data-role` and
+    its fill replaced by the color that role takes in the scheme, leaving a
+    fill with no role and every other attribute as they stand.
     """
     svg = (
         '<svg><g data-role="run" fill="currentColor" stroke="none"/>'
@@ -81,14 +83,17 @@ def test_an_identity_fills_each_group_with_its_role(scheme: str, run: str, quiet
 def test_the_lockup_holds_its_contrast_on_github(scheme: str, ground: str):
     """
     Asserts that the lockup's wordmark holds 3:1 and its tagline 4.5:1 on
-    the ground GitHub draws a README on in the scheme.
+    the ground GitHub draws a README on in the scheme, in the roles the
+    lockup's groups name in the order it draws them.
     """
-    page       = Color(hex=ground, name="GitHub")
-    run, quiet = (
-        Identity().colored(role, scheme).contrast(page) for role in ("run", "quiet")
+    lockup            = Path(__file__).parents[2] / "docs/assets/lockup.svg"
+    page              = Color(hex=ground, name="GitHub")
+    wordmark, tagline = (
+        Identity().colored(role, scheme).contrast(page)
+        for role in findall(r'data-role="(\w+)"', lockup.read_text())
     )
 
-    assert run >= 3 and quiet >= 4.5
+    assert wordmark >= 3 and tagline >= 4.5
 
 
 def test_a_palette_names_the_tokens_its_series_take():

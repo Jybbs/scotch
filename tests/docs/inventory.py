@@ -237,8 +237,9 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     Asserts that each output declared without an index writes into a fresh
     checkout whose pages hold their markers, and that each then reports
     no drift, the pieces written in the order of their names, the favicon
-    colored in Walnut on a light ground and Cashmere on a dark one, and the
-    front page's tagline filled in from the identity.
+    colored in Walnut on a light ground and Cashmere on a dark one, each
+    lockup's wordmark and tagline filled in the colors their roles take in
+    its scheme, and the front page's tagline filled in from the identity.
     """
     root = checkout(
         {
