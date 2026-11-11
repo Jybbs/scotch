@@ -1,0 +1,76 @@
+.sc-front-census {
+  display               : grid;
+  grid-template-columns : minmax(0, 300px) minmax(0, 1fr);
+  gap                   : 22px;
+  align-items           : center;
+}
+
+.sc-front-store {
+  display               : grid;
+  grid-template-columns : repeat(8, minmax(0, 1fr));
+  grid-template-rows    : repeat(8, minmax(0, 1fr));
+  aspect-ratio          : 1;
+  overflow              : hidden;
+  border-radius         : 3px;
+  box-shadow            : 0 0 0 1px var(--sc-rule);
+}
+
+.sc-front-store span {
+  position   : relative;
+  background : color-mix(in oklab, var(--sc-ink) 3%, var(--sc-raised));
+}
+
+.sc-front-store span[data-shade='dark'] { background: color-mix(in oklab, var(--sc-ink) 9%, var(--sc-raised)); }
+
+.sc-front-store i {
+  position     : absolute;
+  inset-inline : 0;
+  background   : var(--sc-entry);
+  opacity      : 0.22;
+  transition   : opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-front-store i[data-odd] { opacity: 0.36; }
+
+.sc-front-store i[data-on] { opacity: 0.95; }
+
+.sc-front-eras {
+  display              : grid;
+  gap                  : 3px;
+  color                : var(--sc-quiet);
+  font                 : 500 0.65rem/1 var(--sc-face-code);
+  letter-spacing       : 0.08em;
+  font-variant-numeric : tabular-nums;
+}
+
+.sc-front-eras div {
+  display               : grid;
+  grid-template-columns : 52px 1fr 30px;
+  gap                   : 8px;
+  align-items           : center;
+  height                : 13px;
+  cursor                : pointer;
+}
+
+.sc-front-eras b {
+  height        : 7px;
+  border-radius : 1px;
+  background    : var(--sc-entry);
+  opacity       : 0.22;
+  transition    : opacity var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-front-eras div[data-on] { color: var(--sc-ink); }
+
+.sc-front-eras div[data-on] b { opacity: 0.92; }
+
+@media (width < 40rem) {
+  .sc-front-census {
+    grid-template-columns : minmax(0, 1fr);
+    justify-items         : center;
+  }
+
+  .sc-front-store { width: min(260px, 100%); }
+
+  .sc-front-eras { display: none; }
+}

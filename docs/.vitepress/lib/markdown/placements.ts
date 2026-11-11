@@ -19,7 +19,15 @@ export const PLACED: Readonly<Record<string, readonly Placement[]>> = {
   'data/lengths.md' : [{ draw: 'eras', region: 'lengths' }, { draw: 'results', region: 'outcomes' }],
   'guide/store.md'  : [{ draw: 'archives', region: 'archives' }],
   'methods/runs.md' : [{ after: 'Stepping Through a Match', draw: 'run' }],
-  'reference/identity.md' : [
+
+  'index.md': [
+    { after: 'Data', draw: 'store' },
+    { after: 'Guide', draw: 'session' },
+    { after: 'Methods', draw: 'prints' },
+    { after: 'Viewer', draw: 'split' }
+  ],
+
+  'reference/identity.md': [
     { draw: 'palette', region: 'palette' },
     { draw: 'roles', region: 'roles' },
     { draw: 'series', region: 'series' },

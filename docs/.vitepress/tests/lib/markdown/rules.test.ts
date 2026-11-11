@@ -12,9 +12,11 @@ describe('markdownRules', () => {
       .toContain('<li id="footnote-fide2023"')
   })
 
-  it("sets the front page's sections as cards", () => {
-    expect(md.render('# Scotch\n\nTagline.\n\n## One\n\nText.\n', { relativePath: 'index.md' }))
-      .toContain('<article class="sc-card"')
+  it("sets the front page's sections as entries, each holding its widget", () => {
+    const page = ['Data', 'Guide', 'Methods', 'Viewer'].map(label => `## ${label}\n\nText.\n`).join('\n')
+    const html = md.render(`# Scotch\n\nTagline.\n\n${page}`, { relativePath: 'index.md' })
+    const entry = new RegExp(`<section class="sc-entry"[^]*?<${FIGURE} name="store" />[^]*?</section>`, 'u')
+    expect(html).toMatch(entry)
   })
 
   it('places the widgets the placements name', () => {

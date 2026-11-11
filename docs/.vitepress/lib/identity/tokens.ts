@@ -22,10 +22,10 @@ export function propertyOf(name: string): string {
 }
 
 /**
- * Writes a `:root` rule setting the custom property each name takes to its
- * value, each on a row of its own.
+ * Writes a rule setting the custom property each name takes to its value, each
+ * on a row of its own, under `:root` unless another selector is named.
  */
-export function rootRule(properties: readonly (readonly [string, string])[]): string {
+export function rootRule(properties: readonly (readonly [string, string])[], selector = ':root'): string {
   const rows = properties.map(([name, value]) => `  ${propertyOf(name)}: ${value};`)
-  return `:root {\n${rows.join('\n')}\n}\n`
+  return `${selector} {\n${rows.join('\n')}\n}\n`
 }

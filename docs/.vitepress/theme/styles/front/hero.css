@@ -1,16 +1,29 @@
+.VPHome {
+  --sc-ground       : 1;
+  --sc-front-square : color-mix(in oklab, var(--sc-ink) 8%, var(--sc-page));
+  --sc-front-side   : 72px;
+}
+
 .VPHome .VPHomeHero.VPHero {
   position       : relative;
   z-index        : 1;
+  isolation      : isolate;
   padding-top    : calc(var(--vp-nav-height) + var(--vp-layout-top-height, 0px) + var(--sc-hero-top, 88px));
-  padding-bottom : var(--sc-hero-bottom, 88px);
+  padding-bottom : var(--sc-hero-bottom, 104px);
+}
+
+.VPHome .VPHomeHero.VPHero::before {
+  content        : '';
+  position       : absolute;
+  inset          : 0;
+  z-index        : -1;
+  background     : repeating-conic-gradient(var(--sc-front-square) 0 25%, transparent 0 50%) 50% 0 / calc(var(--sc-front-side) * 2) calc(var(--sc-front-side) * 2);
+  opacity        : var(--sc-ground);
+  pointer-events : none;
+  mask-image     : linear-gradient(#000 40%, transparent 96%);
 }
 
 .VPHome .VPHomeHero .main { width: 100%; }
-
-.VPHome .VPHomeHero .actions {
-  justify-content : center;
-  padding-top     : 24px;
-}
 
 .sc-lockup {
   display       : grid;
@@ -36,4 +49,8 @@
   color     : var(--sc-ink);
   font      : italic 400 clamp(1.1rem, 3vw, 1.45rem) / 1.3 var(--sc-face-body);
   text-wrap : balance;
+}
+
+@media (width < 40rem) {
+  .VPHome { --sc-front-side: 48px; }
 }

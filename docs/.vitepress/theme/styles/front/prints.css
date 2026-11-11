@@ -1,0 +1,106 @@
+.sc-front-prints {
+  display : grid;
+  gap     : 8px;
+  padding : 8px 0;
+}
+
+.sc-front-lab {
+  display         : flex;
+  justify-content : space-between;
+  color           : var(--sc-quiet);
+  font            : 600 0.65rem/1 var(--sc-face-code);
+  letter-spacing  : 0.12em;
+  text-transform  : uppercase;
+}
+
+.sc-front-lab [data-game='submitted'] { color: var(--sc-submitted); }
+
+.sc-front-lab [data-game='stored'] { color: var(--sc-stored); }
+
+.sc-front-track,
+.sc-front-ties {
+  display               : grid;
+  grid-template-columns : repeat(19, minmax(0, 1fr));
+  gap                   : 3px;
+}
+
+.sc-front-print {
+  display               : grid;
+  grid-template-columns : repeat(4, 1fr);
+  gap                   : 1px;
+  aspect-ratio          : 1;
+  padding               : 2px;
+  border-radius         : 3px;
+  background            : var(--sc-page);
+  box-shadow            : inset 0 0 0 1px var(--sc-rule);
+  opacity               : 0.25;
+  cursor                : pointer;
+  transition            : opacity var(--sc-duration-fade) var(--sc-curve-glide), box-shadow var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-front-print i {
+  border-radius : 1px;
+  background    : var(--sc-ink);
+}
+
+.sc-front-print[data-on] { opacity: 1; }
+
+[data-game='submitted'] > .sc-front-print[data-on] { box-shadow: inset 0 0 0 1.5px var(--sc-submitted); }
+
+[data-game='stored'] > .sc-front-print[data-on] { box-shadow: inset 0 0 0 1.5px var(--sc-stored); }
+
+.sc-front-track > .sc-front-print[data-same] { box-shadow: inset 0 0 0 2px var(--sc-entry); }
+
+.sc-front-ties { height: 34px; }
+
+.sc-front-ties i {
+  justify-self : center;
+  width        : 2px;
+  height       : 100%;
+  background   : var(--sc-entry);
+  transform    : scaleY(0);
+  transition   : transform var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-front-ties i[data-on] { transform: scaleY(1); }
+
+.sc-front-runbar {
+  position : relative;
+  height   : 22px;
+}
+
+.sc-front-runbar :is(b, span) {
+  position   : absolute;
+  opacity    : 0;
+  transition : opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-front-runbar b {
+  top           : 0;
+  height        : 8px;
+  border        : 1.5px solid var(--sc-entry);
+  border-top    : 0;
+  border-radius : 0 0 3px 3px;
+}
+
+.sc-front-runbar span {
+  top            : 11px;
+  translate      : -50% 0;
+  color          : var(--sc-ink);
+  font           : 600 0.65rem/1 var(--sc-face-code);
+  letter-spacing : 0.12em;
+  text-transform : uppercase;
+  white-space    : nowrap;
+}
+
+.sc-front-runbar [data-on] { opacity: 1; }
+
+@media (width < 40rem) {
+  .sc-front-track,
+  .sc-front-ties { gap: 1px; }
+
+  .sc-front-print {
+    gap     : 0;
+    padding : 1px;
+  }
+}

@@ -5,6 +5,14 @@ import { rolesSheet }         from './roles.ts'
 import { IDENTITY, rootRule } from './tokens.ts'
 
 /**
+ * The root while the motion switch has paused the site's drawings.
+ */
+const PAUSED = ":root[data-motion='paused']"
+/**
+ * The root unless the motion switch has set the site's drawings playing.
+ */
+const PLAYING = ":root:not([data-motion='playing'])"
+/**
  * The module the theme imports the identity's custom properties from.
  */
 export const SHEET = 'virtual:scotch-identity.css'
@@ -49,8 +57,9 @@ export function identitySheet(identity = IDENTITY): string {
 /**
  * Writes the stylesheet setting one custom property per curve and per duration,
  * such as `--sc-curve-glide` and `--sc-duration-settle`, every duration falling
- * to zero for a reader who prefers reduced motion, so a transition reading one
- * snaps to its end.
+ * to zero for a reader who prefers reduced motion until the motion switch sets
+ * the root's `data-motion` to `playing`, and wherever the switch sets it to
+ * `paused`, so a transition reading one snaps to its end.
  */
 export function motionSheet(): string {
   const curves = Object.entries(timing.CURVES)
@@ -60,5 +69,6 @@ export function motionSheet(): string {
   const reduced = durations.map(([name]): [string, string] => [name, '0ms'])
 
   return rootRule([...curves, ...durations])
-       + `@media (prefers-reduced-motion: reduce) {\n${rootRule(reduced)}}\n`
+       + `@media (prefers-reduced-motion: reduce) {\n${rootRule(reduced, PLAYING)}}\n`
+       + rootRule(reduced, PAUSED)
 }

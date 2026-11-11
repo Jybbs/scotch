@@ -1,7 +1,8 @@
-import * as core                                from '@vueuse/core'
-import { type Ref, computed, onMounted, watch } from 'vue'
+import * as core                      from '@vueuse/core'
+import { type Ref, onMounted, watch } from 'vue'
 
-import * as timing from '../motion/timing.ts'
+import { useMotion } from '../motion/control.ts'
+import * as timing   from '../motion/timing.ts'
 
 /**
  * The element a drawing unfolds on, empty until it mounts.
@@ -16,8 +17,8 @@ interface Tween {
  * What a drawing's unfold runs on, every timer, tween, and animation it starts
  * held so one call cancels whatever is still running. A glide is the tween a
  * reader's pick starts, which replaces the glide before it and which `halt`
- * cancels. Under reduced motion a tween paints its end at once and an animation
- * does not start.
+ * cancels. While the site's drawings hold still, a tween paints its end at once
+ * and an animation does not start.
  */
 export interface Beats {
   at    : (ms: number, run: () => void) => void
@@ -107,11 +108,11 @@ function animated(moves: Set<Animation>, node: Element, keys: Keyframe[], option
 
 /**
  * Writes the call that starts a tween and holds it in `tweens` until it ends,
- * which under reduced motion paints the tween's end at once.
+ * which paints the tween's end at once while the site's drawings hold still.
  */
-function starter(tweens: Set<Tween>, reduced: Ref<string>): (ms: number, paint: Painter, options?: TweenOptions) => Tween {
+function starter(tweens: Set<Tween>, moving: Ref<boolean>): (ms: number, paint: Painter, options?: TweenOptions) => Tween {
   return (ms, paint, options = {}) => {
-    if (reduced.value === 'reduce') {
+    if (!moving.value) {
       paint(1, 1)
       options.done?.()
       return { frame: 0 }
@@ -126,11 +127,11 @@ function starter(tweens: Set<Tween>, reduced: Ref<string>): (ms: number, paint: 
  * Holds one drawing's timers, tweens, and animations until its scope ends.
  */
 export function useBeats(): Beats {
-  const reduced = core.usePreferredReducedMotion()
-  const moves   = new Set<Animation>()
-  const tweens  = new Set<Tween>()
-  const timers  = new Set<ReturnType<typeof setTimeout>>()
-  const start   = starter(tweens, reduced)
+  const { moving } = useMotion()
+  const moves      = new Set<Animation>()
+  const tweens     = new Set<Tween>()
+  const timers     = new Set<ReturnType<typeof setTimeout>>()
+  const start      = starter(tweens, moving)
   let gliding: Tween | undefined
 
   const drop = (tween: Tween): void => {
@@ -165,7 +166,7 @@ export function useBeats(): Beats {
     },
     halt: halt,
     move: (node, keys, options) => {
-      if (reduced.value !== 'reduce') animated(moves, node, keys, options)
+      if (moving.value) animated(moves, node, keys, options)
     },
     stop: stop,
     tween: (ms, paint, options) => {
@@ -177,8 +178,8 @@ export function useBeats(): Beats {
 /**
  * Runs a drawing's unfold once it first comes on screen, starting from `prime`,
  * and ends on `settle` once the unfold finishes, a reader touches the drawing,
- * or the unfold reaches its length. A reader who prefers reduced motion gets
- * `settle` alone, whenever that preference turns on.
+ * or the unfold reaches its length. While the site's drawings hold still, the
+ * drawing gets `settle` alone, whenever they come to hold still.
  *
  * Args:
  *   node  : The drawing's element.
@@ -186,8 +187,7 @@ export function useBeats(): Beats {
  *   story : How the drawing unfolds.
  */
 export function useUnfold(node: NodeRef, beats: Beats, story: Story): void {
-  const preference = core.usePreferredReducedMotion()
-  const reduced    = computed(() => preference.value === 'reduce')
+  const { moving } = useMotion()
   let running      = false
 
   const end = (): void => {
@@ -201,16 +201,16 @@ export function useUnfold(node: NodeRef, beats: Beats, story: Story): void {
   const { stop } = core.useIntersectionObserver(node, ([entry]) => {
     if (!entry?.isIntersecting) return
     stop()
-    if (reduced.value) return
+    if (!moving.value) return
     running = true
     story.prime()
     story.play(beats, touch)
     beats.at(story.length, touch)
   }, { threshold: SEEN })
 
-  onMounted(reduced.value ? story.settle : story.prime)
-  watch(reduced, value => {
-    if (value) end()
+  onMounted(moving.value ? story.prime : story.settle)
+  watch(moving, now => {
+    if (!now) end()
   })
   core.useEventListener(node, 'pointerdown', touch)
   core.useEventListener(node, 'keydown', (event: KeyboardEvent) => {

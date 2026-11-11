@@ -1,6 +1,7 @@
 import { type Example, cellOf }              from './example.ts'
 import { type Measured, leaderAt, middleOf } from './key.ts'
 import * as motion                           from './motion.ts'
+import { PieceLayer }                        from './piece-layer.ts'
 import * as squares                          from './squares.ts'
 
 /**
@@ -19,7 +20,7 @@ export class MatchBoard {
   readonly #board   : HTMLElement
   readonly #example : Example
   readonly #key     : HTMLElement
-  readonly #nodes   = new Map<string, { el: HTMLElement, piece: string }>()
+  readonly #pieces  : PieceLayer
   readonly #running : Animation[] = []
   #marks            : (squares.Mark | undefined)[]
   #measured?        : Measured
@@ -40,22 +41,7 @@ export class MatchBoard {
     this.#example = example
     this.#key     = key
     this.#marks   = squares.marksAt(example, ply)
-    for (const el of board.querySelectorAll<HTMLElement>('.sc-run-piece')) {
-      this.#nodes.set(el.dataset.id!, { el, piece: el.dataset.piece! })
-    }
-  }
-
-  #nodeOf(id: string, placed: squares.Placed): HTMLElement {
-    const found = this.#nodes.get(id)
-    if (found?.piece === placed.piece) return found.el
-    const el = found?.el ?? document.createElement('span')
-    Object.assign(el, { className: 'sc-run-piece', innerHTML: squares.pieceMarkup(placed.piece) })
-    el.dataset.id    = id
-    el.dataset.piece = placed.piece
-    el.toggleAttribute('data-ghost', placed.ghost)
-    this.#board.querySelector('.sc-run-layer')!.append(el)
-    this.#nodes.set(id, { el, piece: placed.piece })
-    return el
+    this.#pieces  = new PieceLayer(board)
   }
 
   #partsOf(mark: squares.Mark): HTMLElement[] {
@@ -103,14 +89,7 @@ export class MatchBoard {
    */
   show(ply: number, how?: motion.How): void {
     motion.settleAll(this.#running)
-    const placed = squares.placedAt(this.#example, ply)
-    for (const [id, at] of placed) {
-      const target = { opacity: at.opacity, transform: squares.squareAt(at.square) }
-      motion.moveNode(this.#nodeOf(id, at), how, this.#running, target)
-    }
-    for (const [id, { el }] of this.#nodes) {
-      if (!placed.has(id)) motion.moveNode(el, how, this.#running, { opacity: 0 })
-    }
+    this.#pieces.place(squares.placedAt(this.#example, ply), how, this.#running)
 
     const washes = this.#board.querySelectorAll<HTMLElement>('.sc-run-wash')
     const marks  = squares.marksAt(this.#example, ply)

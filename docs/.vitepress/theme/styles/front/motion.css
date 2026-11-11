@@ -1,0 +1,37 @@
+.sc-motion {
+  display       : inline-grid;
+  align-items   : center;
+  flex-shrink   : 0;
+  width         : 40px;
+  height        : 22px;
+  margin-left   : 12px;
+  padding       : 0 2px;
+  border-radius : 11px;
+  background    : var(--sc-side);
+  box-shadow    : inset 0 0 0 1px var(--sc-rule);
+  cursor        : pointer;
+}
+
+.sc-motion-thumb {
+  display       : grid;
+  place-items   : center;
+  width         : 18px;
+  height        : 18px;
+  border-radius : 50%;
+  background    : var(--sc-raised);
+  box-shadow    : 0 1px 2px color-mix(in oklab, var(--sc-ink) 30%, transparent);
+  color         : var(--sc-ink);
+  transition    : translate var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-motion[aria-checked='true'] .sc-motion-thumb { translate: 18px 0; }
+
+.sc-motion svg {
+  width        : 12px;
+  height       : 12px;
+  fill         : none;
+  stroke       : currentColor;
+  stroke-width : 1.6;
+}
+
+.sc-motion:focus-visible { outline: 2px solid var(--sc-run); outline-offset: 2px; }

@@ -9,7 +9,7 @@ import { test }           from '../../../common/clock.ts'
 import { prevented }      from '../../../common/keys.ts'
 import { loaded, meet }   from '../../../common/matches.ts'
 import { observeResizes } from '../../../common/observer.ts'
-import { context }        from '../../../common/page.ts'
+import { context }        from '../../../common/canvas.ts'
 
 /**
  * Mounts the track at the first position the two share, drawing into `drawn`.

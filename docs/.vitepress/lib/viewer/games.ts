@@ -26,7 +26,7 @@ export function nameOf({ headers }: Side): string {
  * Writes the move at `index` of a game's moves behind its number, as `22. c6`
  * for one of White's and `21...b6` for one of Black's.
  */
-export function numbered(side: Side, index: number): string {
+export function numbered(side: Pick<Side, 'headers' | 'moves'>, index: number): string {
   const { no, white } = numberingOf(side)(index)
   return `${no}${white ? '. ' : '...'}${side.moves[index]}`
 }
@@ -35,7 +35,7 @@ export function numbered(side: Side, index: number): string {
  * Numbers a game's moves from the position its `FEN` tag sets up, or from move
  * 1 with White to move where it carries none.
  */
-export function numberingOf({ headers }: Side): (index: number) => Numbered {
+export function numberingOf({ headers }: Pick<Side, 'headers'>): (index: number) => Numbered {
   const fields = headers.FEN?.split(' ') ?? []
   const black  = fields[1] === 'b' ? 1 : 0
   const first  = Number(fields[5]) || 1
