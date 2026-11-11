@@ -7,9 +7,11 @@ Each case loads the script in the test process and answers each command it
 runs through pytest-subprocess, so no case reaches GitHub.
 """
 
-from collections.abc                import Callable
+from collections.abc import Callable
+from pytest          import Config
 from pytest_subprocess.fake_process import FakeProcess
 from types import ModuleType
+from yaml  import safe_load
 
 
 def test_a_store_holding_one_entry_per_lineage_deletes_nothing(
@@ -106,3 +108,23 @@ def test_each_entry_a_newer_one_replaced_is_deleted(
         ["gh", "cache", "delete", "6"],
         ["gh", "cache", "delete", "8"]
     ]
+
+
+def test_the_tool_cache_key_ends_on_the_two_hashes_the_lineage_reads(
+    pytestconfig: Config
+):
+    """
+    Asserts that the composite passes `jdx/mise-action` a
+    `cache_max_age_days` of `0`, which leaves the period field out of the
+    key it writes, so the key ends on the hash of the tool subset and then
+    the hash of the mise config and lockfile that `Entry.lineage` reads.
+    """
+    path = pytestconfig.rootpath / ".github" / "actions" / "provision" / "action.yml"
+
+    (step,) = (
+        step
+        for step in safe_load(path.read_text())["runs"]["steps"]
+        if step.get("uses", "").startswith("jdx/mise-action@")
+    )
+
+    assert step["with"]["cache_max_age_days"] == "0"

@@ -31,6 +31,7 @@ runs:
     - name: Install the tools
       uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b
       with:
+        cache_max_age_days: '0'
         cache_save: ${{ inputs.save }}
         install_args: ${{ inputs.tools }}
         version: ${{ steps.floor.outputs.version }}
