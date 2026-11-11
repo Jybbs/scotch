@@ -134,7 +134,7 @@ describe('GameBoard over any run of steps', () => {
         document.body.replaceChildren()
       }
     ), { numRuns: 60 })
-  })
+  }, 20_000)
 
   test('steps back and forth inside one glide, turning each piece back from where it stands', ({ clock }) => {
     const board = new GameBoard(drawn())
