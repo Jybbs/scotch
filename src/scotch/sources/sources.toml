@@ -2404,7 +2404,7 @@ group    = "Tournaments"
 home     = "https://www.pgnmentor.com/"
 provider = "PGN Mentor"
 section  = "Events"
-title    = "Biel2018.pgn"
+title    = "Biel 2018"
 
 [[sources]]
 address  = "https://www.pgnmentor.com/events/Bilbao2008.pgn"

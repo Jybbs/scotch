@@ -158,6 +158,74 @@ def test_an_archive_reads_each_pgn_member_in_order_counting_places_across_them(
     ]
 
 
+@mark.parametrize(
+    ("record", "field", "description"),
+    [
+        param(Source, "address", "The address the file is fetched from.", id="address"),
+        param(
+            Source,
+            "group",
+            "The heading the provider's site lists the file under within its "
+            "section, such as `World Championships`, or `None` where the section "
+            "holds no headings.",
+            id = "group"
+        ),
+        param(
+            Source,
+            "home",
+            "The home page of the site providing the file.",
+            id = "home"
+        ),
+        param(
+            Source,
+            "moves",
+            "The moves opening every game of an archive of one opening, as the "
+            "provider's site writes them, such as `1.e4 c5 2.Nf3 d6 3.d4 cxd4 "
+            "4.Qxd4`, or `None` for a file of any other kind.",
+            id = "moves"
+        ),
+        param(
+            Source,
+            "provider",
+            "The name of the site providing the file.",
+            id = "provider"
+        ),
+        param(
+            Source,
+            "section",
+            "The section of the provider's site listing the file.",
+            id = "section"
+        ),
+        param(
+            Source,
+            "title",
+            "The name the provider's site gives the file, such as `Magnus Carlsen`, "
+            "`World Championship 2018`, or `Sicilian, Najdorf, 6.Be3`.",
+            id = "title"
+        ),
+        param(
+            Sources,
+            "floors",
+            "The rating a game of a section's files reaches the store at, keyed by "
+            "the section, read as the higher of its `WhiteElo` and `BlackElo` tags, "
+            "and a section left out keeping every game.",
+            id = "floors"
+        ),
+        param(Sources, "sources", "The files, each declared once.", id="sources")
+    ]
+)
+def test_each_field_carries_the_description_written_for_it(
+    description : str,
+    field       : str,
+    record      : type[Source | Sources]
+):
+    """
+    Asserts that each field of a source and of the sources describes itself
+    with the sentence written for it, read with its line breaks as spaces.
+    """
+    assert " ".join(record.model_fields[field].description.split()) == description
+
+
 def test_figures_count_the_files_of_each_section_and_name_each_floor():
     """
     Asserts that the figures count every file and the files of each section

@@ -278,7 +278,7 @@ impl Mainline {
                         fresh = false;
                         break;
                     }
-                    Kind::Result => {
+                    Kind::Result if self.depth == 0 || !self.game.errors.is_empty() => {
                         if self.depth == 0 && self.tags.get("Result") == Some("*") {
                             self.tags.set("Result", &line[start..end]);
                         }
@@ -290,7 +290,7 @@ impl Mainline {
                     Kind::Open | Kind::Close => self.game.skipped.push(line[start..end].to_owned()),
                     _ if self.depth > 0 => {}
                     Kind::Rest => break,
-                    Kind::Glyph => {}
+                    Kind::Glyph | Kind::Result => {}
                     Kind::Move => self.play(&line[start..end]),
                 }
             }
@@ -421,6 +421,14 @@ mod tests {
         assert_eq!(games[0].tags[6], ("Result".to_owned(), "1-0".to_owned()));
         assert_eq!(moves(&games[1]), ["d2d4"]);
         assert_eq!(games[1].errors, Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_result_inside_a_variation_leaves_the_mainline_whole() {
+        let games = read("1. e4 e5 (1... c5 2. Nf3 1-0) 2. Nf3 *\n");
+
+        assert_eq!(games.len(), 1);
+        assert_eq!(moves(&games[0]), ["e2e4", "e7e5", "g1f3"]);
     }
 
     #[test]

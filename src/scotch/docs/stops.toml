@@ -69,7 +69,7 @@ when     = "A FEN names no position a game can reach"
 clears   = "Correct the move or the word each line below it names"
 commands = ["show position"]
 message  = "Found problems in <position>:"
-when     = "A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line"
+when     = "A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line or on a line past its result"
 
 [[stops]]
 clears   = "Spell the move in SAN, or remove the word"
@@ -78,10 +78,10 @@ message  = "names no move: '<word>'"
 when     = "A word of a line of moves reads as no move, beneath the line naming the problems"
 
 [[stops]]
-clears   = "Remove the blank line, or what follows it"
+clears   = "Remove the blank line or the result, or what follows it"
 commands = ["show position"]
 message  = "holds more past the end of its moves"
-when     = "A line of moves holds text past a blank line, beneath the line naming the problems"
+when     = "A line of moves holds text past a blank line or on a line past its result, beneath the line naming the problems"
 
 [[stops]]
 clears   = "Pass the reference `scotch match game` printed, such as `players/Kasparov.zip:193`"

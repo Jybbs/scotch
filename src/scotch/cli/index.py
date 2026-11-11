@@ -28,10 +28,11 @@ def games():
     tag names a variant other than standard chess is left out.
 
     Prints the count of games read from each file beside the count left
-    below its floor, one line for each problem of a game left out naming its
-    file, its place there, and its players, and the count of games indexed.
-    Exits nonzero where no file has been fetched, or naming each fetched
-    file whose copy on disk no longer holds the bytes the manifest records.
+    below its floor where its section sets one, one line for each problem
+    of a game left out naming its file, its place there, and its players,
+    and the count of games indexed. Exits nonzero where no file has been
+    fetched, or naming each fetched file whose copy on disk no longer holds
+    the bytes the manifest records.
     """
     settings = Settings()
     manifest = Manifest.read(settings.downloads)

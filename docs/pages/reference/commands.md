@@ -72,7 +72,7 @@ Fetched https://www.pgnmentor.com/openings/Vienna.zip
 
 Reads the games of every file `scotch fetch games` downloaded into the `downloads` folder of the data directory, handing the files one at a time to a pool of processes, and writes the index of them to its `index` folder, replacing what that folder holds, beside a copy of the manifest the files were read under. Files are read in the order `sources.toml` declares them, a game several files repeat is indexed under the first, and a game rated below the floor `sources.toml` sets for its file's section, a game the reader records an error for, or one whose `Variant` tag names a variant other than standard chess is left out.
 
-Prints the count of games read from each file beside the count left below its floor, one line for each problem of a game left out naming its file, its place there, and its players, and the count of games indexed. Exits nonzero where no file has been fetched, or naming each fetched file whose copy on disk no longer holds the bytes the manifest records.
+Prints the count of games read from each file beside the count left below its floor where its section sets one, one line for each problem of a game left out naming its file, its place there, and its players, and the count of games indexed. Exits nonzero where no file has been fetched, or naming each fetched file whose copy on disk no longer holds the bytes the manifest records.
 
 ```text
 scotch index games
@@ -259,9 +259,9 @@ It exits nonzero on each message below.
 | `Unknown option: <token>` | A word of the position opens on a hyphen and names no option | Name the flag the help lists, or remove the word |
 | `The FEN <position> stops short of its first four fields, the placement, the side to move, the castling rights, and the en passant square, which together name a position` | A FEN holds fewer than four fields | Write the placement, the side to move, the castling rights, and the en passant square |
 | `names no position: <fen>` | A FEN names no position a game can reach | Correct the FEN, whose placement names eight ranks and one king of each color |
-| `Found problems in <position>:` | A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line | Correct the move or the word each line below it names |
+| `Found problems in <position>:` | A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line or on a line past its result | Correct the move or the word each line below it names |
 | `names no move: '<word>'` | A word of a line of moves reads as no move, beneath the line naming the problems | Spell the move in SAN, or remove the word |
-| `holds more past the end of its moves` | A line of moves holds text past a blank line, beneath the line naming the problems | Remove the blank line, or what follows it |
+| `holds more past the end of its moves` | A line of moves holds text past a blank line or on a line past its result, beneath the line naming the problems | Remove the blank line or the result, or what follows it |
 | `No index has been built under <index>` | The data directory holds no index | Run `scotch index games` |
 | `The index under <index> holds another layout` | The index was built in a layout other than the one this version reads | Run `scotch index games`, which rebuilds the index in this layout |
 <!-- /command-show-position -->

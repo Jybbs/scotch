@@ -351,6 +351,19 @@ def test_the_charted_files_run_in_the_order_the_tally_names_them(
     ]
 
 
+def test_the_decades_table_counts_each_decade_and_the_share_played_by_its_end(
+    tally: Tally
+):
+    """
+    Pins the table of decades, each with its games and the running share of
+    the dated games it closes on, which leaves the undated games out.
+    """
+    assert tally.model_copy(update={"games": 12}).decades == markdown(
+        headers = ("Decade", "Games", "Played by Its End"),
+        rows    = [("1850s", "4", "40.0%"), ("1990s", "6", "100.0%")]
+    )
+
+
 @mark.parametrize(
     ("moves", "span"),
     [
@@ -399,19 +412,6 @@ def test_the_recent_share_counts_the_games_from_1980_on(
     assert (figures["recent"], figures["recent-from"]) == (recent, "1980")
 
 
-def test_the_decades_table_counts_each_decade_and_the_share_played_by_its_end(
-    tally: Tally
-):
-    """
-    Pins the table of decades, each with its games and the running share of
-    the dated games it closes on, which leaves the undated games out.
-    """
-    assert tally.model_copy(update={"games": 12}).decades == markdown(
-        headers = ("Decade", "Games", "Played by Its End"),
-        rows    = [("1850s", "4", "40.0%"), ("1990s", "6", "100.0%")]
-    )
-
-
 def test_the_lengths_table_names_each_decade_s_median_and_middle_half(tally: Tally):
     """
     Pins the table of lengths, each decade with its games, its median move,
@@ -421,6 +421,20 @@ def test_the_lengths_table_names_each_decade_s_median_and_middle_half(tally: Tal
         headers = ("Decade", "Games", "Median Move", "Middle Half"),
         rows    = [("1850s", "4", "1", "1 to 2"), ("1990s", "6", "2", "1 to 3")]
     )
+
+
+def test_the_others_row_counts_the_files_it_gathers_with_a_thousands_separator(
+    archive : Callable[..., Archive],
+    tally   : Tally
+):
+    """
+    Asserts that the row gathering every file past the tenth names how many
+    it gathers with a comma between the thousands.
+    """
+    files = [archive(1, f"Player{index:04}") for index in range(1010)]
+    many  = tally.model_copy(update={"files": files, "games": 1010})
+
+    assert many.largest[-1].name == "1,000 others"
 
 
 @mark.parametrize(

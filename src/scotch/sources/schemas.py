@@ -91,37 +91,37 @@ class Source(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     home: HttpUrl
     """
+    The home page of the site providing the file.
+    """
+
+    provider: str
+    """
+    The name of the site providing the file.
+    """
+
+    section: str
+    """
+    The section of the provider's site listing the file.
+    """
+
+    title: str
+    """
+    The name the provider's site gives the file, such as `Magnus Carlsen`,
+    `World Championship 2018`, or `Sicilian, Najdorf, 6.Be3`.
+    """
+
+    group: str | None = None
+    """
     The heading the provider's site lists the file under within its
     section, such as `World Championships`, or `None` where the section
     holds no headings.
     """
 
-    provider: str
-    """
-    The home page of the site providing the file.
-    """
-
-    section: str
-    """
-    The moves opening every game of an archive of one opening, as the
-    provider's site writes them, such as `1.e4 c5 2.Nf3 d6`, or `None` for
-    a file of any other kind.
-    """
-
-    title: str
-    """
-    The name of the site providing the file.
-    """
-
-    group: str | None = None
-    """
-    The section of the provider's site listing the file.
-    """
-
     moves: str | None = None
     """
-    The name the provider's site gives the file, such as `Magnus Carlsen`,
-    `World Championship 2018`, or `Sicilian, Najdorf`.
+    The moves opening every game of an archive of one opening, as the
+    provider's site writes them, such as `1.e4 c5 2.Nf3 d6 3.d4 cxd4
+    4.Qxd4`, or `None` for a file of any other kind.
     """
 
     @property
@@ -248,14 +248,14 @@ class Sources(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
     sources: tuple[Source, ...]
     """
-    The rating a game of a section's files reaches the store at, keyed by
-    the section, read as the higher of its `WhiteElo` and `BlackElo` tags,
-    and a section left out keeping every game.
+    The files, each declared once.
     """
 
     floors: dict[str, PositiveInt] = {}
     """
-    The files, each declared once.
+    The rating a game of a section's files reaches the store at, keyed by
+    the section, read as the higher of its `WhiteElo` and `BlackElo` tags,
+    and a section left out keeping every game.
     """
 
     @property

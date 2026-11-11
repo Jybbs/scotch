@@ -524,7 +524,7 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         rows   = [
             *((file.name, file.games, False) for file in ranked[:10]),
             *([(
-                f"{len(rest)} others",
+                f"{len(rest):,} others",
                 sum(file.games for file in rest),
                 True
             )] if rest else [])

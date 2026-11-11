@@ -373,7 +373,7 @@ The drawing below sets each file under its section's tab, the Players as discs a
 | [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Biel2011.pgn`](https://www.pgnmentor.com/events/Biel2011.pgn) | Biel 2011 |
 | [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Biel2012.pgn`](https://www.pgnmentor.com/events/Biel2012.pgn) | Biel 2012 |
 | [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Biel2014.pgn`](https://www.pgnmentor.com/events/Biel2014.pgn) | Biel 2014 |
-| [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Biel2018.pgn`](https://www.pgnmentor.com/events/Biel2018.pgn) | Biel2018.pgn |
+| [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Biel2018.pgn`](https://www.pgnmentor.com/events/Biel2018.pgn) | Biel 2018 |
 | [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Bilbao2008.pgn`](https://www.pgnmentor.com/events/Bilbao2008.pgn) | Bilbao 2008 |
 | [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Bilbao2009.pgn`](https://www.pgnmentor.com/events/Bilbao2009.pgn) | Bilbao 2009 |
 | [PGN Mentor](https://www.pgnmentor.com/) | Events | [`events/Bilbao2010.pgn`](https://www.pgnmentor.com/events/Bilbao2010.pgn) | Bilbao 2010 |
