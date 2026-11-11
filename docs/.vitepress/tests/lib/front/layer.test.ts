@@ -174,7 +174,7 @@ describe('useMarkLayer', () => {
     const { home } = await mounted()
     loop.frame!({ delta: 16, timestamp: 16 })
     const fade = 1 - 500 / (1000 * LAYER_TUNING.fade)
-    expect(Number(home.style.getPropertyValue('--sc-ground'))).toBeCloseTo(fade)
+    expect(Number(home.style.getPropertyValue('--sc-front-fade'))).toBeCloseTo(fade)
   })
 
   it('draws every piece in its cell at once and stops its frames while the drawings hold still', async () => {
@@ -214,9 +214,9 @@ describe('useMarkLayer on the page', () => {
   it('draws the mark and fades nothing on a page with no hero', async () => {
     const { drawn, home } = await mounted()
     home.querySelector('.VPHero')!.remove()
-    home.style.removeProperty('--sc-ground')
+    home.style.removeProperty('--sc-front-fade')
     loop.frame!({ delta: 16, timestamp: 16 })
-    expect(home.style.getPropertyValue('--sc-ground')).toBe('')
+    expect(home.style.getPropertyValue('--sc-front-fade')).toBe('')
     expect(drawn.clearRect).toHaveBeenCalled()
   })
 

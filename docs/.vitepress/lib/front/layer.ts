@@ -131,10 +131,10 @@ export class MarkLayer {
  * mounts and the pieces' drawings decode, pouring each piece in once the
  * scroll passes its place and lifting it out once the scroll falls behind,
  * and fades the hero's board as the page scrolls past it through the
- * `--sc-ground` property the front page's element carries. A frame runs only
- * while a piece moves or once the scroll, the canvas's size, the pixel ratio,
- * the scheme, or the motion switch changes, and every piece stands in its cell
- * at once while the site's drawings hold still.
+ * `--sc-front-fade` property the front page's element carries. A frame runs
+ * only while a piece moves or once the scroll, the canvas's size, the pixel
+ * ratio, the scheme, or the motion switch changes, and every piece stands in
+ * its cell at once while the site's drawings hold still.
  *
  * Args:
  *   canvas : The ref the layer's canvas binds to.
@@ -151,8 +151,9 @@ export function useMarkLayer(canvas: Ref<HTMLCanvasElement | null>, tuning = LAY
     const hero = home?.querySelector<HTMLElement>('.VPHero')
     if (!layer || !home) return void loop.pause()
     if (hero) {
-      const box = hero.getBoundingClientRect()
-      home.style.setProperty('--sc-ground', String(1 - clamp(-box.top / (box.height * tuning.fade), 0, 1)))
+      const box  = hero.getBoundingClientRect()
+      const fade = 1 - clamp(-box.top / (box.height * tuning.fade), 0, 1)
+      home.style.setProperty('--sc-front-fade', String(fade))
     }
     const short = layer.pour.advance(Math.min(delta, 64), moving.value, timestamp,
       moving.value ? progressOf(canvas.value!, home, tuning) : 1)

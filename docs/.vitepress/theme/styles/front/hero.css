@@ -1,5 +1,5 @@
 .VPHome {
-  --sc-ground       : 1;
+  --sc-front-fade   : 1;
   --sc-front-square : color-mix(in oklab, var(--sc-ink) 8%, var(--sc-page));
   --sc-front-side   : 72px;
 }
@@ -18,7 +18,7 @@
   inset          : 0;
   z-index        : -1;
   background     : repeating-conic-gradient(var(--sc-front-square) 0 25%, transparent 0 50%) 50% 0 / calc(var(--sc-front-side) * 2) calc(var(--sc-front-side) * 2);
-  opacity        : var(--sc-ground);
+  opacity        : var(--sc-front-fade);
   pointer-events : none;
   mask-image     : linear-gradient(#000 40%, transparent 96%);
 }
@@ -29,6 +29,8 @@
   position      : relative;
   isolation     : isolate;
   display       : grid;
+  width         : min(32rem, 100%);
+  margin-inline : auto;
   justify-items : center;
   gap           : 14px;
   text-align    : center;
