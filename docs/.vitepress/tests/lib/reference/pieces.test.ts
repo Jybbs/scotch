@@ -30,6 +30,13 @@ describe('squareName', () => {
   })
 })
 
+describe('squareNamed', () => {
+  it('reads every square back from the name it is written as', () => {
+    expect(Array.from({ length: 64 }, (_, square) => pieces.squareNamed(pieces.squareName(square))))
+      .toEqual(Array.from({ length: 64 }, (_, square) => square))
+  })
+})
+
 describe('reach', () => {
   it.each([
     ['Q', 27, 27], ['R', 27, 14], ['B', 27, 13], ['N', 27, 8], ['K', 27, 8],

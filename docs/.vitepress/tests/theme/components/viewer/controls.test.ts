@@ -21,14 +21,16 @@ vi.mock('@vueuse/core', async original => ({
 }))
 
 /**
- * Mounts the controls at a cursor, the boards facing a side.
+ * Mounts the controls at a cursor, the boards facing a side and the stored game
+ * shown unless `covered` is set.
  */
 function mounted(
-  cursor : number,
-  facing : 'black' | 'white' = 'white',
-  match  : Loaded            = loaded
+  cursor  : number,
+  facing  : 'black' | 'white' = 'white',
+  match   : Loaded            = loaded,
+  covered : boolean           = false
 ): ReturnType<typeof mount<typeof Controls>> {
-  return mount(Controls, { attachTo: document.body, props: { cursor, facing, loaded: match } })
+  return mount(Controls, { attachTo: document.body, props: { covered, cursor, facing, loaded: match } })
 }
 
 afterEach(() => {
@@ -36,17 +38,18 @@ afterEach(() => {
 })
 
 describe('Controls', () => {
-  it('sets the four steps in one group and the shared run’s two beside the flip in another', () => {
+  it('sets the four steps in one group and the run’s two beside the cover and flip in another', () => {
     const groups = mounted(10).findAll('[role="group"] [role="group"]')
     expect(groups.map(group => group.findAll('button').map(button => button.attributes('data-control'))))
-      .toEqual([['start', 'back', 'next', 'end'], ['meet', 'part', 'flip']])
+      .toEqual([['start', 'back', 'next', 'end'], ['meet', 'part', 'cover', 'flip']])
   })
 
   it('names every key each control takes, a letter in its upper case, and shows the cap of the first', () => {
     const buttons = mounted(10).findAll('button')
     expect(buttons.map(button => button.attributes('aria-keyshortcuts')))
-      .toEqual(['ArrowUp Home', 'ArrowLeft', 'ArrowRight', 'ArrowDown End', 'M', 'P', 'F'])
-    expect(buttons.map(button => button.find('kbd').text())).toEqual(['↑', '←', '→', '↓', 'M', 'P', 'F'])
+      .toEqual(['ArrowUp Home', 'ArrowLeft', 'ArrowRight', 'ArrowDown End', 'M', 'P', 'C', 'F'])
+    expect(buttons.map(button => button.find('kbd').text()))
+      .toEqual(['↑', '←', '→', '↓', 'M', 'P', 'C', 'F'])
   })
 
   it.each([
@@ -59,10 +62,10 @@ describe('Controls', () => {
     expect(disabled).toEqual(idle)
   })
 
-  it('disables the shared run’s controls where no stored game was matched', () => {
+  it('disables the shared run’s controls and the cover where no stored game was matched', () => {
     const disabled = mounted(4, 'white', new Loaded(EXAMPLES.alone)).findAll('button[disabled]')
       .map(button => button.attributes('data-control'))
-    expect(disabled).toEqual(['meet', 'part'])
+    expect(disabled).toEqual(['meet', 'part', 'cover'])
   })
 })
 
@@ -82,6 +85,16 @@ describe('Controls pressed and resized', () => {
     const flip    = wrapper.find('[data-control="flip"]')
     await flip.trigger('click')
     expect([flip.attributes('aria-pressed'), wrapper.emitted('turn')]).toEqual([pressed, [[turned]]])
+  })
+
+  it.each([
+    ['covers the stored game while it is shown', false, 'false', true],
+    ['shows the stored game while it is covered', true, 'true', false]
+  ])('%s', async (_, covered, pressed, cover) => {
+    const wrapper = mounted(10, 'white', loaded, covered)
+    const button  = wrapper.find('[data-control="cover"]')
+    await button.trigger('click')
+    expect([button.attributes('aria-pressed'), wrapper.emitted('cover')]).toEqual([pressed, [[cover]]])
   })
 
   it('moves the row onto a whole device pixel whenever it or its column resizes', () => {

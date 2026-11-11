@@ -29,24 +29,27 @@ function drawControl(
 
 /**
  * The controls on a pill, the four steps in one group and the two the shared
- * run gives in another beside the flip, each a button naming its step beside
- * the cap of its first key and listing every key that takes it, a control that
- * goes nowhere from the cursor disabled and the flip pressed while the boards
- * face Black's side, the whole row kept on whole device pixels as it and its
- * column resize.
+ * run gives in another beside the cover and the flip, each a button naming its
+ * step beside the cap of its first key and listing every key that takes it, a
+ * control that goes nowhere from the cursor disabled, the cover pressed while
+ * the stored game is covered past the cursor, and the flip pressed while the
+ * boards face Black's side, the whole row kept on whole device pixels as it and
+ * its column resize.
  */
 export const Controls = defineComponent({
   name: 'ScotchControls',
 
   props: {
-    cursor : { required: true, type: Number },
-    facing : { required: true, type: String as PropType<Facing> },
-    loaded : { required: true, type: Object as PropType<Loaded> }
+    covered : { required: true, type: Boolean },
+    cursor  : { required: true, type: Number },
+    facing  : { required: true, type: String as PropType<Facing> },
+    loaded  : { required: true, type: Object as PropType<Loaded> }
   },
 
   emits: {
-    go   : (to: number | undefined) => to === undefined || Number.isFinite(to),
-    turn : (facing: Facing) => facing === 'black' || facing === 'white'
+    cover : (on: boolean) => typeof on === 'boolean',
+    go    : (to: number | undefined) => to === undefined || Number.isFinite(to),
+    turn  : (facing: Facing) => facing === 'black' || facing === 'white'
   },
 
   setup: (props, { emit }) => {
@@ -62,15 +65,22 @@ export const Controls = defineComponent({
       emit('go', control.to(props.loaded, props.cursor))
     })
 
+    const cover = (): VNode => drawControl(controls.COVER, {
+      'aria-pressed' : String(props.covered),
+      'disabled'     : !props.loaded.match.stored
+    }, () => {
+      emit('cover', !props.covered)
+    })
+
     const flip = (): VNode => drawControl(controls.FLIP, {
       'aria-pressed': String(props.facing === 'black')
     }, () => {
       emit('turn', props.facing === 'white' ? 'black' : 'white')
     })
 
-    const grouped = (group: string): (VNode | null)[] => [
+    const grouped = (group: string): VNode[] => [
       ...controls.CONTROLS.filter(control => control.group === group).map(control => button(control)),
-      group === 'run' ? flip() : null
+      ...group === 'run' ? [cover(), flip()] : []
     ]
 
     return () => h('div', {

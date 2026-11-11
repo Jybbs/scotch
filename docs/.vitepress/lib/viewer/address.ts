@@ -1,9 +1,9 @@
 import { type Ref, onBeforeUnmount, shallowRef } from 'vue'
 
-import { SAMPLES, type Sample }                        from './examples.ts'
-import { type Place, encodedOf, fragmentOf, fromLink } from './link.ts'
-import type { Loaded }                                 from './loaded.ts'
-import type { Viewer }                                 from './state.ts'
+import { SAMPLES, type Sample } from './examples.ts'
+import * as links               from './link.ts'
+import type { Loaded }          from './loaded.ts'
+import type { Viewer }          from './state.ts'
 
 /**
  * The page's address as the Viewer keeps it, beside the line naming why a
@@ -23,20 +23,31 @@ export interface Address {
 type Carried = { encoded: string } | { sample: Sample }
 
 /**
- * Reads the ply in view and the side the boards face, the place a link opens
- * its match at.
+ * Opens the Viewer on the match a link carries, covered where the link covers
+ * it, at the ply it names, and facing the side it names.
  */
-function placeOf(viewer: Viewer): Place {
-  return { ply: viewer.cursor.value, side: viewer.facing.value }
+function opening(reading: Extract<links.Reading, { problem?: undefined }>, viewer: Viewer): void {
+  const source = SAMPLES.find(({ name }) => name === reading.sample)?.source ?? 'A link'
+  viewer.cover(!!reading.cover)
+  viewer.load(reading.match, source, reading.sample, reading.ply)
+  viewer.turn(reading.side ?? 'white')
 }
 
 /**
- * Keeps the page's fragment carrying the match, the ply in view, and the side
- * the boards face, rewriting it once a step's moves land so a reload or a
- * shared link opens there, and opens the Viewer on the match a link's fragment
- * carries where the page was reached through one. It writes nothing before the
- * Viewer opens, so a page reached without a fragment keeps a bare address until
- * the reader steps.
+ * Reads the cover, the ply in view, and the side the boards face, the place a
+ * link opens its match at.
+ */
+function placeOf(viewer: Viewer): links.Place {
+  return { cover: viewer.covered.value, ply: viewer.cursor.value, side: viewer.facing.value }
+}
+
+/**
+ * Keeps the page's fragment carrying the match, the ply in view, the side the
+ * boards face, and the cover, rewriting it once a step's moves land so a reload
+ * or a shared link opens there, and opens the Viewer on the match a link's
+ * fragment carries where the page was reached through one. It writes nothing
+ * before the Viewer opens, so a page reached without a fragment keeps a bare
+ * address until the reader steps.
  */
 export function useAddress(viewer: Viewer): Address {
   const problem = shallowRef('')
@@ -46,7 +57,7 @@ export function useAddress(viewer: Viewer): Address {
 
   const write = (): void => {
     if (!carried.value) return
-    history.replaceState(history.state, '', `#${fragmentOf(carried.value, placeOf(viewer))}`)
+    history.replaceState(history.state, '', `#${links.fragmentOf(carried.value, placeOf(viewer))}`)
   }
   onBeforeUnmount(() => clearTimeout(writing))
 
@@ -57,29 +68,24 @@ export function useAddress(viewer: Viewer): Address {
       const sample  = viewer.sample.value
       carried.value = sample ? { sample } : undefined
       if (sample) return
-      const encoded = await encodedOf(loaded.match)
+      const encoded = await links.encodedOf(loaded.match)
       if (viewer.loaded.value !== loaded) return
       carried.value = { encoded }
       write()
     },
 
     link: async () => {
-      const text = carried.value ?? { encoded: await encodedOf(viewer.loaded.value.match) }
-      return `${location.origin}${location.pathname}#${fragmentOf(text, placeOf(viewer))}`
+      const text = carried.value ?? { encoded: await links.encodedOf(viewer.loaded.value.match) }
+      return `${location.origin}${location.pathname}#${links.fragmentOf(text, placeOf(viewer))}`
     },
 
     open: async () => {
       opened     = true
       const text = location.hash.slice(1)
       if (!text) return
-      const reading = await fromLink(text)
-      if (!reading.match) {
-        problem.value = reading.problem
-        return
-      }
-      const source = SAMPLES.find(({ name }) => name === reading.sample)?.source ?? 'A link'
-      viewer.load(reading.match, source, reading.sample, reading.ply)
-      viewer.turn(reading.side ?? 'white')
+      const reading = await links.fromLink(text)
+      if (reading.match) opening(reading, viewer)
+      else problem.value = reading.problem
     },
 
     settle: delay => {

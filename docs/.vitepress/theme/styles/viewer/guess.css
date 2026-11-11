@@ -1,0 +1,74 @@
+.sc-viewer-move[data-covered] {
+  background : repeating-linear-gradient(135deg, transparent 0 5px, var(--sc-rule) 5px 6px);
+  cursor     : default;
+
+  & > * { visibility: hidden; }
+}
+
+.sc-viewer-move-named[data-covered] {
+  color      : transparent;
+  background : var(--sc-rule);
+}
+
+.sc-viewer-picked {
+  fill           : none;
+  stroke         : var(--sc-viewer-game);
+  stroke-width   : 3;
+  pointer-events : none;
+}
+
+.sc-viewer-board[data-taking] {
+  cursor       : pointer;
+  touch-action : none;
+}
+
+.sc-viewer-guess {
+  display     : flex;
+  align-items : center;
+  gap         : 8px;
+  font        : 500 0.64rem/1 var(--sc-face-code);
+
+  &[inert] { visibility: hidden; }
+}
+
+.sc-viewer-guess-label {
+  color          : var(--sc-quiet);
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+}
+
+.sc-viewer-guess-field {
+  width         : 7ch;
+  height        : 28px;
+  padding       : 0 8px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 6px;
+  background    : var(--sc-page);
+  color         : var(--sc-ink);
+  font          : 500 0.8rem/1 var(--sc-face-code);
+
+  &[aria-invalid='true'] { border-color: var(--sc-ink); }
+}
+
+.sc-viewer-guess-offer {
+  height         : 28px;
+  padding        : 0 12px;
+  border         : 1px solid var(--sc-rule);
+  border-radius  : 999px;
+  background     : var(--sc-raised);
+  color          : var(--sc-run);
+  font           : 600 0.64rem/1 var(--sc-face-code);
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+  cursor         : pointer;
+
+  &:disabled {
+    color  : var(--sc-quiet);
+    cursor : default;
+  }
+}
+
+.sc-viewer-guess-note {
+  min-width : 18ch;
+  color     : var(--sc-quiet);
+}

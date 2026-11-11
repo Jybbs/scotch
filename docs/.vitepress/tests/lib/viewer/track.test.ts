@@ -51,11 +51,12 @@ function darkSquares(recorder: Recorder): Recorder['rects'] {
 }
 
 /**
- * Draws a match's track into a recorder from a side.
+ * Draws a match's track into a recorder from a side, the stored game covered
+ * past cursor `covered` where one is given.
  */
-function drawn(loaded: Loaded, facing: Facing = 'white'): Recorder {
+function drawn(loaded: Loaded, facing: Facing = 'white', covered?: number): Recorder {
   const recorder = new Recorder()
-  track.drawTrack(recorder as unknown as CanvasRenderingContext2D, COLORS, facing, loaded)
+  track.drawTrack(recorder as unknown as CanvasRenderingContext2D, COLORS, facing, loaded, covered)
   return recorder
 }
 
@@ -138,6 +139,42 @@ describe('drawTrack across the run the two share', () => {
     const dots  = loaded.last - EXAMPLES.match.stored!.moves.length
     const apart = loaded.last - loaded.first + 1 - shared.length
     expect(darkSquares(match)).toHaveLength(32 * (apart * 2 - dots + shared.length))
+  })
+})
+
+describe('drawTrack while the stored game is covered', () => {
+  const loaded  = new Loaded(EXAMPLES.match)
+  const shared  = loaded.shared!
+  const stored  = EXAMPLES.match.stored!.moves.length
+  const covered = drawn(loaded, 'white', shared.meet)
+
+  it('draws no stored position past the cursor, the submitted game’s still drawn in its own row', () => {
+    expect(darkSquares(covered)).toHaveLength(darkSquares(drawn(loaded)).length - 32 * (stored - shared.last))
+  })
+
+  it('tints only the shared columns up to the cursor', () => {
+    expect(covered.rects.filter(({ fill }) => fill === 'tint')).toHaveLength(1)
+  })
+
+  it('outlines and hatches the stored row of each covered column in the rule’s color', () => {
+    const left  = columnAt(loaded, shared.meet + 1)
+    const ruled = (drawing: Recorder): Set<number> => new Set(drawing.rects
+      .filter(({ fill }) => fill === 'rule')
+      .filter(({ y }) => Math.floor((y - track.ROWS.stored) / track.GLYPH) === 0)
+      .map(({ x }) => Math.floor((x - left) / track.TRACK.column)))
+    expect(ruled(covered).difference(ruled(drawn(loaded))))
+      .toEqual(new Set(Array.from({ length: stored - shared.meet }, (_, at) => at)))
+  })
+
+  it('hatches a covered position along rising diagonals, as a covered move on the score sheets is', () => {
+    const left  = columnAt(loaded, shared.meet + 1)
+    const sums  = new Set(covered.rects
+      .filter(({ fill }) => fill === 'rule')
+      .filter(({ h, w }) => h * w === 1)
+      .filter(({ x }) => Math.floor((x - left) / track.TRACK.column) === 0)
+      .filter(({ y }) => Math.floor((y - track.ROWS.stored) / track.GLYPH) === 0)
+      .map(({ x, y }) => (x - left + y - track.ROWS.stored) % track.TRACK.hatch))
+    expect(sums).toEqual(new Set([0]))
   })
 })
 

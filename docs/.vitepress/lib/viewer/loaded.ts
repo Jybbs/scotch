@@ -44,6 +44,10 @@ export interface Status {
 }
 
 /**
+ * What the Viewer names a stored move as while the stored game is covered.
+ */
+export const COVERED = 'A covered move'
+/**
  * What the Viewer says where no stored game shares a position with the
  * submitted one.
  */
@@ -208,15 +212,18 @@ export class Loaded {
 
   /**
    * Writes what the Viewer says at a cursor: the ply, and whether the two games
-   * show one position there, have yet to meet, or have parted.
+   * show one position there, have yet to meet, or have parted, leaving out the
+   * stored game's next move while it is covered.
    */
-  status(cursor: number): Status {
+  status(cursor: number, covered = false): Status {
     const ply = this.plyOf('submitted', cursor)
     if (!this.shared) return this.#alone(ply)
     const { last, length, meet, part } = this.shared
     if (this.sharing(cursor)) {
       const at   = cursor - meet + 1
-      const next = cursor === last && this.parting ? `, and the stored game played ${this.parting} next` : ''
+      const next = cursor === last && this.parting && !covered
+                 ? `, and the stored game played ${this.parting} next`
+                 : ''
       return {
         count : '',
         line  : `Ply ${ply} · same position · ${at} of ${length}`,

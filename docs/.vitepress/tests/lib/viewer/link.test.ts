@@ -81,9 +81,29 @@ describe('fromLink', () => {
   })
 })
 
+describe('fromLink reading the cover', () => {
+  it.each([
+    ['the cover a link carries', 'sample=match&cover=1', { cover: true }],
+    ['no cover from a value other than 1', 'sample=match&cover=yes', {}]
+  ])('reads %s', async (_, fragment, place) => {
+    expect(await links.fromLink(fragment)).toEqual({ match: EXAMPLES.match, sample: 'match', ...place })
+  })
+})
+
 describe('fragmentOf', () => {
   it('writes the ply and leaves out the side while the boards face White', () => {
     expect(links.fragmentOf({ sample: 'match' }, { ply: 12, side: 'white' })).toBe('sample=match&ply=12')
+  })
+
+  it.each([
+    [
+      'writes the cover after the side where the stored game is covered',
+      true,
+      'sample=match&ply=12&side=black&cover=1'
+    ],
+    ['leaves out the cover where the stored game is shown', false, 'sample=match&ply=12&side=black']
+  ])('%s', (_, cover, fragment) => {
+    expect(links.fragmentOf({ sample: 'match' }, { cover, ply: 12, side: 'black' })).toBe(fragment)
   })
 
   it('carries an encoded match in a field of its own, readable with no escaping', async () => {

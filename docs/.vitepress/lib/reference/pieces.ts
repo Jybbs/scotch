@@ -11,7 +11,7 @@ export const TYPES: readonly Piece[] = ['K', 'Q', 'R', 'B', 'N', 'P', 'k', 'q', 
  * them from the one table the page's squares come from.
  */
 export const HOMES = Object.fromEntries(
-  Object.entries(homes).map(([piece, name]) => [piece, 'abcdefgh'.indexOf(name[0]!) + (Number(name[1]) - 1) * 8])
+  Object.entries(homes).map(([piece, name]) => [piece, squareNamed(name)])
 ) as Readonly<Record<Piece, number>>
 /**
  * The pieces and squares the unfold walks through, ending on the pawn's double
@@ -76,4 +76,11 @@ export function reach(piece: Piece, square: number): number[] {
  */
 export function squareName(square: number): string {
   return `${'abcdefgh'[square % 8]!}${(square >> 3) + 1}`
+}
+
+/**
+ * Reads the square a name such as `d4` names, a1 being 0 and h8 63.
+ */
+export function squareNamed(name: string): number {
+  return 'abcdefgh'.indexOf(name[0]!) + (Number(name[1]) - 1) * 8
 }

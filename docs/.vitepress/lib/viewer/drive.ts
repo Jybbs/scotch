@@ -1,12 +1,12 @@
 import { type ShallowRef, nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
 
-import { useMotion }                from '../motion/control.ts'
-import { type Address, useAddress } from './address.ts'
-import { FLIP, controlOf, idle }    from './controls.ts'
-import type { GameBoard, Reach }    from './gameboard.ts'
-import { PARTIES, type Party }      from './loaded.ts'
-import { moveTo }                   from './placements.ts'
-import type { Viewer }              from './state.ts'
+import { useMotion }                    from '../motion/control.ts'
+import { type Address, useAddress }     from './address.ts'
+import { COVER, FLIP, controlOf, idle } from './controls.ts'
+import type { GameBoard, Reach }        from './gameboard.ts'
+import { PARTIES, type Party }          from './loaded.ts'
+import { moveTo }                       from './placements.ts'
+import type { Viewer }                  from './state.ts'
 
 /**
  * The Viewer's drive: the page's address, the refs its parts bind to, and the
@@ -18,6 +18,14 @@ export interface Drive extends Address {
 }
 
 /**
+ * The field a player types a move into, told whether the Viewer took the text
+ * it offered.
+ */
+interface Entry {
+  settle : (taken: boolean) => void
+}
+
+/**
  * A board's figure as the Viewer reaches it once it mounts.
  */
 interface Figure {
@@ -25,18 +33,22 @@ interface Figure {
 }
 
 /**
- * A part the Viewer paints on each step once it has taken a loaded match.
+ * A part the Viewer paints on each step once it has taken a loaded match, and
+ * covers past a point while the stored game's continuation is covered.
  */
 export interface Painted {
+  cover : (cursor?: number) => void
   load  : () => void
   paint : (cursor: number, glide: boolean) => void
 }
 
 /**
  * The refs the Viewer's parts bind to, each filled once its part mounts: the
- * sheets, the tool's root, the two boards' figures, and the track.
+ * field taking a move while the stored game is covered, the sheets, the tool's
+ * root, the two boards' figures, and the track.
  */
 export interface Parts {
+  guess     : ShallowRef<Entry | undefined>
   ledger    : ShallowRef<Painted | undefined>
   root      : ShallowRef<HTMLElement | null>
   stored    : ShallowRef<Figure | undefined>
@@ -45,11 +57,12 @@ export interface Parts {
 }
 
 /**
- * Answers a key pressed inside the tool: F turns the boards, the keys each
- * control names step the cursor, and Up and Down move a row of the sheets while
- * focus sits on a move there, focus then moving to the move the cursor lands
- * on. A key the track already answered, a key pressed with a modifier, and a
- * key pressed inside a field pass through untouched.
+ * Answers a key pressed inside the tool: C covers or shows the stored game's
+ * continuation, F turns the boards, the keys each control names step the
+ * cursor, and Up and Down move a row of the sheets while focus sits on a move
+ * there, focus then moving to the move the cursor lands on. A key the track
+ * already answered, a key pressed with a modifier, and a key pressed inside a
+ * field pass through untouched.
  */
 function answerKey(event: KeyboardEvent, viewer: Viewer): void {
   const target = event.target as HTMLElement
@@ -58,8 +71,9 @@ function answerKey(event: KeyboardEvent, viewer: Viewer): void {
   const move    = target.closest<HTMLElement>('.sc-viewer-move')
   const row     = { ArrowDown: 2, ArrowUp: -2 }[event.key]
   const control = controlOf(event.key)
-  const flips   = FLIP.keys.includes(event.key.toLowerCase())
-  if (flips) viewer.turn(viewer.facing.value === 'white' ? 'black' : 'white')
+  const key     = event.key.toLowerCase()
+  if (COVER.keys.includes(key)) viewer.cover(!viewer.covered.value)
+  else if (FLIP.keys.includes(key)) viewer.turn(viewer.facing.value === 'white' ? 'black' : 'white')
   else if (move && row) viewer.go(viewer.cursor.value + row)
   else if (control && !idle(control, viewer.cursor.value, viewer.loaded.value)) {
     viewer.go(control.to(viewer.loaded.value, viewer.cursor.value))
@@ -85,14 +99,15 @@ function markRoot(root: HTMLElement, motion: number, viewer: Viewer): void {
 /**
  * Turns each board to the side it faces, moves it to the cursor, marks the move
  * reaching its ply, and at the last position the two share draws both games'
- * next moves on both boards.
+ * next moves on both boards, the stored game's left out while it is covered.
  *
  * Returns:
  *   How many milliseconds from now the boards' moves take to land.
  */
 function moveBoards(figures: Pick<Parts, Party>, reach: Reach, viewer: Viewer): number {
   const [cursor, loaded] = [viewer.cursor.value, viewer.loaded.value]
-  const partings         = cursor === loaded.shared?.last ? loaded.partings : {}
+  const parting          = cursor === loaded.shared?.last ? loaded.partings : {}
+  const partings         = viewer.covered.value ? { submitted: parting.submitted } : parting
   let motion             = 0
   for (const party of PARTIES) {
     const board = figures[party].value?.board
@@ -166,6 +181,7 @@ export function useDrive(viewer: Viewer): Drive {
   const { moving }   = useMotion()
   const address      = useAddress(viewer)
   const parts: Parts = {
+    guess     : shallowRef(),
     ledger    : shallowRef(),
     root      : shallowRef(null),
     stored    : shallowRef(),
@@ -186,13 +202,15 @@ export function useDrive(viewer: Viewer): Drive {
     }
     const motion = moveBoards(parts, reach, viewer)
     markRoot(parts.root.value!, motion, viewer)
-    parts.ledger.value?.paint(cursor, reach === 'glide')
-    parts.track.value?.paint(cursor, reach === 'glide')
+    for (const part of [parts.ledger.value, parts.track.value]) {
+      part?.cover(viewer.covered.value ? cursor : undefined)
+      part?.paint(cursor, reach === 'glide')
+    }
     address.settle(motion)
     differ(motion)
   }
 
-  watch([viewer.loaded, viewer.cursor, viewer.facing], ([loaded], [was]) => {
+  watch([viewer.loaded, viewer.cursor, viewer.facing, viewer.covered], ([loaded], [was]) => {
     drive(loaded !== was)
   }, { flush: 'post' })
   onMounted(() => {
