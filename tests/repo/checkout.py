@@ -47,7 +47,8 @@ def test_the_checks_leave_out_a_task_another_task_of_the_leg_depends_on(
     """
     Asserts that each check a pull-request row reports pairs with the task
     its leg runs, leaving out the `site:install` the sample's Site row runs
-    ahead of `site:links`, which depends on it.
+    ahead of `site:links`, which depends on it, and keeping the `site:press`
+    the Press check runs, which `site:links` depends on from another check.
     """
     assert [
         (workflow.name, name, task)
@@ -55,7 +56,8 @@ def test_the_checks_leave_out_a_task_another_task_of_the_leg_depends_on(
     ] == [
         ("CI", "Lockfiles", "lock:check"),
         ("CI", "Coverage", "py:coverage"),
-        ("Site", "Links", "site:links")
+        ("Site", "Links", "site:links"),
+        ("Site", "Press", "site:press")
     ]
 
 
@@ -100,7 +102,7 @@ def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
 
     assert [path.relative_to(root) for path, _ in checkout.steps] == [
         *[Path("workflows/ci.yml")] * 5,
-        *[Path("workflows/site.yml")] * 6,
+        *[Path("workflows/site.yml")] * 9,
         *[Path("workflows/warm.yml")] * 4,
         Path("actions/provision/action.yml")
     ]
@@ -108,6 +110,7 @@ def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
         ("ci.yml", {Cache.TOOLS: "python uv"}),
         ("ci.yml", {Cache.CARGO: "scotch-python", Cache.TOOLS: "python uv"}),
         ("ci.yml", {Cache.TOOLS: "python uv"}),
+        ("site.yml", {Cache.TOOLS: "python uv"}),
         ("site.yml", {Cache.TOOLS: "python uv"}),
         ("site.yml", {Cache.TOOLS: "python uv"}),
         ("warm.yml", {Cache.TOOLS: "python uv"}),
@@ -129,7 +132,9 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
     tasks = {task.name: task for task in Checkout(app=app, root=Path()).tasks}
 
     assert tasks["repo:ci"].file == Path(".mise") / "tasks" / "repo" / "ci"
-    assert tasks["repo:ci"].depends == ("lock:check", "py:coverage", "site:links")
+    assert tasks["repo:ci"].depends == (
+        "lock:check", "py:coverage", "site:links", "site:press"
+    )
     assert tasks["repo:inline"].file is None
     assert fp.calls[0] == ["mise", "tasks", "ls", "--json", "--local"]
 

@@ -239,6 +239,22 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             )],
             id = "untracked-pin-firing-one-workflow"
         ),
+        *[
+            param(
+                FilterCheck,
+                [(".github/workflows/site.yml", f"      - {path}\n", "")],
+                [(
+                    ".github/workflows/site.yml", None,
+                    f"The `pull_request` filter leaves out `{path}`, "
+                    "which every gated workflow builds from"
+                )],
+                id = f"{kind}-firing-one-workflow"
+            )
+            for kind, path in (
+                ("action", ".github/actions/provision/action.yml"),
+                ("config", ".mise/config.toml")
+            )
+        ],
         param(
             GateCheck,
             [(

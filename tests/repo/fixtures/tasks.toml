@@ -20,7 +20,7 @@ file    = ".mise/tasks/py/test"
 name    = "py:test"
 
 [[tasks]]
-depends = ["lock:check", "py:coverage", "site:links"]
+depends = ["lock:check", "py:coverage", "site:links", "site:press"]
 file    = ".mise/tasks/repo/ci"
 name    = "repo:ci"
 
@@ -34,5 +34,9 @@ file    = ".mise/tasks/site/install"
 name    = "site:install"
 
 [[tasks]]
-depends = ["site:install"]
+depends = ["site:install", "site:press"]
 name    = "site:links"
+
+[[tasks]]
+depends = ["site:install"]
+name    = "site:press"

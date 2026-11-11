@@ -540,6 +540,23 @@ def test_a_trigger_fires_where_the_last_matching_pattern_takes_the_path_in(
     assert Trigger(paths=paths).fires(Path(path)) is fires
 
 
+@mark.parametrize(
+    ("path", "fires"),
+    [
+        param("docs/pages/index.md", False, id="ignored"),
+        param("src/scotch/cli/run.py", True, id="outside-the-ignore")
+    ]
+)
+def test_a_trigger_never_fires_on_a_path_its_ignore_matches(fires: bool, path: str):
+    """
+    Asserts that a path any `paths-ignore` pattern matches never fires the
+    event, while a path none matches fires it as an unfiltered event does.
+    """
+    trigger = Trigger.model_validate({"paths-ignore": ["docs/pages/**"]})
+
+    assert trigger.fires(Path(path)) is fires
+
+
 def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
     """
     Asserts that a workflow lists each job its gate does not wait for, and

@@ -13,10 +13,24 @@ jobs:
         run: mise run site:install
       - name: Check the site's links
         run: mise run --skip-deps site:links
+  press:
+    name: Press
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: python uv
+      - name: Build the site
+        run: mise run site:press
   scoresheet:
     if: always()
     name: 🖋️ Scoresheet
-    needs: check
+    needs:
+      - check
+      - press
     runs-on: ubuntu-26.04
     steps:
       - name: Install the tools

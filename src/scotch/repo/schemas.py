@@ -279,11 +279,17 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
     to fire.
     """
 
+    paths_ignore: tuple[str, ...] = Field(alias="paths-ignore", default=())
+    """
+    The patterns naming each path whose change never fires the event.
+    """
+
     def fires(self, path: Path) -> bool:
         """
-        Reads whether a change to `path` fires the event, as it does for
-        every path where the filter declares no pattern. Otherwise the
-        last pattern matching the path decides, as it does for GitHub, so
+        Reads whether a change to `path` fires the event, as it does
+        for every path where the filter declares no pattern. A path any
+        `paths-ignore` pattern matches never fires it. Otherwise the last
+        `paths` pattern matching the path decides, as it does for GitHub, so
         a pattern opening on `!` leaves out a path an earlier pattern took
         in, and each pattern reads through `PurePath.full_match`, where `*`
         stops at a `/` and a `**` segment spans any number of folders.
@@ -296,7 +302,9 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
             ),
             "!"
         )
-        return not self.paths or not last.startswith("!")
+        return not any(map(path.full_match, self.paths_ignore)) and (
+            not self.paths or not last.startswith("!")
+        )
 
 
 class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
