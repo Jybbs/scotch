@@ -861,20 +861,30 @@ def test_the_demo_game_matches_the_game_it_follows(
 
 def test_the_games_left_out_read_back_as_they_were_merged(tmp_path: Path):
     """
-    Asserts that the games a merge records as left out, a repeat among them,
-    write to the index's folder and read back under `LEFT`, a rating past
-    what 16 bits hold among them.
+    Asserts that the games a merge records as left out, a game its reader
+    could not read and a repeat among them, write to the index's folder and
+    read back under `LEFT`, a rating past what 16 bits hold among them.
     """
     source = land(
         tmp_path,
         "Twice.pgn",
-        body = b'[WhiteElo "204269"]\n\n1. e4 *\n\n[WhiteElo "204269"]\n\n1. e4 *\n'
+        body = (
+            b'[WhiteElo "204269"]\n\n1. e4 *\n\n[WhiteElo "204269"]\n\n1. e4 *\n\n'
+            b'[Event "?"]\n1. e4 e5 2. Qxf7 *\n'
+        )
     )
     PositionIndex.merge([Batch.read(tmp_path, source)]).write(tmp_path / "index")
     left = PositionIndex.read(tmp_path / "index").left.collect()
 
     assert left.schema == LEFT
     assert left.rows(named=True) == [
+        {
+            "address" : str(source.address),
+            "dated"   : 0,
+            "place"   : 3,
+            "rating"  : 0,
+            "reason"  : "unread"
+        },
         {
             "address" : str(source.address),
             "dated"   : 0,

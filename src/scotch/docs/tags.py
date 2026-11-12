@@ -2,7 +2,7 @@
 Holds `Tags`, how fully the stored games carry their tags as `Census.tags`
 counts them, beside the `Tagged` count of one group of games, the `Gap`
 of one tag in one decade, and the `Held` games of a gap in one file, whose
-properties write the table the Tags page sets beneath its figures and the
+properties write the tables the Tags page sets beneath its figures and the
 figures it sets inside its sentences.
 """
 
@@ -168,23 +168,43 @@ class Tags(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     def carried(self) -> str:
         """
         Writes a table of each tag beside the share of every stored game
-        carrying it with a value and the decade carrying it least, or every
-        stored game where no game is dated.
+        carrying it with a value and the decade carrying it least, a dash
+        where no decade carries it less than another, then a table of each
+        gap beside the files holding the most of its games.
         """
-        return markdown(
-            headers = ("Tag", "Carried", "Least In", "Share There"),
-            rows    = (
-                (
-                    f"`{name}`",
-                    f"{self.every.share(name):.1%}",
-                    (least := min(
-                        self.decades,
-                        default = self.every,
-                        key     = lambda tagged: tagged.share(name)
-                    )).name,
-                    f"{least.share(name):.1%}"
+        least = {name: self.least(name) for name in self.names}
+
+        return "\n\n".join(
+            (
+                markdown(
+                    headers = ("Tag", "Carried", "Least In", "Share There"),
+                    rows    = (
+                        (
+                            f"`{name}`",
+                            f"{self.every.share(name):.1%}",
+                            *(
+                                ("–", "–")
+                                if tagged is None
+                                else (tagged.name, f"{tagged.share(name):.1%}")
+                            )
+                        )
+                        for name, tagged in least.items()
+                    )
+                ),
+                markdown(
+                    headers = ("Tag", "Decade", "Missing", "Files Holding the Most"),
+                    rows    = (
+                        (
+                            f"`{gap.tag}`",
+                            gap.decade,
+                            f"{gap.missing:,}",
+                            ", ".join(
+                                f"{held.path} ({held.count:,})" for held in gap.files
+                            )
+                        )
+                        for gap in self.gaps
+                    )
                 )
-                for name in self.names
             )
         )
 
@@ -222,3 +242,12 @@ class Tags(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             "tags-day"     : f"{every.dates['day'] / every.games:.0%}",
             "tags-neither" : f"{every.ratings['neither'] / every.games:.0%}"
         }
+
+    def least(self, name: str) -> Tagged | None:
+        """
+        Finds the decade carrying the tag `name` least, the earliest of
+        those tied, or `None` where no decade carries it less than another.
+        """
+        shares = [tagged.share(name) for tagged in self.decades]
+
+        return self.decades[shares.index(min(shares))] if len(set(shares)) > 1 else None

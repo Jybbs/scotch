@@ -7,15 +7,16 @@ share of a `Parting` stands alone and the name of a `Crowd`.
 
 from pytest import fixture, mark, param
 
-from scotch.docs.shared import Crowd, Parting, Shared
+from scotch.docs.shared import Crowd, Line, Parting, Shared
 
 
 @fixture
 def shared() -> Shared:
     """
     Builds the sharing of twenty games over 21 moves, two of them standing
-    alone at once, sixteen at move 10, and two never, beside three ranges of
-    reach and one decade holding no game standing alone.
+    alone at once, sixteen at move 10, and two never, beside three ranges
+    of reach, the second straddling the crowd, one decade holding no game
+    standing alone, and one opening line.
     """
     every = Parting(
         alone   = [2, *[0] * 9, 16, *[0] * 10],
@@ -26,10 +27,10 @@ def shared() -> Shared:
     )
 
     return Shared(
-        crowd   = 10,
+        crowd   = 5,
         decades = [every.model_copy(update={"alone": [0] * 21, "name": "1990s"})],
         every   = every,
-        lines   = [],
+        lines   = [Line(games=12, reach=14, sans=["e4", "e5", "Nf3"])],
         reach   = [
             Crowd(
                 high  = 1,
@@ -102,11 +103,15 @@ def test_shared_writes_its_figures(shared: Shared):
 
 def test_shared_writes_its_tables(shared: Shared):
     """
-    Asserts that the crowding table marks the range past the crowd, that the
-    parting table lists every fifth move, and that the partings table writes
-    a dash for a decade no share reaches.
+    Asserts that the crowding tables mark each range whose fewest games pass
+    the crowd and list each opening line in numbered moves, that the parting
+    table lists every fifth move, and that the partings table writes a dash
+    for a decade no share reaches.
     """
-    assert shared.crowding.splitlines()[2:] == [
+    crowding, lines = shared.crowding.split("\n\n")
+
+    assert lines.splitlines()[2:] == ["| `1.e4 e5 2.Nf3` | 12 | 14 |"]
+    assert crowding.splitlines()[2:] == [
         "| 1 | 50 | 50.00% | 12.5% | No |", "| 2 to 10 | 40 | 40.00% | 37.5% | No |",
         "| 11 to 20 | 10 | 10.00% | 50.0% | Yes |"
     ]

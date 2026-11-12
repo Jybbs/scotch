@@ -4,10 +4,11 @@ Holds `Tally`, the counts `Census.store` draws from the index, beside the
 file the Data page's file list shows, the `Rank` of one row of the files the
 store keeps the most games from, the `Rules` measuring what the longest-run
 rule leaves out, `ended`, which reads the moves a share of games end by,
-and `markdown`, which writes each table. Their properties write the tables
-the Data pages and the Guide's store page set beneath their widgets and the
-figures the pages set inside their sentences, which `scotch render docs`
-writes between each pair of markers.
+`markdown`, which writes each table, and `numbered`, which writes a line
+of moves. Their properties write the tables the Data pages and the Guide's
+store page set beneath their widgets and the figures the pages set inside
+their sentences, which `scotch render docs` writes between each pair of
+markers.
 """
 
 from bisect          import bisect_left
@@ -591,4 +592,14 @@ def markdown(
             "|---" + ("|---:" if right else "|---") * (len(headers) - 1) + "|",
             *("| " + " | ".join(row) + " |" for row in rows)
         )
+    )
+
+
+def numbered(sans: Iterable[str]) -> str:
+    """
+    Writes moves in Standard Algebraic Notation (SAN) from the standard
+    starting position as numbered moves, such as `1.d4 d5 2.c4`.
+    """
+    return " ".join(
+        f"{ply // 2 + 1}.{san}" if ply % 2 == 0 else san for ply, san in enumerate(sans)
     )

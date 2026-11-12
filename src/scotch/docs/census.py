@@ -53,23 +53,24 @@ class Census:
 
     depth: int = 8
     """
-    The most stored games the measures of the longest-run rule sample.
+    The most plies of an opening line the Shared Positions page draws.
     """
 
     first: int = 1900
     """
-    The seed the sample is drawn with, so a rerun samples the same games.
+    The first decade the pages name, the games of the decades before it
+    counted together.
     """
 
     horizon: int = 40
     """
-    The most plies of an opening line the Shared Positions page draws.
+    The last move the partings of the stored games count.
     """
 
     least: float = 0.0015
     """
-    The first decade the pages name, the games of the decades before it
-    counted together.
+    The share of the stored games an opening line is played by at least to
+    be drawn.
     """
 
     line: str = (
@@ -77,18 +78,17 @@ class Census:
         " 8. cxd5 Nxd5 9. Nxd5 exd5 10. Bxe7 Qxe7"
     )
     """
-    The last move the partings of the stored games count.
+    The opening line whose tie the Tags page draws.
     """
 
     sample: int = 1000
     """
-    The share of the stored games an opening line is played by at least to
-    be drawn.
+    The most stored games the measures of the longest-run rule sample.
     """
 
     seed: int = 1953
     """
-    The opening line whose tie the Tags page draws.
+    The seed the sample is drawn with, so a rerun samples the same games.
     """
 
     sources: Sources = field(default_factory=Sources.read)

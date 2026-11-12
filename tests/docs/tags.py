@@ -6,7 +6,7 @@ ratings, beside the share `Tagged` reads for one tag.
 
 from pytest import fixture
 
-from scotch.docs.tags import Tagged, Tags
+from scotch.docs.tags import Gap, Held, Tagged, Tags
 
 
 def tagged(
@@ -17,8 +17,9 @@ def tagged(
     round : int
 ) -> Tagged:
     """
-    Builds the count of a group of `games` games, `round` of them carrying a
-    `Round` tag, `day` dated to the day, and `both` carrying both ratings.
+    Builds the count of a group of `games` games, each carrying an `Event`
+    tag, `round` of them carrying a `Round` tag, `day` dated to the day, and
+    `both` carrying both ratings.
     """
     return Tagged(
         dates = {
@@ -30,14 +31,15 @@ def tagged(
         games   = games,
         name    = name,
         ratings = {"both": both, "neither": games - both, "one": 0},
-        tags    = {"Round": round}
+        tags    = {"Event": games, "Round": round}
     )
 
 
 @fixture
 def tags() -> Tags:
     """
-    Builds the tags of two decades, the earlier carrying fewer `Round` tags.
+    Builds the tags of two decades, the earlier carrying fewer `Round` tags
+    and both carrying every `Event` tag, beside the earlier decade's gap.
     """
     return Tags(
         decades = [
@@ -63,8 +65,15 @@ def tags() -> Tags:
             name  = "Every game",
             round = 13
         ),
-        gaps  = [],
-        names = ["Round"]
+        gaps = [
+            Gap(
+                decade  = "1970s",
+                files   = [Held(count=3, path="players/Alekhine.zip")],
+                missing = 3,
+                tag     = "Round"
+            )
+        ],
+        names = ["Round", "Event"]
     )
 
 
@@ -85,8 +94,9 @@ def test_a_group_holding_no_games_shares_nothing():
 def test_tags_write_their_figures_and_tables(tags: Tags):
     """
     Asserts that the figures read every stored game's shares, that the
-    carried table names the decade carrying a tag least, and that the dated
-    table lists each decade's shares.
+    carried tables name the decade carrying a tag least, a dash where every
+    decade carries it alike, and the files behind each gap, and that the
+    dated table lists each decade's shares.
     """
     assert tags.figures == {
         "tags-both"    : "20%",
@@ -94,7 +104,14 @@ def test_tags_write_their_figures_and_tables(tags: Tags):
         "tags-neither" : "80%",
         "tags-round"   : "65%"
     }
-    assert tags.carried.splitlines()[2:] == ["| `Round` | 65.0% | 1970s | 25.0% |"]
+    carried, gaps = tags.carried.split("\n\n")
+
+    assert carried.splitlines()[2:] == [
+        "| `Round` | 65.0% | 1970s | 25.0% |", "| `Event` | 100.0% | – | – |"
+    ]
+    assert gaps.splitlines()[2:] == [
+        "| `Round` | 1970s | 3 | players/Alekhine.zip (3) |"
+    ]
     assert tags.dated.splitlines()[2:] == [
         "| 1970s | 4 | 50.0% | 0.0% |", "| 1980s | 16 | 50.0% | 25.0% |"
     ]

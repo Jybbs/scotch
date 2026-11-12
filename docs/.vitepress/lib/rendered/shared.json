@@ -2015,64 +2015,63 @@
   "lines": [
     {
       "games": 10030,
-      "placement": "rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR",
       "reach": 10030,
       "sans": [
         "b3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR"
     },
     {
       "games": 3223,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/1P6/P1PPPPPP/RNBQKBNR",
       "reach": 3223,
       "sans": [
         "b3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/1P6/P1PPPPPP/RNBQKBNR"
     },
     {
       "games": 2991,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/1P6/PBPPPPPP/RN1QKBNR",
       "reach": 2991,
       "sans": [
         "b3",
         "d5",
         "Bb2"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/1P6/PBPPPPPP/RN1QKBNR"
     },
     {
       "games": 3286,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/8/1P6/P1PPPPPP/RNBQKBNR",
       "reach": 3286,
       "sans": [
         "b3",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/8/1P6/P1PPPPPP/RNBQKBNR"
     },
     {
       "games": 3262,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/8/1P6/PBPPPPPP/RN1QKBNR",
       "reach": 3262,
       "sans": [
         "b3",
         "e5",
         "Bb2"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/8/1P6/PBPPPPPP/RN1QKBNR"
     },
     {
       "games": 2737,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/8/1P6/PBPPPPPP/RN1QKBNR",
       "reach": 2755,
       "sans": [
         "b3",
         "e5",
         "Bb2",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/8/1P6/PBPPPPPP/RN1QKBNR"
     },
     {
       "games": 1819,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/8/1P2P3/PBPP1PPP/RN1QKBNR",
       "reach": 1831,
       "sans": [
         "b3",
@@ -2080,87 +2079,87 @@
         "Bb2",
         "Nc6",
         "e3"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/8/1P2P3/PBPP1PPP/RN1QKBNR"
     },
     {
       "games": 1829,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/8/1P6/P1PPPPPP/RNBQKBNR",
       "reach": 1829,
       "sans": [
         "b3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/8/1P6/P1PPPPPP/RNBQKBNR"
     },
     {
       "games": 1813,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/8/1P6/PBPPPPPP/RN1QKBNR",
       "reach": 1813,
       "sans": [
         "b3",
         "Nf6",
         "Bb2"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/8/1P6/PBPPPPPP/RN1QKBNR"
     },
     {
       "games": 89092,
-      "placement": "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 89092,
       "sans": [
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 1776,
-      "placement": "rnbqkbnr/p1pppppp/1p6/8/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 1776,
       "sans": [
         "c4",
         "b6"
-      ]
+      ],
+      "placement": "rnbqkbnr/p1pppppp/1p6/8/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 7982,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 7982,
       "sans": [
         "c4",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 2119,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 2119,
       "sans": [
         "c4",
         "c5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 3949,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 9232,
       "sans": [
         "c4",
         "c5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 2426,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 10753,
       "sans": [
         "c4",
         "c5",
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 1981,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 10164,
       "sans": [
         "c4",
@@ -2168,82 +2167,82 @@
         "Nf3",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 1847,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/6P1/PP1PPP1P/RNBQKBNR",
       "reach": 1916,
       "sans": [
         "c4",
         "c5",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/6P1/PP1PPP1P/RNBQKBNR"
     },
     {
       "games": 8530,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 8530,
       "sans": [
         "c4",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 1874,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 2139,
       "sans": [
         "c4",
         "c6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 1818,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 35703,
       "sans": [
         "c4",
         "c6",
         "d4",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 1845,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P1P3/8/PP1P1PPP/RNBQKBNR",
       "reach": 4010,
       "sans": [
         "c4",
         "c6",
         "e4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P1P3/8/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 3882,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 3916,
       "sans": [
         "c4",
         "c6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 3435,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 6405,
       "sans": [
         "c4",
         "c6",
         "Nf3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 1925,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P5/4PN2/PP1P1PPP/RNBQKB1R",
       "reach": 3406,
       "sans": [
         "c4",
@@ -2251,11 +2250,11 @@
         "Nf3",
         "d5",
         "e3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P5/4PN2/PP1P1PPP/RNBQKB1R"
     },
     {
       "games": 1812,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2P5/4PN2/PP1P1PPP/RNBQKB1R",
       "reach": 3572,
       "sans": [
         "c4",
@@ -2264,41 +2263,41 @@
         "d5",
         "e3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2P5/4PN2/PP1P1PPP/RNBQKB1R"
     },
     {
       "games": 22058,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 22058,
       "sans": [
         "c4",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 13759,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 13759,
       "sans": [
         "c4",
         "e5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 3547,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 3610,
       "sans": [
         "c4",
         "e5",
         "Nc3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 1744,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2P5/2N3P1/PP1PPP1P/R1BQKBNR",
       "reach": 2097,
       "sans": [
         "c4",
@@ -2306,33 +2305,33 @@
         "Nc3",
         "Nc6",
         "g3"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2P5/2N3P1/PP1PPP1P/R1BQKBNR"
     },
     {
       "games": 2356,
-      "placement": "rnbqk1nr/pppp1ppp/8/4p3/1bP5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 2356,
       "sans": [
         "c4",
         "e5",
         "Nc3",
         "Bb4"
-      ]
+      ],
+      "placement": "rnbqk1nr/pppp1ppp/8/4p3/1bP5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 6590,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 10748,
       "sans": [
         "c4",
         "e5",
         "Nc3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 4769,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 7811,
       "sans": [
         "c4",
@@ -2340,11 +2339,11 @@
         "Nc3",
         "Nf6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 4670,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 8484,
       "sans": [
         "c4",
@@ -2353,11 +2352,11 @@
         "Nf6",
         "Nf3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 1839,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2P5/2N2NP1/PP1PPP1P/R1BQKB1R",
       "reach": 3456,
       "sans": [
         "c4",
@@ -2367,43 +2366,43 @@
         "Nf3",
         "Nc6",
         "g3"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2P5/2N2NP1/PP1PPP1P/R1BQKB1R"
     },
     {
       "games": 7611,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2P5/6P1/PP1PPP1P/RNBQKBNR",
       "reach": 8155,
       "sans": [
         "c4",
         "e5",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2P5/6P1/PP1PPP1P/RNBQKBNR"
     },
     {
       "games": 1903,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2P5/6P1/PP1PPP1P/RNBQKBNR",
       "reach": 2029,
       "sans": [
         "c4",
         "e5",
         "g3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2P5/6P1/PP1PPP1P/RNBQKBNR"
     },
     {
       "games": 3681,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/6P1/PP1PPP1P/RNBQKBNR",
       "reach": 4399,
       "sans": [
         "c4",
         "e5",
         "g3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/6P1/PP1PPP1P/RNBQKBNR"
     },
     {
       "games": 3623,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/6P1/PP1PPPBP/RNBQK1NR",
       "reach": 4314,
       "sans": [
         "c4",
@@ -2411,41 +2410,41 @@
         "g3",
         "Nf6",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/6P1/PP1PPPBP/RNBQK1NR"
     },
     {
       "games": 14539,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 14539,
       "sans": [
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 6570,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 6570,
       "sans": [
         "c4",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 5647,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 5650,
       "sans": [
         "c4",
         "e6",
         "Nc3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 5163,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 23644,
       "sans": [
         "c4",
@@ -2453,11 +2452,11 @@
         "Nc3",
         "d5",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 2426,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 18883,
       "sans": [
         "c4",
@@ -2466,133 +2465,133 @@
         "d5",
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 4949,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 5474,
       "sans": [
         "c4",
         "e6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 4073,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 7605,
       "sans": [
         "c4",
         "e6",
         "Nf3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 1887,
-      "placement": "rnbqkbnr/ppppp1pp/8/5p2/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 1887,
       "sans": [
         "c4",
         "f5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppppp1pp/8/5p2/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 7934,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 7934,
       "sans": [
         "c4",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 3097,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 3097,
       "sans": [
         "c4",
         "g6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 2438,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 2438,
       "sans": [
         "c4",
         "g6",
         "Nc3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 1875,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/2P5/6P1/PP1PPP1P/RNBQKBNR",
       "reach": 1894,
       "sans": [
         "c4",
         "g6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/2P5/6P1/PP1PPP1P/RNBQKBNR"
     },
     {
       "games": 1728,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/2P5/6P1/PP1PPP1P/RNBQKBNR",
       "reach": 1738,
       "sans": [
         "c4",
         "g6",
         "g3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/2P5/6P1/PP1PPP1P/RNBQKBNR"
     },
     {
       "games": 23835,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/8/PP1PPPPP/RNBQKBNR",
       "reach": 23835,
       "sans": [
         "c4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/8/PP1PPPPP/RNBQKBNR"
     },
     {
       "games": 15721,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 15721,
       "sans": [
         "c4",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 2029,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 2318,
       "sans": [
         "c4",
         "Nf6",
         "Nc3",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 4158,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 10748,
       "sans": [
         "c4",
         "Nf6",
         "Nc3",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 3034,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 7811,
       "sans": [
         "c4",
@@ -2600,11 +2599,11 @@
         "Nc3",
         "e5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 2980,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 8484,
       "sans": [
         "c4",
@@ -2613,33 +2612,33 @@
         "e5",
         "Nf3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 3839,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 4353,
       "sans": [
         "c4",
         "Nf6",
         "Nc3",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 4742,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/2N5/PP1PPPPP/R1BQKBNR",
       "reach": 4792,
       "sans": [
         "c4",
         "Nf6",
         "Nc3",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/2N5/PP1PPPPP/R1BQKBNR"
     },
     {
       "games": 2091,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P1P3/2N5/PP1P1PPP/R1BQKBNR",
       "reach": 2113,
       "sans": [
         "c4",
@@ -2647,11 +2646,11 @@
         "Nc3",
         "g6",
         "e4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P1P3/2N5/PP1P1PPP/R1BQKBNR"
     },
     {
       "games": 1914,
-      "placement": "rnbqkb1r/ppp1pp1p/3p1np1/8/2P1P3/2N5/PP1P1PPP/R1BQKBNR",
       "reach": 1928,
       "sans": [
         "c4",
@@ -2660,11 +2659,11 @@
         "g6",
         "e4",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pp1p/3p1np1/8/2P1P3/2N5/PP1P1PPP/R1BQKBNR"
     },
     {
       "games": 1753,
-      "placement": "rnbqkb1r/ppp1pp1p/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR",
       "reach": 2360,
       "sans": [
         "c4",
@@ -2674,11 +2673,11 @@
         "e4",
         "d6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pp1p/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR"
     },
     {
       "games": 1748,
-      "placement": "rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR",
       "reach": 27591,
       "sans": [
         "c4",
@@ -2689,11 +2688,11 @@
         "d6",
         "d4",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR"
     },
     {
       "games": 1740,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/2N3P1/PP1PPP1P/R1BQKBNR",
       "reach": 1775,
       "sans": [
         "c4",
@@ -2701,69 +2700,69 @@
         "Nc3",
         "g6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/2N3P1/PP1PPP1P/R1BQKBNR"
     },
     {
       "games": 3209,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 30524,
       "sans": [
         "c4",
         "Nf6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 3957,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/6P1/PP1PPP1P/RNBQKBNR",
       "reach": 3986,
       "sans": [
         "c4",
         "Nf6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/6P1/PP1PPP1P/RNBQKBNR"
     },
     {
       "games": 386694,
-      "placement": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR",
       "reach": 386694,
       "sans": [
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR"
     },
     {
       "games": 90862,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR",
       "reach": 90863,
       "sans": [
         "d4",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR"
     },
     {
       "games": 74218,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 74227,
       "sans": [
         "d4",
         "d5",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 33703,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 35703,
       "sans": [
         "d4",
         "d5",
         "c4",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 8845,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 9557,
       "sans": [
         "d4",
@@ -2771,11 +2770,11 @@
         "c4",
         "c6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 8224,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 9874,
       "sans": [
         "d4",
@@ -2784,11 +2783,11 @@
         "c6",
         "Nc3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 4354,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N1P3/PP3PPP/R1BQKBNR",
       "reach": 5529,
       "sans": [
         "d4",
@@ -2798,11 +2797,11 @@
         "Nc3",
         "Nf6",
         "e3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N1P3/PP3PPP/R1BQKBNR"
     },
     {
       "games": 3310,
-      "placement": "rnbqkb1r/pp3ppp/2p1pn2/3p4/2PP4/2N1P3/PP3PPP/R1BQKBNR",
       "reach": 5974,
       "sans": [
         "d4",
@@ -2813,11 +2812,11 @@
         "Nf6",
         "e3",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp3ppp/2p1pn2/3p4/2PP4/2N1P3/PP3PPP/R1BQKBNR"
     },
     {
       "games": 3417,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 24863,
       "sans": [
         "d4",
@@ -2827,11 +2826,11 @@
         "Nc3",
         "Nf6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 1777,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3P4/3P4/8/PP2PPPP/RNBQKBNR",
       "reach": 2159,
       "sans": [
         "d4",
@@ -2839,11 +2838,11 @@
         "c4",
         "c6",
         "cxd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3P4/3P4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 1776,
-      "placement": "rnbqkbnr/pp2pppp/8/3p4/3P4/8/PP2PPPP/RNBQKBNR",
       "reach": 2168,
       "sans": [
         "d4",
@@ -2852,11 +2851,11 @@
         "c6",
         "cxd5",
         "cxd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/3p4/3P4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 22142,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 25795,
       "sans": [
         "d4",
@@ -2864,11 +2863,11 @@
         "c4",
         "c6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 21482,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 32763,
       "sans": [
         "d4",
@@ -2877,11 +2876,11 @@
         "c6",
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 14329,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 24863,
       "sans": [
         "d4",
@@ -2891,11 +2890,11 @@
         "Nf3",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 3038,
-      "placement": "rnbqkb1r/1p2pppp/p1p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 5383,
       "sans": [
         "d4",
@@ -2906,11 +2905,11 @@
         "Nf6",
         "Nc3",
         "a6"
-      ]
+      ],
+      "placement": "rnbqkb1r/1p2pppp/p1p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 5415,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/8/2pP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 9427,
       "sans": [
         "d4",
@@ -2921,11 +2920,11 @@
         "Nf6",
         "Nc3",
         "dxc4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/8/2pP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 5737,
-      "placement": "rnbqkb1r/pp3ppp/2p1pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 17846,
       "sans": [
         "d4",
@@ -2936,11 +2935,11 @@
         "Nf6",
         "Nc3",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp3ppp/2p1pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 2900,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/4PN2/PP3PPP/RNBQKB1R",
       "reach": 5503,
       "sans": [
         "d4",
@@ -2950,22 +2949,22 @@
         "Nf3",
         "Nf6",
         "e3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/4PN2/PP3PPP/RNBQKB1R"
     },
     {
       "games": 10665,
-      "placement": "rnbqkbnr/ppp1pppp/8/8/2pP4/8/PP2PPPP/RNBQKBNR",
       "reach": 10667,
       "sans": [
         "d4",
         "d5",
         "c4",
         "dxc4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/8/2pP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 3274,
-      "placement": "rnbqkbnr/ppp1pppp/8/8/2pPP3/8/PP3PPP/RNBQKBNR",
       "reach": 3275,
       "sans": [
         "d4",
@@ -2973,11 +2972,11 @@
         "c4",
         "dxc4",
         "e4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/8/2pPP3/8/PP3PPP/RNBQKBNR"
     },
     {
       "games": 5721,
-      "placement": "rnbqkbnr/ppp1pppp/8/8/2pP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 5722,
       "sans": [
         "d4",
@@ -2985,11 +2984,11 @@
         "c4",
         "dxc4",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/8/2pP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3838,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/8/2pP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 6545,
       "sans": [
         "d4",
@@ -2998,11 +2997,11 @@
         "dxc4",
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/8/2pP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3273,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/8/2pP4/4PN2/PP3PPP/RNBQKB1R",
       "reach": 5304,
       "sans": [
         "d4",
@@ -3012,11 +3011,11 @@
         "Nf3",
         "Nf6",
         "e3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/8/2pP4/4PN2/PP3PPP/RNBQKB1R"
     },
     {
       "games": 2297,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/8/2pP4/4PN2/PP3PPP/RNBQKB1R",
       "reach": 3886,
       "sans": [
         "d4",
@@ -3027,22 +3026,22 @@
         "Nf6",
         "e3",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/8/2pP4/4PN2/PP3PPP/RNBQKB1R"
     },
     {
       "games": 26870,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 28459,
       "sans": [
         "d4",
         "d5",
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 17413,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 23644,
       "sans": [
         "d4",
@@ -3050,11 +3049,11 @@
         "c4",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 2175,
-      "placement": "rnbqkbnr/pp3ppp/4p3/2pp4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 2642,
       "sans": [
         "d4",
@@ -3063,11 +3062,11 @@
         "e6",
         "Nc3",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/2pp4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 1772,
-      "placement": "rnbqkbnr/pp3ppp/4p3/2pP4/3P4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 2145,
       "sans": [
         "d4",
@@ -3077,11 +3076,11 @@
         "Nc3",
         "c5",
         "cxd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/2pP4/3P4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 3919,
-      "placement": "rnbqkbnr/pp3ppp/2p1p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 5304,
       "sans": [
         "d4",
@@ -3090,11 +3089,11 @@
         "e6",
         "Nc3",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/2p1p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 1966,
-      "placement": "rnbqk1nr/ppp1bppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 2938,
       "sans": [
         "d4",
@@ -3103,11 +3102,11 @@
         "e6",
         "Nc3",
         "Be7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp1bppp/4p3/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 8049,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 18883,
       "sans": [
         "d4",
@@ -3116,11 +3115,11 @@
         "e6",
         "Nc3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 2319,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/2PP4/2N5/PP2PPPP/R2QKBNR",
       "reach": 4821,
       "sans": [
         "d4",
@@ -3130,11 +3129,11 @@
         "Nc3",
         "Nf6",
         "Bg5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/2PP4/2N5/PP2PPPP/R2QKBNR"
     },
     {
       "games": 4192,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3P4/3P4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 10758,
       "sans": [
         "d4",
@@ -3144,11 +3143,11 @@
         "Nc3",
         "Nf6",
         "cxd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3P4/3P4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 3864,
-      "placement": "rnbqkb1r/ppp2ppp/5n2/3p4/3P4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 9671,
       "sans": [
         "d4",
@@ -3159,11 +3158,11 @@
         "Nf6",
         "cxd5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/5n2/3p4/3P4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 9100,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 12918,
       "sans": [
         "d4",
@@ -3171,11 +3170,11 @@
         "c4",
         "e6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 6671,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 39947,
       "sans": [
         "d4",
@@ -3184,11 +3183,11 @@
         "e6",
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3997,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 34839,
       "sans": [
         "d4",
@@ -3198,11 +3197,11 @@
         "Nf3",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 2208,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 10631,
       "sans": [
         "d4",
@@ -3212,32 +3211,32 @@
         "Nf3",
         "Nf6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 13154,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 21441,
       "sans": [
         "d4",
         "d5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 10179,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 23709,
       "sans": [
         "d4",
         "d5",
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 7251,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 17897,
       "sans": [
         "d4",
@@ -3245,11 +3244,11 @@
         "Nf3",
         "Nf6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3510,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 32763,
       "sans": [
         "d4",
@@ -3258,11 +3257,11 @@
         "Nf6",
         "c4",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 1973,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 24863,
       "sans": [
         "d4",
@@ -3272,11 +3271,11 @@
         "c4",
         "c6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 2100,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 39947,
       "sans": [
         "d4",
@@ -3285,41 +3284,41 @@
         "Nf6",
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 8062,
-      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3P4/8/PPP1PPPP/RNBQKBNR",
       "reach": 8062,
       "sans": [
         "d4",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3P4/8/PPP1PPPP/RNBQKBNR"
     },
     {
       "games": 4370,
-      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 21802,
       "sans": [
         "d4",
         "d6",
         "e4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 3540,
-      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 18864,
       "sans": [
         "d4",
         "d6",
         "e4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 2780,
-      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 16939,
       "sans": [
         "d4",
@@ -3327,123 +3326,123 @@
         "e4",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2446,
-      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 3373,
       "sans": [
         "d4",
         "d6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 13030,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3P4/8/PPP1PPPP/RNBQKBNR",
       "reach": 13030,
       "sans": [
         "d4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3P4/8/PPP1PPPP/RNBQKBNR"
     },
     {
       "games": 8090,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 9160,
       "sans": [
         "d4",
         "e6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 1849,
-      "placement": "rnbqkbnr/pppp2pp/4p3/5p2/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 2026,
       "sans": [
         "d4",
         "e6",
         "c4",
         "f5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp2pp/4p3/5p2/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 3449,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 124263,
       "sans": [
         "d4",
         "e6",
         "c4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 1867,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 61220,
       "sans": [
         "d4",
         "e6",
         "e4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 1774,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 60956,
       "sans": [
         "d4",
         "e6",
         "e4",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 2661,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 2728,
       "sans": [
         "d4",
         "e6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 7522,
-      "placement": "rnbqkbnr/ppppp1pp/8/5p2/3P4/8/PPP1PPPP/RNBQKBNR",
       "reach": 7522,
       "sans": [
         "d4",
         "f5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppppp1pp/8/5p2/3P4/8/PPP1PPPP/RNBQKBNR"
     },
     {
       "games": 2050,
-      "placement": "rnbqkbnr/ppppp1pp/8/5p2/3P4/6P1/PPP1PP1P/RNBQKBNR",
       "reach": 2060,
       "sans": [
         "d4",
         "f5",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppppp1pp/8/5p2/3P4/6P1/PPP1PP1P/RNBQKBNR"
     },
     {
       "games": 1906,
-      "placement": "rnbqkb1r/ppppp1pp/5n2/5p2/3P4/6P1/PPP1PP1P/RNBQKBNR",
       "reach": 1913,
       "sans": [
         "d4",
         "f5",
         "g3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppppp1pp/5n2/5p2/3P4/6P1/PPP1PP1P/RNBQKBNR"
     },
     {
       "games": 1880,
-      "placement": "rnbqkb1r/ppppp1pp/5n2/5p2/3P4/6P1/PPP1PPBP/RNBQK1NR",
       "reach": 1892,
       "sans": [
         "d4",
@@ -3451,62 +3450,62 @@
         "g3",
         "Nf6",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppppp1pp/5n2/5p2/3P4/6P1/PPP1PPBP/RNBQK1NR"
     },
     {
       "games": 8143,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/3P4/8/PPP1PPPP/RNBQKBNR",
       "reach": 8143,
       "sans": [
         "d4",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/3P4/8/PPP1PPPP/RNBQKBNR"
     },
     {
       "games": 2918,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 4524,
       "sans": [
         "d4",
         "g6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 2709,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 3658,
       "sans": [
         "d4",
         "g6",
         "c4",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 4029,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 18818,
       "sans": [
         "d4",
         "g6",
         "e4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 3699,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 17495,
       "sans": [
         "d4",
         "g6",
         "e4",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 1809,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 11001,
       "sans": [
         "d4",
@@ -3514,73 +3513,73 @@
         "e4",
         "Bg7",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 255747,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR",
       "reach": 255747,
       "sans": [
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR"
     },
     {
       "games": 1805,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/3P1B2/8/PPP1PPPP/RN1QKBNR",
       "reach": 1805,
       "sans": [
         "d4",
         "Nf6",
         "Bf4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/3P1B2/8/PPP1PPPP/RN1QKBNR"
     },
     {
       "games": 11404,
-      "placement": "rnbqkb1r/pppppppp/5n2/6B1/3P4/8/PPP1PPPP/RN1QKBNR",
       "reach": 11404,
       "sans": [
         "d4",
         "Nf6",
         "Bg5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/6B1/3P4/8/PPP1PPPP/RN1QKBNR"
     },
     {
       "games": 3784,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p2B1/3P4/8/PPP1PPPP/RN1QKBNR",
       "reach": 3974,
       "sans": [
         "d4",
         "Nf6",
         "Bg5",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p2B1/3P4/8/PPP1PPPP/RN1QKBNR"
     },
     {
       "games": 2794,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/6B1/3P4/8/PPP1PPPP/RN1QKBNR",
       "reach": 2794,
       "sans": [
         "d4",
         "Nf6",
         "Bg5",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/6B1/3P4/8/PPP1PPPP/RN1QKBNR"
     },
     {
       "games": 2729,
-      "placement": "rnbqkb1r/pppppppp/8/6B1/3Pn3/8/PPP1PPPP/RN1QKBNR",
       "reach": 2730,
       "sans": [
         "d4",
         "Nf6",
         "Bg5",
         "Ne4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/8/6B1/3Pn3/8/PPP1PPPP/RN1QKBNR"
     },
     {
       "games": 2130,
-      "placement": "rnbqkb1r/pppppppp/8/8/3PnB2/8/PPP1PPPP/RN1QKBNR",
       "reach": 2131,
       "sans": [
         "d4",
@@ -3588,32 +3587,32 @@
         "Bg5",
         "Ne4",
         "Bf4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/8/8/3PnB2/8/PPP1PPPP/RN1QKBNR"
     },
     {
       "games": 198603,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 199521,
       "sans": [
         "d4",
         "Nf6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 15743,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 15808,
       "sans": [
         "d4",
         "Nf6",
         "c4",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 14134,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2pP4/2P5/8/PP2PPPP/RNBQKBNR",
       "reach": 14444,
       "sans": [
         "d4",
@@ -3621,11 +3620,11 @@
         "c4",
         "c5",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2pP4/2P5/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 6262,
-      "placement": "rnbqkb1r/p2ppppp/5n2/1ppP4/2P5/8/PP2PPPP/RNBQKBNR",
       "reach": 6363,
       "sans": [
         "d4",
@@ -3634,11 +3633,11 @@
         "c5",
         "d5",
         "b5"
-      ]
+      ],
+      "placement": "rnbqkb1r/p2ppppp/5n2/1ppP4/2P5/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 4858,
-      "placement": "rnbqkb1r/p2ppppp/5n2/1PpP4/8/8/PP2PPPP/RNBQKBNR",
       "reach": 4940,
       "sans": [
         "d4",
@@ -3648,11 +3647,11 @@
         "d5",
         "b5",
         "cxb5"
-      ]
+      ],
+      "placement": "rnbqkb1r/p2ppppp/5n2/1PpP4/8/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 4823,
-      "placement": "rnbqkb1r/3ppppp/p4n2/1PpP4/8/8/PP2PPPP/RNBQKBNR",
       "reach": 4901,
       "sans": [
         "d4",
@@ -3663,11 +3662,11 @@
         "b5",
         "cxb5",
         "a6"
-      ]
+      ],
+      "placement": "rnbqkb1r/3ppppp/p4n2/1PpP4/8/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 3991,
-      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/8/PP2PPPP/RNBQKBNR",
       "reach": 4083,
       "sans": [
         "d4",
@@ -3676,11 +3675,11 @@
         "c5",
         "d5",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 3844,
-      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/2N5/PP2PPPP/R1BQKBNR",
       "reach": 4943,
       "sans": [
         "d4",
@@ -3690,11 +3689,11 @@
         "d5",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 3780,
-      "placement": "rnbqkb1r/pp1p1ppp/5n2/2pp4/2P5/2N5/PP2PPPP/R1BQKBNR",
       "reach": 4851,
       "sans": [
         "d4",
@@ -3705,22 +3704,22 @@
         "e6",
         "Nc3",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/5n2/2pp4/2P5/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 5279,
-      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 5510,
       "sans": [
         "d4",
         "Nf6",
         "c4",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 3164,
-      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 3438,
       "sans": [
         "d4",
@@ -3728,11 +3727,11 @@
         "c4",
         "d6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 2036,
-      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 3703,
       "sans": [
         "d4",
@@ -3740,22 +3739,22 @@
         "c4",
         "d6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 119930,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 124263,
       "sans": [
         "d4",
         "Nf6",
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 54856,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 57683,
       "sans": [
         "d4",
@@ -3763,11 +3762,11 @@
         "c4",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 7455,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 18883,
       "sans": [
         "d4",
@@ -3776,11 +3775,11 @@
         "e6",
         "Nc3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 1752,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/2PP4/2N5/PP2PPPP/R2QKBNR",
       "reach": 4821,
       "sans": [
         "d4",
@@ -3790,11 +3789,11 @@
         "Nc3",
         "d5",
         "Bg5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/2PP4/2N5/PP2PPPP/R2QKBNR"
     },
     {
       "games": 4476,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3P4/3P4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 10758,
       "sans": [
         "d4",
@@ -3804,11 +3803,11 @@
         "Nc3",
         "d5",
         "cxd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3P4/3P4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 3916,
-      "placement": "rnbqkb1r/ppp2ppp/5n2/3p4/3P4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 9671,
       "sans": [
         "d4",
@@ -3819,11 +3818,11 @@
         "d5",
         "cxd5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/5n2/3p4/3P4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 46364,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 48660,
       "sans": [
         "d4",
@@ -3832,11 +3831,11 @@
         "e6",
         "Nc3",
         "Bb4"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 14895,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N5/PPQ1PPPP/R1B1KBNR",
       "reach": 15591,
       "sans": [
         "d4",
@@ -3846,11 +3845,11 @@
         "Nc3",
         "Bb4",
         "Qc2"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N5/PPQ1PPPP/R1B1KBNR"
     },
     {
       "games": 2573,
-      "placement": "rnbqk2r/pp1p1ppp/4pn2/2p5/1bPP4/2N5/PPQ1PPPP/R1B1KBNR",
       "reach": 2711,
       "sans": [
         "d4",
@@ -3861,11 +3860,11 @@
         "Bb4",
         "Qc2",
         "c5"
-      ]
+      ],
+      "placement": "rnbqk2r/pp1p1ppp/4pn2/2p5/1bPP4/2N5/PPQ1PPPP/R1B1KBNR"
     },
     {
       "games": 3399,
-      "placement": "rnbqk2r/ppp2ppp/4pn2/3p4/1bPP4/2N5/PPQ1PPPP/R1B1KBNR",
       "reach": 3539,
       "sans": [
         "d4",
@@ -3876,11 +3875,11 @@
         "Bb4",
         "Qc2",
         "d5"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp2ppp/4pn2/3p4/1bPP4/2N5/PPQ1PPPP/R1B1KBNR"
     },
     {
       "games": 6932,
-      "placement": "rnbq1rk1/pppp1ppp/4pn2/8/1bPP4/2N5/PPQ1PPPP/R1B1KBNR",
       "reach": 7260,
       "sans": [
         "d4",
@@ -3891,11 +3890,11 @@
         "Bb4",
         "Qc2",
         "O-O"
-      ]
+      ],
+      "placement": "rnbq1rk1/pppp1ppp/4pn2/8/1bPP4/2N5/PPQ1PPPP/R1B1KBNR"
     },
     {
       "games": 19966,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR",
       "reach": 20987,
       "sans": [
         "d4",
@@ -3905,11 +3904,11 @@
         "Nc3",
         "Bb4",
         "e3"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR"
     },
     {
       "games": 2554,
-      "placement": "rnbqk2r/p1pp1ppp/1p2pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR",
       "reach": 2701,
       "sans": [
         "d4",
@@ -3920,11 +3919,11 @@
         "Bb4",
         "e3",
         "b6"
-      ]
+      ],
+      "placement": "rnbqk2r/p1pp1ppp/1p2pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR"
     },
     {
       "games": 3308,
-      "placement": "rnbqk2r/pp1p1ppp/4pn2/2p5/1bPP4/2N1P3/PP3PPP/R1BQKBNR",
       "reach": 3567,
       "sans": [
         "d4",
@@ -3935,11 +3934,11 @@
         "Bb4",
         "e3",
         "c5"
-      ]
+      ],
+      "placement": "rnbqk2r/pp1p1ppp/4pn2/2p5/1bPP4/2N1P3/PP3PPP/R1BQKBNR"
     },
     {
       "games": 13149,
-      "placement": "rnbq1rk1/pppp1ppp/4pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR",
       "reach": 13744,
       "sans": [
         "d4",
@@ -3950,11 +3949,11 @@
         "Bb4",
         "e3",
         "O-O"
-      ]
+      ],
+      "placement": "rnbq1rk1/pppp1ppp/4pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR"
     },
     {
       "games": 3076,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N2P2/PP2P1PP/R1BQKBNR",
       "reach": 3210,
       "sans": [
         "d4",
@@ -3964,11 +3963,11 @@
         "Nc3",
         "Bb4",
         "f3"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N2P2/PP2P1PP/R1BQKBNR"
     },
     {
       "games": 4403,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 5164,
       "sans": [
         "d4",
@@ -3978,11 +3977,11 @@
         "Nc3",
         "Bb4",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 54256,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 67895,
       "sans": [
         "d4",
@@ -3990,11 +3989,11 @@
         "c4",
         "e6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 21359,
-      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 28349,
       "sans": [
         "d4",
@@ -4003,11 +4002,11 @@
         "e6",
         "Nf3",
         "b6"
-      ]
+      ],
+      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 4384,
-      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/P4N2/1P2PPPP/RNBQKB1R",
       "reach": 5753,
       "sans": [
         "d4",
@@ -4017,11 +4016,11 @@
         "Nf3",
         "b6",
         "a3"
-      ]
+      ],
+      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/P4N2/1P2PPPP/RNBQKB1R"
     },
     {
       "games": 2767,
-      "placement": "rn1qkb1r/pbpp1ppp/1p2pn2/8/2PP4/P4N2/1P2PPPP/RNBQKB1R",
       "reach": 3615,
       "sans": [
         "d4",
@@ -4032,11 +4031,11 @@
         "b6",
         "a3",
         "Bb7"
-      ]
+      ],
+      "placement": "rn1qkb1r/pbpp1ppp/1p2pn2/8/2PP4/P4N2/1P2PPPP/RNBQKB1R"
     },
     {
       "games": 2499,
-      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 3730,
       "sans": [
         "d4",
@@ -4046,11 +4045,11 @@
         "Nf3",
         "b6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 12998,
-      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 16762,
       "sans": [
         "d4",
@@ -4060,11 +4059,11 @@
         "Nf3",
         "b6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 7096,
-      "placement": "rn1qkb1r/p1pp1ppp/bp2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 9093,
       "sans": [
         "d4",
@@ -4075,11 +4074,11 @@
         "b6",
         "g3",
         "Ba6"
-      ]
+      ],
+      "placement": "rn1qkb1r/p1pp1ppp/bp2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 4918,
-      "placement": "rn1qkb1r/pbpp1ppp/1p2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 6698,
       "sans": [
         "d4",
@@ -4090,11 +4089,11 @@
         "b6",
         "g3",
         "Bb7"
-      ]
+      ],
+      "placement": "rn1qkb1r/pbpp1ppp/1p2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 3000,
-      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2p5/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 4303,
       "sans": [
         "d4",
@@ -4103,11 +4102,11 @@
         "e6",
         "Nf3",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2p5/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 2593,
-      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/5N2/PP2PPPP/RNBQKB1R",
       "reach": 3728,
       "sans": [
         "d4",
@@ -4117,11 +4116,11 @@
         "Nf3",
         "c5",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 19921,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 39947,
       "sans": [
         "d4",
@@ -4130,11 +4129,11 @@
         "e6",
         "Nf3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 15275,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 34839,
       "sans": [
         "d4",
@@ -4144,11 +4143,11 @@
         "Nf3",
         "d5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 1858,
-      "placement": "r1bqkb1r/pppn1ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 4705,
       "sans": [
         "d4",
@@ -4159,11 +4158,11 @@
         "d5",
         "Nc3",
         "Nbd7"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppn1ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 1790,
-      "placement": "rnbqkb1r/pp3ppp/4pn2/2pp4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 3765,
       "sans": [
         "d4",
@@ -4174,11 +4173,11 @@
         "d5",
         "Nc3",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp3ppp/4pn2/2pp4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 2598,
-      "placement": "rnbqkb1r/pp3ppp/2p1pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 17846,
       "sans": [
         "d4",
@@ -4189,11 +4188,11 @@
         "d5",
         "Nc3",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp3ppp/2p1pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 5064,
-      "placement": "rnbqk2r/ppp2ppp/4pn2/3p4/1bPP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 9937,
       "sans": [
         "d4",
@@ -4204,11 +4203,11 @@
         "d5",
         "Nc3",
         "Bb4"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp2ppp/4pn2/3p4/1bPP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 3086,
-      "placement": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 10628,
       "sans": [
         "d4",
@@ -4219,11 +4218,11 @@
         "d5",
         "Nc3",
         "Be7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 3631,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 10631,
       "sans": [
         "d4",
@@ -4233,11 +4232,11 @@
         "Nf3",
         "d5",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 2129,
-      "placement": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 6639,
       "sans": [
         "d4",
@@ -4248,11 +4247,11 @@
         "d5",
         "g3",
         "Be7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 9727,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 13039,
       "sans": [
         "d4",
@@ -4261,11 +4260,11 @@
         "e6",
         "Nf3",
         "Bb4+"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3855,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP1NPPPP/R1BQKB1R",
       "reach": 5137,
       "sans": [
         "d4",
@@ -4275,11 +4274,11 @@
         "Nf3",
         "Bb4+",
         "Nbd2"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP1NPPPP/R1BQKB1R"
     },
     {
       "games": 5605,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP1BPPPP/RN1QKB1R",
       "reach": 7547,
       "sans": [
         "d4",
@@ -4289,11 +4288,11 @@
         "Nf3",
         "Bb4+",
         "Bd2"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP1BPPPP/RN1QKB1R"
     },
     {
       "games": 2229,
-      "placement": "rnb1k2r/ppppqppp/4pn2/8/1bPP4/5N2/PP1BPPPP/RN1QKB1R",
       "reach": 3055,
       "sans": [
         "d4",
@@ -4304,11 +4303,11 @@
         "Bb4+",
         "Bd2",
         "Qe7"
-      ]
+      ],
+      "placement": "rnb1k2r/ppppqppp/4pn2/8/1bPP4/5N2/PP1BPPPP/RN1QKB1R"
     },
     {
       "games": 10504,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/6P1/PP2PP1P/RNBQKBNR",
       "reach": 10924,
       "sans": [
         "d4",
@@ -4316,11 +4315,11 @@
         "c4",
         "e6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 2940,
-      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2p5/2PP4/6P1/PP2PP1P/RNBQKBNR",
       "reach": 3037,
       "sans": [
         "d4",
@@ -4329,11 +4328,11 @@
         "e6",
         "g3",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2p5/2PP4/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 1967,
-      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/6P1/PP2PP1P/RNBQKBNR",
       "reach": 2078,
       "sans": [
         "d4",
@@ -4343,11 +4342,11 @@
         "g3",
         "c5",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/4pn2/2pP4/2P5/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 1894,
-      "placement": "rnbqkb1r/pp1p1ppp/5n2/2pp4/2P5/6P1/PP2PP1P/RNBQKBNR",
       "reach": 2000,
       "sans": [
         "d4",
@@ -4358,11 +4357,11 @@
         "c5",
         "d5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/5n2/2pp4/2P5/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 4580,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR",
       "reach": 4922,
       "sans": [
         "d4",
@@ -4371,11 +4370,11 @@
         "e6",
         "g3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 3299,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/6P1/PP2PPBP/RNBQK1NR",
       "reach": 3779,
       "sans": [
         "d4",
@@ -4385,11 +4384,11 @@
         "g3",
         "d5",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/6P1/PP2PPBP/RNBQK1NR"
     },
     {
       "games": 2932,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/6P1/PP2PP1P/RNBQKBNR",
       "reach": 3052,
       "sans": [
         "d4",
@@ -4398,11 +4397,11 @@
         "e6",
         "g3",
         "Bb4+"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 2313,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/6P1/PP1BPP1P/RN1QKBNR",
       "reach": 2408,
       "sans": [
         "d4",
@@ -4412,22 +4411,22 @@
         "g3",
         "Bb4+",
         "Bd2"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/6P1/PP1BPP1P/RN1QKBNR"
     },
     {
       "games": 52784,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/8/PP2PPPP/RNBQKBNR",
       "reach": 53753,
       "sans": [
         "d4",
         "Nf6",
         "c4",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/8/PP2PPPP/RNBQKBNR"
     },
     {
       "games": 44360,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 45715,
       "sans": [
         "d4",
@@ -4435,11 +4434,11 @@
         "c4",
         "g6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 18795,
-      "placement": "rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 19183,
       "sans": [
         "d4",
@@ -4448,11 +4447,11 @@
         "g6",
         "Nc3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 8464,
-      "placement": "rnbqkb1r/ppp1pp1p/5np1/3P4/3P4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 8606,
       "sans": [
         "d4",
@@ -4462,11 +4461,11 @@
         "Nc3",
         "d5",
         "cxd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pp1p/5np1/3P4/3P4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 8464,
-      "placement": "rnbqkb1r/ppp1pp1p/6p1/3n4/3P4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 8639,
       "sans": [
         "d4",
@@ -4477,11 +4476,11 @@
         "d5",
         "cxd5",
         "Nxd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pp1p/6p1/3n4/3P4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 6212,
-      "placement": "rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 6531,
       "sans": [
         "d4",
@@ -4491,11 +4490,11 @@
         "Nc3",
         "d5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pp1p/5np1/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 6203,
-      "placement": "rnbqk2r/ppp1ppbp/5np1/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 7281,
       "sans": [
         "d4",
@@ -4506,11 +4505,11 @@
         "d5",
         "Nf3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1ppbp/5np1/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 25408,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR",
       "reach": 26894,
       "sans": [
         "d4",
@@ -4519,11 +4518,11 @@
         "g6",
         "Nc3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/2N5/PP2PPPP/R1BQKBNR"
     },
     {
       "games": 24268,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR",
       "reach": 25603,
       "sans": [
         "d4",
@@ -4533,11 +4532,11 @@
         "Nc3",
         "Bg7",
         "e4"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR"
     },
     {
       "games": 22534,
-      "placement": "rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR",
       "reach": 27591,
       "sans": [
         "d4",
@@ -4548,11 +4547,11 @@
         "Bg7",
         "e4",
         "d6"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1ppbp/3p1np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR"
     },
     {
       "games": 1728,
-      "placement": "rnbq1rk1/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR",
       "reach": 1886,
       "sans": [
         "d4",
@@ -4563,11 +4562,11 @@
         "Bg7",
         "e4",
         "O-O"
-      ]
+      ],
+      "placement": "rnbq1rk1/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR"
     },
     {
       "games": 4103,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 10587,
       "sans": [
         "d4",
@@ -4575,11 +4574,11 @@
         "c4",
         "g6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 4071,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 10975,
       "sans": [
         "d4",
@@ -4588,11 +4587,11 @@
         "g6",
         "Nf3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3551,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 6556,
       "sans": [
         "d4",
@@ -4602,11 +4601,11 @@
         "Nf3",
         "Bg7",
         "g3"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 2746,
-      "placement": "rnbq1rk1/ppppppbp/5np1/8/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 5236,
       "sans": [
         "d4",
@@ -4617,11 +4616,11 @@
         "Bg7",
         "g3",
         "O-O"
-      ]
+      ],
+      "placement": "rnbq1rk1/ppppppbp/5np1/8/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 3324,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/6P1/PP2PP1P/RNBQKBNR",
       "reach": 3446,
       "sans": [
         "d4",
@@ -4629,11 +4628,11 @@
         "c4",
         "g6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 2492,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/6P1/PP2PP1P/RNBQKBNR",
       "reach": 2617,
       "sans": [
         "d4",
@@ -4642,11 +4641,11 @@
         "g6",
         "g3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/6P1/PP2PP1P/RNBQKBNR"
     },
     {
       "games": 2465,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/6P1/PP2PPBP/RNBQK1NR",
       "reach": 2695,
       "sans": [
         "d4",
@@ -4656,32 +4655,32 @@
         "g3",
         "Bg7",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/6P1/PP2PPBP/RNBQK1NR"
     },
     {
       "games": 41564,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 44431,
       "sans": [
         "d4",
         "Nf6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 6427,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 23709,
       "sans": [
         "d4",
         "Nf6",
         "Nf3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 4192,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 17897,
       "sans": [
         "d4",
@@ -4689,11 +4688,11 @@
         "Nf3",
         "d5",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3012,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 39947,
       "sans": [
         "d4",
@@ -4702,11 +4701,11 @@
         "d5",
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 2114,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 34839,
       "sans": [
         "d4",
@@ -4716,22 +4715,22 @@
         "c4",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 17212,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 19870,
       "sans": [
         "d4",
         "Nf6",
         "Nf3",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 3543,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R",
       "reach": 4094,
       "sans": [
         "d4",
@@ -4739,11 +4738,11 @@
         "Nf3",
         "e6",
         "Bf4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R"
     },
     {
       "games": 2484,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/6B1/3P4/5N2/PPP1PPPP/RN1QKB1R",
       "reach": 3120,
       "sans": [
         "d4",
@@ -4751,11 +4750,11 @@
         "Nf3",
         "e6",
         "Bg5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/6B1/3P4/5N2/PPP1PPPP/RN1QKB1R"
     },
     {
       "games": 8982,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 67895,
       "sans": [
         "d4",
@@ -4763,11 +4762,11 @@
         "Nf3",
         "e6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 4351,
-      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 28349,
       "sans": [
         "d4",
@@ -4776,11 +4775,11 @@
         "e6",
         "c4",
         "b6"
-      ]
+      ],
+      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 2296,
-      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R",
       "reach": 16762,
       "sans": [
         "d4",
@@ -4790,11 +4789,11 @@
         "c4",
         "b6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/p1pp1ppp/1p2pn2/8/2PP4/5NP1/PP2PP1P/RNBQKB1R"
     },
     {
       "games": 2179,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 13039,
       "sans": [
         "d4",
@@ -4803,22 +4802,22 @@
         "e6",
         "c4",
         "Bb4+"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bPP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 14544,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 16044,
       "sans": [
         "d4",
         "Nf6",
         "Nf3",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 2385,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R",
       "reach": 2750,
       "sans": [
         "d4",
@@ -4826,11 +4825,11 @@
         "Nf3",
         "g6",
         "Bf4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R"
     },
     {
       "games": 2200,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R",
       "reach": 2538,
       "sans": [
         "d4",
@@ -4839,11 +4838,11 @@
         "g6",
         "Bf4",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/3P1B2/5N2/PPP1PPPP/RN1QKB1R"
     },
     {
       "games": 3606,
-      "placement": "rnbqkb1r/pppppp1p/5np1/6B1/3P4/5N2/PPP1PPPP/RN1QKB1R",
       "reach": 3968,
       "sans": [
         "d4",
@@ -4851,11 +4850,11 @@
         "Nf3",
         "g6",
         "Bg5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/6B1/3P4/5N2/PPP1PPPP/RN1QKB1R"
     },
     {
       "games": 3497,
-      "placement": "rnbqk2r/ppppppbp/5np1/6B1/3P4/5N2/PPP1PPPP/RN1QKB1R",
       "reach": 3853,
       "sans": [
         "d4",
@@ -4864,11 +4863,11 @@
         "g6",
         "Bg5",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/6B1/3P4/5N2/PPP1PPPP/RN1QKB1R"
     },
     {
       "games": 2784,
-      "placement": "rnbqk2r/ppppppbp/5np1/6B1/3P4/5N2/PPPNPPPP/R2QKB1R",
       "reach": 3072,
       "sans": [
         "d4",
@@ -4878,11 +4877,11 @@
         "Bg5",
         "Bg7",
         "Nbd2"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/6B1/3P4/5N2/PPPNPPPP/R2QKB1R"
     },
     {
       "games": 5150,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 10587,
       "sans": [
         "d4",
@@ -4890,11 +4889,11 @@
         "Nf3",
         "g6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 4999,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 10975,
       "sans": [
         "d4",
@@ -4903,11 +4902,11 @@
         "g6",
         "c4",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 3278,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 5701,
       "sans": [
         "d4",
@@ -4917,11 +4916,11 @@
         "c4",
         "Bg7",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 2310,
-      "placement": "rnbq1rk1/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 4007,
       "sans": [
         "d4",
@@ -4932,11 +4931,11 @@
         "Bg7",
         "Nc3",
         "O-O"
-      ]
+      ],
+      "placement": "rnbq1rk1/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 2227,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/3P4/5NP1/PPP1PP1P/RNBQKB1R",
       "reach": 2517,
       "sans": [
         "d4",
@@ -4944,11 +4943,11 @@
         "Nf3",
         "g6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/3P4/5NP1/PPP1PP1P/RNBQKB1R"
     },
     {
       "games": 2019,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/3P4/5NP1/PPP1PP1P/RNBQKB1R",
       "reach": 2430,
       "sans": [
         "d4",
@@ -4957,11 +4956,11 @@
         "g6",
         "g3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/3P4/5NP1/PPP1PP1P/RNBQKB1R"
     },
     {
       "games": 1919,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/3P4/5NP1/PPP1PPBP/RNBQK2R",
       "reach": 2569,
       "sans": [
         "d4",
@@ -4971,68 +4970,68 @@
         "g3",
         "Bg7",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/3P4/5NP1/PPP1PPBP/RNBQK2R"
     },
     {
       "games": 553126,
-      "placement": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 553127,
       "sans": [
         "e4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 3390,
-      "placement": "r1bqkbnr/pppppppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 3390,
       "sans": [
         "e4",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppppppp/2n5/8/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 2244,
-      "placement": "r1bqkbnr/pppppppp/2n5/8/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 2314,
       "sans": [
         "e4",
         "Nc6",
         "Nf3"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppppppp/2n5/8/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 225739,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 225739,
       "sans": [
         "e4",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 18428,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 18588,
       "sans": [
         "e4",
         "c5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 9819,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 9919,
       "sans": [
         "e4",
         "c5",
         "Nc3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 3160,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/1Bp5/4P3/2N5/PPPP1PPP/R1BQK1NR",
       "reach": 3190,
       "sans": [
         "e4",
@@ -5040,11 +5039,11 @@
         "Nc3",
         "Nc6",
         "Bb5"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/1Bp5/4P3/2N5/PPPP1PPP/R1BQK1NR"
     },
     {
       "games": 2417,
-      "placement": "r1bqkbnr/pp1ppppp/8/1Bp5/3nP3/2N5/PPPP1PPP/R1BQK1NR",
       "reach": 2437,
       "sans": [
         "e4",
@@ -5053,11 +5052,11 @@
         "Nc6",
         "Bb5",
         "Nd4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/8/1Bp5/3nP3/2N5/PPPP1PPP/R1BQK1NR"
     },
     {
       "games": 2395,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/2N3P1/PPPP1P1P/R1BQKBNR",
       "reach": 2410,
       "sans": [
         "e4",
@@ -5065,11 +5064,11 @@
         "Nc3",
         "Nc6",
         "g3"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/2N3P1/PPPP1P1P/R1BQKBNR"
     },
     {
       "games": 2219,
-      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/2p5/4P3/2N3P1/PPPP1P1P/R1BQKBNR",
       "reach": 2234,
       "sans": [
         "e4",
@@ -5078,11 +5077,11 @@
         "Nc6",
         "g3",
         "g6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/2p5/4P3/2N3P1/PPPP1P1P/R1BQKBNR"
     },
     {
       "games": 2121,
-      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/2p5/4P3/2N3P1/PPPP1PBP/R1BQK1NR",
       "reach": 2155,
       "sans": [
         "e4",
@@ -5092,11 +5091,11 @@
         "g3",
         "g6",
         "Bg2"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/2p5/4P3/2N3P1/PPPP1PBP/R1BQK1NR"
     },
     {
       "games": 2102,
-      "placement": "r1bqk1nr/pp1pppbp/2n3p1/2p5/4P3/2N3P1/PPPP1PBP/R1BQK1NR",
       "reach": 2201,
       "sans": [
         "e4",
@@ -5107,54 +5106,54 @@
         "g6",
         "Bg2",
         "Bg7"
-      ]
+      ],
+      "placement": "r1bqk1nr/pp1pppbp/2n3p1/2p5/4P3/2N3P1/PPPP1PBP/R1BQK1NR"
     },
     {
       "games": 4372,
-      "placement": "rnbqkbnr/pp2pppp/3p4/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 4434,
       "sans": [
         "e4",
         "c5",
         "Nc3",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/3p4/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 3558,
-      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 3597,
       "sans": [
         "e4",
         "c5",
         "Nc3",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 14834,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2P5/PP1P1PPP/RNBQKBNR",
       "reach": 14840,
       "sans": [
         "e4",
         "c5",
         "c3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/2P5/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 5152,
-      "placement": "rnbqkbnr/pp2pppp/8/2pp4/4P3/2P5/PP1P1PPP/RNBQKBNR",
       "reach": 5154,
       "sans": [
         "e4",
         "c5",
         "c3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/2pp4/4P3/2P5/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 5109,
-      "placement": "rnbqkbnr/pp2pppp/8/2pP4/8/2P5/PP1P1PPP/RNBQKBNR",
       "reach": 5111,
       "sans": [
         "e4",
@@ -5162,11 +5161,11 @@
         "c3",
         "d5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/2pP4/8/2P5/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 4755,
-      "placement": "rnb1kbnr/pp2pppp/8/2pq4/8/2P5/PP1P1PPP/RNBQKBNR",
       "reach": 4757,
       "sans": [
         "e4",
@@ -5175,11 +5174,11 @@
         "d5",
         "exd5",
         "Qxd5"
-      ]
+      ],
+      "placement": "rnb1kbnr/pp2pppp/8/2pq4/8/2P5/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 4363,
-      "placement": "rnb1kbnr/pp2pppp/8/2pq4/3P4/2P5/PP3PPP/RNBQKBNR",
       "reach": 4365,
       "sans": [
         "e4",
@@ -5189,11 +5188,11 @@
         "exd5",
         "Qxd5",
         "d4"
-      ]
+      ],
+      "placement": "rnb1kbnr/pp2pppp/8/2pq4/3P4/2P5/PP3PPP/RNBQKBNR"
     },
     {
       "games": 2558,
-      "placement": "rnb1kb1r/pp2pppp/5n2/2pq4/3P4/2P5/PP3PPP/RNBQKBNR",
       "reach": 2562,
       "sans": [
         "e4",
@@ -5204,22 +5203,22 @@
         "Qxd5",
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnb1kb1r/pp2pppp/5n2/2pq4/3P4/2P5/PP3PPP/RNBQKBNR"
     },
     {
       "games": 6710,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/4P3/2P5/PP1P1PPP/RNBQKBNR",
       "reach": 6713,
       "sans": [
         "e4",
         "c5",
         "c3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/4P3/2P5/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 6636,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p1P3/8/2P5/PP1P1PPP/RNBQKBNR",
       "reach": 6639,
       "sans": [
         "e4",
@@ -5227,11 +5226,11 @@
         "c3",
         "Nf6",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p1P3/8/2P5/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 6632,
-      "placement": "rnbqkb1r/pp1ppppp/8/2pnP3/8/2P5/PP1P1PPP/RNBQKBNR",
       "reach": 6635,
       "sans": [
         "e4",
@@ -5240,11 +5239,11 @@
         "Nf6",
         "e5",
         "Nd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/8/2pnP3/8/2P5/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 3261,
-      "placement": "rnbqkb1r/pp1ppppp/8/2pnP3/3P4/2P5/PP3PPP/RNBQKBNR",
       "reach": 3261,
       "sans": [
         "e4",
@@ -5254,11 +5253,11 @@
         "e5",
         "Nd5",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/8/2pnP3/3P4/2P5/PP3PPP/RNBQKBNR"
     },
     {
       "games": 3177,
-      "placement": "rnbqkb1r/pp1ppppp/8/3nP3/3p4/2P5/PP3PPP/RNBQKBNR",
       "reach": 3493,
       "sans": [
         "e4",
@@ -5269,11 +5268,11 @@
         "Nd5",
         "d4",
         "cxd4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/8/3nP3/3p4/2P5/PP3PPP/RNBQKBNR"
     },
     {
       "games": 2682,
-      "placement": "rnbqkb1r/pp1ppppp/8/2pnP3/8/2P2N2/PP1P1PPP/RNBQKB1R",
       "reach": 2781,
       "sans": [
         "e4",
@@ -5283,43 +5282,43 @@
         "e5",
         "Nd5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/8/2pnP3/8/2P2N2/PP1P1PPP/RNBQKB1R"
     },
     {
       "games": 184195,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 185669,
       "sans": [
         "e4",
         "c5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 2491,
-      "placement": "rnbqkbnr/1p1ppppp/p7/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 2516,
       "sans": [
         "e4",
         "c5",
         "Nf3",
         "a6"
-      ]
+      ],
+      "placement": "rnbqkbnr/1p1ppppp/p7/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 51178,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 51630,
       "sans": [
         "e4",
         "c5",
         "Nf3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 4967,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 6701,
       "sans": [
         "e4",
@@ -5327,11 +5326,11 @@
         "Nf3",
         "Nc6",
         "Nc3"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 26738,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 26880,
       "sans": [
         "e4",
@@ -5339,11 +5338,11 @@
         "Nf3",
         "Nc6",
         "d4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 26734,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 26938,
       "sans": [
         "e4",
@@ -5352,11 +5351,11 @@
         "Nc6",
         "d4",
         "cxd4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 26722,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 27136,
       "sans": [
         "e4",
@@ -5366,11 +5365,11 @@
         "d4",
         "cxd4",
         "Nxd4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 1780,
-      "placement": "r1b1kbnr/pp1ppppp/1qn5/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 1796,
       "sans": [
         "e4",
@@ -5381,11 +5380,11 @@
         "cxd4",
         "Nxd4",
         "Qb6"
-      ]
+      ],
+      "placement": "r1b1kbnr/pp1ppppp/1qn5/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 3330,
-      "placement": "r1bqkbnr/pp1p1ppp/2n5/4p3/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 3372,
       "sans": [
         "e4",
@@ -5396,11 +5395,11 @@
         "cxd4",
         "Nxd4",
         "e5"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1p1ppp/2n5/4p3/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2492,
-      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 18078,
       "sans": [
         "e4",
@@ -5411,11 +5410,11 @@
         "cxd4",
         "Nxd4",
         "e6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 4259,
-      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 5155,
       "sans": [
         "e4",
@@ -5426,11 +5425,11 @@
         "cxd4",
         "Nxd4",
         "g6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 13477,
-      "placement": "r1bqkb1r/pp1ppppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 13688,
       "sans": [
         "e4",
@@ -5441,11 +5440,11 @@
         "cxd4",
         "Nxd4",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pp1ppppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 18845,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 19078,
       "sans": [
         "e4",
@@ -5453,11 +5452,11 @@
         "Nf3",
         "Nc6",
         "Bb5"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 2396,
-      "placement": "r1bqkbnr/pp2pppp/2np4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 4061,
       "sans": [
         "e4",
@@ -5466,11 +5465,11 @@
         "Nc6",
         "Bb5",
         "d6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp2pppp/2np4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 1834,
-      "placement": "r1bqkbnr/pp2pppp/2np4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 3132,
       "sans": [
         "e4",
@@ -5480,11 +5479,11 @@
         "Bb5",
         "d6",
         "O-O"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp2pppp/2np4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 1765,
-      "placement": "r2qkbnr/pp1bpppp/2np4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 2958,
       "sans": [
         "e4",
@@ -5495,11 +5494,11 @@
         "d6",
         "O-O",
         "Bd7"
-      ]
+      ],
+      "placement": "r2qkbnr/pp1bpppp/2np4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 5435,
-      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 5499,
       "sans": [
         "e4",
@@ -5508,11 +5507,11 @@
         "Nc6",
         "Bb5",
         "e6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 3450,
-      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 3492,
       "sans": [
         "e4",
@@ -5522,11 +5521,11 @@
         "Bb5",
         "e6",
         "O-O"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 3325,
-      "placement": "r1bqkb1r/pp1pnppp/2n1p3/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 3366,
       "sans": [
         "e4",
@@ -5537,11 +5536,11 @@
         "e6",
         "O-O",
         "Nge7"
-      ]
+      ],
+      "placement": "r1bqkb1r/pp1pnppp/2n1p3/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 7809,
-      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 7913,
       "sans": [
         "e4",
@@ -5550,11 +5549,11 @@
         "Nc6",
         "Bb5",
         "g6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 3545,
-      "placement": "r1bqkbnr/pp1ppp1p/2B3p1/2p5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 3591,
       "sans": [
         "e4",
@@ -5564,11 +5563,11 @@
         "Bb5",
         "g6",
         "Bxc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppp1p/2B3p1/2p5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 2173,
-      "placement": "r1bqkbnr/pp2pp1p/2p3p1/2p5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 2196,
       "sans": [
         "e4",
@@ -5579,11 +5578,11 @@
         "g6",
         "Bxc6",
         "dxc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp2pp1p/2p3p1/2p5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 3918,
-      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 3974,
       "sans": [
         "e4",
@@ -5593,11 +5592,11 @@
         "Bb5",
         "g6",
         "O-O"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppp1p/2n3p1/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 3896,
-      "placement": "r1bqk1nr/pp1pppbp/2n3p1/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 3952,
       "sans": [
         "e4",
@@ -5608,11 +5607,11 @@
         "g6",
         "O-O",
         "Bg7"
-      ]
+      ],
+      "placement": "r1bqk1nr/pp1pppbp/2n3p1/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 1923,
-      "placement": "r1bqkb1r/pp1ppppp/2n2n2/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 1937,
       "sans": [
         "e4",
@@ -5621,22 +5620,22 @@
         "Nc6",
         "Bb5",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pp1ppppp/2n2n2/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 81662,
-      "placement": "rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 82266,
       "sans": [
         "e4",
         "c5",
         "Nf3",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 62946,
-      "placement": "rnbqkbnr/pp2pppp/3p4/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 63290,
       "sans": [
         "e4",
@@ -5644,11 +5643,11 @@
         "Nf3",
         "d6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/3p4/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 60421,
-      "placement": "rnbqkbnr/pp2pppp/3p4/8/3pP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 60775,
       "sans": [
         "e4",
@@ -5657,11 +5656,11 @@
         "d6",
         "d4",
         "cxd4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/3p4/8/3pP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 4055,
-      "placement": "rnbqkbnr/pp2pppp/3p4/8/3QP3/5N2/PPP2PPP/RNB1KB1R",
       "reach": 4093,
       "sans": [
         "e4",
@@ -5671,11 +5670,11 @@
         "d4",
         "cxd4",
         "Qxd4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/3p4/8/3QP3/5N2/PPP2PPP/RNB1KB1R"
     },
     {
       "games": 1839,
-      "placement": "r1bqkbnr/pp2pppp/2np4/8/3QP3/5N2/PPP2PPP/RNB1KB1R",
       "reach": 1856,
       "sans": [
         "e4",
@@ -5686,11 +5685,11 @@
         "cxd4",
         "Qxd4",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp2pppp/2np4/8/3QP3/5N2/PPP2PPP/RNB1KB1R"
     },
     {
       "games": 56352,
-      "placement": "rnbqkbnr/pp2pppp/3p4/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 56695,
       "sans": [
         "e4",
@@ -5700,11 +5699,11 @@
         "d4",
         "cxd4",
         "Nxd4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/3p4/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 56207,
-      "placement": "rnbqkb1r/pp2pppp/3p1n2/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 56547,
       "sans": [
         "e4",
@@ -5715,11 +5714,11 @@
         "cxd4",
         "Nxd4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/3p1n2/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2522,
-      "placement": "rnbqkb1r/pp2pppp/3p1n2/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 2536,
       "sans": [
         "e4",
@@ -5728,11 +5727,11 @@
         "d6",
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/3p1n2/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2437,
-      "placement": "rnbqkb1r/pp2pppp/3p1n2/2p5/3PP3/2N2N2/PPP2PPP/R1BQKB1R",
       "reach": 3195,
       "sans": [
         "e4",
@@ -5742,11 +5741,11 @@
         "d4",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/3p1n2/2p5/3PP3/2N2N2/PPP2PPP/R1BQKB1R"
     },
     {
       "games": 2434,
-      "placement": "rnbqkb1r/pp2pppp/3p1n2/8/3pP3/2N2N2/PPP2PPP/R1BQKB1R",
       "reach": 3193,
       "sans": [
         "e4",
@@ -5757,11 +5756,11 @@
         "Nf6",
         "Nc3",
         "cxd4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/3p1n2/8/3pP3/2N2N2/PPP2PPP/R1BQKB1R"
     },
     {
       "games": 15786,
-      "placement": "rnbqkbnr/pp2pppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 16000,
       "sans": [
         "e4",
@@ -5769,11 +5768,11 @@
         "Nf3",
         "d6",
         "Bb5+"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 7673,
-      "placement": "r1bqkbnr/pp1npppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 7781,
       "sans": [
         "e4",
@@ -5782,11 +5781,11 @@
         "d6",
         "Bb5+",
         "Nd7"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1npppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 2507,
-      "placement": "r1bqkbnr/pp1npppp/3p4/1Bp5/3PP3/5N2/PPP2PPP/RNBQK2R",
       "reach": 2541,
       "sans": [
         "e4",
@@ -5796,11 +5795,11 @@
         "Bb5+",
         "Nd7",
         "d4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1npppp/3p4/1Bp5/3PP3/5N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 1820,
-      "placement": "r1bqkbnr/pp1npppp/3p4/1B6/3pP3/5N2/PPP2PPP/RNBQK2R",
       "reach": 1846,
       "sans": [
         "e4",
@@ -5811,11 +5810,11 @@
         "Nd7",
         "d4",
         "cxd4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1npppp/3p4/1B6/3pP3/5N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 2664,
-      "placement": "r1bqkbnr/pp1npppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 2711,
       "sans": [
         "e4",
@@ -5825,11 +5824,11 @@
         "Bb5+",
         "Nd7",
         "O-O"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1npppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 2019,
-      "placement": "r1bqkbnr/1p1npppp/p2p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 2058,
       "sans": [
         "e4",
@@ -5840,11 +5839,11 @@
         "Nd7",
         "O-O",
         "a6"
-      ]
+      ],
+      "placement": "r1bqkbnr/1p1npppp/p2p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 6500,
-      "placement": "rn1qkbnr/pp1bpppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 6582,
       "sans": [
         "e4",
@@ -5853,11 +5852,11 @@
         "d6",
         "Bb5+",
         "Bd7"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp1bpppp/3p4/1Bp5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 5447,
-      "placement": "rn1qkbnr/pp1Bpppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 5509,
       "sans": [
         "e4",
@@ -5867,11 +5866,11 @@
         "Bb5+",
         "Bd7",
         "Bxd7+"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp1Bpppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 3772,
-      "placement": "rn2kbnr/pp1qpppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 3811,
       "sans": [
         "e4",
@@ -5882,22 +5881,22 @@
         "Bd7",
         "Bxd7+",
         "Qxd7"
-      ]
+      ],
+      "placement": "rn2kbnr/pp1qpppp/3p4/2p5/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 41991,
-      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 42341,
       "sans": [
         "e4",
         "c5",
         "Nf3",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 2315,
-      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 3923,
       "sans": [
         "e4",
@@ -5905,11 +5904,11 @@
         "Nf3",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 35713,
-      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 36133,
       "sans": [
         "e4",
@@ -5917,11 +5916,11 @@
         "Nf3",
         "e6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1p1ppp/4p3/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 35687,
-      "placement": "rnbqkbnr/pp1p1ppp/4p3/8/3pP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 36128,
       "sans": [
         "e4",
@@ -5930,11 +5929,11 @@
         "e6",
         "d4",
         "cxd4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1p1ppp/4p3/8/3pP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 35647,
-      "placement": "rnbqkbnr/pp1p1ppp/4p3/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 36164,
       "sans": [
         "e4",
@@ -5944,11 +5943,11 @@
         "d4",
         "cxd4",
         "Nxd4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1p1ppp/4p3/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 15554,
-      "placement": "rnbqkbnr/1p1p1ppp/p3p3/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 15783,
       "sans": [
         "e4",
@@ -5959,11 +5958,11 @@
         "cxd4",
         "Nxd4",
         "a6"
-      ]
+      ],
+      "placement": "rnbqkbnr/1p1p1ppp/p3p3/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 15353,
-      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 18078,
       "sans": [
         "e4",
@@ -5974,11 +5973,11 @@
         "cxd4",
         "Nxd4",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1p1ppp/2n1p3/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 4627,
-      "placement": "rnbqkb1r/pp1p1ppp/4pn2/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 4742,
       "sans": [
         "e4",
@@ -5989,22 +5988,22 @@
         "cxd4",
         "Nxd4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1p1ppp/4pn2/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 4575,
-      "placement": "rnbqkbnr/pp1ppp1p/6p1/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 5019,
       "sans": [
         "e4",
         "c5",
         "Nf3",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppp1p/6p1/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 2673,
-      "placement": "rnbqkbnr/pp1ppp1p/6p1/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 2843,
       "sans": [
         "e4",
@@ -6012,11 +6011,11 @@
         "Nf3",
         "g6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppp1p/6p1/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2064,
-      "placement": "rnbqkbnr/pp1ppp1p/6p1/8/3pP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 2210,
       "sans": [
         "e4",
@@ -6025,52 +6024,52 @@
         "g6",
         "d4",
         "cxd4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppp1p/6p1/8/3pP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2198,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 2227,
       "sans": [
         "e4",
         "c5",
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 51508,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 51509,
       "sans": [
         "e4",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 4626,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 4631,
       "sans": [
         "e4",
         "c6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 4580,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 4636,
       "sans": [
         "e4",
         "c6",
         "Nc3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 4068,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 6671,
       "sans": [
         "e4",
@@ -6078,11 +6077,11 @@
         "Nc3",
         "d5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 2136,
-      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/4P1b1/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 3361,
       "sans": [
         "e4",
@@ -6091,11 +6090,11 @@
         "d5",
         "Nf3",
         "Bg4"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/4P1b1/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 1961,
-      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/4P1b1/2N2N1P/PPPP1PP1/R1BQKB1R",
       "reach": 3084,
       "sans": [
         "e4",
@@ -6105,11 +6104,11 @@
         "Nf3",
         "Bg4",
         "h3"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/4P1b1/2N2N1P/PPPP1PP1/R1BQKB1R"
     },
     {
       "games": 1766,
-      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/4P3/2N2b1P/PPPP1PP1/R1BQKB1R",
       "reach": 2800,
       "sans": [
         "e4",
@@ -6120,53 +6119,53 @@
         "Bg4",
         "h3",
         "Bxf3"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/4P3/2N2b1P/PPPP1PP1/R1BQKB1R"
     },
     {
       "games": 2165,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P1P3/8/PP1P1PPP/RNBQKBNR",
       "reach": 4010,
       "sans": [
         "e4",
         "c6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/2P1P3/8/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 1744,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P1P3/8/PP1P1PPP/RNBQKBNR",
       "reach": 3353,
       "sans": [
         "e4",
         "c6",
         "c4",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P1P3/8/PP1P1PPP/RNBQKBNR"
     },
     {
       "games": 40782,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 40870,
       "sans": [
         "e4",
         "c6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 40453,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 40536,
       "sans": [
         "e4",
         "c6",
         "d4",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 9031,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 9511,
       "sans": [
         "e4",
@@ -6174,11 +6173,11 @@
         "d4",
         "d5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 8921,
-      "placement": "rnbqkbnr/pp2pppp/2p5/8/3Pp3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 9396,
       "sans": [
         "e4",
@@ -6187,11 +6186,11 @@
         "d5",
         "Nc3",
         "dxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/8/3Pp3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 8906,
-      "placement": "rnbqkbnr/pp2pppp/2p5/8/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 14421,
       "sans": [
         "e4",
@@ -6201,11 +6200,11 @@
         "Nc3",
         "dxe4",
         "Nxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/8/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 4851,
-      "placement": "rn1qkbnr/pp2pppp/2p5/5b2/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 7766,
       "sans": [
         "e4",
@@ -6216,11 +6215,11 @@
         "dxe4",
         "Nxe4",
         "Bf5"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/5b2/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2416,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/8/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 3745,
       "sans": [
         "e4",
@@ -6231,11 +6230,11 @@
         "dxe4",
         "Nxe4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/8/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 5100,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/8/PPPN1PPP/R1BQKBNR",
       "reach": 5109,
       "sans": [
         "e4",
@@ -6243,11 +6242,11 @@
         "d4",
         "d5",
         "Nd2"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/3PP3/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 5030,
-      "placement": "rnbqkbnr/pp2pppp/2p5/8/3Pp3/8/PPPN1PPP/R1BQKBNR",
       "reach": 5039,
       "sans": [
         "e4",
@@ -6256,11 +6255,11 @@
         "d5",
         "Nd2",
         "dxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/8/3Pp3/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 5030,
-      "placement": "rnbqkbnr/pp2pppp/2p5/8/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 14421,
       "sans": [
         "e4",
@@ -6270,11 +6269,11 @@
         "Nd2",
         "dxe4",
         "Nxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/8/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2689,
-      "placement": "rn1qkbnr/pp2pppp/2p5/5b2/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 7766,
       "sans": [
         "e4",
@@ -6285,11 +6284,11 @@
         "dxe4",
         "Nxe4",
         "Bf5"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/5b2/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 8326,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3P4/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 8373,
       "sans": [
         "e4",
@@ -6297,11 +6296,11 @@
         "d4",
         "d5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3P4/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 8310,
-      "placement": "rnbqkbnr/pp2pppp/8/3p4/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 8371,
       "sans": [
         "e4",
@@ -6310,11 +6309,11 @@
         "d5",
         "exd5",
         "cxd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/3p4/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 4014,
-      "placement": "rnbqkbnr/pp2pppp/8/3p4/2PP4/8/PP3PPP/RNBQKBNR",
       "reach": 4960,
       "sans": [
         "e4",
@@ -6324,11 +6323,11 @@
         "exd5",
         "cxd5",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/3p4/2PP4/8/PP3PPP/RNBQKBNR"
     },
     {
       "games": 3884,
-      "placement": "rnbqkb1r/pp2pppp/5n2/3p4/2PP4/8/PP3PPP/RNBQKBNR",
       "reach": 4934,
       "sans": [
         "e4",
@@ -6339,11 +6338,11 @@
         "cxd5",
         "c4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/5n2/3p4/2PP4/8/PP3PPP/RNBQKBNR"
     },
     {
       "games": 4044,
-      "placement": "rnbqkbnr/pp2pppp/8/3p4/3P4/3B4/PPP2PPP/RNBQK1NR",
       "reach": 4079,
       "sans": [
         "e4",
@@ -6353,11 +6352,11 @@
         "exd5",
         "cxd5",
         "Bd3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/3p4/3P4/3B4/PPP2PPP/RNBQK1NR"
     },
     {
       "games": 3175,
-      "placement": "r1bqkbnr/pp2pppp/2n5/3p4/3P4/3B4/PPP2PPP/RNBQK1NR",
       "reach": 3202,
       "sans": [
         "e4",
@@ -6368,11 +6367,11 @@
         "cxd5",
         "Bd3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp2pppp/2n5/3p4/3P4/3B4/PPP2PPP/RNBQK1NR"
     },
     {
       "games": 17626,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3pP3/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 17650,
       "sans": [
         "e4",
@@ -6380,11 +6379,11 @@
         "d4",
         "d5",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3pP3/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 3433,
-      "placement": "rnbqkbnr/pp2pppp/8/2ppP3/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 3433,
       "sans": [
         "e4",
@@ -6393,11 +6392,11 @@
         "d5",
         "e5",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/2ppP3/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 2018,
-      "placement": "rnbqkbnr/pp2pppp/8/2PpP3/8/8/PPP2PPP/RNBQKBNR",
       "reach": 2018,
       "sans": [
         "e4",
@@ -6407,11 +6406,11 @@
         "e5",
         "c5",
         "dxc5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/8/2PpP3/8/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 14008,
-      "placement": "rn1qkbnr/pp2pppp/2p5/3pPb2/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 14030,
       "sans": [
         "e4",
@@ -6420,11 +6419,11 @@
         "d5",
         "e5",
         "Bf5"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/3pPb2/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 6284,
-      "placement": "rn1qkbnr/pp2pppp/2p5/3pPb2/3P4/5N2/PPP2PPP/RNBQKB1R",
       "reach": 6289,
       "sans": [
         "e4",
@@ -6434,11 +6433,11 @@
         "e5",
         "Bf5",
         "Nf3"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/3pPb2/3P4/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 6273,
-      "placement": "rn1qkbnr/pp3ppp/2p1p3/3pPb2/3P4/5N2/PPP2PPP/RNBQKB1R",
       "reach": 6278,
       "sans": [
         "e4",
@@ -6449,11 +6448,11 @@
         "Bf5",
         "Nf3",
         "e6"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp3ppp/2p1p3/3pPb2/3P4/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 3572,
-      "placement": "rn1qkbnr/pp2pppp/2p5/3pPb2/3P3P/8/PPP2PP1/RNBQKBNR",
       "reach": 3581,
       "sans": [
         "e4",
@@ -6463,11 +6462,11 @@
         "e5",
         "Bf5",
         "h4"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/3pPb2/3P3P/8/PPP2PP1/RNBQKBNR"
     },
     {
       "games": 2437,
-      "placement": "rn1qkbnr/pp2ppp1/2p5/3pPb1p/3P3P/8/PPP2PP1/RNBQKBNR",
       "reach": 2446,
       "sans": [
         "e4",
@@ -6478,32 +6477,32 @@
         "Bf5",
         "h4",
         "h5"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2ppp1/2p5/3pPb1p/3P3P/8/PPP2PP1/RNBQKBNR"
     },
     {
       "games": 3314,
-      "placement": "rnbqkbnr/pp1ppppp/2p5/8/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 3321,
       "sans": [
         "e4",
         "c6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/2p5/8/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 3273,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 3278,
       "sans": [
         "e4",
         "c6",
         "Nf3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 2577,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 6671,
       "sans": [
         "e4",
@@ -6511,41 +6510,41 @@
         "Nf3",
         "d5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 9384,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 9384,
       "sans": [
         "e4",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 9297,
-      "placement": "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR",
       "reach": 9297,
       "sans": [
         "e4",
         "d5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 7146,
-      "placement": "rnb1kbnr/ppp1pppp/8/3q4/8/8/PPPP1PPP/RNBQKBNR",
       "reach": 7146,
       "sans": [
         "e4",
         "d5",
         "exd5",
         "Qxd5"
-      ]
+      ],
+      "placement": "rnb1kbnr/ppp1pppp/8/3q4/8/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 6930,
-      "placement": "rnb1kbnr/ppp1pppp/8/3q4/8/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 6938,
       "sans": [
         "e4",
@@ -6553,11 +6552,11 @@
         "exd5",
         "Qxd5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnb1kbnr/ppp1pppp/8/3q4/8/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 3527,
-      "placement": "rnb1kbnr/ppp1pppp/8/q7/8/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 3534,
       "sans": [
         "e4",
@@ -6566,11 +6565,11 @@
         "Qxd5",
         "Nc3",
         "Qa5"
-      ]
+      ],
+      "placement": "rnb1kbnr/ppp1pppp/8/q7/8/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 2597,
-      "placement": "rnb1kbnr/ppp1pppp/8/q7/3P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 2599,
       "sans": [
         "e4",
@@ -6580,11 +6579,11 @@
         "Nc3",
         "Qa5",
         "d4"
-      ]
+      ],
+      "placement": "rnb1kbnr/ppp1pppp/8/q7/3P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2031,
-      "placement": "rnb1kb1r/ppp1pppp/5n2/q7/3P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 2051,
       "sans": [
         "e4",
@@ -6595,11 +6594,11 @@
         "Qa5",
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnb1kb1r/ppp1pppp/5n2/q7/3P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2501,
-      "placement": "rnb1kbnr/ppp1pppp/3q4/8/8/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 2504,
       "sans": [
         "e4",
@@ -6608,11 +6607,11 @@
         "Qxd5",
         "Nc3",
         "Qd6"
-      ]
+      ],
+      "placement": "rnb1kbnr/ppp1pppp/3q4/8/8/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 2266,
-      "placement": "rnb1kbnr/ppp1pppp/3q4/8/3P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 2269,
       "sans": [
         "e4",
@@ -6622,11 +6621,11 @@
         "Nc3",
         "Qd6",
         "d4"
-      ]
+      ],
+      "placement": "rnb1kbnr/ppp1pppp/3q4/8/3P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 1929,
-      "placement": "rnb1kb1r/ppp1pppp/3q1n2/8/3P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 1934,
       "sans": [
         "e4",
@@ -6637,63 +6636,63 @@
         "Qd6",
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnb1kb1r/ppp1pppp/3q1n2/8/3P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2124,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR",
       "reach": 2124,
       "sans": [
         "e4",
         "d5",
         "exd5",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3P4/8/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 17829,
-      "placement": "rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 17829,
       "sans": [
         "e4",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 17432,
-      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 21802,
       "sans": [
         "e4",
         "d6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/3p4/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 2021,
-      "placement": "rnbqkbnr/ppp1pp1p/3p2p1/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 3708,
       "sans": [
         "e4",
         "d6",
         "d4",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pp1p/3p2p1/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 15321,
-      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 18864,
       "sans": [
         "e4",
         "d6",
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 13821,
-      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 16939,
       "sans": [
         "e4",
@@ -6701,11 +6700,11 @@
         "d4",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p1n2/8/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 5759,
-      "placement": "rnbqkb1r/ppp2ppp/3p1n2/4p3/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 7022,
       "sans": [
         "e4",
@@ -6714,11 +6713,11 @@
         "Nf6",
         "Nc3",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/3p1n2/4p3/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 4270,
-      "placement": "rnbqkb1r/ppp2ppp/3p1n2/4p3/3PP3/2N2N2/PPP2PPP/R1BQKB1R",
       "reach": 5532,
       "sans": [
         "e4",
@@ -6728,11 +6727,11 @@
         "Nc3",
         "e5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/3p1n2/4p3/3PP3/2N2N2/PPP2PPP/R1BQKB1R"
     },
     {
       "games": 4001,
-      "placement": "r1bqkb1r/pppn1ppp/3p1n2/4p3/3PP3/2N2N2/PPP2PPP/R1BQKB1R",
       "reach": 5805,
       "sans": [
         "e4",
@@ -6743,11 +6742,11 @@
         "e5",
         "Nf3",
         "Nbd7"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppn1ppp/3p1n2/4p3/3PP3/2N2N2/PPP2PPP/R1BQKB1R"
     },
     {
       "games": 5922,
-      "placement": "rnbqkb1r/ppp1pp1p/3p1np1/8/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 7350,
       "sans": [
         "e4",
@@ -6756,62 +6755,62 @@
         "Nf6",
         "Nc3",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pp1p/3p1np1/8/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 153533,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 153534,
       "sans": [
         "e4",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 4789,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 4825,
       "sans": [
         "e4",
         "e5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 3141,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR",
       "reach": 3453,
       "sans": [
         "e4",
         "e5",
         "Nc3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR"
     },
     {
       "games": 4352,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR",
       "reach": 4352,
       "sans": [
         "e4",
         "e5",
         "Bc4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR"
     },
     {
       "games": 3654,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR",
       "reach": 3655,
       "sans": [
         "e4",
         "e5",
         "Bc4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR"
     },
     {
       "games": 3187,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/3P4/PPP2PPP/RNBQK1NR",
       "reach": 3188,
       "sans": [
         "e4",
@@ -6819,53 +6818,53 @@
         "Bc4",
         "Nf6",
         "d3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/3P4/PPP2PPP/RNBQK1NR"
     },
     {
       "games": 2823,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR",
       "reach": 2852,
       "sans": [
         "e4",
         "e5",
         "f4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR"
     },
     {
       "games": 1794,
-      "placement": "rnbqkbnr/pppp1ppp/8/8/4Pp2/8/PPPP2PP/RNBQKBNR",
       "reach": 1805,
       "sans": [
         "e4",
         "e5",
         "f4",
         "exf4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/8/4Pp2/8/PPPP2PP/RNBQKBNR"
     },
     {
       "games": 140292,
-      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 140294,
       "sans": [
         "e4",
         "e5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 122087,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 122583,
       "sans": [
         "e4",
         "e5",
         "Nf3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 9851,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 10144,
       "sans": [
         "e4",
@@ -6873,11 +6872,11 @@
         "Nf3",
         "Nc6",
         "Nc3"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 9494,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 11999,
       "sans": [
         "e4",
@@ -6886,11 +6885,11 @@
         "Nc6",
         "Nc3",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 3442,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/3PP3/2N2N2/PPP2PPP/R1BQKB1R",
       "reach": 4104,
       "sans": [
         "e4",
@@ -6900,11 +6899,11 @@
         "Nc3",
         "Nf6",
         "d4"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/3PP3/2N2N2/PPP2PPP/R1BQKB1R"
     },
     {
       "games": 3155,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/8/3pP3/2N2N2/PPP2PPP/R1BQKB1R",
       "reach": 3740,
       "sans": [
         "e4",
@@ -6915,11 +6914,11 @@
         "Nf6",
         "d4",
         "exd4"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/8/3pP3/2N2N2/PPP2PPP/R1BQKB1R"
     },
     {
       "games": 3488,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/2N2N2/PPPP1PPP/R1BQK2R",
       "reach": 4991,
       "sans": [
         "e4",
@@ -6929,11 +6928,11 @@
         "Nc3",
         "Nf6",
         "Bb5"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/2N2N2/PPPP1PPP/R1BQK2R"
     },
     {
       "games": 10378,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 10480,
       "sans": [
         "e4",
@@ -6941,11 +6940,11 @@
         "Nf3",
         "Nc6",
         "d4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 10355,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 10602,
       "sans": [
         "e4",
@@ -6954,11 +6953,11 @@
         "Nc6",
         "d4",
         "exd4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/8/3pP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 8840,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 8995,
       "sans": [
         "e4",
@@ -6968,11 +6967,11 @@
         "d4",
         "exd4",
         "Nxd4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 3328,
-      "placement": "r1bqk1nr/pppp1ppp/2n5/2b5/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 3374,
       "sans": [
         "e4",
@@ -6983,11 +6982,11 @@
         "exd4",
         "Nxd4",
         "Bc5"
-      ]
+      ],
+      "placement": "r1bqk1nr/pppp1ppp/2n5/2b5/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 4026,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R",
       "reach": 4090,
       "sans": [
         "e4",
@@ -6998,11 +6997,11 @@
         "exd4",
         "Nxd4",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/8/3NP3/8/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 72357,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 72661,
       "sans": [
         "e4",
@@ -7010,11 +7009,11 @@
         "Nf3",
         "Nc6",
         "Bb5"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 49046,
-      "placement": "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 49257,
       "sans": [
         "e4",
@@ -7023,11 +7022,11 @@
         "Nc6",
         "Bb5",
         "a6"
-      ]
+      ],
+      "placement": "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 44870,
-      "placement": "r1bqkbnr/1ppp1ppp/p1n5/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 45052,
       "sans": [
         "e4",
@@ -7037,11 +7036,11 @@
         "Bb5",
         "a6",
         "Ba4"
-      ]
+      ],
+      "placement": "r1bqkbnr/1ppp1ppp/p1n5/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 4174,
-      "placement": "r1bqkbnr/1pp2ppp/p1np4/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 4219,
       "sans": [
         "e4",
@@ -7052,11 +7051,11 @@
         "a6",
         "Ba4",
         "d6"
-      ]
+      ],
+      "placement": "r1bqkbnr/1pp2ppp/p1np4/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 39730,
-      "placement": "r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 39855,
       "sans": [
         "e4",
@@ -7067,11 +7066,11 @@
         "a6",
         "Ba4",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqkb1r/1ppp1ppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 4166,
-      "placement": "r1bqkbnr/1ppp1ppp/p1B5/4p3/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 4195,
       "sans": [
         "e4",
@@ -7081,11 +7080,11 @@
         "Bb5",
         "a6",
         "Bxc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/1ppp1ppp/p1B5/4p3/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 4124,
-      "placement": "r1bqkbnr/1pp2ppp/p1p5/4p3/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 4153,
       "sans": [
         "e4",
@@ -7096,11 +7095,11 @@
         "a6",
         "Bxc6",
         "dxc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/1pp2ppp/p1p5/4p3/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 1732,
-      "placement": "r1bqkbnr/pppp1p1p/2n3p1/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 1737,
       "sans": [
         "e4",
@@ -7109,11 +7108,11 @@
         "Nc6",
         "Bb5",
         "g6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1p1p/2n3p1/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 16836,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 16886,
       "sans": [
         "e4",
@@ -7122,11 +7121,11 @@
         "Nc6",
         "Bb5",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 6725,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 6734,
       "sans": [
         "e4",
@@ -7136,11 +7135,11 @@
         "Bb5",
         "Nf6",
         "d3"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 4874,
-      "placement": "r1bqk2r/pppp1ppp/2n2n2/1Bb1p3/4P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 4878,
       "sans": [
         "e4",
@@ -7151,11 +7150,11 @@
         "Nf6",
         "d3",
         "Bc5"
-      ]
+      ],
+      "placement": "r1bqk2r/pppp1ppp/2n2n2/1Bb1p3/4P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 8915,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 8950,
       "sans": [
         "e4",
@@ -7165,11 +7164,11 @@
         "Bb5",
         "Nf6",
         "O-O"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 8018,
-      "placement": "r1bqkb1r/pppp1ppp/2n5/1B2p3/4n3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 8048,
       "sans": [
         "e4",
@@ -7180,11 +7179,11 @@
         "Nf6",
         "O-O",
         "Nxe4"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n5/1B2p3/4n3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 28427,
-      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 28723,
       "sans": [
         "e4",
@@ -7192,11 +7191,11 @@
         "Nf3",
         "Nc6",
         "Bc4"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 14929,
-      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 15083,
       "sans": [
         "e4",
@@ -7205,11 +7204,11 @@
         "Nc6",
         "Bc4",
         "Bc5"
-      ]
+      ],
+      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 6984,
-      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R",
       "reach": 7075,
       "sans": [
         "e4",
@@ -7219,11 +7218,11 @@
         "Bc4",
         "Bc5",
         "c3"
-      ]
+      ],
+      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R"
     },
     {
       "games": 6702,
-      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R",
       "reach": 6783,
       "sans": [
         "e4",
@@ -7234,11 +7233,11 @@
         "Bc5",
         "c3",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R"
     },
     {
       "games": 3255,
-      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 3297,
       "sans": [
         "e4",
@@ -7248,11 +7247,11 @@
         "Bc4",
         "Bc5",
         "d3"
-      ]
+      ],
+      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 2909,
-      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 7908,
       "sans": [
         "e4",
@@ -7263,11 +7262,11 @@
         "Bc5",
         "d3",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 3003,
-      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 3034,
       "sans": [
         "e4",
@@ -7277,11 +7276,11 @@
         "Bc4",
         "Bc5",
         "O-O"
-      ]
+      ],
+      "placement": "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 2674,
-      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1",
       "reach": 2714,
       "sans": [
         "e4",
@@ -7292,11 +7291,11 @@
         "Bc5",
         "O-O",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1"
     },
     {
       "games": 12936,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R",
       "reach": 13080,
       "sans": [
         "e4",
@@ -7305,11 +7304,11 @@
         "Nc6",
         "Bc4",
         "Nf6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R"
     },
     {
       "games": 10289,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 11181,
       "sans": [
         "e4",
@@ -7319,11 +7318,11 @@
         "Bc4",
         "Nf6",
         "d3"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 4410,
-      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 7908,
       "sans": [
         "e4",
@@ -7334,11 +7333,11 @@
         "Nf6",
         "d3",
         "Bc5"
-      ]
+      ],
+      "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 3501,
-      "placement": "r1bqk2r/ppppbppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 3824,
       "sans": [
         "e4",
@@ -7349,11 +7348,11 @@
         "Nf6",
         "d3",
         "Be7"
-      ]
+      ],
+      "placement": "r1bqk2r/ppppbppp/2n2n2/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 2028,
-      "placement": "r1bqkb1r/pppp1pp1/2n2n1p/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R",
       "reach": 2129,
       "sans": [
         "e4",
@@ -7364,22 +7363,22 @@
         "Nf6",
         "d3",
         "h6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1pp1/2n2n1p/4p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 2737,
-      "placement": "rnbqkbnr/ppp2ppp/3p4/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 2757,
       "sans": [
         "e4",
         "e5",
         "Nf3",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/3p4/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 2372,
-      "placement": "rnbqkbnr/ppp2ppp/3p4/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 2428,
       "sans": [
         "e4",
@@ -7387,22 +7386,22 @@
         "Nf3",
         "d6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/3p4/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 15281,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 15282,
       "sans": [
         "e4",
         "e5",
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 2314,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 2844,
       "sans": [
         "e4",
@@ -7410,11 +7409,11 @@
         "Nf3",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 1801,
-      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R",
       "reach": 11999,
       "sans": [
         "e4",
@@ -7423,11 +7422,11 @@
         "Nf6",
         "Nc3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R"
     },
     {
       "games": 3060,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 3061,
       "sans": [
         "e4",
@@ -7435,11 +7434,11 @@
         "Nf3",
         "Nf6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2759,
-      "placement": "rnbqkb1r/pppp1ppp/8/4p3/3Pn3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 2760,
       "sans": [
         "e4",
@@ -7448,11 +7447,11 @@
         "Nf6",
         "d4",
         "Nxe4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/8/4p3/3Pn3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2242,
-      "placement": "rnbqkb1r/pppp1ppp/8/4p3/3Pn3/3B1N2/PPP2PPP/RNBQK2R",
       "reach": 2243,
       "sans": [
         "e4",
@@ -7462,11 +7461,11 @@
         "d4",
         "Nxe4",
         "Bd3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/8/4p3/3Pn3/3B1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 1910,
-      "placement": "rnbqkb1r/ppp2ppp/8/3pp3/3Pn3/3B1N2/PPP2PPP/RNBQK2R",
       "reach": 1911,
       "sans": [
         "e4",
@@ -7477,11 +7476,11 @@
         "Nxe4",
         "Bd3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/8/3pp3/3Pn3/3B1N2/PPP2PPP/RNBQK2R"
     },
     {
       "games": 9507,
-      "placement": "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R",
       "reach": 9507,
       "sans": [
         "e4",
@@ -7489,11 +7488,11 @@
         "Nf3",
         "Nf6",
         "Nxe5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 9418,
-      "placement": "rnbqkb1r/ppp2ppp/3p1n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R",
       "reach": 9418,
       "sans": [
         "e4",
@@ -7502,11 +7501,11 @@
         "Nf6",
         "Nxe5",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/3p1n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 9255,
-      "placement": "rnbqkb1r/ppp2ppp/3p1n2/8/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 9255,
       "sans": [
         "e4",
@@ -7516,11 +7515,11 @@
         "Nxe5",
         "d6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/3p1n2/8/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 9254,
-      "placement": "rnbqkb1r/ppp2ppp/3p4/8/4n3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 9254,
       "sans": [
         "e4",
@@ -7531,41 +7530,41 @@
         "d6",
         "Nf3",
         "Nxe4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/3p4/8/4n3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 66016,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 66016,
       "sans": [
         "e4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 3325,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/4P3/3P4/PPP2PPP/RNBQKBNR",
       "reach": 3326,
       "sans": [
         "e4",
         "e6",
         "d3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/4P3/3P4/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 2584,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/4P3/3P4/PPP2PPP/RNBQKBNR",
       "reach": 2587,
       "sans": [
         "e4",
         "e6",
         "d3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/4P3/3P4/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 1892,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/4P3/3P4/PPPN1PPP/R1BQKBNR",
       "reach": 1893,
       "sans": [
         "e4",
@@ -7573,32 +7572,32 @@
         "d3",
         "d5",
         "Nd2"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/4P3/3P4/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 59353,
-      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 61220,
       "sans": [
         "e4",
         "e6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 59169,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 60956,
       "sans": [
         "e4",
         "e6",
         "d4",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 28358,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 29472,
       "sans": [
         "e4",
@@ -7606,11 +7605,11 @@
         "d4",
         "d5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 3017,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3Pp3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 3172,
       "sans": [
         "e4",
@@ -7619,11 +7618,11 @@
         "d5",
         "Nc3",
         "dxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3Pp3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 3017,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 4957,
       "sans": [
         "e4",
@@ -7633,11 +7632,11 @@
         "Nc3",
         "dxe4",
         "Nxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 1743,
-      "placement": "r1bqkbnr/pppn1ppp/4p3/8/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 2792,
       "sans": [
         "e4",
@@ -7648,11 +7647,11 @@
         "dxe4",
         "Nxe4",
         "Nd7"
-      ]
+      ],
+      "placement": "r1bqkbnr/pppn1ppp/4p3/8/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 12163,
-      "placement": "rnbqk1nr/ppp2ppp/4p3/3p4/1b1PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 12615,
       "sans": [
         "e4",
@@ -7661,11 +7660,11 @@
         "d5",
         "Nc3",
         "Bb4"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp2ppp/4p3/3p4/1b1PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 9263,
-      "placement": "rnbqk1nr/ppp2ppp/4p3/3pP3/1b1P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 9525,
       "sans": [
         "e4",
@@ -7675,11 +7674,11 @@
         "Nc3",
         "Bb4",
         "e5"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp2ppp/4p3/3pP3/1b1P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 6003,
-      "placement": "rnbqk1nr/pp3ppp/4p3/2ppP3/1b1P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 6155,
       "sans": [
         "e4",
@@ -7690,11 +7689,11 @@
         "Bb4",
         "e5",
         "c5"
-      ]
+      ],
+      "placement": "rnbqk1nr/pp3ppp/4p3/2ppP3/1b1P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2048,
-      "placement": "rnbqk2r/ppp1nppp/4p3/3pP3/1b1P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 2110,
       "sans": [
         "e4",
@@ -7705,11 +7704,11 @@
         "Bb4",
         "e5",
         "Ne7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1nppp/4p3/3pP3/1b1P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 12896,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 13583,
       "sans": [
         "e4",
@@ -7718,11 +7717,11 @@
         "d5",
         "Nc3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 6365,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/3PP3/2N5/PPP2PPP/R2QKBNR",
       "reach": 6848,
       "sans": [
         "e4",
@@ -7732,11 +7731,11 @@
         "Nc3",
         "Nf6",
         "Bg5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p2B1/3PP3/2N5/PPP2PPP/R2QKBNR"
     },
     {
       "games": 3322,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/6B1/3Pp3/2N5/PPP2PPP/R2QKBNR",
       "reach": 3564,
       "sans": [
         "e4",
@@ -7747,11 +7746,11 @@
         "Nf6",
         "Bg5",
         "dxe4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/6B1/3Pp3/2N5/PPP2PPP/R2QKBNR"
     },
     {
       "games": 6278,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3pP3/3P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 6573,
       "sans": [
         "e4",
@@ -7761,11 +7760,11 @@
         "Nc3",
         "Nf6",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3pP3/3P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 6188,
-      "placement": "rnbqkb1r/pppn1ppp/4p3/3pP3/3P4/2N5/PPP2PPP/R1BQKBNR",
       "reach": 6498,
       "sans": [
         "e4",
@@ -7776,11 +7775,11 @@
         "Nf6",
         "e5",
         "Nfd7"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppn1ppp/4p3/3pP3/3P4/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 18418,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR",
       "reach": 18895,
       "sans": [
         "e4",
@@ -7788,11 +7787,11 @@
         "d4",
         "d5",
         "Nd2"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 8013,
-      "placement": "rnbqkbnr/pp3ppp/4p3/2pp4/3PP3/8/PPPN1PPP/R1BQKBNR",
       "reach": 8194,
       "sans": [
         "e4",
@@ -7801,11 +7800,11 @@
         "d5",
         "Nd2",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/2pp4/3PP3/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 4051,
-      "placement": "rnbqkbnr/pp3ppp/4p3/2pP4/3P4/8/PPPN1PPP/R1BQKBNR",
       "reach": 4159,
       "sans": [
         "e4",
@@ -7815,11 +7814,11 @@
         "Nd2",
         "c5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/2pP4/3P4/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 2448,
-      "placement": "rnb1kbnr/pp3ppp/4p3/2pq4/3P4/8/PPPN1PPP/R1BQKBNR",
       "reach": 2510,
       "sans": [
         "e4",
@@ -7830,11 +7829,11 @@
         "c5",
         "exd5",
         "Qxd5"
-      ]
+      ],
+      "placement": "rnb1kbnr/pp3ppp/4p3/2pq4/3P4/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 3801,
-      "placement": "rnbqkbnr/pp3ppp/4p3/2pp4/3PP3/5N2/PPPN1PPP/R1BQKB1R",
       "reach": 3867,
       "sans": [
         "e4",
@@ -7844,11 +7843,11 @@
         "Nd2",
         "c5",
         "Ngf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/2pp4/3PP3/5N2/PPPN1PPP/R1BQKB1R"
     },
     {
       "games": 2193,
-      "placement": "rnbqkbnr/pp3ppp/4p3/3p4/3pP3/5N2/PPPN1PPP/R1BQKB1R",
       "reach": 2225,
       "sans": [
         "e4",
@@ -7859,11 +7858,11 @@
         "c5",
         "Ngf3",
         "cxd4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/3p4/3pP3/5N2/PPPN1PPP/R1BQKB1R"
     },
     {
       "games": 1731,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3Pp3/8/PPPN1PPP/R1BQKBNR",
       "reach": 1783,
       "sans": [
         "e4",
@@ -7872,11 +7871,11 @@
         "d5",
         "Nd2",
         "dxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3Pp3/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 1731,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3PN3/8/PPP2PPP/R1BQKBNR",
       "reach": 4957,
       "sans": [
         "e4",
@@ -7886,11 +7885,11 @@
         "Nd2",
         "dxe4",
         "Nxe4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/8/3PN3/8/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2104,
-      "placement": "rnbqk1nr/ppp1bppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR",
       "reach": 2159,
       "sans": [
         "e4",
@@ -7899,11 +7898,11 @@
         "d5",
         "Nd2",
         "Be7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp1bppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 4337,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/3PP3/8/PPPN1PPP/R1BQKBNR",
       "reach": 4469,
       "sans": [
         "e4",
@@ -7912,11 +7911,11 @@
         "d5",
         "Nd2",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/3PP3/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 4049,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3pP3/3P4/8/PPPN1PPP/R1BQKBNR",
       "reach": 4171,
       "sans": [
         "e4",
@@ -7926,11 +7925,11 @@
         "Nd2",
         "Nf6",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3pP3/3P4/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 3916,
-      "placement": "rnbqkb1r/pppn1ppp/4p3/3pP3/3P4/8/PPPN1PPP/R1BQKBNR",
       "reach": 4027,
       "sans": [
         "e4",
@@ -7941,11 +7940,11 @@
         "Nf6",
         "e5",
         "Nfd7"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppn1ppp/4p3/3pP3/3P4/8/PPPN1PPP/R1BQKBNR"
     },
     {
       "games": 4432,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3P4/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 4763,
       "sans": [
         "e4",
@@ -7953,11 +7952,11 @@
         "d4",
         "d5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3P4/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 4407,
-      "placement": "rnbqkbnr/ppp2ppp/8/3p4/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 4741,
       "sans": [
         "e4",
@@ -7966,11 +7965,11 @@
         "d5",
         "exd5",
         "exd5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/8/3p4/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 2940,
-      "placement": "rnbqkbnr/ppp2ppp/8/3p4/3P4/5N2/PPP2PPP/RNBQKB1R",
       "reach": 3298,
       "sans": [
         "e4",
@@ -7980,11 +7979,11 @@
         "exd5",
         "exd5",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/8/3p4/3P4/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 7063,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3pP3/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 7280,
       "sans": [
         "e4",
@@ -7992,11 +7991,11 @@
         "d4",
         "d5",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3pP3/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 6984,
-      "placement": "rnbqkbnr/pp3ppp/4p3/2ppP3/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 7199,
       "sans": [
         "e4",
@@ -8005,11 +8004,11 @@
         "d5",
         "e5",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/2ppP3/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 6871,
-      "placement": "rnbqkbnr/pp3ppp/4p3/2ppP3/3P4/2P5/PP3PPP/RNBQKBNR",
       "reach": 7373,
       "sans": [
         "e4",
@@ -8019,11 +8018,11 @@
         "e5",
         "c5",
         "c3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp3ppp/4p3/2ppP3/3P4/2P5/PP3PPP/RNBQKBNR"
     },
     {
       "games": 4934,
-      "placement": "r1bqkbnr/pp3ppp/2n1p3/2ppP3/3P4/2P5/PP3PPP/RNBQKBNR",
       "reach": 5313,
       "sans": [
         "e4",
@@ -8034,41 +8033,41 @@
         "c5",
         "c3",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp3ppp/2n1p3/2ppP3/3P4/2P5/PP3PPP/RNBQKBNR"
     },
     {
       "games": 15188,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 15188,
       "sans": [
         "e4",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 14789,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 18818,
       "sans": [
         "e4",
         "g6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 13796,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR",
       "reach": 17495,
       "sans": [
         "e4",
         "g6",
         "d4",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 9009,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 11001,
       "sans": [
         "e4",
@@ -8076,11 +8075,11 @@
         "d4",
         "Bg7",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2551,
-      "placement": "rnbqk1nr/pp1pppbp/2p3p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 3167,
       "sans": [
         "e4",
@@ -8089,11 +8088,11 @@
         "Bg7",
         "Nc3",
         "c6"
-      ]
+      ],
+      "placement": "rnbqk1nr/pp1pppbp/2p3p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 5189,
-      "placement": "rnbqk1nr/ppp1ppbp/3p2p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR",
       "reach": 8777,
       "sans": [
         "e4",
@@ -8102,11 +8101,11 @@
         "Bg7",
         "Nc3",
         "d6"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp1ppbp/3p2p1/8/3PP3/2N5/PPP2PPP/R1BQKBNR"
     },
     {
       "games": 2078,
-      "placement": "rnbqk1nr/ppp1ppbp/3p2p1/8/3PP3/2N1B3/PPP2PPP/R2QKBNR",
       "reach": 3644,
       "sans": [
         "e4",
@@ -8116,11 +8115,11 @@
         "Nc3",
         "d6",
         "Be3"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp1ppbp/3p2p1/8/3PP3/2N1B3/PPP2PPP/R2QKBNR"
     },
     {
       "games": 3346,
-      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 6482,
       "sans": [
         "e4",
@@ -8128,11 +8127,11 @@
         "d4",
         "Bg7",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppppppbp/6p1/8/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2719,
-      "placement": "rnbqk1nr/ppp1ppbp/3p2p1/8/3PP3/5N2/PPP2PPP/RNBQKB1R",
       "reach": 5528,
       "sans": [
         "e4",
@@ -8141,41 +8140,41 @@
         "Bg7",
         "Nf3",
         "d6"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp1ppbp/3p2p1/8/3PP3/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 8814,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR",
       "reach": 8814,
       "sans": [
         "e4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/4P3/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 7678,
-      "placement": "rnbqkb1r/pppppppp/5n2/4P3/8/8/PPPP1PPP/RNBQKBNR",
       "reach": 7678,
       "sans": [
         "e4",
         "Nf6",
         "e5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/4P3/8/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 7647,
-      "placement": "rnbqkb1r/pppppppp/8/3nP3/8/8/PPPP1PPP/RNBQKBNR",
       "reach": 7647,
       "sans": [
         "e4",
         "Nf6",
         "e5",
         "Nd5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/8/3nP3/8/8/PPPP1PPP/RNBQKBNR"
     },
     {
       "games": 6251,
-      "placement": "rnbqkb1r/pppppppp/8/3nP3/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 6251,
       "sans": [
         "e4",
@@ -8183,11 +8182,11 @@
         "e5",
         "Nd5",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/8/3nP3/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 6205,
-      "placement": "rnbqkb1r/ppp1pppp/3p4/3nP3/3P4/8/PPP2PPP/RNBQKBNR",
       "reach": 6205,
       "sans": [
         "e4",
@@ -8196,11 +8195,11 @@
         "Nd5",
         "d4",
         "d6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p4/3nP3/3P4/8/PPP2PPP/RNBQKBNR"
     },
     {
       "games": 1892,
-      "placement": "rnbqkb1r/ppp1pppp/3p4/3nP3/2PP4/8/PP3PPP/RNBQKBNR",
       "reach": 1892,
       "sans": [
         "e4",
@@ -8210,11 +8209,11 @@
         "d4",
         "d6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p4/3nP3/2PP4/8/PP3PPP/RNBQKBNR"
     },
     {
       "games": 1892,
-      "placement": "rnbqkb1r/ppp1pppp/1n1p4/4P3/2PP4/8/PP3PPP/RNBQKBNR",
       "reach": 2426,
       "sans": [
         "e4",
@@ -8225,11 +8224,11 @@
         "d6",
         "c4",
         "Nb6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/1n1p4/4P3/2PP4/8/PP3PPP/RNBQKBNR"
     },
     {
       "games": 4224,
-      "placement": "rnbqkb1r/ppp1pppp/3p4/3nP3/3P4/5N2/PPP2PPP/RNBQKB1R",
       "reach": 4348,
       "sans": [
         "e4",
@@ -8239,68 +8238,68 @@
         "d4",
         "d6",
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/3p4/3nP3/3P4/5N2/PPP2PPP/RNBQKB1R"
     },
     {
       "games": 2826,
-      "placement": "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR",
       "reach": 2826,
       "sans": [
         "f4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR"
     },
     {
       "games": 100085,
-      "placement": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R",
       "reach": 100085,
       "sans": [
         "Nf3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R"
     },
     {
       "games": 8291,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/8/5N2/PPPPPPPP/RNBQKB1R",
       "reach": 8291,
       "sans": [
         "Nf3",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/8/5N2/PPPPPPPP/RNBQKB1R"
     },
     {
       "games": 5283,
-      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 9232,
       "sans": [
         "Nf3",
         "c5",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp1ppppp/8/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 1874,
-      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 3001,
       "sans": [
         "Nf3",
         "c5",
         "c4",
         "Nc6"
-      ]
+      ],
+      "placement": "r1bqkbnr/pp1ppppp/2n5/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 2696,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 10753,
       "sans": [
         "Nf3",
         "c5",
         "c4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 2077,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 10164,
       "sans": [
         "Nf3",
@@ -8308,94 +8307,94 @@
         "c4",
         "Nf6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 44975,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/5N2/PPPPPPPP/RNBQKB1R",
       "reach": 44975,
       "sans": [
         "Nf3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/5N2/PPPPPPPP/RNBQKB1R"
     },
     {
       "games": 2819,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/1P3N2/P1PPPPPP/RNBQKB1R",
       "reach": 2902,
       "sans": [
         "Nf3",
         "d5",
         "b3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/1P3N2/P1PPPPPP/RNBQKB1R"
     },
     {
       "games": 9277,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 9280,
       "sans": [
         "Nf3",
         "d5",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 2949,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 6405,
       "sans": [
         "Nf3",
         "d5",
         "c4",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 2372,
-      "placement": "rnbqkbnr/ppp1pppp/8/8/2Pp4/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 2372,
       "sans": [
         "Nf3",
         "d5",
         "c4",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/8/2Pp4/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 3313,
-      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 7605,
       "sans": [
         "Nf3",
         "d5",
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp2ppp/4p3/3p4/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 8287,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 21441,
       "sans": [
         "Nf3",
         "d5",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 6626,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 23709,
       "sans": [
         "Nf3",
         "d5",
         "d4",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 6083,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 17897,
       "sans": [
         "Nf3",
@@ -8403,11 +8402,11 @@
         "d4",
         "Nf6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 2339,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 32763,
       "sans": [
         "Nf3",
@@ -8416,11 +8415,11 @@
         "Nf6",
         "c4",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 2941,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R",
       "reach": 39947,
       "sans": [
         "Nf3",
@@ -8429,11 +8428,11 @@
         "Nf6",
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/5N2/PP2PPPP/RNBQKB1R"
     },
     {
       "games": 2136,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 34839,
       "sans": [
         "Nf3",
@@ -8443,32 +8442,32 @@
         "c4",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 22793,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 24103,
       "sans": [
         "Nf3",
         "d5",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 4385,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/8/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 4731,
       "sans": [
         "Nf3",
         "d5",
         "g3",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/8/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 4209,
-      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 4607,
       "sans": [
         "Nf3",
@@ -8476,11 +8475,11 @@
         "g3",
         "c6",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkbnr/pp2pppp/2p5/3p4/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 2849,
-      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/6b1/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 3822,
       "sans": [
         "Nf3",
@@ -8489,22 +8488,22 @@
         "c6",
         "Bg2",
         "Bg4"
-      ]
+      ],
+      "placement": "rn1qkbnr/pp2pppp/2p5/3p4/6b1/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 2698,
-      "placement": "rn1qkbnr/ppp1pppp/8/3p4/6b1/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 2817,
       "sans": [
         "Nf3",
         "d5",
         "g3",
         "Bg4"
-      ]
+      ],
+      "placement": "rn1qkbnr/ppp1pppp/8/3p4/6b1/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 2597,
-      "placement": "rn1qkbnr/ppp1pppp/8/3p4/6b1/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 2709,
       "sans": [
         "Nf3",
@@ -8512,22 +8511,22 @@
         "g3",
         "Bg4",
         "Bg2"
-      ]
+      ],
+      "placement": "rn1qkbnr/ppp1pppp/8/3p4/6b1/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 3983,
-      "placement": "rnbqkbnr/ppp1pp1p/6p1/3p4/8/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 4189,
       "sans": [
         "Nf3",
         "d5",
         "g3",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pp1p/6p1/3p4/8/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 3285,
-      "placement": "rnbqkbnr/ppp1pp1p/6p1/3p4/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 3428,
       "sans": [
         "Nf3",
@@ -8535,11 +8534,11 @@
         "g3",
         "g6",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pp1p/6p1/3p4/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 3273,
-      "placement": "rnbqk1nr/ppp1ppbp/6p1/3p4/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 3432,
       "sans": [
         "Nf3",
@@ -8548,11 +8547,11 @@
         "g6",
         "Bg2",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp1ppbp/6p1/3p4/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 1900,
-      "placement": "rnbqk1nr/ppp1ppbp/6p1/3p4/3P4/5NP1/PPP1PPBP/RNBQK2R",
       "reach": 2138,
       "sans": [
         "Nf3",
@@ -8562,22 +8561,22 @@
         "Bg2",
         "Bg7",
         "d4"
-      ]
+      ],
+      "placement": "rnbqk1nr/ppp1ppbp/6p1/3p4/3P4/5NP1/PPP1PPBP/RNBQK2R"
     },
     {
       "games": 6966,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 9347,
       "sans": [
         "Nf3",
         "d5",
         "g3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 6905,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 9411,
       "sans": [
         "Nf3",
@@ -8585,11 +8584,11 @@
         "g3",
         "Nf6",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 1846,
-      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 3683,
       "sans": [
         "Nf3",
@@ -8598,11 +8597,11 @@
         "Nf6",
         "Bg2",
         "c6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp2pppp/2p2n2/3p4/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 2469,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 3594,
       "sans": [
         "Nf3",
@@ -8611,11 +8610,11 @@
         "Nf6",
         "Bg2",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 2133,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/8/5NP1/PPPPPPBP/RNBQ1RK1",
       "reach": 3071,
       "sans": [
         "Nf3",
@@ -8625,11 +8624,11 @@
         "Bg2",
         "e6",
         "O-O"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/8/5NP1/PPPPPPBP/RNBQ1RK1"
     },
     {
       "games": 1777,
-      "placement": "rnbqk2r/ppp1bppp/4pn2/3p4/8/5NP1/PPPPPPBP/RNBQ1RK1",
       "reach": 2486,
       "sans": [
         "Nf3",
@@ -8640,71 +8639,71 @@
         "e6",
         "O-O",
         "Be7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1bppp/4pn2/3p4/8/5NP1/PPPPPPBP/RNBQ1RK1"
     },
     {
       "games": 4060,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/8/5N2/PPPPPPPP/RNBQKB1R",
       "reach": 4060,
       "sans": [
         "Nf3",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/8/5N2/PPPPPPPP/RNBQKB1R"
     },
     {
       "games": 1748,
-      "placement": "rnbqkbnr/pppppp1p/6p1/8/4P3/5N2/PPPP1PPP/RNBQKB1R",
       "reach": 1878,
       "sans": [
         "Nf3",
         "g6",
         "e4"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppp1p/6p1/8/4P3/5N2/PPPP1PPP/RNBQKB1R"
     },
     {
       "games": 38824,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R",
       "reach": 38824,
       "sans": [
         "Nf3",
         "Nf6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R"
     },
     {
       "games": 27314,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 30524,
       "sans": [
         "Nf3",
         "Nf6",
         "c4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 2281,
-      "placement": "rnbqkb1r/p1pppppp/1p3n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 2503,
       "sans": [
         "Nf3",
         "Nf6",
         "c4",
         "b6"
-      ]
+      ],
+      "placement": "rnbqkb1r/p1pppppp/1p3n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 5151,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 10753,
       "sans": [
         "Nf3",
         "Nf6",
         "c4",
         "c5"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 4018,
-      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 10164,
       "sans": [
         "Nf3",
@@ -8712,22 +8711,22 @@
         "c4",
         "c5",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pp1ppppp/5n2/2p5/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 9174,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 11318,
       "sans": [
         "Nf3",
         "Nf6",
         "c4",
         "e6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 5345,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 7720,
       "sans": [
         "Nf3",
@@ -8735,11 +8734,11 @@
         "c4",
         "e6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 2915,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 4319,
       "sans": [
         "Nf3",
@@ -8748,11 +8747,11 @@
         "e6",
         "Nc3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 2104,
-      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R",
       "reach": 34839,
       "sans": [
         "Nf3",
@@ -8762,11 +8761,11 @@
         "Nc3",
         "d5",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R"
     },
     {
       "games": 1753,
-      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bP5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 2243,
       "sans": [
         "Nf3",
@@ -8775,11 +8774,11 @@
         "e6",
         "Nc3",
         "Bb4"
-      ]
+      ],
+      "placement": "rnbqk2r/pppp1ppp/4pn2/8/1bP5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 2446,
-      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/5NP1/PP1PPP1P/RNBQKB1R",
       "reach": 3431,
       "sans": [
         "Nf3",
@@ -8787,22 +8786,22 @@
         "c4",
         "e6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppp1ppp/4pn2/8/2P5/5NP1/PP1PPP1P/RNBQKB1R"
     },
     {
       "games": 8998,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/5N2/PP1PPPPP/RNBQKB1R",
       "reach": 10043,
       "sans": [
         "Nf3",
         "Nf6",
         "c4",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/5N2/PP1PPPPP/RNBQKB1R"
     },
     {
       "games": 5135,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 5833,
       "sans": [
         "Nf3",
@@ -8810,11 +8809,11 @@
         "c4",
         "g6",
         "Nc3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 4013,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2P5/2N2N2/PP1PPPPP/R1BQKB1R",
       "reach": 4676,
       "sans": [
         "Nf3",
@@ -8823,11 +8822,11 @@
         "g6",
         "Nc3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2P5/2N2N2/PP1PPPPP/R1BQKB1R"
     },
     {
       "games": 3364,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2P1P3/2N2N2/PP1P1PPP/R1BQKB1R",
       "reach": 3742,
       "sans": [
         "Nf3",
@@ -8837,11 +8836,11 @@
         "Nc3",
         "Bg7",
         "e4"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2P1P3/2N2N2/PP1P1PPP/R1BQKB1R"
     },
     {
       "games": 2981,
-      "placement": "rnbqk2r/ppp1ppbp/3p1np1/8/2P1P3/2N2N2/PP1P1PPP/R1BQKB1R",
       "reach": 3328,
       "sans": [
         "Nf3",
@@ -8852,11 +8851,11 @@
         "Bg7",
         "e4",
         "d6"
-      ]
+      ],
+      "placement": "rnbqk2r/ppp1ppbp/3p1np1/8/2P1P3/2N2N2/PP1P1PPP/R1BQKB1R"
     },
     {
       "games": 2921,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/5NP1/PP1PPP1P/RNBQKB1R",
       "reach": 3677,
       "sans": [
         "Nf3",
@@ -8864,11 +8863,11 @@
         "c4",
         "g6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/2P5/5NP1/PP1PPP1P/RNBQKB1R"
     },
     {
       "games": 2866,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2P5/5NP1/PP1PPP1P/RNBQKB1R",
       "reach": 3644,
       "sans": [
         "Nf3",
@@ -8877,11 +8876,11 @@
         "g6",
         "g3",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2P5/5NP1/PP1PPP1P/RNBQKB1R"
     },
     {
       "games": 2821,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/2P5/5NP1/PP1PPPBP/RNBQK2R",
       "reach": 4346,
       "sans": [
         "Nf3",
@@ -8891,11 +8890,11 @@
         "g3",
         "Bg7",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/2P5/5NP1/PP1PPPBP/RNBQK2R"
     },
     {
       "games": 2582,
-      "placement": "rnbq1rk1/ppppppbp/5np1/8/2P5/5NP1/PP1PPPBP/RNBQK2R",
       "reach": 3944,
       "sans": [
         "Nf3",
@@ -8906,42 +8905,42 @@
         "Bg7",
         "Bg2",
         "O-O"
-      ]
+      ],
+      "placement": "rnbq1rk1/ppppppbp/5np1/8/2P5/5NP1/PP1PPPBP/RNBQK2R"
     },
     {
       "games": 2866,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/3P4/5N2/PPP1PPPP/RNBQKB1R",
       "reach": 44431,
       "sans": [
         "Nf3",
         "Nf6",
         "d4"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/3P4/5N2/PPP1PPPP/RNBQKB1R"
     },
     {
       "games": 7255,
-      "placement": "rnbqkb1r/pppppppp/5n2/8/8/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 7267,
       "sans": [
         "Nf3",
         "Nf6",
         "g3"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppppp/5n2/8/8/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 1897,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 9347,
       "sans": [
         "Nf3",
         "Nf6",
         "g3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 1835,
-      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 9411,
       "sans": [
         "Nf3",
@@ -8949,22 +8948,22 @@
         "g3",
         "d5",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkb1r/ppp1pppp/5n2/3p4/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 3335,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/8/5NP1/PPPPPP1P/RNBQKB1R",
       "reach": 3344,
       "sans": [
         "Nf3",
         "Nf6",
         "g3",
         "g6"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/8/5NP1/PPPPPP1P/RNBQKB1R"
     },
     {
       "games": 2378,
-      "placement": "rnbqkb1r/pppppp1p/5np1/8/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 2394,
       "sans": [
         "Nf3",
@@ -8972,11 +8971,11 @@
         "g3",
         "g6",
         "Bg2"
-      ]
+      ],
+      "placement": "rnbqkb1r/pppppp1p/5np1/8/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 2336,
-      "placement": "rnbqk2r/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQK2R",
       "reach": 2413,
       "sans": [
         "Nf3",
@@ -8985,24 +8984,25 @@
         "g6",
         "Bg2",
         "Bg7"
-      ]
+      ],
+      "placement": "rnbqk2r/ppppppbp/5np1/8/8/5NP1/PPPPPPBP/RNBQK2R"
     },
     {
       "games": 4197,
-      "placement": "rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR",
       "reach": 4197,
       "sans": [
         "g3"
-      ]
+      ],
+      "placement": "rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR"
     },
     {
       "games": 1943,
-      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/6P1/PPPPPP1P/RNBQKBNR",
       "reach": 1943,
       "sans": [
         "g3",
         "d5"
-      ]
+      ],
+      "placement": "rnbqkbnr/ppp1pppp/8/3p4/8/6P1/PPPPPP1P/RNBQKBNR"
     }
   ],
   "reach": [

@@ -78,6 +78,11 @@ describe('the ledger', () => {
       .toMatch(`${numbers.counted(openings[kind])} of the ${read} games the Openings archives hold `)
   })
 
+  it('names the unrated games under the floor and a variant by its rules', () => {
+    expect(omitted.ledgerSentence('below', openings)).toMatch(/floor on both sides or carry no rating\.$/u)
+    expect(omitted.ledgerSentence('variant', openings)).toMatch(/are games of a variant other than standard chess\.$/u)
+  })
+
   it('steps among the segments drawn, leaving out a kind a section holds none of', () => {
     const below = omitted.segments.filter(({ kind }) => kind === 'below')
     expect(below.some(({ section }) => section === 'Players')).toBe(false)
@@ -92,8 +97,8 @@ describe('the ledger', () => {
 
   it('writes the sentence the floor reads', () => {
     expect(omitted.floorSentence(2500, omitted.keptAt(2500, SMALL))).toBe(
-      'At a floor of 2,500, the index keeps 7 of the 28 Openings games dated to a decade, leaving out 10 '
-      + 'under the floor and 11 rated on neither side.'
+      'At a floor of 2,500, 7 of the 28 Openings games dated to a decade reach it, 10 fall under it, '
+      + 'and 11 are rated on neither side.'
     )
   })
 })

@@ -2,7 +2,7 @@
 Holds `Omissions`, the games the fetched files hold that the index leaves
 out as `Census.omissions` counts them, beside the `Ledger` of one section or
 one file and the `Floor` of the Openings games by decade and rating, whose
-properties write the table the Games Left Out page sets beneath its figure
+properties write the tables the Games Left Out page sets beneath its figures
 and the figures it sets inside its sentences.
 """
 
@@ -10,8 +10,7 @@ from pydantic import BaseModel, NonNegativeInt
 
 from scotch.docs.tallies import markdown
 
-# `HEADERS` names the header of each reason's column, in the order the
-# index's record lists the reasons.
+# `HEADERS` names the header of each reason's column.
 HEADERS = {
     "below"   : "Below",
     "repeat"  : "Repeats",
@@ -59,7 +58,8 @@ class Ledger(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     below: NonNegativeInt
     """
-    The count of the games rated under the section's floor.
+    The count of the games rated under the section's floor or carrying no
+    rating.
     """
 
     files: NonNegativeInt
@@ -151,14 +151,16 @@ class Omissions(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     def floors(self) -> str:
         """
         Writes a table of each decade's Openings games beside those carrying
-        no rating, those rated under the floor, and those the floor keeps.
+        no rating, those rated under the floor, and those reaching it.
         """
         floor = self.floor
         under = sum(1 for low in floor.bins if low < floor.floor)
 
         return markdown(
-            headers = ("Decade", "Games", "Unrated", "Under the Floor", "Kept"),
-            rows    = (
+            headers = (
+                "Decade", "Games", "Unrated", "Under the Floor", "Reaching the Floor"
+            ),
+            rows = (
                 (
                     decade,
                     *(
@@ -178,29 +180,38 @@ class Omissions(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     @property
     def ledger(self) -> str:
         """
-        Writes a table of each section beside the games its files hold,
-        the games the index keeps, and the games it leaves out under each
-        reason, the reasons ranked by the games each takes.
+        Writes a table of each section beside the count of its files, then a
+        table of each file leaving out a game, each row beside the games the
+        files hold, the games the index keeps, and the games it leaves out
+        under each reason, the reasons ranked by the games each takes.
         """
         reasons = sorted(HEADERS, key=lambda reason: -self.totals[reason])
-
-        return markdown(
-            headers = (
-                "Section", "Files", "Read", "Kept",
-                *(HEADERS[reason] for reason in reasons)
-            ),
-            rows = (
-                (
-                    section.name,
-                    *(
-                        f"{count:,}"
-                        for count in (
-                            section.files, section.read, section.kept,
-                            *(getattr(section, reason) for reason in reasons)
-                        )
-                    )
+        headers = ("Read", "Kept", *(HEADERS[reason] for reason in reasons))
+        counted = lambda ledger, *counts: (
+            ledger.name,
+            *(
+                f"{count:,}"
+                for count in (
+                    *counts,
+                    ledger.read, ledger.kept,
+                    *(getattr(ledger, reason) for reason in reasons)
                 )
-                for section in self.sections
+            )
+        )
+
+        return "\n\n".join(
+            (
+                markdown(
+                    headers = ("Section", "Files", *headers),
+                    rows    = (counted(
+                        section,
+                        section.files
+                    ) for section in self.sections)
+                ),
+                markdown(
+                    headers = ("File", *headers),
+                    rows    = (counted(file) for file in self.files)
+                )
             )
         )
 

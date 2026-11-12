@@ -1,10 +1,10 @@
 """
 Holds `Shared`, how far the stored games share their positions with one
-another as `Census.shared` counts them in one read of the index, beside
-the `Parting` of one group of games, the `Crowd` of positions some range
-of games reaches, and the `Line` of opening moves the Shared Positions page
-draws as a tree, whose properties write the tables that page sets beneath
-its figures and the figures it sets inside its sentences.
+another as `Census.shared` counts them from the index, beside the `Parting`
+of one group of games, the `Crowd` of positions some range of games reaches,
+and the `Line` of opening moves the Shared Positions page draws as a tree,
+whose properties write the tables that page sets beneath its figures and the
+figures it sets inside its sentences.
 """
 
 from chess           import Board, Move
@@ -12,7 +12,7 @@ from collections.abc import Sequence
 from pydantic        import BaseModel, NonNegativeInt, computed_field
 from typing          import Self
 
-from scotch.docs.tallies import ended, markdown
+from scotch.docs.tallies import ended, markdown, numbered
 
 
 class Crowd(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -185,8 +185,7 @@ class Shared(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     crowd: NonNegativeInt
     """
-    The count of other stored games past which a position counts as
-    crowded.
+    The count of stored games past which a position counts as crowded.
     """
 
     decades: list[Parting]
@@ -215,22 +214,40 @@ class Shared(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     @property
     def crowding(self) -> str:
         """
-        Writes a table of the positions by how many stored games reach
-        each, each range beside its share of the distinct positions and of
-        the positions the stored games stand in, marking each range past
-        the crowd.
+        Writes a table of the positions by how many stored games reach each,
+        each range beside its share of the distinct positions and of the
+        positions the stored games stand in, marking each range past the
+        crowd, then a table of each opening line the tree draws beside the
+        games playing it and the games reaching its position.
         """
-        return markdown(
-            headers = ("Games Reaching", "Positions", "Share", "Stood In", "Crowded"),
-            rows    = (
-                (
-                    crowd.name,
-                    f"{crowd.keys:,}",
-                    f"{crowd.keys / self.positions:.2%}",
-                    f"{crowd.stood / self.stood:.1%}",
-                    "Yes" if crowd.low > self.crowd else "No"
+        return "\n\n".join(
+            (
+                markdown(
+                    headers = (
+                        "Games Reaching", "Positions", "Share", "Stood In", "Crowded"
+                    ),
+                    rows = (
+                        (
+                            crowd.name,
+                            f"{crowd.keys:,}",
+                            f"{crowd.keys / self.positions:.2%}",
+                            f"{crowd.stood / self.stood:.1%}",
+                            "Yes" if crowd.low > self.crowd else "No"
+                        )
+                        for crowd in self.reach
+                    )
+                ),
+                markdown(
+                    headers = ("Line", "Playing It", "Reaching It"),
+                    rows    = (
+                        (
+                            f"`{numbered(line.sans)}`",
+                            f"{line.games:,}",
+                            f"{line.reach:,}"
+                        )
+                        for line in self.lines
+                    )
                 )
-                for crowd in self.reach
             )
         )
 

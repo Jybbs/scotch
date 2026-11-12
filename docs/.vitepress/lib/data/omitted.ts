@@ -185,9 +185,9 @@ export function floorLayout(width: number, counts: FloorCounts = OMISSIONS.floor
  * Writes the sentence the grid of the rating floor reads at one floor.
  */
 export function floorSentence(floor: number, kept: Kept): string {
-  return `At a floor of ${numbers.counted(floor)}, the index keeps ${numbers.counted(kept.kept)} of the `
-       + `${numbers.counted(kept.total)} Openings games dated to a decade, leaving out `
-       + `${numbers.counted(kept.under)} under the floor and ${numbers.counted(kept.unrated)} rated on `
+  return `At a floor of ${numbers.counted(floor)}, ${numbers.counted(kept.kept)} of the `
+       + `${numbers.counted(kept.total)} Openings games dated to a decade reach it, `
+       + `${numbers.counted(kept.under)} fall under it, and ${numbers.counted(kept.unrated)} are rated on `
        + 'neither side.'
 }
 
@@ -229,11 +229,11 @@ export function ledgerSentence(kind: Kind, ledger: Tally): string {
   const count = numbers.counted(ledger[kind])
   const of    = `of the ${numbers.counted(readOf(ledger))} games ${sectionFiles(ledger.section)} hold`
   const says  = {
-    below   : `are rated under the ${numbers.counted(OMISSIONS.floor.floor)} floor on both sides`,
+    below   : `are rated under the ${numbers.counted(OMISSIONS.floor.floor)} floor on both sides or carry no rating`,
     kept    : 'reach the index',
     repeat  : 'repeat a game the index already keeps from another file',
     unread  : 'hold moves the reader cannot play',
-    variant : 'start from a position other than the standard one'
+    variant : 'are games of a variant other than standard chess'
   }
 
   return `${count} ${of} ${says[kind]}.`
