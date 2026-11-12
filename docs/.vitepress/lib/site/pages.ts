@@ -9,20 +9,26 @@ interface SectionPage {
 }
 
 /**
- * Reads the pages of one section, its overview first and every other page after
- * it in the order of their titles, each linked by its clean address.
+ * Reads the pages of one section, its overview first, then each page `order`
+ * names in that order, and every other page after them in the order of their
+ * titles, each linked by its clean address.
  *
  * Args:
  *   pagesDir : The folder the site's pages sit in.
  *   slug     : The section's folder under it.
+ *   order    : The file names, without `.md`, of the pages leading the rest.
  */
-export function sectionPages(pagesDir: string, slug: string): SectionPage[] {
+export function sectionPages(pagesDir: string, slug: string, order: readonly string[] = []): SectionPage[] {
   const folder = path.join(pagesDir, slug)
-  const pages  = fs.globSync('*.md', { cwd: folder })
-    .map(file => ({ link: routeOf(`${slug}/${file}`), title: titleOf(path.join(folder, file)) }))
+  const rank   = (file: string) => {
+    const stem = path.basename(file, '.md')
+    return stem === 'index' ? -1 : order.includes(stem) ? order.indexOf(stem) : order.length
+  }
 
-  return pages.toSorted((a, b) =>
-    Number(b.link.endsWith('/')) - Number(a.link.endsWith('/')) || a.title.localeCompare(b.title))
+  return fs.globSync('*.md', { cwd: folder })
+    .map(file => ({ file, link: routeOf(`${slug}/${file}`), title: titleOf(path.join(folder, file)) }))
+    .toSorted((a, b) => rank(a.file) - rank(b.file) || a.title.localeCompare(b.title))
+    .map(({ link, title }) => ({ link, title }))
 }
 
 /**

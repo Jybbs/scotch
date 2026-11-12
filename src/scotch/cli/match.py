@@ -14,7 +14,7 @@ from typing         import Annotated
 
 from scotch.cli.settings  import Settings
 from scotch.games.schemas import Game
-from scotch.index.schemas import Export
+from scotch.index.schemas import Export, Pairing
 
 
 def game(
@@ -158,15 +158,12 @@ def games(pgn: ExistingFile):
 
     for place, submitted in enumerate(read, start=1):
         print(
-            f"{pgn.name}:{place}  "
-            + (
-                ", ".join(submitted.problems)
-                or (
-                    found.line
-                    if (found := index.match(submitted))
-                    else "No stored game shares a position with this game"
-                )
-            )
+            Pairing(
+                file      = pgn.name,
+                match     = None if submitted.problems else index.match(submitted),
+                place     = place,
+                submitted = submitted
+            ).line
         )
 
     if not place:

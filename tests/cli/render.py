@@ -68,7 +68,7 @@ def test_render_of_a_page_whose_markers_are_broken_exits_naming_it(
         Outputs,
         "shipped",
         classmethod(
-            lambda cls, app, readme, root, index=None: cls(
+            lambda cls, app, readme, root, index=None, settings=None: cls(
                 [Region(name="table", path=Path("page.md"), render=lambda: "")]
             )
         )

@@ -91,6 +91,27 @@ def test_played_names_a_chart_series_only_for_a_series_color(
     assert reference.played(token) == worded
 
 
+def test_the_checks_table_holds_a_row_per_check_the_mise_config_declares(
+    reference: Reference
+):
+    """
+    Pins the table of checks `mise doctor project` runs, each named beside
+    the condition it passes on and the step printed where it fails.
+    """
+    (reference.root / ".mise").mkdir()
+    (reference.root / ".mise/config.toml").write_text(
+        '[env]\n_.path = ".mise/bin"\n\n[tools]\npython = "3.14.6"\nuv = "0.12.13"\n\n'
+        '[doctor.checks.venv]\ndescription = "`.venv` exists"\n'
+        'hint = "mise x -- uv sync"\nrun = "test -d .venv"\n'
+    )
+
+    assert reference.checks == (
+        "| **Check** | **Passes Where** | **Prints Where It Fails** |\n"
+        "|---|---|---|\n"
+        "| `venv` | `.venv` exists | `mise x -- uv sync` |"
+    )
+
+
 def test_the_faces_table_reads_each_faces_version_from_the_manifest(
     reference: Reference
 ):

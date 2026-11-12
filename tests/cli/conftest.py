@@ -17,6 +17,7 @@ from sys             import executable
 from types           import SimpleNamespace
 from typing          import Self
 
+from scotch.cli.settings    import Settings
 from scotch.docs.inventory  import Outputs
 from scotch.docs.outputs    import Document
 from scotch.games.schemas   import Game, Origin
@@ -135,11 +136,12 @@ def shipped(
     root  = Sample.copy(tmp_path / "root").root
 
     def record(
-        cls    : type[Outputs],
-        app    : App,
-        readme : Path,
-        root   : Path,
-        index  : PositionIndex | None = None
+        cls      : type[Outputs],
+        app      : App,
+        readme   : Path,
+        root     : Path,
+        index    : PositionIndex | None = None,
+        settings : Settings | None      = None
     ) -> Self:
         """
         Records the README, the root, and the index it is given, and

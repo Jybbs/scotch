@@ -13,6 +13,7 @@ from scotch.repo.formats import Format
 from scotch.repo.schemas import (
     Action,
     Cache,
+    Diagnostic,
     Finding,
     Issue,
     Job,
@@ -737,6 +738,23 @@ def test_the_manifest_reads_the_fields_the_checks_compare(sample: Sample):
     assert pyproject.loose == ()
 
 
+def test_the_mise_config_reads_each_check_mise_doctor_project_runs(tmp_path: Path):
+    """
+    Asserts that each `[doctor.checks.<name>]` table reads under its name
+    as the condition it passes on and the step printed where it fails, the
+    command it runs left out.
+    """
+    (config := tmp_path / "config.toml").write_text(
+        '[env]\n_.path = ".mise/bin"\n\n[tools]\npython = "3.14.6"\nuv = "0.12.13"\n\n'
+        '[doctor.checks.venv]\ndescription = "Exists"\nhint = "uv sync"\n'
+        'run = "test -d .venv"\n'
+    )
+
+    assert MiseConfig.read(config).diagnostics == {
+        "venv": Diagnostic(description="Exists", hint="uv sync")
+    }
+
+
 def test_the_mise_config_reads_its_floor(sample: Sample):
     """
     Asserts that the mise config reads the release its `min_version` sets as
@@ -766,3 +784,4 @@ def test_the_mise_config_reads_its_pins_and_its_neighbors(sample: Sample):
     assert mise.minor == "3.14"
     assert mise.lockfile == sample.root / ".mise" / "mise.lock"
     assert (mise.floor, mise.variables) == (None, {"_": {"path": ".mise/bin"}})
+    assert mise.diagnostics == {}

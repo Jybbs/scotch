@@ -85,6 +85,23 @@ class ConfigFile(BaseModel, extra="ignore", frozen=True, use_attribute_docstring
         raise ValidationError.from_exception_data(str(path), details) from None
 
 
+class Diagnostic(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    One `[doctor.checks.<name>]` table of `.mise/config.toml`, a condition
+    `mise doctor project` checks by running a command.
+    """
+
+    description: str
+    """
+    The condition the check passes on, in words.
+    """
+
+    hint: str
+    """
+    The step `mise doctor project` prints where the check fails.
+    """
+
+
 class Level(StrEnum):
     """
     The severity of a finding, each member's value being the workflow
@@ -461,6 +478,14 @@ class MiseConfig(ConfigFile):
     """
     The wasm-bindgen release mise pins, whose command line writes the
     bindings of the crate's WebAssembly build, or `None` where it pins none.
+    """
+
+    diagnostics: dict[str, Diagnostic] = Field(
+        {},
+        validation_alias = AliasPath("doctor", "checks")
+    )
+    """
+    Each check `mise doctor project` runs, keyed by its name.
     """
 
     floor: str | None = Field(None, validation_alias="min_version")

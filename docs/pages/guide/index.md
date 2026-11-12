@@ -13,7 +13,7 @@ mise doctor project
 ```
 <!-- /install -->
 
-`--filter=blob:none` leaves every earlier layout of the game store the history keeps out of the clone, downloading a file only when a checkout reaches it. Once `cd` runs, mise puts uv and the wrapper at `.mise/bin/scotch` on the path, even with the lines pasted together. The wrapper builds `.venv` from `uv.lock` through `uv run --exact --locked` on its first run, compiling the crate under `rust/` with the Rust toolchain mise pins, so the package needs no install step of its own between `mise install` and the first command. `mise doctor project` reports each condition the clone needs beyond the pinned tools, beside the command that supplies a missing one.
+[Setting Up](setup.md) goes through these steps a line at a time, then fetches the files and builds the index a match reads.
 
 ## A First Match
 
@@ -33,18 +33,22 @@ Continues 22. Bc2 Ba6+ 23. Ke1 Bc4 24. Nxc4 dxc4 25. Rd6 Re8 26. Bxe5 fxe5 27. Q
 ```
 <!-- /example -->
 
-The report names the stored game as `<file>:<n>`, the position where the two games part in Forsyth–Edwards Notation (FEN), the move each played from it, and the stored game's moves through its result.[^edwards1994c]
+The report names the stored game as `<file>:<n>`, the position where the two games part in Forsyth–Edwards Notation (FEN), the move each played from it, and the stored game's moves through its result.[^edwards1994c] With `--link`, the same command prints the address opening the match in the [Viewer](../viewer/index.md), which sets the two games side by side and steps through them together.
 
-## Studying a Game
+## Where to Go Next
 
-Each command prints plain text a reader pastes into the next command:
+Each walkthrough below picks up where the one before it ends, in the order the sidebar lists them, and each row names the command that does the work beside the page that walks through it.
 
-- `scotch match game` reads `-` as standard input and takes `--game N` to choose among the games of a file, while `--top N` lists the next stored games and `--link` prints the address opening the match in the [Viewer](../viewer/index.md) with nothing sent to a server
-- `scotch match games` matches every game of a file, one line for each
-- `scotch show game` prints a stored game as PGN from its `<file>:<n>`, for any chess program to open
-- `scotch show position` takes a FEN or a line of moves, and prints each move the stored games played from that position, how those games ended, and the newest of them
-- `scotch show store` reports the files, the index, and the command to run next
+| **To** | **Read** | **Run** |
+|---|---|---|
+| Install the tools, fetch the files, and build the index | [Setting Up](setup.md) | `mise run data:fetch`, `mise run data:index` |
+| Match a game of your own and read the report | [Matching a Game](matching.md) | `scotch match game` |
+| Follow the stored game on, list the games behind it, and look up a position | [Studying a Match](studying.md) | `scotch match game --plies`, `scotch match game --top`, `scotch show game`, `scotch show position` |
+| Match every game of a file | [Studying a Match](studying.md) | `scotch match games` |
+| See what the store holds | [Studying a Match](studying.md) | `scotch show store` |
+| See how the files are fetched and the index built, and add a source to the store | [The Store](store.md) | `scotch fetch games`, `scotch index games` |
+| Step through a match beside the stored game | [Viewer](../viewer/index.md) | `scotch match game --json`, `scotch match game --link` |
 
-[The Commands](../reference/commands.md) sets out each command, and [The Store](store.md) follows the fetch and the index, then the steps that add a source.
+[The Commands](../reference/commands.md) sets out every option of each command and every message it exits on.
 
 [^edwards1994c]: Edwards, Steven J., coordinator. 1994. "Standard: Portable Game Notation Specification and Implementation Guide," Section 16.1, FEN. <https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c16.1>
