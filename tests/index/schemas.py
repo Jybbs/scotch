@@ -2,21 +2,25 @@
 Pins the records describing a match, meaning the `Side` each game becomes
 for the Viewer, the plies a `Span` covers in each game, what a `Match`
 prints and names as the move where the two games part, the `Export` the
-Viewer reads and the address opening it there, and what an `Answer` prints
-for a position.
+Viewer reads and the address opening it there, what an `Answer` prints for
+a position, and the lines a `Pairing` and a `Holding` print for a game of a
+file and for the store.
 """
 
 from base64           import urlsafe_b64decode
 from common.games     import line
+from datetime         import UTC, datetime
+from pathlib          import Path
 from pydantic         import ValidationError
 from pytest           import mark, param, raises
 from syrupy.assertion import SnapshotAssertion
 from urllib.parse     import urlsplit
 from zlib             import decompress
 
-from scotch.docs.project  import Project
-from scotch.games.schemas import Origin
-from scotch.index.schemas import Answer, Export, Match, Reply, Side, Span
+from scotch.docs.project    import Project
+from scotch.games.schemas   import Origin
+from scotch.index.schemas   import Answer, Export, Holding, Match, Pairing, Reply, Side, Span
+from scotch.sources.schemas import Download
 
 
 def test_a_continuation_at_the_stored_games_end_holds_its_result_alone():
@@ -153,33 +157,42 @@ def test_a_continuation_runs_to_the_stored_games_result_unless_cut_short(
     assert match.continuation(plies) == continuation
 
 
-def test_a_report_names_the_file_the_stored_game_was_read_from(
-    snapshot: SnapshotAssertion
-):
+def test_a_pairing_names_the_game_beside_its_problems_or_its_match():
     """
-    Asserts that a match whose stored game was read from a file of the
-    store's sources names the game as `<file>:<n>` beside the players, the
-    event, and the date.
+    Asserts that a pairing names the game by its file and its place, then
+    the problems reading it recorded where it carries any, the stored game
+    closest to it where one is found, and otherwise that none shares a
+    position with it.
     """
-    match = Match(
+    played = line("e4", Result="1-0")
+    broken = played.model_copy(update={"errors": ("illegal san: 'Zz9'",)})
+    found  = Match(
         game = line(
             "e4",
-            "e5",
-            Black  = "Black, B",
-            Date   = "2000.01.02",
-            Event  = "Event",
-            White  = "White, W",
-            origin = Origin(address="https://example.com/players/White.zip", place=1234)
+            origin = Origin(address="https://example.com/Mine.zip", place=3),
+            Result = "1-0"
         ),
         span      = Span(length=2, offset=0, start=0),
-        submitted = line("e4", "e5"),
-        ties      = 1
+        submitted = played,
+        ties      = 0
     )
 
-    assert match.report() == snapshot
-    assert match.line == (
-        "players/White.zip:1234  White, W vs. Black, B, Event, 2000.01.02, 2 positions"
-    )
+    assert [
+        Pairing(
+            file      = "mine.pgn",
+            match     = match,
+            place     = place,
+            submitted = game
+        ).line
+        for place, (game, match) in enumerate(
+            ((broken, None), (played, found), (played, None)),
+            start = 1
+        )
+    ] == [
+        "mine.pgn:1  illegal san: 'Zz9'",
+        f"mine.pgn:2  {found.line}",
+        "mine.pgn:3  No stored game shares a position with this game"
+    ]
 
 
 @mark.parametrize(
@@ -219,6 +232,35 @@ def test_a_report_names_the_stored_game_the_span_and_the_parting(
     )
 
     assert match.report() == snapshot
+
+
+def test_a_report_names_the_file_the_stored_game_was_read_from(
+    snapshot: SnapshotAssertion
+):
+    """
+    Asserts that a match whose stored game was read from a file of the
+    store's sources names the game as `<file>:<n>` beside the players, the
+    event, and the date.
+    """
+    match = Match(
+        game = line(
+            "e4",
+            "e5",
+            Black  = "Black, B",
+            Date   = "2000.01.02",
+            Event  = "Event",
+            White  = "White, W",
+            origin = Origin(address="https://example.com/players/White.zip", place=1234)
+        ),
+        span      = Span(length=2, offset=0, start=0),
+        submitted = line("e4", "e5"),
+        ties      = 1
+    )
+
+    assert match.report() == snapshot
+    assert match.line == (
+        "players/White.zip:1234  White, W vs. Black, B, Event, 2000.01.02, 2 positions"
+    )
 
 
 def test_a_report_writes_a_null_move_either_game_played():
@@ -349,6 +391,72 @@ def test_an_export_reads_back_from_its_json():
     export = Export.from_match(match, submitted)
 
     assert Export.model_validate_json(export.model_dump_json()) == export
+
+
+@mark.parametrize(
+    ("fetched", "held", "stale", "lines"),
+    [
+        param(
+            False,
+            None,
+            False,
+            [
+                "Mine.zip  not fetched",
+                "No index in this layout has been built under index",
+                "Next: scotch fetch games"
+            ],
+            id = "nothing-fetched"
+        ),
+        param(
+            True,
+            (1, 2_500),
+            True,
+            [
+                "Mine.zip  1,024 bytes, fetched 2026-01-02",
+                "The index holds 1 game and 2,500 positions",
+                "The files have changed since the index was built from them",
+                "Next: scotch index games"
+            ],
+            id = "stale"
+        ),
+        param(
+            True,
+            (2, 9),
+            False,
+            [
+                "Mine.zip  1,024 bytes, fetched 2026-01-02",
+                "The index holds 2 games and 9 positions",
+                "The index was built from the files as fetched",
+                "Next: scotch match game <pgn>"
+            ],
+            id = "current"
+        )
+    ]
+)
+def test_a_holding_reports_the_files_the_index_and_the_next_command(
+    fetched : bool,
+    held    : tuple[int, int] | None,
+    lines   : list[str],
+    stale   : bool
+):
+    """
+    Asserts that a holding prints each file with its download or as not
+    fetched, then the index or that none is built, then the command the
+    store's state leads to.
+    """
+    download = Download(
+        etag       = None,
+        fetched    = datetime(2026, 1, 2, tzinfo=UTC),
+        sha256     = "0" * 64,
+        size_bytes = 1_024
+    )
+
+    assert Holding(
+        fetched = (("Mine.zip", download if fetched else None),),
+        folder  = Path("index"),
+        held    = held,
+        stale   = stale
+    ).summary.splitlines() == lines
 
 
 def test_an_export_without_a_match_leaves_the_stored_side_empty(

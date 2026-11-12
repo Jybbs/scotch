@@ -25,4 +25,19 @@ describe('sectionPages', () => {
       { link: '/guide/alpha', title: 'The Store' }
     ])
   })
+
+  test('leads on the overview, then the pages the order names, then the rest by title', ({ repo }) => {
+    repo.write('pages/guide/index.md', '# Guide\n')
+    repo.write('pages/guide/alpha.md', '# The Store\n')
+    repo.write('pages/guide/beta.md', '# Adding a Source\n')
+    repo.write('pages/guide/gamma.md', '# Setting Up\n')
+    repo.write('pages/guide/zeta.md', '# Matching\n')
+    expect(sectionPages(`${repo.root}/pages`, 'guide', ['zeta', 'gamma'])).toEqual([
+      { link: '/guide/', title: 'Guide' },
+      { link: '/guide/zeta', title: 'Matching' },
+      { link: '/guide/gamma', title: 'Setting Up' },
+      { link: '/guide/beta', title: 'Adding a Source' },
+      { link: '/guide/alpha', title: 'The Store' }
+    ])
+  })
 })

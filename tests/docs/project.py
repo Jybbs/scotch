@@ -1,7 +1,7 @@
 """
 Pins the facts `Project` reads from the installed package's metadata, the
 row of badges it writes for the README, and the install steps it writes for
-the README and the Guide.
+the README and the Guide, each beside what it does in the Guide's setup.
 """
 
 from email.message import Message
@@ -31,6 +31,17 @@ def test_badges_link_each_logo_from_the_readme_beside_a_value_in_walnut(
         "![Docs](https://img.shields.io/badge/Docs-764017?style=for-the-badge)]"
         "(https://example.org/)"
     ]
+
+
+def test_each_install_step_pairs_its_command_with_what_it_does(project: Project):
+    """
+    Asserts that the steps hold the commands the install block runs, in its
+    order, each beside the words saying what it does.
+    """
+    assert [command for command, _ in project.steps] == (
+        project.install.splitlines()[1:-1]
+    )
+    assert all(gloss for _, gloss in project.steps)
 
 
 def test_install_clones_the_repository_into_a_folder_named_for_the_package(

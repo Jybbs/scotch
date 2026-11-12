@@ -52,7 +52,7 @@ def docs():
     repository = root()
     readme     = Pyproject.read(repository / "pyproject.toml").readme
 
-    for output in Outputs.shipped(app, readme, repository, index):
+    for output in Outputs.shipped(app, readme, repository, index, settings):
         try:
             written = output.write(repository)
         except ValueError as error:

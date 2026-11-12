@@ -102,13 +102,13 @@ def counted(
 def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path]:
     """
     Builds a writer that lays out a checkout under `tmp_path` holding the
-    mark, the wordmark, and the lockup, the repository's bibliography,
-    a manifest pinning each face's package, a README holding the markers
-    of its badges and its install steps, each page it is given, and every
-    example line, each the demo game but the Viewer's, which takes the game
-    it opens on, and registers the answers git gives for the Markdown files
-    it tracks, the pages the writer was given, and mise gives for the tasks
-    it lists.
+    mark, the wordmark, and the lockup, the repository's bibliography and
+    its mise configuration, a manifest pinning each face's package, a README
+    holding the markers of its badges and its install steps, each page it
+    is given, and every example line, each the demo game but the Viewer's,
+    which takes the game it opens on, and registers the answers git gives
+    for the Markdown files it tracks, the pages the writer was given, and
+    mise gives for the tasks it lists.
     """
 
     def write(pages: dict[str, str]) -> Path:
@@ -137,6 +137,11 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
             "<!-- badges -->\n<!-- /badges -->\n\n<!-- install -->\n<!-- /install -->\n"
         )
         copyfile(Path(__file__).parents[2] / References.file, docs / "references.bib")
+        (tmp_path / ".mise").mkdir()
+        copyfile(
+            Path(__file__).parents[2] / ".mise/config.toml",
+            tmp_path / ".mise/config.toml"
+        )
         (docs / "public" / "games").mkdir(parents=True)
 
         for name in ("demo", "front", "methods", "viewer"):

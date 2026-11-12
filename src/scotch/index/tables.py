@@ -23,9 +23,19 @@ from polars          import (
 from polars.exceptions import ComputeError, SchemaError
 from typing            import Self
 
-from scotch.games           import readers
-from scotch.games.schemas   import Game, Origin
-from scotch.index.schemas   import Answer, GAMES, Match, RESULTS, ROWS, RUNS, Reply, Span
+from scotch.games         import readers
+from scotch.games.schemas import Game, Origin
+from scotch.index.schemas   import (
+    Answer,
+    GAMES,
+    Match,
+    RESULTS,
+    ROWS,
+    RUNS,
+    Reply,
+    Span,
+    counted
+)
 from scotch.sources.schemas import Source
 
 
@@ -39,17 +49,6 @@ class PositionIndex:
 
     games     : LazyFrame
     positions : readers.Positions
-
-    @property
-    def held(self) -> str:
-        """
-        Writes the count of games and of positions the index holds, as
-        `scotch show store` prints it.
-        """
-        return (
-            f"The index holds {counted(self.positions.games)} and"
-            f" {self.positions.positions:,} positions"
-        )
 
     def answer(self, position: str, top: int) -> Answer:
         """
@@ -414,10 +413,3 @@ class Batch:
             source = source
         )
 
-
-def counted(count: int) -> str:
-    """
-    Writes `count` with its thousands separated, followed by game or games
-    to agree with it.
-    """
-    return f"{count:,} {'game' if count == 1 else 'games'}"

@@ -2,8 +2,8 @@
 Holds `Project`, the facts the package's metadata carries from
 `pyproject.toml` that the README and the Guide restate, meaning its name,
 its homepage, its repository, and the Python release it requires, from which
-`scotch render docs` writes the README's row of badges and the steps both
-pages give for installing it.
+`scotch render docs` writes the README's row of badges, the steps both pages
+give for installing it, and the Guide's account of each step.
 """
 
 from importlib.metadata import metadata
@@ -44,20 +44,49 @@ class Project(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     @property
     def install(self) -> str:
         """
-        Writes the commands that clone the repository, skipping every blob
+        Writes the commands the install steps run, as a fenced block.
+        """
+        return "\n".join(("```bash", *(command for command, _ in self.steps), "```"))
+
+    @property
+    def steps(self) -> tuple[tuple[str, str], ...]:
+        """
+        Lists the commands that clone the repository, skipping every blob
         no checkout reaches, trust and install the tools it pins, enter the
         clone, and print the command's help and the conditions the clone
-        meets, as a fenced block.
+        meets, each beside what it does.
         """
-        return "\n".join(
+        return (
             (
-                "```bash",
                 f"git clone --filter=blob:none {self.repository}.git",
+                "clones the repository, leaving out every earlier layout of the"
+                " game store the history keeps, which git downloads only where a"
+                " checkout reaches it"
+            ),
+            (
                 f"mise trust {self.name}",
+                "lets mise read the clone's `.mise/config.toml`, which it refuses"
+                " in a folder it has not been told to trust"
+            ),
+            (
                 f"mise -C {self.name} install",
+                "installs each tool `.mise/config.toml` pins, the Python"
+                " interpreter, uv, and the Rust toolchain among them"
+            ),
+            (
                 f"cd {self.name}",
+                "enters the clone, where mise puts uv and the wrapper at"
+                " `.mise/bin/scotch` on the path"
+            ),
+            (
                 f"{self.name} --help",
-                "mise doctor project", "```"
+                "builds `.venv` from `uv.lock` on the wrapper's first run, compiling"
+                " the crate under `rust/`, then prints the command's help"
+            ),
+            (
+                "mise doctor project",
+                "runs each check `.mise/config.toml` declares and prints the step"
+                " that clears any that fails"
             )
         )
 
