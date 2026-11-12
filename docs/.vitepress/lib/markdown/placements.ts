@@ -17,6 +17,7 @@ export const FIGURE = 'ScotchFigure'
 export const PLACED: Readonly<Record<string, readonly Placement[]>> = {
   'data/index.md'   : [{ draw: 'decades', region: 'decades' }, { draw: 'files', region: 'sources' }],
   'data/lengths.md' : [{ draw: 'eras', region: 'lengths' }, { draw: 'results', region: 'outcomes' }],
+  'data/omitted.md' : [{ draw: 'ledger', region: 'ledger' }, { draw: 'floor', region: 'floors' }],
   'guide/store.md'  : [{ draw: 'archives', region: 'archives' }],
   'methods/runs.md' : [{ after: 'Stepping Through a Match', draw: 'run' }],
 

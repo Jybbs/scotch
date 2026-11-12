@@ -10,5 +10,7 @@ export const DATA_WIDGETS: Record<string, Component> = {
   decades  : defineAsyncComponent(async () => (await import('./decades.ts')).Decades),
   eras     : defineAsyncComponent(async () => (await import('./eras.ts')).Eras),
   files    : defineAsyncComponent(async () => (await import('./files.ts')).Files),
+  floor    : defineAsyncComponent(async () => (await import('./floor.ts')).RatingFloor),
+  ledger   : defineAsyncComponent(async () => (await import('./ledger.ts')).GameLedger),
   results  : defineAsyncComponent(async () => (await import('./results.ts')).Results)
 }
