@@ -523,7 +523,7 @@ def test_tags_count_each_tag_date_and_rating_carried(census: Census):
         "decade"  : "Before 1900",
         "missing" : 1,
         "tag"     : "Event",
-        "files"   : [("Z.zip", 1)]
+        "files"   : [{"count": 1, "path": "Z.zip"}]
     }
 
 

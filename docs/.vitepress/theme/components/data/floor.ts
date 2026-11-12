@@ -6,7 +6,7 @@ import { stepped }             from '../../../lib/data/keys.ts'
 import * as numbers            from '../../../lib/data/numbers.ts'
 import * as omitted            from '../../../lib/data/omitted.ts'
 import { Corner }              from './corner.ts'
-import { Plate }               from './plate.ts'
+import { Plate, axisLabel }    from './plate.ts'
 
 /**
  * What one cell of the grid stands for at the floor drawn: a rating that
@@ -27,18 +27,6 @@ const most = Math.max(...counts.counts.flat())
  */
 const rows = counts.bins.map((_, bin) => numbers.summed(counts.counts.map(decade => decade[bin]!)))
   .concat(numbers.summed(counts.counts.map(decade => decade.at(-1)!)))
-
-/**
- * Draws one label of the grid's axes in the code face at `x` and `y`.
- */
-function axisLabel(text: string, x: number, y: number, anchor = 'end'): VNode {
-  return h('text', {
-    'class'       : 'sc-data-axis',
-    'text-anchor' : anchor,
-    'x'           : numbers.tenth(x),
-    'y'           : numbers.tenth(y)
-  }, text)
-}
 
 /**
  * Draws one rect at `x` and `y` of the grid's cell size or a width of its own.

@@ -1,8 +1,9 @@
 """
 Holds `Tags`, how fully the stored games carry their tags as `Census.tags`
-counts them, beside the `Tagged` count of one group of games and the `Gap`
-of one tag in one decade, whose properties write the table the Tags page
-sets beneath its figures and the figures it sets inside its sentences.
+counts them, beside the `Tagged` count of one group of games, the `Gap`
+of one tag in one decade, and the `Held` games of a gap in one file, whose
+properties write the table the Tags page sets beneath its figures and the
+figures it sets inside its sentences.
 """
 
 from collections.abc import Iterable
@@ -13,31 +14,19 @@ from typing          import Self
 from scotch.docs.tallies import markdown
 
 
-class Gap(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+class Held(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The games of one decade missing one tag, beside the files holding the
-    most of them.
-    """
-
-    decade: str
-    """
-    The name of the decade, as `Tagged.name` writes it.
+    The games of one gap that one file holds.
     """
 
-    files: list[tuple[str, NonNegativeInt]]
+    count: NonNegativeInt
     """
-    The files holding the most of the games, each as its path on the
-    provider's site beside the count it holds, the most first.
-    """
-
-    missing: NonNegativeInt
-    """
-    The count of the decade's games missing the tag.
+    The count of the gap's games the file holds.
     """
 
-    tag: str
+    path: str
     """
-    The name of the tag.
+    The path of the file on the provider's site.
     """
 
 
@@ -117,6 +106,33 @@ class Tagged(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         or 0 for a group holding no games.
         """
         return self.tags[name] / self.games if self.games else 0
+
+
+class Gap(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The games of one decade missing one tag, beside the files holding the
+    most of them.
+    """
+
+    decade: str
+    """
+    The name of the decade, as `Tagged.name` writes it.
+    """
+
+    files: list[Held]
+    """
+    The files holding the most of the games, the most first.
+    """
+
+    missing: NonNegativeInt
+    """
+    The count of the decade's games missing the tag.
+    """
+
+    tag: str
+    """
+    The name of the tag.
+    """
 
 
 class Tags(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):

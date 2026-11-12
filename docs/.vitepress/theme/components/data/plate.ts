@@ -15,6 +15,19 @@ function reading([label, value, count]: readonly string[], index: number): VNode
 }
 
 /**
+ * Draws one label of a chart's axes in the code face at `x` and `y`, its end
+ * at that point unless `anchor` sets it elsewhere.
+ */
+export function axisLabel(text: string, x: number, y: number, anchor = 'end'): VNode {
+  return h('text', {
+    'class'       : 'sc-data-axis',
+    'text-anchor' : anchor,
+    'x'           : tenth(x),
+    'y'           : tenth(y)
+  }, text)
+}
+
+/**
  * Draws the axis of moves beneath a chart at `y`, one label at each move
  * `TICKS` names, hidden from a screen reader.
  */

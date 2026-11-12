@@ -1,0 +1,60 @@
+.sc-data-carried {
+  --sc-data-held : color-mix(in oklab, var(--sc-data-quiet) 10%, var(--sc-data-page));
+  display        : grid;
+  gap            : 10px;
+}
+
+.sc-data-carried-grid {
+  display               : grid;
+  grid-template-columns : 4.6rem repeat(var(--sc-data-columns), minmax(0, 1fr));
+  gap                   : 2px;
+  align-items           : stretch;
+  outline-offset        : 4px;
+}
+
+.sc-data-carried-tag,
+.sc-data-carried-decade {
+  color       : var(--sc-data-quiet);
+  font        : 500 0.56rem/1 var(--sc-face-code);
+  white-space : nowrap;
+}
+
+.sc-data-carried-tag {
+  align-self    : center;
+  padding-right : 6px;
+  text-align    : right;
+}
+
+.sc-data-carried-decade {
+  padding-top : 6px;
+  text-align  : center;
+}
+
+.sc-data-carried-tag.sc-data-on {
+  color       : var(--sc-data-ink);
+  font-weight : 700;
+}
+
+.sc-data-carried-cell {
+  display       : grid;
+  place-items   : center;
+  height        : 22px;
+  border-radius : 2px;
+  background    : var(--sc-data-held);
+  color         : var(--sc-data-page);
+  font          : 600 0.54rem/1 var(--sc-face-code);
+  cursor        : pointer;
+  transition    : opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-carried-cell[data-k='gap'] {
+  background: color-mix(in oklab, var(--sc-data-link) calc(var(--sc-data-level) * 75% + 25%),
+                        var(--sc-data-page));
+}
+
+.sc-data-carried-cell.sc-data-on {
+  box-shadow: 0 0 0 2px var(--sc-data-page), 0 0 0 3.5px var(--sc-data-ink);
+}
+
+.sc-data-carried .sc-data-all { margin-left: 6px; }
+

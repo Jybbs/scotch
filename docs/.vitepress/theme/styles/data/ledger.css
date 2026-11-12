@@ -102,5 +102,6 @@
   display         : flex;
   justify-content : space-between;
   gap             : 12px;
+  margin          : 0;
   border-bottom   : var(--sc-data-hairline);
 }

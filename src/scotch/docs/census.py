@@ -498,14 +498,13 @@ class Census:
             gaps  = [
                 Gap(
                     decade = era,
-                    files  = list(
-                        (
-                            rows.group_by("file")
-                                .len()
-                                .sort("len", "file", descending=[True, False])
-                                .head(4)
-                                .iter_rows()
-                        )
+                    files  = (
+                        rows.group_by("file")
+                            .len("count")
+                            .sort("count", "file", descending=[True, False])
+                            .head(4)
+                            .rename({"file": "path"})
+                            .to_dicts()
                     ),
                     missing = rows.height,
                     tag     = tag

@@ -1,0 +1,26 @@
+.sc-data-dated {
+  display : grid;
+  gap     : 8px;
+}
+
+.sc-data-dated .sc-data-svg {
+  cursor       : crosshair;
+  touch-action : pan-y;
+}
+
+.sc-data-dated-cell {
+  fill       : var(--sc-data-tint);
+  transition : height var(--sc-duration-fade) var(--sc-curve-glide),
+               opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-dated-cell[data-k='full'] { fill: var(--sc-data-link); }
+
+.sc-data-dated-cell[data-k='part'] { fill: var(--sc-data-fill); }
+
+.sc-data-dated-box {
+  fill           : none;
+  pointer-events : none;
+  stroke         : var(--sc-data-ink);
+  stroke-width   : 1.5;
+}
