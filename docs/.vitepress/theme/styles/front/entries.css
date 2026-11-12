@@ -19,13 +19,15 @@
 .vp-doc .sc-entry::before {
   content        : '';
   position       : absolute;
-  inset          : 0 -64px;
-  z-index        : -1;
-  background     : var(--sc-page);
-  pointer-events : none;
-  mask-image     : linear-gradient(90deg, transparent, #000 64px, #000 calc(100% - 64px), transparent),
-                   linear-gradient(transparent, #000 56px, #000 calc(100% - 56px), transparent);
-  mask-composite : intersect;
+  inset                   : 0 -64px;
+  z-index                 : -1;
+  background              : color-mix(in srgb, var(--sc-page) 72%, transparent);
+  pointer-events          : none;
+  -webkit-backdrop-filter : blur(8px) saturate(1.15);
+  backdrop-filter         : blur(8px) saturate(1.15);
+  mask-image              : linear-gradient(90deg, transparent, #000 64px, #000 calc(100% - 64px), transparent),
+                            linear-gradient(transparent, #000 56px, #000 calc(100% - 56px), transparent);
+  mask-composite          : intersect;
 }
 
 .vp-doc .sc-entry-head {
@@ -76,8 +78,11 @@
 
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vp-doc .sc-entry::before {
-    inset      : 0 -24px;
-    mask-image : none;
+    inset                   : 0 -24px;
+    background              : var(--sc-page);
+    mask-image              : none;
+    -webkit-backdrop-filter : none;
+    backdrop-filter         : none;
   }
 }
 

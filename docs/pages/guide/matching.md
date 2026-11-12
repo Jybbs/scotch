@@ -54,4 +54,6 @@ scotch match game my-game.pgn --json my-game.json
 scotch match game my-game.pgn --link
 ```
 
+The Viewer also matches a game pasted or dropped into it as PGN, reading the published store a piece at a time in the browser, as [Publishing the Store](store.md#publishing-the-store) sets out, so a match there takes no clone of the repository and no index of its own.
+
 With the report read, [Studying a Match](studying.md) follows the stored game past the parting move and looks up the games behind it.

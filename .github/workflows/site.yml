@@ -9,6 +9,7 @@ jobs:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
+          shared-key: scotch-wasm
           tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
       - name: Build the site
         run: mise run site:press
