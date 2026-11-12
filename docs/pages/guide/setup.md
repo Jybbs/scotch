@@ -8,7 +8,7 @@ The install steps on the [Guide](index.md) run the commands below from the folde
 
 <!-- steps -->
 1. `git clone --filter=blob:none https://github.com/Jybbs/scotch.git` clones the repository, leaving out every earlier layout of the game store the history keeps, which git downloads only where a checkout reaches it
-2. `mise trust scotch` lets mise read the clone's `.mise/config.toml`, which it refuses in a folder it has not been told to trust
+2. `mise trust scotch` marks the clone's `.mise/config.toml` trusted, so mise loads it rather than prompting, skipping the file, or failing with an untrusted-config error
 3. `mise -C scotch install` installs each tool `.mise/config.toml` pins, the Python interpreter, uv, and the Rust toolchain among them
 4. `cd scotch` enters the clone, where mise puts uv and the wrapper at `.mise/bin/scotch` on the path
 5. `scotch --help` builds `.venv` from `uv.lock` on the wrapper's first run, compiling the crate under `rust/`, then prints the command's help
@@ -39,6 +39,8 @@ Each command below prints the message beside it to stderr and exits nonzero unde
 | [`scotch fetch games`](../reference/commands.md#scotch-fetch-games) | `Could not fetch <address>: <error>` | The server answers with an error status, a request fails once every retry has, or the connection breaks while the file downloads | Run the command again once the host answers, or raise `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S` |
 | [`scotch index games`](../reference/commands.md#scotch-index-games) | `No file has been fetched under <downloads>` | The manifest records no file `sources.toml` declares | Run `scotch fetch games` |
 | [`scotch index games`](../reference/commands.md#scotch-index-games) | `` These files changed on disk since their fetch, which `scotch fetch games` downloads again: `` | A fetched file no longer holds the bytes the manifest records | Run `scotch fetch games`, which downloads each file named below the line again |
+| [`scotch match game`](../reference/commands.md#scotch-match-game) | `No index has been built under <index>` | The data directory holds no index | Run `scotch index games` |
+| [`scotch match game`](../reference/commands.md#scotch-match-game) | `The index under <index> holds another layout` | The index was built in a layout other than the one this version reads | Run `scotch index games`, which rebuilds the index in this layout |
 <!-- /stops -->
 
 With the index built, [Matching a Game](matching.md) matches a game of your own against it.

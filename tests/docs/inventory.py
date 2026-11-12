@@ -6,14 +6,15 @@ the Markdown files git tracks or would track, and that every declared output
 renders into a fresh checkout and then reports no drift.
 """
 
-from chess.svg       import PIECES
-from collections.abc import Callable, Iterable
-from common.app      import invoke
-from common.games    import line
-from json            import loads
-from pathlib         import Path
-from pytest          import CaptureFixture, MonkeyPatch, mark, param
-from tomllib         import loads as from_toml
+from chess.svg        import PIECES
+from collections.abc  import Callable, Iterable
+from common.app       import invoke
+from common.games     import line
+from json             import loads
+from pathlib          import Path
+from pytest           import CaptureFixture, MonkeyPatch, mark, param
+from syrupy.assertion import SnapshotAssertion
+from tomllib          import loads as from_toml
 
 from scotch.cli              import app
 from scotch.cli.settings     import Settings
@@ -47,6 +48,7 @@ def test_an_index_adds_the_files_written_from_it(
     checkout    : Callable[..., Path],
     monkeypatch : MonkeyPatch,
     scanned     : Callable[[Iterable[Game]], PositionIndex],
+    snapshot    : SnapshotAssertion,
     stored      : list[Game],
     tally       : Tally,
     tmp_path    : Path
@@ -67,7 +69,8 @@ def test_an_index_adds_the_files_written_from_it(
     - The example run of each command whose output the index sets, the
       commands page's
     - The demo's match, each line of its report beside what it holds, then
-      the Guide's example runs of a match, one cut to its first plies
+      the Guide's example runs of a match, one cut to its first plies, the
+      walkthrough pages holding the text their snapshot holds
     - The measured figures of each Markdown file, each the count its marker
       names, an example's under the example's name and the figure's, the
       length of the demo's address, and the bytes the downloads and the
@@ -210,6 +213,13 @@ def test_an_index_adds_the_files_written_from_it(
     )
     assert "No index in this layout" not in text["guide/studying.md"]
     assert "The index holds 3 games and" in text["guide/studying.md"]
+    assert (
+        "The index was built from the files as fetched\n"
+        "Next: scotch match game <pgn>\n```\n<!-- /run-show-store -->"
+    ) in text["guide/studying.md"]
+    assert "\n".join(
+        text[page] for page in ("guide/matching.md", "guide/studying.md")
+    ) == snapshot
     assert "<!-- downloads-size -->1.5 kB<!-- /downloads-size -->" in text[
         "guide/setup.md"
     ]
@@ -217,7 +227,8 @@ def test_an_index_adds_the_files_written_from_it(
 
 
 def test_every_declared_output_renders_and_then_holds_its_rendering(
-    checkout: Callable[..., Path]
+    checkout : Callable[..., Path],
+    snapshot : SnapshotAssertion
 ):
     """
     Asserts that each output declared without an index writes into a fresh
@@ -225,7 +236,8 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     no drift, the pieces written in the order of their names, the favicon
     colored in Walnut on a light ground and Cashmere on a dark one, each
     lockup's wordmark and tagline filled in the colors their roles take in
-    its scheme, and the front page's tagline filled in from the identity.
+    its scheme, the front page's tagline filled in from the identity, and
+    the walkthrough pages holding the text their snapshot holds.
     """
     root = checkout(
         {
@@ -297,6 +309,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     )
     assert "Found several games in <pgn>" in matching
     assert "No index has been built" not in matching
+    assert f"{setup}\n{matching}" == snapshot
     assert from_toml(store.split("```toml\n")[1].split("\n```")[0]) == {
         "floors"  : Sources.read().floors,
         "sources" : [Sources.read().sources[0].model_dump(

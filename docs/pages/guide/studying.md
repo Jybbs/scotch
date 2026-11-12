@@ -1,6 +1,6 @@
 # Studying a Match
 
-This walkthrough follows a match past the report [Matching a Game](matching.md) reads, printing less of the stored game, the next closest games, the stored game whole, and what every stored game played from one position, and [The Store](store.md) closes the Guide on what the store holds. Each example below is the demo game at `docs/public/games/demo.pgn` matched against the index, its output written by `mise run docs:render`.
+This walkthrough follows a match past the report [Matching a Game](matching.md) reads, printing less of the stored game, the next closest games, the match of every game of a file, the stored game whole, what every stored game played from one position, and what the store holds, and [The Store](store.md) closes the Guide on how the store is built. Each example below runs against the index, matching the demo game at `docs/public/games/demo.pgn` where it matches one, and `mise run docs:render` writes its output.
 
 ## Shorter Continuations
 
@@ -57,7 +57,7 @@ demo.pgn:1  players/Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilbu
 
 ## The Stored Game Whole
 
-`scotch show game` prints the stored game a report names as PGN, its tags then its mainline, which any chess program opens:
+`scotch show game` prints the stored game a report names as PGN, its tags then its mainline, and `scotch show game <file>:<n> > game.pgn` writes it to a file any chess program opens:
 
 <!-- run-show-game -->
 ```bash
@@ -82,7 +82,7 @@ scotch show game players/Kasparov.zip:193
 
 ## One Position
 
-`scotch show position` takes a position as Forsyth–Edwards Notation or as a line of moves from the start, and prints how many stored games reach it, each move they played from it with how those games ended, and then the games themselves, newest first. A position reached through another order of moves, a [transposition](../reference/terms.md#transposition), counts the same, since every game reaching it reaches the same [key](../reference/terms.md#key):
+`scotch show position` takes a position as Forsyth–Edwards Notation or as a line of moves from the start, and prints how many stored games reach it, each move they played from it with how those games ended, the games ending at the position under `end`, and then as many of the games themselves as `--top` names, 20 unless it is given, newest first. A position reached through another order of moves, a [transposition](../reference/terms.md#transposition), counts the same, since every game reaching it reaches the same [key](../reference/terms.md#key):
 
 <!-- run-show-position -->
 ```bash
@@ -114,7 +114,7 @@ players/Tomashevsky.zip:2079  Gunina,V vs. Tomashevsky,E, Chess Stars 6.0 Blitz,
 
 ## What the Store Holds
 
-`scotch show store` prints each fetched file with its size and fetch date, then the games and positions the index holds and the command to run next, cut here to its last lines:
+`scotch show store` prints each file `sources.toml` declares with its size and fetch date, or `not fetched` where no fetch has downloaded it, then the games and positions the index holds and the command to run next, cut here to its last lines:
 
 <!-- run-show-store -->
 ```bash

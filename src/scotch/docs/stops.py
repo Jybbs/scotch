@@ -5,7 +5,7 @@ command, the Guide's walkthroughs set for the steps they cover, and the
 audit's `StopCheck` holds to the messages the code prints.
 """
 
-from collections.abc         import Iterable
+from collections.abc         import Iterable, Iterator
 from importlib.resources     import files
 from importlib.resources.abc import Traversable
 from pathlib                 import Path
@@ -74,6 +74,17 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     Each message, in the order the commands page lists it.
     """
 
+    def printed(self, command: str, naming: str | None = None) -> Iterator[Stop]:
+        """
+        Yields each message `command` exits nonzero on, or each one holding
+        `naming` where it is given, in the order the registry lists them.
+        """
+        return (
+            stop
+            for stop in self.stops
+            if command in stop.commands and (naming is None or naming in stop.message)
+        )
+
     @classmethod
     def read(cls, path: Traversable = files("scotch.docs") / "stops.toml") -> Self:
         """
@@ -82,12 +93,14 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         """
         return cls.model_validate(loads(path.read_text(encoding="utf-8")))
 
-    def steps(self, commands: Iterable[str]) -> str:
+    def steps(self, commands: Iterable[tuple[str, str | None]]) -> str:
         """
-        Writes the table of each message `commands` exit nonzero on, in the
-        order given, each beside the command linked to its section of the
-        commands page, when it prints the message, and the step that clears
-        it.
+        Writes the table of each message the commands of `commands` exit
+        nonzero on, in the order given, each command paired with the part a
+        message must hold to be listed, or with `None` to list every message
+        it exits on. Each message sits beside its command linked to its
+        section of the commands page, when it prints the message, and the
+        step that clears it.
         """
         return markdown(
             headers = ("Command", "Message", "When", "Clears It"),
@@ -99,9 +112,8 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                     coded(stop.message),
                     stop.when, stop.clears
                 )
-                for command in commands
-                for stop in self.stops
-                if command in stop.commands
+                for command, naming in commands
+                for stop in self.printed(command, naming)
             )
         )
 
@@ -113,8 +125,7 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         """
         rows = [
             (coded(stop.message), stop.when, stop.clears)
-            for stop in self.stops
-            if command in stop.commands and (naming is None or naming in stop.message)
+            for stop in self.printed(command, naming)
         ]
 
         return markdown(

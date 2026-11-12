@@ -43,9 +43,10 @@ Each walkthrough below picks up where the one before it ends, in the order the s
 |---|---|---|
 | Install the tools, fetch the files, and build the index | [Setting Up](setup.md) | `mise run data:fetch`, `mise run data:index` |
 | Match a game of your own and read the report | [Matching a Game](matching.md) | `scotch match game` |
-| Follow the stored game on, list the games behind it, and look up a position | [Studying a Match](studying.md) | `scotch match game --plies`, `scotch show game`, `scotch show position` |
+| Follow the stored game on, list the games behind it, and look up a position | [Studying a Match](studying.md) | `scotch match game --plies`, `scotch match game --top`, `scotch show game`, `scotch show position` |
 | Match every game of a file | [Studying a Match](studying.md) | `scotch match games` |
-| See what the store holds and add a source to it | [The Store](store.md) | `scotch show store` |
+| See what the store holds | [Studying a Match](studying.md) | `scotch show store` |
+| See how the files are fetched and the index built, and add a source to the store | [The Store](store.md) | `scotch fetch games`, `scotch index games` |
 | Step through a match beside the stored game | [Viewer](../viewer/index.md) | `scotch match game --json`, `scotch match game --link` |
 
 [The Commands](../reference/commands.md) sets out every option of each command and every message it exits on.

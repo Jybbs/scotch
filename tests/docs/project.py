@@ -4,11 +4,13 @@ row of badges it writes for the README, and the install steps it writes for
 the README and the Guide, each beside what it does in the Guide's setup.
 """
 
-from email.message import Message
-from pathlib       import Path
-from pytest        import MonkeyPatch
+from email.message    import Message
+from pathlib          import Path
+from pytest           import MonkeyPatch
+from syrupy.assertion import SnapshotAssertion
 
 from scotch.docs.project import Project
+from scotch.docs.tallies import numbered
 
 
 def test_badges_link_each_logo_from_the_readme_beside_a_value_in_walnut(
@@ -33,15 +35,18 @@ def test_badges_link_each_logo_from_the_readme_beside_a_value_in_walnut(
     ]
 
 
-def test_each_install_step_pairs_its_command_with_what_it_does(project: Project):
+def test_each_install_step_pairs_its_command_with_what_it_does(
+    project  : Project,
+    snapshot : SnapshotAssertion
+):
     """
     Asserts that the steps hold the commands the install block runs, in its
-    order, each beside the words saying what it does.
+    order, each beside the words its snapshot holds saying what it does.
     """
     assert [command for command, _ in project.steps] == (
         project.install.splitlines()[1:-1]
     )
-    assert all(gloss for _, gloss in project.steps)
+    assert numbered(project.steps) == snapshot
 
 
 def test_install_clones_the_repository_into_a_folder_named_for_the_package(

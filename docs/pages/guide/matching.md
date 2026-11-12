@@ -47,7 +47,7 @@ The [run](../reference/terms.md#run) counts each position the two games share, t
 
 ## Opening the Match in the Viewer
 
-`--json` and a path write the match to a file the [Viewer](../viewer/index.md) opens, setting the two games side by side and stepping through them together, while `--json -` prints that file alone, and [The Match File](../reference/match.md) sets out each field it holds. `--link` prints an address of the Viewer instead, carrying the whole match in its fragment, which a browser never sends to a server, so the address opens the match with no file to pass along.
+`--json` and a path write the match to a file the [Viewer](../viewer/index.md) opens, setting the two games side by side and stepping through them together, while `--json -` prints that file alone, and [The Match File](../reference/match.md) sets out each field it holds. `--link` prints an address of the Viewer after the report, carrying the whole match in its fragment, which a browser never sends to a server, so the address opens the match with no file to pass along.
 
 ```bash
 scotch match game my-game.pgn --json my-game.json

@@ -65,8 +65,9 @@ class Project(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             ),
             (
                 f"mise trust {self.name}",
-                "lets mise read the clone's `.mise/config.toml`, which it refuses"
-                " in a folder it has not been told to trust"
+                "marks the clone's `.mise/config.toml` trusted, so mise loads it"
+                " rather than prompting, skipping the file, or failing with an"
+                " untrusted-config error"
             ),
             (
                 f"mise -C {self.name} install",

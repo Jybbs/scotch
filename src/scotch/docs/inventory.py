@@ -359,7 +359,13 @@ class Outputs(RootModel[list[Output]]):
                 Region(
                     name   = "stops",
                     path   = cls.guide / "setup.md",
-                    render = lambda: stops.steps(("fetch games", "index games"))
+                    render = lambda: stops.steps(
+                        (
+                            ("fetch games", None),
+                            ("index games", None),
+                            ("match game", "<index>")
+                        )
+                    )
                 ),
                 Region(
                     name   = "refused",

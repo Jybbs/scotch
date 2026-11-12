@@ -104,7 +104,8 @@ def test_the_steps_table_names_each_command_in_the_order_given():
     """
     Asserts that the table of several commands lists each command's messages
     in the order the commands are given, each beside its command linked to
-    its section of the commands page, and leaves out the messages of every
+    its section of the commands page, keeps only the messages holding the
+    part a command is paired with, and leaves out the messages of every
     other command.
     """
     stops = Stops(
@@ -119,8 +120,14 @@ def test_the_steps_table_names_each_command_in_the_order_given():
             Stop(
                 clears   = "Two",
                 commands = ("c d",),
-                message  = "Second",
+                message  = "Second <index>",
                 when     = "Late"
+            ),
+            Stop(
+                clears   = "Four",
+                commands = ("c d",),
+                message  = "Fourth <pgn>",
+                when     = "Later"
             ),
             Stop(
                 clears   = "Three",
@@ -131,11 +138,11 @@ def test_the_steps_table_names_each_command_in_the_order_given():
         )
     )
 
-    assert stops.steps(("c d", "a b")).splitlines() == [
+    assert stops.steps((("c d", "<index>"), ("a b", None))).splitlines() == [
         "| **Command** | **Message** | **When** | **Clears It** |",
         "|---|---|---|---|",
-        "| [`scotch c d`](../reference/commands.md#scotch-c-d) | `Second` | Late"
-        " | Two |",
+        "| [`scotch c d`](../reference/commands.md#scotch-c-d) | `Second <index>`"
+        " | Late | Two |",
         "| [`scotch a b`](../reference/commands.md#scotch-a-b) | `First` | Early"
         " | One |"
     ]
