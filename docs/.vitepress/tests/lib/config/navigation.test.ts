@@ -26,4 +26,21 @@ describe('buildSidebar', () => {
       }]
     })
   })
+
+  test("orders a section's pages after its overview as the section's order lists them", ({ repo }) => {
+    repo.write('pages/guide/index.md', '# Guide\n')
+    repo.write('pages/guide/setup.md', '# Setting Up\n')
+    repo.write('pages/guide/matching.md', '# Matching a Game\n')
+    expect(buildSidebar(`${repo.root}/pages`, [{ label: 'Guide', order: ['setup', 'matching'], slug: 'guide' }]))
+      .toEqual({
+        '/guide/': [{
+          items : [
+            { link: '/guide/', text: 'Guide' },
+            { link: '/guide/setup', text: 'Setting Up' },
+            { link: '/guide/matching', text: 'Matching a Game' }
+          ],
+          text  : 'Guide'
+        }]
+      })
+  })
 })

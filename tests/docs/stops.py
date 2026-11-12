@@ -1,7 +1,8 @@
 """
 Pins `Stops`, meaning the shape `StopCheck` reads each message in, the table
 each command takes, and the registry the package ships, which covers the
-module of every command the help lists and names no other command.
+module of every command the help lists and names no other command, and the
+tables a command's messages and the steps of several commands take.
 """
 
 from inspect import getmodule
@@ -58,6 +59,30 @@ def test_a_command_exiting_on_no_message_takes_no_table():
     )
 
 
+def test_a_table_holding_a_name_keeps_the_messages_naming_it():
+    """
+    Asserts that a table given a name keeps only the messages of its command
+    that hold the name.
+    """
+    stops = Stops(
+        modules = (),
+        stops   = tuple(
+            Stop(
+                clears   = "Fix it",
+                commands = ("a b",),
+                message  = message,
+                when     = "Then"
+            )
+            for message in ("Bad <pgn>", "No index under <index>")
+        )
+    )
+
+    assert stops.table("a b", naming="<pgn>") == (
+        "| **Message** | **When** | **Clears It** |\n|---|---|---|\n"
+        "| `Bad <pgn>` | Then | Fix it |"
+    )
+
+
 def test_the_registry_covers_each_command_the_help_lists():
     """
     Asserts that the registry the package ships names the module of every
@@ -73,3 +98,51 @@ def test_the_registry_covers_each_command_the_help_lists():
         for verb, noun in commands(app)
     } <= set(stops.modules)
     assert {command for stop in stops.stops for command in stop.commands} <= listed
+
+
+def test_the_steps_table_names_each_command_in_the_order_given():
+    """
+    Asserts that the table of several commands lists each command's messages
+    in the order the commands are given, each beside its command linked to
+    its section of the commands page, keeps only the messages holding the
+    part a command is paired with, and leaves out the messages of every
+    other command.
+    """
+    stops = Stops(
+        modules = (),
+        stops   = (
+            Stop(
+                clears   = "One",
+                commands = ("a b",),
+                message  = "First",
+                when     = "Early"
+            ),
+            Stop(
+                clears   = "Two",
+                commands = ("c d",),
+                message  = "Second <index>",
+                when     = "Late"
+            ),
+            Stop(
+                clears   = "Four",
+                commands = ("c d",),
+                message  = "Fourth <pgn>",
+                when     = "Later"
+            ),
+            Stop(
+                clears   = "Three",
+                commands = ("e f",),
+                message  = "Third",
+                when     = "Never"
+            )
+        )
+    )
+
+    assert stops.steps((("c d", "<index>"), ("a b", None))).splitlines() == [
+        "| **Command** | **Message** | **When** | **Clears It** |",
+        "|---|---|---|---|",
+        "| [`scotch c d`](../reference/commands.md#scotch-c-d) | `Second <index>`"
+        " | Late | Two |",
+        "| [`scotch a b`](../reference/commands.md#scotch-a-b) | `First` | Early"
+        " | One |"
+    ]

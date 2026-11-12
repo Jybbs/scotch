@@ -12,6 +12,7 @@ from re                import match
 from typing            import Annotated
 
 from scotch.cli.settings    import Settings
+from scotch.index.schemas   import Holding
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Manifest, Sources
 
@@ -90,32 +91,24 @@ def store():
     """
     settings = Settings()
     manifest = Manifest.read(settings.downloads)
-    sources  = Sources.read().sources
-
-    for source in sources:
-        download = manifest.downloads.get(source.address)
-        print(f"{source.file}  {download.summary if download else 'not fetched'}")
 
     try:
-        index = PositionIndex.read(settings.index)
+        positions = PositionIndex.read(settings.index).positions
     except FileNotFoundError, SchemaError:
-        current = False
-        print(f"No index in this layout has been built under {settings.index}")
+        held = None
     else:
-        current = not settings.stale
-        print(index.held)
-        print(
-            "The index was built from the files as fetched"
-            if current
-            else "The files have changed since the index was built from them"
-        )
+        held = (positions.games, positions.positions)
 
     print(
-        "Next: scotch fetch games"
-        if any(source.address not in manifest.downloads for source in sources)
-        else "Next: scotch match game <pgn>"
-        if current
-        else "Next: scotch index games"
+        Holding(
+            fetched = tuple(
+                (source.file, manifest.downloads.get(source.address))
+                for source in Sources.read().sources
+            ),
+            folder = settings.index,
+            held   = held,
+            stale  = held is not None and settings.stale
+        ).summary
     )
 
 

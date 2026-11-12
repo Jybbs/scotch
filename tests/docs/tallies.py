@@ -3,15 +3,25 @@ Pins the tables `Tally` writes beneath the widgets of the Data pages and
 the Guide's store page, meaning the games of each decade, the lengths each
 decade's games run to, the results of the games ending within each span
 of moves, and the largest archives, beside the figures `Tally` and `Rules`
-write for the pages' sentences, the quantiles `ended` and an `Era` read, and
-the name an `Archive` is filed under.
+write for the pages' sentences, the quantiles `ended` and an `Era` read, the
+name an `Archive` is filed under, and the numbered lists `numbered` writes.
 """
 
 from collections.abc import Callable
 from common.sources  import declare
 from pytest          import mark, param
 
-from scotch.docs.tallies import Archive, Era, Listed, Rank, Rules, Tally, ended, markdown
+from scotch.docs.tallies import (
+    Archive,
+    Era,
+    Listed,
+    Rank,
+    Rules,
+    Tally,
+    ended,
+    markdown,
+    numbered
+)
 
 
 @mark.parametrize(
@@ -252,6 +262,16 @@ def test_endings_count_each_result_at_each_number_of_moves(tally: Tally):
         "1-0"     : (1, 0, 1, 1),
         "1/2-1/2" : (0, 1, 1, 3)
     }
+
+
+def test_numbered_writes_each_item_as_code_beside_its_words():
+    """
+    Pins a numbered list counting from 1, each item's code inline and a code
+    holding a backtick between doubled backticks.
+    """
+    assert numbered((("ls", "lists files"), ("echo `x`", "prints x"))) == (
+        "1. `ls` lists files\n2. `` echo `x` `` prints x"
+    )
 
 
 def test_rules_write_each_figure_the_methods_pages_name():
