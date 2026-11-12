@@ -190,9 +190,16 @@ describe('Band taking a game in PGN', () => {
     const wrapper = mounted()
     const field   = wrapper.find('.sc-viewer-pgn-field')
     await field.setValue('1. d4 *')
-    await field.trigger('paste')
-    await flushPromises()
+    await field.trigger('input', { inputType: 'insertFromPaste' })
     expect(wrapper.emitted('pgn')).toEqual([['1. d4 *', 'the pasted game']])
+  })
+
+  it('sends nothing for text typed into the entry', async () => {
+    const wrapper = mounted()
+    const field   = wrapper.find('.sc-viewer-pgn-field')
+    await field.setValue('1. d4 *')
+    await field.trigger('input', { inputType: 'insertText' })
+    expect(wrapper.emitted('pgn')).toBeUndefined()
   })
 
   it('sends a game file picked, naming the file it came from', async () => {

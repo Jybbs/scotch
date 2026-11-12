@@ -12,7 +12,7 @@ The store is the files `src/scotch/sources/sources.toml` declares, fetched under
 
 ## Publishing the Store
 
-`mise run data:publish` runs `scotch publish store`, which writes the index as the one file the [Viewer](../viewer/index.md) matches a pasted game against in the browser, under `.cache/data/store` beside a `manifest.json` naming it, as [The Data Files](../reference/files.md#the-published-store) sets out. The `♟️ Store` workflow fetches the games, builds the index, and writes the file on each push to `main` that changes them or the code reading them, then uploads the file before the manifest naming it, so a reader holding the earlier manifest still finds the earlier file.
+`mise run data:publish` runs `scotch publish store`, which writes the index as the one file the [Viewer](../viewer/index.md) matches a pasted game against in the browser, under `.cache/data/store` beside a `manifest.json` naming it, as [The Data Files](../reference/files.md#the-published-store) sets out. The `♟️ Store` workflow fetches the games, builds the index, and writes the file on each push to `main` that changes `sources.toml` or the code fetching, reading, or writing the store, and when run by hand, then uploads the file before the manifest naming it, so a reader holding the earlier manifest still finds the earlier file.
 
 ## The Largest Shares
 

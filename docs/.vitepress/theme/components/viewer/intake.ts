@@ -38,11 +38,8 @@ function entry(id: string, submit: (text: string) => void): VNode {
           send(event.target as HTMLTextAreaElement)
         },
 
-        'onPaste': (event: ClipboardEvent) => {
-          const field = event.target as HTMLTextAreaElement
-          queueMicrotask(() => {
-            send(field)
-          })
+        'onInput': (event: InputEvent) => {
+          if (event.inputType === 'insertFromPaste') send(event.target as HTMLTextAreaElement)
         }
       })
     ])

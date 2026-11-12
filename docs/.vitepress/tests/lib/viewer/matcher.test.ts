@@ -15,10 +15,10 @@ const module = fs.readFileSync(new URL('../../../lib/games/crate/scotch_bg.wasm'
 const viewer = fs.readFileSync(new URL('../../../../public/games/viewer.pgn', import.meta.url), 'utf8')
 
 describe('Matcher', () => {
-  it('matches the first game a text carries, opening the store once across submissions', async () => {
+  it('matches the game a text carries, opening the store once across submissions', async () => {
     const { fetch, requests } = bucket()
     const matcher             = new Matcher({ fetch, module, origin: ORIGIN })
-    const first               = await matcher.submit('viewer.pgn', `${viewer}\n[White "A"]\n\n1. e4 *\n`)
+    const first               = await matcher.submit('viewer.pgn', viewer)
     await matcher.submit('viewer.pgn', viewer)
     expect(first.matches?.match(0).stored?.headers.White).toBe('Kasparov, Gary')
     expect(first.matches?.match(0).submitted.moves.slice(0, 3)).toEqual(['Nf3', 'Nf6', 'c4'])
@@ -27,6 +27,11 @@ describe('Matcher', () => {
 
   it.each([
     ['a text holding no game', '', 'Found no game in the pasted game'],
+    [
+      'a text holding several games',
+      '1. e4 *\n\n[White "A"]\n\n1. d4 *',
+      'Found several games in the pasted game, so paste one game'
+    ],
     [
       'an illegal move',
       '1. e4 e5 2. Ke3 *',

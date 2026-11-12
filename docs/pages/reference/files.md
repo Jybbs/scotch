@@ -42,7 +42,7 @@ A run writes its files under the data directory [Settings](settings.md) names, w
 
 ## The Positions File
 
-`positions.bin` holds every position the stored games reach, keyed by its Zobrist hash, beside each game's moves, so a command maps it into memory and reads only what its lookup reaches. A slot is a game's place in the file once the games are sorted by their moves. The file opens on a head locating every piece, then holds the key pieces, each the keys sharing their leading bits, then the game pieces, each a run of 128 slots, so a reader that holds the head reads one key piece and one game piece for each lookup. Its sections follow one another in the order `SECTIONS` in `rust/src/positions.rs` declares, each key piece repeating the sections from `once` to `lists` and each game piece the sections from `numbers` to `moves`:
+`positions.bin` holds every position the stored games reach, keyed by its Zobrist hash, beside each game's moves, so a command maps it into memory and reads only what its lookup reaches. A slot is a game's place in the file once the games are sorted by their moves. The file opens on a head locating every piece, then holds the key pieces, each the keys sharing their leading bits, then the game pieces, each a run of 128 slots, so a reader that holds the head reads, for each lookup, the one key piece holding its key and the game pieces holding the games it plays through. Its sections follow one another in the order `SECTIONS` in `rust/src/positions.rs` declares, each key piece repeating the sections from `once` to `lists` and each game piece the sections from `numbers` to `moves`:
 
 <!-- sections -->
 | **Section** | **Held As** | **Holds** |
@@ -73,7 +73,7 @@ A run writes its files under the data directory [Settings](settings.md) names, w
 
 ## The Published Store
 
-`scotch publish store` writes the index as the one file the Viewer reads in the browser, into `store/` under the data directory beside a `manifest.json` naming it. The file opens on a head laid out as the head of `positions.bin` is, locating each piece of this file, then holds each key piece as it stands, then each game piece compressed with DEFLATE beside the tags of its games, and takes its name from the first 16 hexadecimal digits of its SHA-256 digest, so the name changes whenever the bytes do and a reader finds a new store through the manifest alone. The manifest holds the file's `store` name and the length of its `head` in bytes, which a reader fetches first and reads every piece's place from.
+`scotch publish store` writes the index as the one file the Viewer reads in the browser, into `store/` under the data directory beside a `manifest.json` naming it. The file opens on a head laid out as the head of `positions.bin` is, locating each piece of this file, then holds each key piece as it stands, then each game piece as a block of raw DEFLATE[^deutsch1996] holding the piece's length as 4 bytes little-endian, the piece, and its games' tags in slot order as a JSON array, and takes its name from the first 16 hexadecimal digits of its SHA-256 digest, so the name changes whenever the bytes do and a reader finds a new store through the manifest alone. The manifest holds the file's `store` name and the length of its `head` in bytes, which a reader fetches first and reads every piece's place from.
 
 ## The Manifest Copy
 
@@ -84,3 +84,5 @@ A run writes its files under the data directory [Settings](settings.md) names, w
 The files under .cache/data/downloads have changed since the index was built from them, so run `scotch index games` to rebuild it
 ```
 <!-- /warning -->
+
+[^deutsch1996]: Deutsch, L. Peter. 1996. "DEFLATE Compressed Data Format Specification Version 1.3," RFC 1951. <https://www.rfc-editor.org/rfc/rfc1951>

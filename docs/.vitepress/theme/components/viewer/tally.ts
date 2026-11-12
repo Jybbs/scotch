@@ -71,10 +71,10 @@ function drawRank(at: number, inside: readonly number[], rank: number, show: (at
 /**
  * The stored games tied on the longest run, weighed by rating: a kicker naming
  * how many tie on how many positions, a chip per rank on its piece from the
- * queen to the pawn beside the count of games it holds, a dot under each chip
- * per game it holds, and a meter marking each rank's share of the ties. A press
- * on a chip steps to its next game and a press on a dot shows the game it
- * stands for, each reaching the tool through `show`.
+ * queen to the pawn beside the count of games it holds, dots under each chip
+ * standing for the games it holds, and a meter marking each rank's share of
+ * the ties. A press on a chip steps to its next game and a press on a dot shows
+ * the game it stands for, each reaching the tool through `show`.
  */
 export const Tally = defineComponent({
   name: 'ScotchTally',

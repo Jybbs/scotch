@@ -43,9 +43,10 @@ export class Matcher {
   }
 
   /**
-   * Reads the first game `text` carries and matches it, reporting a text
-   * holding no game and a game carrying a problem, such as an illegal move or
-   * a variant other than standard chess, as `scotch match game` reports them,
+   * Reads the one game `text` carries and matches it, reporting a text
+   * holding no game or several, and a game carrying a problem, such as an
+   * illegal move or a variant other than standard chess, as `scotch match
+   * game` reports them,
    * and reporting a reader or a store it cannot load, which the next
    * submission loads again.
    *
@@ -62,8 +63,9 @@ export class Matcher {
       return messageOf(error)
     })
     if (typeof read === 'string') return { problem: `Cannot load the reader: ${read}` }
-    const [game] = read(text)
+    const [game, ...rest] = read(text)
     if (!game) return { problem: `Found no game in ${name}` }
+    if (rest.length > 0) return { problem: `Found several games in ${name}, so paste one game` }
     if (game.errors.length > 0) {
       return { problem: [`Found problems in the game in ${name}:`, ...game.errors].join('\n') }
     }

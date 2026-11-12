@@ -1596,6 +1596,35 @@ mod tests {
     }
 
     #[test]
+    fn each_game_past_the_first_game_piece_reads_back_its_moves() {
+        let advances = |from: char, to: [char; 2]| {
+            ('a'..='h').flat_map(move |file| to.map(|rank| format!("{file}{from}{file}{rank}")))
+        };
+        let lines = advances('2', ['3', '4'])
+            .cartesian_product(advances('7', ['6', '5']).collect_vec())
+            .map(|(white, black)| format!("{white} {black}"))
+            .take((1 << SHELF_BITS) + 1)
+            .collect_vec();
+        let positions = built(
+            &lines
+                .iter()
+                .map(|line| (line.as_str(), 0, 0, 0))
+                .collect_vec(),
+        );
+        let last = 1 << SHELF_BITS;
+
+        assert_eq!(positions.pieces().1, 2);
+        assert_eq!(
+            positions.best(&keyed(&lines[last as usize]), 1).0[0].game,
+            last
+        );
+
+        for (game, line) in (0..).zip(&lines) {
+            assert_eq!(positions.moves(game), line.split_whitespace().collect_vec());
+        }
+    }
+
+    #[test]
     fn a_file_reads_back_from_disk_as_it_was_built() {
         let positions = built(&[("e2e4 e7e5", 0, 0, 0), ("e2e4 c7c5", 0, 0, 2)]);
         let folder = scratch("disk");
