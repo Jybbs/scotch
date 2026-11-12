@@ -10,7 +10,7 @@ use std::{
 use itertools::{Itertools, izip};
 use pyo3::{exceptions::PyValueError, prelude::*, pybacked::PyBackedBytes, types::PyString};
 
-use crate::{Outcomes, Stored, Tally};
+use crate::{Outcomes, Sharing, Stored, Tally};
 
 /// The tags, the moves, the keys, and the errors of one game, in the order
 /// `Game` declares them.
@@ -120,6 +120,10 @@ fn columns(runs: &[crate::Run]) -> Columns {
 /// games ending at the position, and the games listed.
 type Tallied = (Vec<(String, Outcomes)>, Outcomes, Vec<u32>);
 
+/// What a count of sharing returns: each game's first ply alone, each group's
+/// games sharing at each ply, and each count of games beside the keys it reaches.
+type Shared = (Vec<Option<u16>>, Vec<Vec<u32>>, Vec<(u32, u64)>);
+
 /// The stored games, every position they reach, and their moves.
 #[pyclass(frozen, name = "Positions")]
 struct Held(crate::Positions);
@@ -215,6 +219,29 @@ impl Held {
     #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn reach(&self, keys: Vec<u64>) -> Vec<u32> {
         self.0.reach(&keys)
+    }
+
+    /// Counts how far each stored game shares its positions with the rest,
+    /// as each game's first ply standing alone, the games of each group
+    /// `groups` names standing at each ply in a position another stored game
+    /// reaches, and each count of games reaching a key beside its keys, per
+    /// `Positions::sharing`.
+    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
+    fn sharing(&self, groups: Vec<u16>) -> Shared {
+        let Sharing {
+            alone,
+            shared,
+            reach,
+        } = self.0.sharing(&groups);
+
+        (alone, shared, reach)
+    }
+
+    /// Counts the stored games playing each line of at most `depth` moves
+    /// from the standard starting position that at least `least` of them
+    /// play, per `Positions::lines`.
+    fn lines(&self, depth: u16, least: u32) -> Vec<(Vec<String>, u32)> {
+        self.0.lines(depth, least)
     }
 
     /// Counts what the stored games played from the position `moves` reach in
