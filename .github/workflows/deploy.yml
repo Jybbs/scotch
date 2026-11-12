@@ -12,6 +12,7 @@ jobs:
         uses: $/.github/actions/provision
         with:
           ref: ${{ inputs.ref }}
+          shared-key: scotch-wasm
           tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
       - name: Build the site and check its links
         run: mise run site:links
