@@ -30,33 +30,58 @@ jobs:
           path: .cache/data/store
           retention-days: 1
     timeout-minutes: 60
+  deploy:
+    name: 🚀 Deploy
+    needs: publish
+    permissions:
+      actions: write
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Publish the site that reads the store
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --field "ref=$GITHUB_SHA" --ref main
+    timeout-minutes: 5
   publish:
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_DEFAULT_REGION: auto
+      AWS_ENDPOINT_URL: https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      STORE: ${{ needs.build.outputs.store }}
     if: github.ref == 'refs/heads/main'
     name: 🪣 Publish
     needs: build
-    permissions: {}
+    permissions:
+      contents: read
     runs-on: ubuntu-26.04
     steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: Download the store
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: store
-          path: store
+          path: ${{ runner.temp }}/store
       - name: Publish the store to R2, then the manifest naming it
-        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0
-        with:
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          apiToken: ${{ secrets.CLOUDFLARE_STORE_TOKEN }}
-          wranglerVersion: 4.160.0
-          command: |
-            r2 object put scotch-store/${{ needs.build.outputs.store }} --file=store/${{ needs.build.outputs.store }} --cache-control="public, max-age=31536000, immutable" --content-type=application/octet-stream --remote
-            r2 object put scotch-store/manifest.json --file=store/manifest.json --cache-control=no-cache --content-type=application/json --remote
+        run: |
+          aws s3 cp "$RUNNER_TEMP/store/$STORE" "s3://scotch-store/$STORE" --cache-control "public, max-age=31536000, immutable" --content-type application/octet-stream --no-progress
+          aws s3 cp "$RUNNER_TEMP/store/manifest.json" s3://scotch-store/manifest.json --cache-control no-cache --content-type application/json --no-progress
+      - name: Delete each store file past the newest earlier ones
+        continue-on-error: true
+        run: .mise/tasks/gha/retire.py scotch-store "$STORE"
     timeout-minutes: 30
   scoresheet:
     if: always()
     name: 🖋️ Scoresheet
     needs:
       - build
+      - deploy
       - publish
     runs-on: ubuntu-26.04
     steps:

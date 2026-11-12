@@ -3,6 +3,7 @@
 | **Job** | **Result** |
 |---|---|
 | `build` | success |
+| `deploy` | skipped |
 | `publish` | skipped |
 
 The run built `474151645cdb4cc7.bin` without publishing it, since only `main` publishes.

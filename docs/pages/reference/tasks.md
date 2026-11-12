@@ -23,6 +23,7 @@ Every task the repository declares sits below under its group, beside its alias 
 |---|---|---|
 | `gha:cut` |  | Cut the draft release a version bump on `main` calls for |
 | `gha:prune` |  | Delete each tool cache and Cargo cache a newer one replaced |
+| `gha:retire` |  | Delete each store file R2 holds past the newest earlier ones |
 | `gha:reuse` |  | Copy the coverage total `♟️ CI` attached for the tree on `main` |
 | `gha:scoresheet` |  | Write the workflow run's summary and exit with its verdict |
 | `gha:total` |  | Write the total the package's suite covered as a whole number into `coverage.json` in the folder given, creating the folder where missing, which the published site serves |
