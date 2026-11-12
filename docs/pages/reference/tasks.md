@@ -9,6 +9,7 @@ Every task the repository declares sits below under its group, beside its alias 
 |---|---|---|
 | `data:fetch` |  | Download each file sources.toml declares into its provider's folder under .cache/data/downloads |
 | `data:index` |  | Build the index under .cache/data/index from the files data:fetch downloaded |
+| `data:publish` |  | Write the store the site matches against under .cache/data/store from the index data:index built |
 
 ## `docs`
 

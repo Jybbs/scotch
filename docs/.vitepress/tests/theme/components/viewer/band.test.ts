@@ -88,6 +88,32 @@ describe('Band naming the match', () => {
   })
 })
 
+describe('Band tallying the tied games', () => {
+  it('sets a tally of the tied games in place of their count where the match lists them', async () => {
+    const ties    = [{ headers: { WhiteElo: '2700' } }, { headers: {} }, { headers: { BlackElo: '2550' } }]
+    const wrapper = mount(Band, {
+      attachTo : document.body,
+      props    : { at: 1, link: () => Promise.resolve(''), loaded: new Loaded({ ...EXAMPLES.match, ties: 2 } as Match),
+                   problem: '', ties }
+    })
+    expect(wrapper.find('.sc-viewer-details').text()).not.toContain('stored games sharing')
+    expect(wrapper.find('.sc-viewer-tally-kicker').text()).toContain(`3 games tied on ${loaded.shared!.length}`)
+    await wrapper.findAll('.sc-viewer-rank-chip')[0]!.trigger('click')
+    expect(wrapper.emitted('show')).toEqual([[0]])
+  })
+
+  it.each([
+    ['one tied game', [{ headers: {} }], EXAMPLES.match],
+    ['no stored game', [{ headers: {} }, { headers: {} }], EXAMPLES.alone]
+  ])('draws no tally for %s', (_, ties, match) => {
+    const wrapper = mount(Band, {
+      attachTo : document.body,
+      props    : { link: () => Promise.resolve(''), loaded: new Loaded(match), problem: '', ties }
+    })
+    expect(wrapper.find('.sc-viewer-tally').exists()).toBe(false)
+  })
+})
+
 describe('Band taking a match', () => {
   it.each([
     ['alone', EXAMPLES.alone, 'demo.pgn', 2],
@@ -135,6 +161,44 @@ describe('Band taking a file', () => {
     const wrapper = mounted()
     await picked(wrapper, [])
     expect([wrapper.emitted('load'), wrapper.emitted('problem')]).toEqual([undefined, undefined])
+  })
+})
+
+describe('Band taking a game in PGN', () => {
+  it('sends a game typed into the entry once Enter is pressed', async () => {
+    const wrapper = mounted()
+    const field   = wrapper.find('.sc-viewer-pgn-field')
+    await field.setValue('1. e4 *')
+    await field.trigger('keydown', { key: 'Enter' })
+    expect(wrapper.emitted('pgn')).toEqual([['1. e4 *', 'the pasted game']])
+  })
+
+  it.each([
+    ['Shift and Enter', '1. e4 *', { key: 'Enter', shiftKey: true }],
+    ['Enter ending a composition', '1. e4 *', { isComposing: true, key: 'Enter' }],
+    ['another key', '1. e4 *', { key: 'a' }],
+    ['Enter on an empty entry', '  ', { key: 'Enter' }]
+  ])('sends nothing for %s', async (_, text, key) => {
+    const wrapper = mounted()
+    const field   = wrapper.find('.sc-viewer-pgn-field')
+    await field.setValue(text)
+    await field.trigger('keydown', key)
+    expect(wrapper.emitted('pgn')).toBeUndefined()
+  })
+
+  it('sends a game pasted into the entry once the paste lands', async () => {
+    const wrapper = mounted()
+    const field   = wrapper.find('.sc-viewer-pgn-field')
+    await field.setValue('1. d4 *')
+    await field.trigger('paste')
+    await flushPromises()
+    expect(wrapper.emitted('pgn')).toEqual([['1. d4 *', 'the pasted game']])
+  })
+
+  it('sends a game file picked, naming the file it came from', async () => {
+    const wrapper = mounted()
+    await picked(wrapper, [new File(['1. c4 *'], 'Mine.PGN')])
+    expect([wrapper.emitted('pgn'), wrapper.emitted('load')]).toEqual([[['1. c4 *', 'Mine.PGN']], undefined])
   })
 })
 

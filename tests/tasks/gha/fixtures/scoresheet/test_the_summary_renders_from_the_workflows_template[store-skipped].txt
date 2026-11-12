@@ -1,0 +1,10 @@
+## 🖋️ Scoresheet
+
+| **Job** | **Result** |
+|---|---|
+| `build` | success |
+| `publish` | skipped |
+
+The run built `474151645cdb4cc7.bin` without publishing it, since only `main` publishes.
+
+The run checked `560c4d8` on `4/ci-gate`.

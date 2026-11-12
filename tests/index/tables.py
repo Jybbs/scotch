@@ -3,7 +3,8 @@ Pins what `PositionIndex` finds for a submitted game against a store built
 from the three games in `fixtures/stored.pgn`, what it reports for one
 position, that a store reads back from its files as it was built, that a
 read holds each file to its layout, and what a `Batch` keeps of a fetched
-file and an index merged from several keeps of a game they repeat.
+file and an index merged from several keeps of a game they repeat, and what
+a published store holds.
 """
 
 from collections           import Counter
@@ -11,13 +12,16 @@ from collections.abc       import Callable
 from common.games          import line
 from common.sources        import declare, land
 from common.strategies     import games
+from hashlib               import sha256
 from hypothesis            import given
 from hypothesis.strategies import integers, lists
 from itertools             import product, takewhile
-from pathlib               import Path
-from polars                import DataFrame, read_parquet
-from polars.exceptions     import SchemaError
-from pytest                import TempPathFactory, mark, param, raises
+from json              import loads
+from pathlib           import Path
+from polars            import DataFrame, read_parquet
+from polars.exceptions import SchemaError
+from pytest            import TempPathFactory, mark, param, raises
+from zlib              import decompressobj
 
 from scotch.games.schemas import Game, Origin
 from scotch.index.schemas import Answer, GAMES, ROWS, RUNS, Reply, Span
@@ -214,35 +218,42 @@ def test_a_game_two_batches_repeat_is_indexed_once_under_the_first(tmp_path: Pat
     ]
 
 
-def test_a_reference_names_the_stored_game_read_from_it():
+def test_a_published_store_holds_each_piece_and_the_tags_of_its_games(
+    index    : PositionIndex,
+    stored   : list[Game],
+    tmp_path : Path
+):
     """
-    Asserts that `<file>:<n>` finds the game at the place `n` of the file
-    whose address names the path `file` under its host, read without its
-    percent-encoding and possibly holding a colon, so two files of one name
-    under two folders name their games apart, and that a reference naming
-    no stored game finds nothing, a place written with a leading zero and a
-    file named without its folder among them.
+    Asserts that a published store opens on a head as long as its manifest
+    names, then holds each key piece as `positions.bin` holds it, then one
+    block of raw DEFLATE per game piece holding the piece and the tags of
+    each stored game its slots hold, under a name hashed from its bytes.
     """
-    games = [
-        line(
-            "e4",
-            origin = Origin(address="https://example.com/a/My%20File.zip", place=2)
-        ),
-        line("d4", origin=Origin(address="https://example.com/b/Other.zip", place=2)),
-        line("c4", origin=Origin(address="https://example.com/c/A%3AB.zip", place=2)),
-        line("g3", origin=Origin(address="https://example.com/c/Other.zip", place=2))
-    ]
-    index = PositionIndex.build(games)
+    path           = index.publish(tmp_path)
+    data           = path.read_bytes()
+    manifest       = loads((tmp_path / "manifest.json").read_text())
+    keyed, shelved = index.positions.pieces
+    keys           = b"".join(index.positions.part(True, at) for at in range(keyed))
+    rest           = data[manifest["head"] + len(keys) :]
+    shelves        = []
 
-    assert index.referenced("a/My File.zip:2") == games[0]
-    assert index.referenced("b/Other.zip:2") == games[1]
-    assert index.referenced("c/A:B.zip:2") == games[2]
-    assert index.referenced("c/Other.zip:2") == games[3]
-    assert index.referenced("b/Other.zip:02") is None
-    assert index.referenced("b/Other.zip:3") is None
-    assert index.referenced("Other.zip:2") is None
-    assert index.referenced("a/Missing.zip:2") is None
-    assert index.referenced("b/Other.zip") is None
+    for _ in range(shelved):
+        block = decompressobj(wbits=-15)
+        whole = block.decompress(rest)
+        rest  = block.unused_data
+        size  = int.from_bytes(whole[:4], "little")
+        shelves.append((whole[4 : 4 + size], loads(whole[4 + size :])))
+
+    assert manifest["store"] == path.name == f"{sha256(data).hexdigest()[:16]}.bin"
+    assert data[manifest["head"] :].startswith(keys)
+    assert rest == b""
+    assert shelves == [
+        (
+            index.positions.part(False, at),
+            [stored[number].tags for number in index.positions.numbers(at)]
+        )
+        for at in range(shelved)
+    ]
 
 
 @mark.parametrize(
@@ -403,22 +414,35 @@ def test_reading_a_table_written_under_another_layout_raises(
         PositionIndex.read(tmp_path)
 
 
-def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
+def test_a_reference_names_the_stored_game_read_from_it():
     """
-    Asserts that a stored game holding the starting position at plies 0,
-    4, 8, and 12 ranks its four runs by ply, matches at the earliest, and
-    counts as one game among the ties.
+    Asserts that `<file>:<n>` finds the game at the place `n` of the file
+    whose address names the path `file` under its host, read without its
+    percent-encoding and possibly holding a colon, so two files of one name
+    under two folders name their games apart, and that a reference naming
+    no stored game finds nothing, a place written with a leading zero and a
+    file named without its folder among them.
     """
-    index = PositionIndex.build([line(*["Nf3", "Nf6", "Ng1", "Ng8"] * 3)])
-    match = index.match(line("h4"))
+    games = [
+        line(
+            "e4",
+            origin = Origin(address="https://example.com/a/My%20File.zip", place=2)
+        ),
+        line("d4", origin=Origin(address="https://example.com/b/Other.zip", place=2)),
+        line("c4", origin=Origin(address="https://example.com/c/A%3AB.zip", place=2)),
+        line("g3", origin=Origin(address="https://example.com/c/Other.zip", place=2))
+    ]
+    index = PositionIndex.build(games)
 
-    assert (
-        index.runs(line("h4"))
-             .get_column("offset")
-             .to_list()
-    ) == [0, 4, 8, 12]
-    assert match.span == Span(length=1, offset=0, start=0)
-    assert match.ties == 0
+    assert index.referenced("a/My File.zip:2") == games[0]
+    assert index.referenced("b/Other.zip:2") == games[1]
+    assert index.referenced("c/A:B.zip:2") == games[2]
+    assert index.referenced("c/Other.zip:2") == games[3]
+    assert index.referenced("b/Other.zip:02") is None
+    assert index.referenced("b/Other.zip:3") is None
+    assert index.referenced("Other.zip:2") is None
+    assert index.referenced("a/Missing.zip:2") is None
+    assert index.referenced("b/Other.zip") is None
 
 
 @mark.parametrize(
@@ -439,6 +463,24 @@ def test_reading_a_positions_file_under_another_layout_raises(
 
     with raises(SchemaError, match=str(tmp_path)):
         PositionIndex.read(tmp_path)
+
+
+def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
+    """
+    Asserts that a stored game holding the starting position at plies 0,
+    4, 8, and 12 ranks its four runs by ply, matches at the earliest, and
+    counts as one game among the ties.
+    """
+    index = PositionIndex.build([line(*["Nf3", "Nf6", "Ng1", "Ng8"] * 3)])
+    match = index.match(line("h4"))
+
+    assert (
+        index.runs(line("h4"))
+             .get_column("offset")
+             .to_list()
+    ) == [0, 4, 8, 12]
+    assert match.span == Span(length=1, offset=0, start=0)
+    assert match.ties == 0
 
 
 def test_a_stored_game_set_up_from_a_fen_shares_the_positions_it_reaches():
@@ -495,23 +537,6 @@ def test_a_tie_among_unrated_games_goes_to_the_game_the_index_holds_first(
     assert match.game == stored[1]
     assert match.span == Span(length=4, offset=0, start=0)
     assert match.ties == 1
-
-
-def test_a_tie_goes_to_the_game_whose_ratings_rank_highest_over_an_earlier_run(
-    index  : PositionIndex,
-    stored : list[Game]
-):
-    """
-    Asserts that a game sharing its first three positions with both of
-    Pachman's unrated games, and three more with Kasparov–Sosonko once its
-    knights return home, matches Kasparov–Sosonko, whose ratings rank it
-    above the two, although their runs start earlier.
-    """
-    match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
-
-    assert match.game == stored[0]
-    assert match.span == Span(length=3, offset=-4, start=4)
-    assert match.ties == 2
 
 
 @mark.parametrize(
@@ -594,6 +619,23 @@ def test_an_answer_counts_each_game_under_the_move_from_its_first_reach(
     assert answer.games == tuple(game for game, _ in reached)
 
 
+def test_a_tie_goes_to_the_game_whose_ratings_rank_highest_over_an_earlier_run(
+    index  : PositionIndex,
+    stored : list[Game]
+):
+    """
+    Asserts that a game sharing its first three positions with both of
+    Pachman's unrated games, and three more with Kasparov–Sosonko once its
+    knights return home, matches Kasparov–Sosonko, whose ratings rank it
+    above the two, although their runs start earlier.
+    """
+    match = index.match(line("Nf3", "Nf6", "Ng1", "Ng8", "d4", "Nf6"))
+
+    assert match.game == stored[0]
+    assert match.span == Span(length=3, offset=-4, start=4)
+    assert match.ties == 2
+
+
 def test_an_answer_counts_a_result_outside_the_four_as_unfinished():
     """
     Asserts that a stored game whose `Result` tag holds none of the results
@@ -603,18 +645,6 @@ def test_an_answer_counts_a_result_outside_the_four_as_unfinished():
         "",
         top = 1
     ).replies == (Reply(outcomes=(0, 0, 0, 1), san="e4"),)
-
-
-def test_an_answer_for_a_position_no_game_reaches_holds_nothing(index: PositionIndex):
-    """
-    Asserts that the answer for a position no stored game reaches holds no
-    move and no game.
-    """
-    assert index.answer("1. h4 h5", top=1) == Answer(
-        ended   = Reply(outcomes=(0, 0, 0, 0), san="end"),
-        games   = (),
-        replies = ()
-    )
 
 
 @mark.parametrize(
@@ -646,6 +676,18 @@ def test_an_answer_reads_what_a_line_of_moves_holds_beside_its_moves(position: s
     assert index.answer(position, top=1) == index.answer("1. e4 e5", top=1)
 
 
+def test_an_answer_for_a_position_no_game_reaches_holds_nothing(index: PositionIndex):
+    """
+    Asserts that the answer for a position no stored game reaches holds no
+    move and no game.
+    """
+    assert index.answer("1. h4 h5", top=1) == Answer(
+        ended   = Reply(outcomes=(0, 0, 0, 0), san="end"),
+        games   = (),
+        replies = ()
+    )
+
+
 def test_an_answer_reads_a_move_the_reader_takes_short_of_its_last_letter():
     """
     Asserts that `Nf3x`, whose `Nf3` the PGN reader reads as the move,
@@ -668,16 +710,6 @@ def test_an_index_counts_every_position_and_each_distinct_key():
 
     assert (positions.positions, positions.keys) == (6, 4)
     assert positions.moves(1) == ["e2e4", "c7c5"]
-
-
-def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
-    """
-    Asserts that an index built from no game writes, reads back, and finds
-    no match for any submitted game.
-    """
-    PositionIndex.build([]).write(tmp_path)
-
-    assert PositionIndex.read(tmp_path).match(demo) is None
 
 
 @mark.parametrize(
@@ -728,6 +760,16 @@ def test_an_answer_counts_the_moves_played_from_a_position(position: str):
     )
 
 
+def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
+    """
+    Asserts that an index built from no game writes, reads back, and finds
+    no match for any submitted game.
+    """
+    PositionIndex.build([]).write(tmp_path)
+
+    assert PositionIndex.read(tmp_path).match(demo) is None
+
+
 def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
     """
     Asserts that the table read back, the runs frame, and the rows laid
@@ -737,19 +779,6 @@ def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex
     assert index.games.collect().schema == GAMES
     assert index.runs(line("e4")).schema == RUNS
     assert PositionIndex.rows([line("e4")]).schema == ROWS
-
-
-def test_reading_a_table_holding_no_parquet_raises(stored: list[Game], tmp_path: Path):
-    """
-    Asserts that reading an index whose table of games holds bytes no
-    Parquet writer wrote raises `SchemaError` rather than the error Polars
-    raises for the file.
-    """
-    PositionIndex.build(stored).write(tmp_path)
-    PositionIndex.table(tmp_path).write_bytes(b"")
-
-    with raises(SchemaError):
-        PositionIndex.read(tmp_path)
 
 
 @mark.parametrize(
@@ -788,6 +817,19 @@ def test_an_answer_refuses_a_position_it_cannot_read(
         index.answer(position, top=1)
 
 
+def test_reading_a_table_holding_no_parquet_raises(stored: list[Game], tmp_path: Path):
+    """
+    Asserts that reading an index whose table of games holds bytes no
+    Parquet writer wrote raises `SchemaError` rather than the error Polars
+    raises for the file.
+    """
+    PositionIndex.build(stored).write(tmp_path)
+    PositionIndex.table(tmp_path).write_bytes(b"")
+
+    with raises(SchemaError):
+        PositionIndex.read(tmp_path)
+
+
 def test_reading_a_table_under_another_layout_raises_with_no_positions_file(
     stored   : list[Game],
     tmp_path : Path
@@ -805,24 +847,6 @@ def test_reading_a_table_under_another_layout_raises_with_no_positions_file(
 
     with raises(SchemaError):
         PositionIndex.read(tmp_path)
-
-
-def test_the_demo_game_matches_the_game_it_follows(
-    demo   : Game,
-    index  : PositionIndex,
-    stored : list[Game]
-):
-    """
-    Asserts that the demo game matches Kasparov–Sosonko over the 43
-    positions from the start through `21...b6`, parting where Kasparov
-    played `22. Bc2`.
-    """
-    match = index.match(demo)
-
-    assert match.game == stored[0]
-    assert match.span == Span(length=43, offset=0, start=0)
-    assert match.parting == "22. Bc2"
-    assert match.ties == 0
 
 
 @given(batches=lists(lists(games(plies=4, width=2), max_size=3), max_size=3))
@@ -851,3 +875,21 @@ def test_a_merge_keeps_the_first_of_each_game_in_order(batches: list[list[Game]]
             game.roster, game.moves
         ) not in {(other.roster, other.moves) for other in stored[:number]}
     ]
+
+
+def test_the_demo_game_matches_the_game_it_follows(
+    demo   : Game,
+    index  : PositionIndex,
+    stored : list[Game]
+):
+    """
+    Asserts that the demo game matches Kasparov–Sosonko over the 43
+    positions from the start through `21...b6`, parting where Kasparov
+    played `22. Bc2`.
+    """
+    match = index.match(demo)
+
+    assert match.game == stored[0]
+    assert match.span == Span(length=43, offset=0, start=0)
+    assert match.parting == "22. Bc2"
+    assert match.ties == 0

@@ -1,0 +1,10 @@
+Usage: scotch publish store
+
+Writes the index under the data directory as the one file the site reads a piece
+at a time, into its store folder under a name hashed from the file's bytes,     
+beside a manifest.json naming it, replacing what that folder holds, and prints  
+the file's path.                                                                
+
+Exits nonzero naming the folder where no index has been built or the one built  
+holds another layout.
+

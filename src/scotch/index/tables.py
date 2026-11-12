@@ -6,8 +6,10 @@ index games` merges into one index.
 """
 
 from chess           import Move
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses     import dataclass
+from hashlib         import file_digest
+from json            import dumps
 from pathlib         import Path
 from polars          import (
     DataFrame,
@@ -21,7 +23,9 @@ from polars          import (
     struct
 )
 from polars.exceptions import ComputeError, SchemaError
-from typing            import Self
+from shutil            import rmtree
+from typing            import Any, Self
+from zlib              import compress
 
 from scotch.games           import readers
 from scotch.games.schemas   import Game, Origin
@@ -114,6 +118,16 @@ class PositionIndex:
         """
         return self.listed([number])[0]
 
+    @staticmethod
+    def headers(row: Mapping[str, Any]) -> dict[str, str]:
+        """
+        Reads the tags of the stored game the row `row` of `games` holds,
+        its `Result` read from the row's own column.
+        """
+        return {pair["name"]: pair["value"] for pair in row["tags"]} | {
+            "Result": row["result"]
+        }
+
     def listed(self, numbers: Iterable[int]) -> list[Game]:
         """
         Reads back the stored game at each of `numbers`, in that order,
@@ -132,9 +146,7 @@ class PositionIndex:
                 errors = row["errors"],
                 moves  = map(Move.from_uci, self.positions.moves(row["game"])),
                 origin = row["origin"],
-                tags   = {pair["name"]: pair["value"] for pair in row["tags"]} | {
-                    "Result": row["result"]
-                }
+                tags   = self.headers(row)
             )
             for row in map(rows.__getitem__, numbers)
         ]
@@ -234,6 +246,69 @@ class PositionIndex:
         games reach and their moves.
         """
         return directory / "positions.bin"
+
+    def publish(self, directory: Path) -> Path:
+        """
+        Writes the index as the one file the site reads a piece at a time
+        through range requests, into `directory` under a name hashed from
+        its bytes, beside a `manifest.json` naming it and the bytes its head
+        takes, replacing whatever `directory` held, and returns its path.
+
+        The file opens on a head naming where each piece starts, then holds
+        each key piece as `positions.bin` holds it, then each game piece
+        as a block of raw DEFLATE holding the piece's length as 4 bytes in
+        little-endian order, the piece, and the tags of each game it holds
+        in the order of their slots as a JSON array.
+        """
+        tagged = (
+            self.games.select("game", "result", "tags")
+                .collect()
+                .rows_by_key("game", named=True, unique=True)
+        )
+        blocks = [
+            compress(
+                b"".join(
+                    (
+                        len(piece := self.positions.part(False, at)).to_bytes(
+                            4,
+                            "little"
+                        ),
+                        piece,
+                        dumps(
+                            [self.headers(
+                                tagged[number]
+                            ) for number in self.positions.numbers(at)],
+                            separators = (",", ":")
+                        ).encode()
+                    )
+                ),
+                level = 9,
+                wbits = -15
+            )
+            for at in range(self.positions.pieces[1])
+        ]
+        temporary = directory / "store.tmp"
+        rmtree(directory, ignore_errors=True)
+        directory.mkdir(parents=True)
+
+        head = self.positions.rehead(list(map(len, blocks)))
+
+        with temporary.open("wb") as file:
+            file.write(head)
+            file.writelines(
+                self.positions.part(True, at) for at in range(self.positions.pieces[0])
+            )
+            file.writelines(blocks)
+
+        with temporary.open("rb") as file:
+            path = directory / f"{file_digest(file, "sha256").hexdigest()[:16]}.bin"
+
+        temporary.replace(path)
+        (directory / "manifest.json").write_text(
+            dumps({"head": len(head), "store": path.name}) + "\n"
+        )
+
+        return path
 
     @classmethod
     def read(cls, directory: Path) -> Self:

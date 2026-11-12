@@ -1,0 +1,4 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE description = "Write the store the site matches against under .cache/data/store from the index data:index built"
+
+scotch publish store

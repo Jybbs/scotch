@@ -172,6 +172,26 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
         ),
         *(
             param(
+                "store",
+                {
+                    "build"   : {
+                        "outputs" : {
+                            "store": "474151645cdb4cc7.bin"
+                        } if built == "success" else {},
+                        "result"  : built
+                    },
+                    "publish" : {"result": published, "outputs": {}}
+                },
+                id = f"store-{name}"
+            )
+            for name, built, published in (
+                ("published", "success", "success"),
+                ("skipped", "success", "skipped"),
+                ("build-failed", "failure", "skipped")
+            )
+        ),
+        *(
+            param(
                 "draft",
                 {
                     "draft": {

@@ -1,0 +1,10 @@
+{% extends "base.md.j2" %}
+{% block details %}
+{%- with store = run.needs.build.outputs.store %}
+{%- if run.passed and run.needs.publish.result == "success" %}
+The run published `{{ store }}` to the store and named it in the manifest.
+{% elif run.passed and run.needs.publish.result == "skipped" %}
+The run built `{{ store }}` without publishing it, since only `main` publishes.
+{% endif %}
+{%- endwith %}
+{%- endblock %}
