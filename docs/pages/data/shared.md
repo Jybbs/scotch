@@ -45,7 +45,7 @@ The games of each decade part from the rest at a move of their own, the decades 
 
 ## Crowded Positions
 
-Of the distinct positions the index holds, <!-- once -->97%<!-- /once --> are reached by one stored game alone, whereas the positions more than <!-- crowd -->100<!-- /crowd --> stored games reach make up <!-- crowded-stood -->17%<!-- /crowded-stood --> of the positions the stored games stand in, each counted once for every game reaching it. [Matches the Rule Passes Over](../methods/limits.md) calls a position crowded past the same count, counting there the stored games other than the one matched. The tree below sets out the opening lines the most stored games play, each block as wide as the games playing its line, and the tables beneath it count the positions by how many stored games reach each and list each line the tree draws.
+Of the distinct positions the index holds, <!-- once -->97%<!-- /once --> are reached by one stored game alone, whereas the positions that more than <!-- crowd -->100<!-- /crowd --> stored games reach besides any one of them make up <!-- crowded-stood -->17%<!-- /crowded-stood --> of the positions the stored games stand in, each counted once for every game reaching it. [Matches the Rule Passes Over](../methods/limits.md) calls a position crowded past the same count of other games. The tree below sets out the opening lines the most stored games play, each block as wide as the games playing its line, and the tables beneath it count the positions by how many stored games reach each and list each line the tree draws.
 
 <!-- crowding -->
 | **Games Reaching** | **Positions** | **Share** | **Stood In** | **Crowded** |
@@ -57,7 +57,8 @@ Of the distinct positions the index holds, <!-- once -->97%<!-- /once --> are re
 | 11 to 20 | 95,839 | 0.13% | 1.4% | No |
 | 21 to 50 | 58,790 | 0.08% | 1.9% | No |
 | 51 to 100 | 19,901 | 0.03% | 1.4% | No |
-| 101 to 200 | 10,239 | 0.01% | 1.5% | Yes |
+| 101 | 214 | 0.00% | 0.0% | No |
+| 102 to 200 | 10,025 | 0.01% | 1.4% | Yes |
 | 201 to 500 | 6,217 | 0.01% | 2.0% | Yes |
 | 501 to 1,000 | 1,943 | 0.00% | 1.4% | Yes |
 | 1,001 to 2,000 | 1,034 | 0.00% | 1.5% | Yes |

@@ -47,7 +47,7 @@ describe('Figure', () => {
   it('finds the rows of what it folds once scripts run, hiding the rest', async () => {
     const figure = mount(Figure, { props: { name: 'probe' }, slots: { default: rows } })
     await nextTick()
-    await figure.find('details input.sc-folded-find').setValue('  najdorf ')
+    await figure.find('details input.sc-folded-find').setValue('  NAJDORF ')
     expect(figure.findAll('tbody tr').map(row => row.attributes('hidden'))).toEqual([undefined, ''])
   })
 

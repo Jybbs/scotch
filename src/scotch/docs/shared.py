@@ -53,6 +53,13 @@ class Crowd(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
             else f"{self.low:,} to {self.high:,}"
         )
 
+    def crowded(self, crowd: int) -> bool:
+        """
+        Reports whether more than `crowd` stored games besides any one of
+        them reach every position the row counts.
+        """
+        return self.low > crowd + 1
+
 
 class Line(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
@@ -185,7 +192,8 @@ class Shared(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     crowd: NonNegativeInt
     """
-    The count of stored games past which a position counts as crowded.
+    The count of other stored games past which a position counts as
+    crowded.
     """
 
     decades: list[Parting]
@@ -208,7 +216,8 @@ class Shared(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     reach: list[Crowd]
     """
     The positions the index holds by how many stored games reach each, in
-    ranges of 1, 2, and 5 times a power of ten, the fewest first.
+    ranges of 1, 2, and 5 times a power of ten split one past the crowd,
+    the fewest first.
     """
 
     @property
@@ -232,7 +241,7 @@ class Shared(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
                             f"{crowd.keys:,}",
                             f"{crowd.keys / self.positions:.2%}",
                             f"{crowd.stood / self.stood:.1%}",
-                            "Yes" if crowd.low > self.crowd else "No"
+                            "Yes" if crowd.crowded(self.crowd) else "No"
                         )
                         for crowd in self.reach
                     )
@@ -266,7 +275,7 @@ class Shared(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         return {
             "alone-half"    : "" if self.every.half is None else str(self.every.half),
             "crowded-stood" : f"{
-                sum(crowd.stood for crowd in self.reach if crowd.low > self.crowd)
+                sum(crowd.stood for crowd in self.reach if crowd.crowded(self.crowd))
                 / self.stood:.0%}",
             "once"          : f"{once / self.positions:.0%}",
             **{

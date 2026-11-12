@@ -75,6 +75,27 @@ def test_a_crowd_is_named_for_its_range(low: int, high: int, name: str):
     ).name == name
 
 
+@mark.parametrize(
+    ("low", "crowded"),
+    [
+        param(101, False, id="the-crowd-besides-one"),
+        param(102, True, id="past-the-crowd-besides-one")
+    ]
+)
+def test_a_crowd_counts_the_games_besides_any_one_reaching_it(low: int, crowded: bool):
+    """
+    Asserts that a position 101 stored games reach stands past a crowd of
+    100 only once 102 games reach it, since each game reaching it counts the
+    others alone, as the rule the matches pass over counts them.
+    """
+    assert Crowd(
+        high  = low,
+        keys  = 1,
+        low   = low,
+        stood = low
+    ).crowded(100) is crowded
+
+
 def test_a_parting_reads_none_past_its_last_move(shared: Shared):
     """
     Asserts that the moves by which a share stands alone fall at the move

@@ -95,7 +95,7 @@ function labels(floor: number, layout: omitted.FloorLayout): VNode[] {
   return [
     ...ratings,
     axisLabel('Unrated', layout.left - 8, rowY(counts.bins.length, layout) + layout.row / 2 + 3),
-    axisLabel('Kept', layout.left - 8, layout.grid + layout.strip - 6),
+    axisLabel('Reaching', layout.left - 8, layout.grid + layout.strip - 6),
     axisLabel('All decades', layout.edge, layout.height - 6, 'start'),
     ...counts.decades.flatMap((name, column) => column % every === 1
       ? [axisLabel(name, layout.left + (column + 0.5) * layout.cell, layout.height - 6, 'middle')]
@@ -156,7 +156,7 @@ function standingOf(bin: number, floor: number): FloorSide {
 
 /**
  * Draws the strip beneath the grid, a bar per decade of the share of its games
- * the floor keeps.
+ * reaching the floor.
  */
 function strip(kept: omitted.Kept, layout: omitted.FloorLayout): VNode[] {
   const tall = layout.strip - 10

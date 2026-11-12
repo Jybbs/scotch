@@ -115,3 +115,20 @@ def test_tags_write_their_figures_and_tables(tags: Tags):
     assert tags.dated.splitlines()[2:] == [
         "| 1970s | 4 | 50.0% | 0.0% |", "| 1980s | 16 | 50.0% | 25.0% |"
     ]
+
+
+def test_the_earliest_of_the_decades_tied_carries_a_tag_least(tags: Tags):
+    """
+    Asserts that of two decades tied for the smallest share of a tag, the
+    earlier one carries it least.
+    """
+    tied = tags.model_copy(
+        update = {
+            "decades": [
+                *tags.decades,
+                tags.decades[0].model_copy(update={"name": "1990s"})
+            ]
+        }
+    )
+
+    assert tied.least("Round") == tags.decades[0]

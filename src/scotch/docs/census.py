@@ -313,9 +313,10 @@ class Census:
             group = groups
         )
         every = [sum(column) for column in zip(*sharing, strict=True)]
-        edges = [1, 2] + [
-            scale * 10**power for power in range(8) for scale in (5, 10, 20)
-        ]
+        edges = sorted(
+            {1, 2, self.crowd + 1}
+            | {scale * 10**power for power in range(8) for scale in (5, 10, 20)}
+        )
         most  = max((count for count, _ in reach), default=1)
         edges = edges[: next(at for at, edge in enumerate(edges) if edge >= most) + 1]
 

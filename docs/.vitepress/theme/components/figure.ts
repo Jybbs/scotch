@@ -1,4 +1,5 @@
-import { type Component, type ShallowRef, defineComponent, h, onMounted, shallowRef } from 'vue'
+import { useMounted }                                                     from '@vueuse/core'
+import { type Component, type ShallowRef, defineComponent, h, shallowRef } from 'vue'
 
 import { FIGURE }            from '../../lib/markdown/placements.ts'
 import { DATA_WIDGETS }      from './data/index.ts'
@@ -39,8 +40,7 @@ export const Figure = defineComponent({
   props : { name: { required: true, type: String } },
   setup : (props, { slots }) => {
     const folded = shallowRef<HTMLElement | null>(null)
-    const live   = shallowRef(false)
-    onMounted(() => { live.value = true })
+    const live   = useMounted()
 
     return () => {
       const widget = WIDGETS[props.name]

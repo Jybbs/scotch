@@ -334,14 +334,22 @@ def test_rules_sample_every_game_of_an_index_holding_fewer_than_the_sample(
 def test_shared_counts_the_positions_by_the_games_reaching_each(census: Census):
     """
     Asserts that each range of the positions' reach counts its distinct
-    positions and the positions the games stand in, a position five games
-    reach counting five times.
+    positions and the positions the games stand in, a position four games
+    reach counting four times, and that a range ends one past the crowd of
+    two, so a range stands past it only where more than two games besides
+    any one reach its positions.
     """
     assert [
         (
-            crowd.low, crowd.high, crowd.keys, crowd.stood
+            crowd.low, crowd.high, crowd.keys, crowd.stood,
+            crowd.crowded(census.crowd)
         ) for crowd in census.shared.reach
-    ] == [(1, 1, 8, 8), (2, 2, 1, 2), (3, 5, 5, 16)]
+    ] == [
+        (1, 1, 8, 8, False),
+        (2, 2, 1, 2, False),
+        (3, 3, 4, 12, False),
+        (4, 5, 1, 4, True)
+    ]
 
 
 def test_shared_counts_where_each_game_first_stands_alone(census: Census):
