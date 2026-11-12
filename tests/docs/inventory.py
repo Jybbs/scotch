@@ -211,12 +211,6 @@ def test_an_index_adds_the_files_written_from_it(
         f"scotch match game docs/public/games/demo.pgn --plies {Outputs.plies}\n"
         in text["guide/studying.md"]
     )
-    assert "No index in this layout" not in text["guide/studying.md"]
-    assert "The index holds 3 games and" in text["guide/studying.md"]
-    assert (
-        "The index was built from the files as fetched\n"
-        "Next: scotch match game <pgn>\n```\n<!-- /run-show-store -->"
-    ) in text["guide/studying.md"]
     assert "\n".join(
         text[page] for page in ("guide/matching.md", "guide/studying.md")
     ) == snapshot
@@ -289,27 +283,19 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     for output in outputs:
         output.write(root)
 
-    data     = (root / "docs/pages/data/index.md").read_text()
-    front    = (root / "docs/pages/index.md").read_text()
-    matching = (root / "docs/pages/guide/matching.md").read_text()
-    pages    = (root / "docs/pages/reference/commands.md").read_text()
-    setup    = (root / "docs/pages/guide/setup.md").read_text()
-    store    = (root / "docs/pages/guide/store.md").read_text()
+    data  = (root / "docs/pages/data/index.md").read_text()
+    front = (root / "docs/pages/index.md").read_text()
+    pages = (root / "docs/pages/reference/commands.md").read_text()
+    store = (root / "docs/pages/guide/store.md").read_text()
 
     assert [*output.problems(root) for output in outputs] == []
     assert f"<!-- files -->{len(Sources.read().sources):,}<!-- /files -->" in data
     assert "|---|---|---|" in data
     assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
-    assert "<!-- steps -->\n1. `git clone --filter=blob:none" in setup
-    assert "| `venv` |" in setup
-    assert all(
-        f"[`scotch {verb} {noun}`](../reference/commands.md#scotch-{verb}-{noun})"
-        in setup
-        for verb, noun in (("fetch", "games"), ("index", "games"))
-    )
-    assert "Found several games in <pgn>" in matching
-    assert "No index has been built" not in matching
-    assert f"{setup}\n{matching}" == snapshot
+    assert "\n".join(
+        (root / "docs/pages/guide" / page).read_text()
+        for page in ("setup.md", "matching.md")
+    ) == snapshot
     assert from_toml(store.split("```toml\n")[1].split("\n```")[0]) == {
         "floors"  : Sources.read().floors,
         "sources" : [Sources.read().sources[0].model_dump(

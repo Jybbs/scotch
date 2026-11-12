@@ -114,7 +114,7 @@ players/Tomashevsky.zip:2079  Gunina,V vs. Tomashevsky,E, Chess Stars 6.0 Blitz,
 
 ## What the Store Holds
 
-`scotch show store` prints each file `sources.toml` declares with its size and fetch date, or `not fetched` where no fetch has downloaded it, then the games and positions the index holds and the command to run next, cut here to its last lines:
+`scotch show store` prints each file `sources.toml` declares with its size and fetch date, or `not fetched` where no fetch has downloaded it, then the games and positions the index holds, whether the files have changed since the index was built from them, and the command to run next, cut here to its last lines:
 
 <!-- run-show-store -->
 ```bash
