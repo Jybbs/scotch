@@ -1,3 +1,4 @@
+import { type Matches }                    from '../../lib/games/store.ts'
 import { EXAMPLES, type Match, type Side } from '../../lib/viewer/examples.ts'
 import { Loaded, type Party }              from '../../lib/viewer/loaded.ts'
 
@@ -10,6 +11,17 @@ export const loaded = new Loaded(EXAMPLES.match)
  * submitted game's plies.
  */
 export const { last, meet } = loaded.shared!
+
+/**
+ * Answers a game with the matches `found`, in the order they rank, holding the
+ * tags of each one's stored game as a tie.
+ */
+export function answered(...found: Match[]): Matches {
+  return {
+    match : place => found[place]!,
+    ties  : found.flatMap(({ stored }) => stored ? [{ headers: stored.headers }] : [])
+  }
+}
 
 /**
  * Drops a game's first `count` moves, so its plies start that many later.

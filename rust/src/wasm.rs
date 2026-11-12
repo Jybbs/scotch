@@ -90,9 +90,16 @@ pub struct Found {
     /// The number of the stored game.
     #[wasm_bindgen(readonly)]
     pub game: u32,
-    /// The slot the stored game takes, which `moves` reads.
+    /// The slot the stored game takes, which `side` reads.
     #[wasm_bindgen(readonly)]
     pub slot: u32,
+    /// The game piece holding the game.
+    #[wasm_bindgen(readonly)]
+    pub piece: u32,
+    /// The game's place among the games its piece holds, which is its place
+    /// among the tags the piece's block carries.
+    #[wasm_bindgen(readonly)]
+    pub place: u32,
     /// The ply of the stored game the run opens at, less the ply of the
     /// submitted game it opens at.
     #[wasm_bindgen(readonly)]
@@ -110,9 +117,13 @@ pub struct Found {
 
 impl From<crate::Run> for Found {
     fn from(run: crate::Run) -> Self {
+        let (piece, place) = crate::Positions::shelf(run.slot);
+
         Found {
             game: run.game,
             slot: run.slot,
+            piece,
+            place,
             offset: i32::try_from(run.offset).unwrap_or_default(),
             start: run.start,
             length: run.length,
@@ -144,13 +155,6 @@ pub struct Side {
     /// the moves.
     #[wasm_bindgen(readonly)]
     pub placements: Vec<String>,
-    /// The game piece holding the game.
-    #[wasm_bindgen(readonly)]
-    pub piece: u32,
-    /// The game's place among the games its piece holds, which is its place
-    /// among the tags the piece's block carries.
-    #[wasm_bindgen(readonly)]
-    pub place: u32,
 }
 
 /// The published store as the site reads it, from its head and each piece a
@@ -224,13 +228,7 @@ impl Store {
     #[must_use]
     pub fn side(&self, slot: u32) -> Side {
         let (moves, placements) = self.0.scored(slot);
-        let (piece, place) = crate::Positions::shelf(slot);
 
-        Side {
-            moves,
-            placements,
-            piece,
-            place,
-        }
+        Side { moves, placements }
     }
 }

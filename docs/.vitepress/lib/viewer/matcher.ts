@@ -1,7 +1,6 @@
-import type { InitInput } from '../games/crate/scotch.js'
-import { loadReader }     from '../games/readers.ts'
-import { Published }      from '../games/store.ts'
-import type { Match }     from './examples.ts'
+import type { InitInput }          from '../games/crate/scotch.js'
+import { loadReader }              from '../games/readers.ts'
+import { type Matches, Published } from '../games/store.ts'
 
 /**
  * Where matching a submitted game reads from: the WebAssembly module the reader
@@ -15,11 +14,11 @@ export interface Sources {
 }
 
 /**
- * What submitting a game gives: the match it makes beside each stored game
- * tied with the first, in the order `scotch match game` ranks them, or the
- * line naming why it makes none.
+ * What submitting a game gives: the stored games it shares its longest run
+ * with, in the order `scotch match game` ranks them, or the line naming why
+ * it makes no match.
  */
-export type Submission = { matches: Match[], problem?: undefined }
+export type Submission = { matches: Matches, problem?: undefined }
                        | { matches?: undefined, problem: string }
 
 /**

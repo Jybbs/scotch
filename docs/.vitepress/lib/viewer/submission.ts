@@ -1,9 +1,9 @@
 import { type Ref, shallowRef } from 'vue'
 
-import type { Match }  from './examples.ts'
-import { Matcher }     from './matcher.ts'
-import type { Tied }   from './ranks.ts'
-import type { Viewer } from './state.ts'
+import type { Matches } from '../games/store.ts'
+import { Matcher }      from './matcher.ts'
+import type { Tied }    from './ranks.ts'
+import type { Viewer }  from './state.ts'
 
 /**
  * A game submitted to the Viewer: the stored games tied on the run it shares,
@@ -22,9 +22,10 @@ export interface Submitting {
  * Sends each game the Viewer submits in PGN to `matcher` and loads its first
  * match, holding every stored game tied with it in the order the match ranks
  * them, while `problem` says that the game is being matched until it names the
- * problem the game carries or empties. Loading a match from anywhere
- * else empties `problem` and drops the tied games, and an answer arriving after
- * a later submission or load is dropped.
+ * problem the game carries or empties. Showing another of the tied games reads
+ * its moves only then, loading a match from anywhere else empties `problem`
+ * and drops the tied games, and an answer arriving after a later submission or
+ * load is dropped.
  *
  * Args:
  *   problem : The line naming the problem under the intake.
@@ -36,22 +37,22 @@ export function useSubmission(
   viewer  : Viewer,
   matcher : Matcher = new Matcher()
 ): Submitting {
-  const tied = shallowRef<readonly Match[]>([])
+  const tied = shallowRef<Matches>()
   const at   = shallowRef(0)
   let latest = 0
   const load = (...args: Parameters<Viewer['load']>): void => {
     latest       += 1
     problem.value = ''
-    tied.value    = []
+    tied.value    = undefined
     viewer.load(...args)
   }
   return {
     at   : at,
     load : load,
-    ties : () => tied.value.flatMap(match => match.stored ?? []),
+    ties : () => tied.value?.ties ?? [],
 
     show: (place: number) => {
-      viewer.load(tied.value[place]!, viewer.source.value)
+      viewer.load(tied.value!.match(place), viewer.source.value)
       at.value = place
     },
 
@@ -65,7 +66,7 @@ export function useSubmission(
         problem.value = submission.problem
         return
       }
-      load(submission.matches[0]!, source)
+      load(submission.matches.match(0), source)
       tied.value = submission.matches
       at.value   = 0
     }

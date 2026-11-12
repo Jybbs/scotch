@@ -20,8 +20,8 @@ describe('Matcher', () => {
     const matcher             = new Matcher({ fetch, module, origin: ORIGIN })
     const first               = await matcher.submit('viewer.pgn', `${viewer}\n[White "A"]\n\n1. e4 *\n`)
     await matcher.submit('viewer.pgn', viewer)
-    expect(first.matches?.[0]?.stored?.headers.White).toBe('Kasparov, Gary')
-    expect(first.matches?.[0]?.submitted.moves.slice(0, 3)).toEqual(['Nf3', 'Nf6', 'c4'])
+    expect(first.matches?.match(0).stored?.headers.White).toBe('Kasparov, Gary')
+    expect(first.matches?.match(0).submitted.moves.slice(0, 3)).toEqual(['Nf3', 'Nf6', 'c4'])
     expect(requests.filter(request => request.endsWith('manifest.json'))).toHaveLength(1)
   })
 
@@ -58,13 +58,13 @@ describe('Matcher losing what it reads from', () => {
     const matcher   = new Matcher({ fetch, module, origin: ORIGIN })
     vi.mocked(fetch).mockRejectedValueOnce(new TypeError('Failed to fetch'))
     expect(await matcher.submit('viewer.pgn', viewer)).toEqual({ problem: 'Cannot reach the store: Failed to fetch' })
-    expect((await matcher.submit('viewer.pgn', viewer)).matches).toHaveLength(1)
+    expect((await matcher.submit('viewer.pgn', viewer)).matches?.ties).toHaveLength(1)
   })
 
   it('reports a reader it cannot load, then loads it again on the next submission', async () => {
     const matcher = new Matcher({ fetch: bucket().fetch, module, origin: ORIGIN })
     vi.mocked(loadReader).mockRejectedValueOnce(new TypeError('Failed to fetch'))
     expect(await matcher.submit('viewer.pgn', viewer)).toEqual({ problem: 'Cannot load the reader: Failed to fetch' })
-    expect((await matcher.submit('viewer.pgn', viewer)).matches).toHaveLength(1)
+    expect((await matcher.submit('viewer.pgn', viewer)).matches?.ties).toHaveLength(1)
   })
 })

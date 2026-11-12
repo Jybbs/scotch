@@ -5,7 +5,7 @@ import { EXAMPLES }                       from '../../../lib/viewer/examples.ts'
 import { Matcher, type Submission }       from '../../../lib/viewer/matcher.ts'
 import { useViewer }                      from '../../../lib/viewer/state.ts'
 import { type Submitting, useSubmission } from '../../../lib/viewer/submission.ts'
-import { oneApart }                       from '../../common/matches.ts'
+import { answered, oneApart }             from '../../common/matches.ts'
 
 /**
  * Builds the submission of a Viewer whose matcher answers every game with
@@ -22,23 +22,23 @@ function submitting(answer: Submission) {
 describe('useSubmission', () => {
   it('loads the first match a game makes, holding each tied game in the order they rank', async () => {
     const tied                            = [EXAMPLES.match, oneApart()]
-    const { problem, submission, viewer } = submitting({ matches: tied })
+    const { problem, submission, viewer } = submitting({ matches: answered(...tied) })
     await submission.submit('1. Nf3 *', 'the pasted game')
     expect([viewer.loaded.value.match, viewer.source.value]).toEqual([EXAMPLES.match, 'the pasted game'])
-    expect(submission.ties()).toEqual(tied.map(match => match.stored))
+    expect(submission.ties()).toEqual(tied.map(({ stored }) => ({ headers: stored!.headers })))
     expect([submission.at.value, problem.value]).toEqual([0, ''])
   })
 
   it('holds no tied game where the game shares no position with a stored game', async () => {
     const lone           = { span: null, stored: null, submitted: EXAMPLES.match.submitted, ties: 0 }
-    const { submission } = submitting({ matches: [lone] })
+    const { submission } = submitting({ matches: answered(lone) })
     await submission.submit('1. h4 *', 'the pasted game')
     expect(submission.ties()).toEqual([])
   })
 
   it('shows another of the tied games, keeping where the game came from', async () => {
     const tied                   = [EXAMPLES.match, oneApart()]
-    const { submission, viewer } = submitting({ matches: tied })
+    const { submission, viewer } = submitting({ matches: answered(...tied) })
     await submission.submit('1. Nf3 *', 'the pasted game')
     submission.show(1)
     expect([viewer.loaded.value.match, viewer.source.value]).toEqual([tied[1], 'the pasted game'])
@@ -56,7 +56,7 @@ describe('useSubmission', () => {
   })
 
   it('drops the tied games and the problem once a match loads from anywhere else', async () => {
-    const { problem, submission, viewer } = submitting({ matches: [EXAMPLES.match, oneApart()] })
+    const { problem, submission, viewer } = submitting({ matches: answered(EXAMPLES.match, oneApart()) })
     await submission.submit('1. Nf3 *', 'the pasted game')
     problem.value = 'Found no game in the pasted game'
     submission.load(EXAMPLES.alone, 'demo.pgn')
@@ -77,7 +77,7 @@ describe('useSubmission answering out of order', () => {
     const pending = Promise.withResolvers<Submission>()
     vi.spyOn(matcher, 'submit')
       .mockReturnValueOnce(pending.promise)
-      .mockResolvedValueOnce({ matches: [EXAMPLES.alone] })
+      .mockResolvedValueOnce({ matches: answered(EXAMPLES.alone) })
     const submission = useSubmission(problem, viewer, matcher)
     const earlier    = submission.submit('1. Nf3 *', 'the first game')
     await after(submission)

@@ -23,6 +23,17 @@ interface Manifest {
 type Shelf = readonly Readonly<Record<string, string>>[]
 
 /**
+ * The stored games sharing the longest run with a submitted game: the tags of
+ * each, the first beside every game tied with it in the order `scotch match
+ * game` ranks them, and the match the game at a place among them makes with
+ * the submitted game, whose moves are read only once it is asked for.
+ */
+export interface Matches {
+  match : (place: number) => Match
+  ties  : readonly Pick<Side, 'headers'>[]
+}
+
+/**
  * Reads the bytes of `url` from `from` to the one before `to` through a range
  * request, refusing an answer holding other than the range.
  */
@@ -73,33 +84,40 @@ export class Published {
   }
 
   /**
-   * Finds the stored games sharing the longest run with `game`, the first
-   * beside every game tied with it in the order `scotch match game` ranks
-   * them, each as the match it makes with `game`, or the one match holding no
-   * stored game where none shares a position with it.
+   * Finds the stored games sharing the longest run with `game` and reads the
+   * tags of each, leaving the ties empty and the match at place `0` holding
+   * no stored game where none shares a position with it.
    */
-  async matches(game: Game): Promise<Match[]> {
+  async matches(game: Game): Promise<Matches> {
     const submitted = sideOf(game)
     const keys      = BigUint64Array.from(game.keys)
     using first     = await this.settled(() => this.store.best(keys, 1))
     using more      = first.ties > 0 ? await this.settled(() => this.store.best(keys, first.ties + 1)) : undefined
     const best      = more ?? first
-    const matches   = best.runs.map(run => {
+    const ties      = best.ties
+    const runs      = best.runs.map(run => {
       using owned = run
-      using side  = this.store.side(owned.slot)
-      const stored: Side = {
-        headers    : this.shelves.get(side.piece)?.[side.place] ?? {},
-        moves      : side.moves,
-        placements : side.placements
-      }
       return {
-        span   : { length: owned.length, offset: owned.offset, start: owned.start },
-        stored,
-        submitted,
-        ties   : best.ties
+        headers : this.shelves.get(owned.piece)?.[owned.place] ?? {},
+        slot    : owned.slot,
+        span    : { length: owned.length, offset: owned.offset, start: owned.start }
       }
     })
-    return matches.length > 0 ? matches : [{ span: null, stored: null, submitted, ties: 0 }]
+    return {
+      ties: runs.map(({ headers }) => ({ headers })),
+
+      match: (place: number): Match => {
+        const run = runs[place]
+        if (!run) return { span: null, stored: null, submitted, ties: 0 }
+        using side = this.store.side(run.slot)
+        return {
+          span   : run.span,
+          stored : { headers: run.headers, moves: side.moves, placements: side.placements },
+          submitted,
+          ties
+        }
+      }
+    }
   }
 
   /**

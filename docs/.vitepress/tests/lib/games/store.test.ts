@@ -23,12 +23,14 @@ describe('Published matching a game', () => {
   it('matches the Viewer’s example game as the command line matches it', async () => {
     const { span, stored, submitted } = EXAMPLES.match
     const store                       = await Published.open(ORIGIN, bucket().fetch)
-    const [match]                     = await store.matches(only(viewer))
-    expect(match?.span).toEqual(span)
-    expect(match?.ties).toBe(0)
-    expect(match?.submitted).toMatchObject({ moves: submitted.moves, placements: submitted.placements })
-    expect(match?.stored).toMatchObject({ moves: stored?.moves, placements: stored?.placements })
-    expect(match?.stored?.headers).toMatchObject({ Black: 'Sosonko, Gennadi', White: 'Kasparov, Gary' })
+    const matches                     = await store.matches(only(viewer))
+    const match                       = matches.match(0)
+    expect(matches.ties).toEqual([{ headers: match.stored?.headers }])
+    expect(match.span).toEqual(span)
+    expect(match.ties).toBe(0)
+    expect(match.submitted).toMatchObject({ moves: submitted.moves, placements: submitted.placements })
+    expect(match.stored).toMatchObject({ moves: stored?.moves, placements: stored?.placements })
+    expect(match.stored?.headers).toMatchObject({ Black: 'Sosonko, Gennadi', White: 'Kasparov, Gary' })
   })
 
   it('reads the head, then only the pieces a lookup reaches, and reads no piece twice', async () => {
@@ -48,17 +50,19 @@ describe('Published matching a game', () => {
     const start   = { length: 1, offset: 0, start: 0 }
     const store   = await Published.open(ORIGIN, bucket().fetch)
     const matches = await store.matches(only('[White "A"]\n\n*\n'))
-    expect(matches).toHaveLength(3)
-    expect(matches.map(match => match.ties)).toEqual([2, 2, 2])
-    expect(matches.map(match => match.span)).toEqual([start, start, start])
-    expect(new Set(matches.map(match => match.stored?.headers.Date)).size).toBe(3)
+    const tied    = matches.ties.map((_, place) => matches.match(place))
+    expect(tied.map(match => match.ties)).toEqual([2, 2, 2])
+    expect(tied.map(match => match.span)).toEqual([start, start, start])
+    expect(tied.map(match => match.stored?.headers)).toEqual(matches.ties.map(({ headers }) => headers))
+    expect(new Set(matches.ties.map(({ headers }) => headers.Date)).size).toBe(3)
   })
 
   it('gives one match holding no stored game where none shares a position', async () => {
     const store = await Published.open(ORIGIN, bucket().fetch)
     const game  = only('[FEN "4k3/8/8/8/8/8/8/4K2R w K - 0 1"]\n[SetUp "1"]\n\n1. Kf1 *\n')
     const alone = { headers: game.tags, moves: ['Kf1'], placements: game.placements }
-    expect(await store.matches(game)).toEqual([{ span: null, stored: null, submitted: alone, ties: 0 }])
+    const matches = await store.matches(game)
+    expect([matches.ties, matches.match(0)]).toEqual([[], { span: null, stored: null, submitted: alone, ties: 0 }])
   })
 })
 
