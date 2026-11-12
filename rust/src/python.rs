@@ -63,6 +63,14 @@ fn skipped(text: &str) -> Vec<String> {
     crate::read_at(text, 0).map_or_else(Vec::new, |(game, _)| game.skipped)
 }
 
+/// Reads whether the PGN text `text` holds more past the end of the first
+/// game it carries than blank lines and lines opening on `%` or `;`, which the
+/// reader passes over, whether another game or text holding no tag pair.
+#[pyfunction]
+fn trails(text: &str) -> bool {
+    crate::read_at(text, 0).is_some_and(|(_, at)| crate::trails(text, at))
+}
+
 /// Keys each position of the mainline `moves` names in UCI notation, from
 /// the position `fen` sets up under the variant `variant` names.
 #[pyfunction]
@@ -229,7 +237,7 @@ impl Held {
 #[pymodule]
 mod readers {
     #[pymodule_export]
-    use super::{Held, encoded, keys, read, skipped, standing};
+    use super::{Held, encoded, keys, read, skipped, standing, trails};
 
     /// Each section of `positions.bin`, by its name, beside how it is held and
     /// what it holds, in the order the file holds them.

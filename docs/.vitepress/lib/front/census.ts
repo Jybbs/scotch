@@ -4,18 +4,18 @@ import { type Archive, STORE } from '../data/store.ts'
 
 /**
  * The games the store holds from one decade, the decades before `FIRST_CELL`
- * gathered under the decade before it, beside the archives holding games from
- * it and the three holding the most, and the decade named as the clock line
+ * gathered under the decade before it, beside the files holding games from it
+ * and the three holding the most, and the decade named as the clock line
  * names it, as its row beside the board names it, and as a sentence names it.
  */
 export interface Decade {
-  archives : number
-  decade   : number
-  games    : number
-  name     : string
-  short    : string
-  top      : readonly { games: number, name: string }[]
-  when     : string
+  decade : number
+  files  : number
+  games  : number
+  name   : string
+  short  : string
+  top    : readonly { games: number, name: string }[]
+  when   : string
 }
 
 /**
@@ -36,30 +36,31 @@ export interface Fill {
 export const SQUARES = 64
 
 /**
- * Counts the store's games by decade across every archive, gathering every
+ * Counts the store's games by decade across every file, gathering every
  * decade before `FIRST_CELL` into the one before it, which reads as the games
  * before that year.
  *
  * Args:
- *   files : The archives the store holds.
+ *   files : The files the store holds.
  */
 export function decadesOf(files: readonly Archive[] = STORE.files): Decade[] {
   const counts   = files.flatMap(file => Object.entries(file.decades).map(([decade, games]) => ({
-    decade : Math.max(FIRST_CELL - 10, Number(decade)),
-    games  : games!,
-    name   : file.name
+    address : file.address,
+    decade  : Math.max(FIRST_CELL - 10, Number(decade)),
+    games   : games!,
+    name    : file.name
   })))
   const gathered = Map.groupBy(counts, each => each.decade)
   return [...gathered]
     .toSorted(([a], [b]) => a - b)
     .map(([decade, held]) => ({
-      archives : new Set(held.map(each => each.name)).size,
-      decade   : decade,
-      games    : summed(held.map(each => each.games)),
-      name     : decade < FIRST_CELL ? `Before ${FIRST_CELL}` : `The ${decade}s`,
-      short    : decade < FIRST_CELL ? `< ${FIRST_CELL}` : `${decade}s`,
-      top      : held.toSorted((a, b) => b.games - a.games).slice(0, 3),
-      when     : decade < FIRST_CELL ? `before ${FIRST_CELL}` : `in the ${decade}s`
+      decade : decade,
+      files  : new Set(held.map(each => each.address)).size,
+      games  : summed(held.map(each => each.games)),
+      name   : decade < FIRST_CELL ? `Before ${FIRST_CELL}` : `The ${decade}s`,
+      short  : decade < FIRST_CELL ? `< ${FIRST_CELL}` : `${decade}s`,
+      top    : held.toSorted((a, b) => b.games - a.games).slice(0, 3),
+      when   : decade < FIRST_CELL ? `before ${FIRST_CELL}` : `in the ${decade}s`
     }))
 }
 

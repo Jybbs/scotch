@@ -54,6 +54,7 @@ def test_an_index_adds_the_files_written_from_it(
     from the index and its census:
 
     - The examples, holding the front page's and the Methods page's alone
+    - The files the Data page lists, each beside its games by decade
     - The store the Data pages, the store page, and the Viewer read
     - The Viewer's match beside the demo game alone
     - The example run the README and the Guide carry, naming the stored game
@@ -104,6 +105,7 @@ def test_an_index_adds_the_files_written_from_it(
     assert [(type(output), str(output.path)) for output in measured] == [
         (Document, "docs/.vitepress/lib/rendered/examples.json"),
         (Document, "docs/public/matches/demo.json"),
+        (Document, "docs/.vitepress/lib/rendered/files.json"),
         (Document, "docs/.vitepress/lib/rendered/store.json"),
         (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
@@ -143,7 +145,8 @@ def test_an_index_adds_the_files_written_from_it(
     assert text["guide/index.md"].startswith(
         "<!-- example -->\n```bash\nscotch match game"
         " docs/public/games/demo.pgn\n```\n\n```text\n"
-        "Kasparov.zip:1  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??\n"
+        "players/Kasparov.zip:1  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg,"
+        " 1981.??.??\n"
     )
     assert "Holds <!-- games -->10<!-- /games --> games and" in text["guide/index.md"]
     assert "<!-- undated -->0<!-- /undated --> undated." in text["guide/index.md"]
@@ -165,7 +168,7 @@ def test_an_index_adds_the_files_written_from_it(
     assert "Indexed 3 games into .cache/data/index\n" in text["reference/commands.md"]
     assert '\n[White "Kasparov, Gary"]\n' in text["reference/commands.md"]
     assert "The index holds 3 games and" in text["reference/commands.md"]
-    assert "scotch show game Kasparov.zip:1\n" in text["reference/commands.md"]
+    assert "scotch show game players/Kasparov.zip:1\n" in text["reference/commands.md"]
 
 
 @mark.parametrize(
@@ -240,7 +243,7 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
     [
         param(("match", "game", str(Outputs.demo.path), "--top", "1"), id="match-game"),
         param(("match", "games", str(Outputs.demo.path)), id="match-games"),
-        param(("show", "game", "Kasparov.zip:1"), id="show-game"),
+        param(("show", "game", "players/Kasparov.zip:1"), id="show-game"),
         param(
             ("show", "position", "1.", "Nf3", "Nf6", "2.", "c4", "--top", "1"),
             id = "show-position"
@@ -362,7 +365,11 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     assert "|---|---|---|" in data
     assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
     assert from_toml(store.split("```toml\n")[1].split("\n```")[0]) == {
-        "sources": [Sources.read().sources[0].model_dump(mode="json")]
+        "floors"  : Sources.read().floors,
+        "sources" : [Sources.read().sources[0].model_dump(
+            exclude_none = True,
+            mode         = "json"
+        )]
     }
     assert all(
         f"<!-- command-{verb}-{noun} -->\n{Commands(app=app).section(verb, noun)}\n"
@@ -370,7 +377,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
         for verb, noun in commands(app)
     )
     assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in pages
-    assert pages.count("Fetched https://www.pgnmentor.com/players/") == 4
+    assert pages.count("Fetched https://www.pgnmentor.com/") == 4
     assert loads(
         (root / "docs/public/matches/alone.json").read_text()
     )["stored"] is None

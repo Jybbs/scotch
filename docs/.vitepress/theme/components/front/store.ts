@@ -53,7 +53,7 @@ function readoutOf(decade: census.Decade, games: number): Readout {
     readings : decade.top.map(each => [each.name, counted(each.games)]),
     say      : `games played ${decade.when}, ${percent(decade.games / games, 1)} of the store and `
              + `${(decade.games / games * census.SQUARES).toFixed(1)} of the board’s `
-             + `${census.SQUARES} squares, from ${decade.archives} archives`
+             + `${census.SQUARES} squares, from ${decade.files} files`
   }
 }
 

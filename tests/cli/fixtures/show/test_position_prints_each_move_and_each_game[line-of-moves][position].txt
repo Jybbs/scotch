@@ -1,4 +1,4 @@
 1 stored game reaches this position
 Nc6             1  1-0 1  1/2-1/2 0  0-1 0  * 0
 Newest first:
-White.zip:1  White, W vs. Black, B, Event, 2000.01.02
+players/White.zip:1  White, W vs. Black, B, Event, 2000.01.02

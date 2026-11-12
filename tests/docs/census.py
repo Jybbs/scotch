@@ -39,44 +39,77 @@ def test_counts_fill_every_number_of_moves_up_to_the_longest():
     assert Census.counts(5, DataFrame({"moves": [2, 4, 4]})) == [0, 0, 1, 0, 2, 0]
 
 
-def test_games_read_each_games_file_decade_moves_and_result(census: Census):
+def test_games_read_each_games_file_year_decade_moves_and_result(census: Census):
     """
     Asserts that a game's moves count a move of White's and Black's reply
     as one, so five plies play three moves, and that a `Date` tag whose year
-    holds anything but digits reads as no decade.
+    holds anything but digits reads as no year and no decade.
     """
     assert census.games.to_dicts() == [
         {
             "address" : "https://example.com/X.zip",
             "decade"  : 1980,
             "moves"   : 3,
-            "result"  : "1-0"
+            "result"  : "1-0",
+            "year"    : 1985
         },
         {
             "address" : "https://example.com/X.zip",
             "decade"  : 1980,
             "moves"   : 3,
-            "result"  : "1/2-1/2"
+            "result"  : "1/2-1/2",
+            "year"    : 1987
         },
         {
             "address" : "https://example.com/Y.zip",
             "decade"  : 1990,
             "moves"   : 3,
-            "result"  : "0-1"
+            "result"  : "0-1",
+            "year"    : 1992
         },
         {
             "address" : "https://example.com/Y.zip",
             "decade"  : None,
             "moves"   : 3,
-            "result"  : "1-0"
+            "result"  : "1-0",
+            "year"    : None
         },
         {
             "address" : "https://example.com/Z.zip",
             "decade"  : 1870,
             "moves"   : 1,
-            "result"  : "1-0"
+            "result"  : "1-0",
+            "year"    : 1879
         }
     ]
+
+
+def test_rules_count_what_the_longest_run_leaves_out(
+    census  : Census,
+    counted : tuple[list[Game], PositionIndex]
+):
+    """
+    Asserts what the longest-run rule leaves out over all five games,
+    beside the count of their keys. The game from the kings alone shares no
+    position and goes unmatched, and each of the four others ties, the three
+    sharing an opening on their five-position runs and the third on the
+    starting position. Only the third game's run lies wholly in positions
+    more than two other games reach, and only the first game finds a shorter
+    run reaching, in another order, a position rarer than any of its longest
+    run's.
+    """
+    keys = {*game.keys for game in counted[0]}
+
+    assert census.rules == Rules(
+        accidents  = len(keys) * (len(keys) - 1) / 2**65,
+        crowd      = 2,
+        crowded    = 1,
+        keys       = len(keys),
+        matched    = 4,
+        sample     = 5,
+        tied       = 4,
+        transposed = 1
+    )
 
 
 @mark.parametrize(
@@ -107,32 +140,26 @@ def test_rules_count_no_copy_toward_the_crowd_of_a_position(
     ).rules.crowded == 1
 
 
-def test_rules_count_what_the_longest_run_leaves_out(
-    census  : Census,
-    counted : tuple[list[Game], PositionIndex]
+def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
+    scanned: Callable[[Iterable[Game]], PositionIndex]
 ):
     """
-    Asserts what the longest-run rule leaves out over all five games,
-    beside the count of their keys. The game from the kings alone shares no
-    position and goes unmatched, and each of the four others ties, the three
-    sharing an opening on their five-position runs and the third on the
-    starting position. Only the third game's run lies wholly in positions
-    more than two other games reach, and only the first game finds a shorter
-    run reaching, in another order, a position rarer than any of its longest
-    run's.
+    Asserts the measures over four games where 1. e4 e5 2. Nf3 Nc6 3. Bc4
+    meets two games reaching its last three positions from 1. Nf3 and one
+    sharing only its opening move. That first game alone ties and alone runs
+    through positions more than one other game reaches, and no game counts
+    as transposed, since a run opening on the first position in the same
+    order reaches nothing by another order of moves, however rare.
     """
-    keys = {*game.keys for game in counted[0]}
+    games = [
+        line("e4", "e5", "Nf3", "Nc6", "Bc4"),
+        line("e4", "d5"),
+        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Nf6"),
+        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Bc5")
+    ]
+    rules = Census(crowd=1, index=scanned(games)).rules
 
-    assert census.rules == Rules(
-        accidents  = len(keys) * (len(keys) - 1) / 2**65,
-        crowd      = 2,
-        crowded    = 1,
-        keys       = len(keys),
-        matched    = 4,
-        sample     = 5,
-        tied       = 4,
-        transposed = 1
-    )
+    assert (rules.crowded, rules.matched, rules.tied, rules.transposed) == (1, 4, 1, 0)
 
 
 @mark.parametrize(
@@ -195,28 +222,6 @@ def test_rules_count_a_transposition_only_through_a_strictly_rarer_position(
     assert Census(index=scanned(games)).rules.transposed == transposed
 
 
-def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
-    scanned: Callable[[Iterable[Game]], PositionIndex]
-):
-    """
-    Asserts the measures over four games where 1. e4 e5 2. Nf3 Nc6 3. Bc4
-    meets two games reaching its last three positions from 1. Nf3 and one
-    sharing only its opening move. That first game alone ties and alone runs
-    through positions more than one other game reaches, and no game counts
-    as transposed, since a run opening on the first position in the same
-    order reaches nothing by another order of moves, however rare.
-    """
-    games = [
-        line("e4", "e5", "Nf3", "Nc6", "Bc4"),
-        line("e4", "d5"),
-        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Nf6"),
-        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Bc5")
-    ]
-    rules = Census(crowd=1, index=scanned(games)).rules
-
-    assert (rules.crowded, rules.matched, rules.tied, rules.transposed) == (1, 4, 1, 0)
-
-
 def test_rules_sample_as_many_games_as_named_drawing_the_same_with_one_seed(
     scanned: Callable[[Iterable[Game]], PositionIndex]
 ):
@@ -274,19 +279,22 @@ def test_store_counts_the_games_by_moves_result_decade_and_file(
                 address = "https://example.com/X.zip",
                 decades = {"1980": 2},
                 games   = 2,
-                undated = 0
+                undated = 0,
+                year    = 1985
             ),
             Archive(
                 address = "https://example.com/Y.zip",
                 decades = {"1990": 1},
                 games   = 2,
-                undated = 1
+                undated = 1,
+                year    = 1992
             ),
             Archive(
                 address = "https://example.com/Z.zip",
                 decades = {"1870": 1},
                 games   = 1,
-                undated = 0
+                undated = 0,
+                year    = 1879
             )
         ],
         games     = 5,
@@ -332,3 +340,13 @@ def test_store_lists_the_files_in_the_order_of_their_addresses(
     assert [file.name for file in Census(index=scanned(games)).store.files] == [
         "X", "Z"
     ]
+
+
+def test_store_reads_the_year_the_most_of_each_file_s_games_were_played_in(
+    census: Census
+):
+    """
+    Asserts that a file's year is the one the most of its games were played
+    in, the earliest where two tie, a game naming no year left out.
+    """
+    assert [archive.year for archive in census.store.files] == [1985, 1992, 1879]

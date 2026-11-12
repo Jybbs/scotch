@@ -57,7 +57,7 @@ export function commandsOf(front: Front): Command[] {
       command : 'scotch fetch games',
       figure  : counted(STORE.files.length),
       out     : STORE.files.slice(-2).map(({ address }) => `Fetched ${address}`),
-      unit    : 'archives',
+      unit    : 'files',
       verb    : 'Fetch'
     },
     {

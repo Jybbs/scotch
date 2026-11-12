@@ -19,16 +19,18 @@ from zipfile   import ZipFile
 from scotch.sources.schemas import Source
 
 
-def declare(path: str) -> Source:
+def declare(path: str, section: str = "Players") -> Source:
     """
     Builds the `Source` of the file at `path` on `example.com`, a domain RFC
-    2606 reserves for documentation.
+    2606 reserves for documentation, listed under `section` and named for
+    its path.
     """
     return Source(
         address  = f"https://example.com/{path}",
         home     = "https://example.com/",
         provider = "Example",
-        section  = "Players"
+        section  = section,
+        title    = path
     )
 
 

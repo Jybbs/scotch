@@ -1,109 +1,154 @@
 // @vitest-environment happy-dom
-import { enableAutoUnmount, mount }        from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { type VueWrapper, flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, it, vi }              from 'vitest'
 
-import * as files    from '../../../../lib/data/files.ts'
-import * as numbers  from '../../../../lib/data/numbers.ts'
-import { Files }     from '../../../../theme/components/data/files.ts'
-import { prevented } from '../../../common/keys.ts'
+import * as files       from '../../../../lib/data/files.ts'
+import { Files }        from '../../../../theme/components/data/files.ts'
+import { pressed }      from '../../../common/keys.ts'
+import { reduceMotion } from '../../../common/motion.ts'
+import { resized }      from '../../../common/size.ts'
+import { onScreen }     from '../../../common/unfold.ts'
 
-const players  = files.playersOf()
-const span     = files.curveSpan()
-const initials = files.initialsOf(players)
-const opening  = files.busiest(players)
+vi.mock('@vueuse/core', async original => ({
+  ...await original<typeof import('@vueuse/core')>(),
+  useElementSize: (await import('../../../common/size.ts')).useElementSize
+}))
 
-enableAutoUnmount(afterEach)
+vi.mock('../../../../lib/data/files.ts', async original => ({
+  ...await original<typeof import('../../../../lib/data/files.ts')>(),
+  LISTED: (await import('../../../lib/data/fixtures/listed.ts')).SAMPLE_LISTED
+}))
 
 /**
- * Reads which tab is selected and which initial the panel shows.
+ * Reads the name the card shows.
  */
-function shown(list: ReturnType<typeof mount>): [string, string] {
-  return [list.find('[aria-selected="true"]').text(), list.find('.sc-data-folio b').text()]
+function shown(list: VueWrapper): string {
+  return list.find('.sc-data-rail-name').text()
+}
+
+/**
+ * Picks a section by its tab and waits for what it draws.
+ */
+async function picked(list: VueWrapper, section: files.Section): Promise<void> {
+  await list.findAll('[role="tab"]').find(tab => tab.text().startsWith(section))!.trigger('click')
 }
 
 describe('Files', () => {
-  it('opens on the initial whose archives hold the most games, its tab alone in the tab order', () => {
+  it('opens on the Players, the archive under two sections on the card, a disc per dated archive', () => {
     const list = mount(Files)
-    expect(shown(list)).toEqual([opening, opening])
-    expect(list.findAll('[tabindex="0"]').map(tab => tab.text())).toEqual([opening])
-    expect(list.findAll('[tabindex="-1"]').length).toBe(initials.length - 1)
-    expect(list.find('[role="tabpanel"]').attributes('aria-labelledby'))
-      .toBe(list.find('[aria-selected="true"]').attributes('id'))
+    expect(list.findAll('[role="tab"]').map(tab => tab.text())).toEqual(['Players4', 'Events5', 'Openings5'])
+    expect(list.find('[aria-selected="true"]').text()).toBe('Players4')
+    expect(list.findAll('circle.sc-data-mark')).toHaveLength(3)
+    expect(shown(list)).toBe('Henry Bird')
+    expect(list.find('.sc-data-files-legend').text()).toBe(files.LEGENDS.Players)
+    expect(list.find('.sc-data-files-find span').text()).toBe('14 files')
   })
 
-  it("ranks the initial's archives, each linked to its file, over an axis of the years", () => {
-    const list   = mount(Files)
-    const rows   = list.findAll('.sc-data-player')
-    const ranked = files.rankedUnder(players, opening)
-    const years  = list.findAll('.sc-data-years span').map(year => [year.text(), year.attributes('style')])
-    expect(rows.map(row => row.find('a').attributes('href'))).toEqual(ranked.map(player => player.address))
-    expect(years).toEqual([1850, 1900, 1950, 2000]
-      .map(year => [String(year), `left: ${files.yearAt(span, year).toFixed(2)}%;`]))
+  it('draws a taller drawing at a narrow width, and no drawing before the width is measured', () => {
+    resized(390)
+    expect(mount(Files).find('svg.sc-data-files-draw').attributes('height')).toBe('200')
+    resized(0)
+    expect(mount(Files).find('svg.sc-data-files-draw').exists()).toBe(false)
   })
 
-  it("numbers each archive's row and sets its games and the decades it spans beneath a count of them", () => {
-    const list   = mount(Files)
-    const ranked = files.rankedUnder(players, opening)
-    const games  = numbers.counted(numbers.summed(ranked.map(player => player.games)))
-    expect(list.find('.sc-data-folio span').text()).toBe(`${ranked.length} files · ${games} games`)
-    expect(list.findAll('.sc-data-player').map(row => [
-      row.find('.sc-data-number').text(), row.find('.sc-data-games').text(), row.attributes('title')
-    ])).toEqual(ranked.map((player, index) => [
-      String(index + 1), numbers.counted(player.games), files.playedSpan(player)
-    ]))
-  })
-
-  it("fills each player's curve closed along the foot of its box", () => {
-    expect(mount(Files).findAll('.sc-data-curve-fill').map(fill => fill.attributes('d')))
-      .toAllEqual(expect.stringMatching(/Z$/u))
-  })
-
-  it('shows the initial whose tab is clicked', async () => {
+  it('moves the card to the mark a pointer rests on and rings it', async () => {
     const list = mount(Files)
-    await list.findAll('[role="tab"]')[0]!.trigger('click')
-    expect(shown(list)).toEqual([initials[0], initials[0]])
+    await list.findAll('circle.sc-data-mark').at(-1)!.trigger('pointerenter')
+    expect(shown(list)).toBe('Magnus Carlsen')
+    expect(list.findAll('.sc-data-at')).toHaveLength(1)
   })
 
-  it('counts a lone archive as one file', async () => {
-    const lone = initials.find(initial => files.rankedUnder(players, initial).length === 1)!
+  it('steps the card along the marks on the arrow keys', async () => {
     const list = mount(Files)
-    await list.findAll('[role="tab"]')[initials.indexOf(lone)]!.trigger('click')
-    expect(list.find('.sc-data-folio span').text()).toMatch(/^1 file · /u)
+    const svg  = list.find('svg.sc-data-files-draw').element
+    expect(await pressed(svg, 'ArrowRight')).toBe(true)
+    expect(shown(list)).toBe('Magnus Carlsen')
+    expect(await pressed(svg, 'Tab')).toBe(false)
+  })
+
+  it('dims the marks the query passes over and tallies the rest', async () => {
+    const list = mount(Files)
+    await list.find('input').setValue('  MORPHY ')
+    expect(list.findAll('.sc-data-dim')).toHaveLength(2)
+    expect(list.find('.sc-data-files-find span').text()).toBe('1 of 3 Players')
+    expect(list.findAll('[role="tab"] small').map(count => count.text())).toEqual(['1', '0', '0'])
   })
 })
 
-describe('Files, from the keyboard', () => {
-  it.each([
-    { key: 'ArrowRight', to: initials[initials.indexOf(opening) + 1] },
-    { key: 'ArrowLeft', to: initials[initials.indexOf(opening) - 1] },
-    { key: 'Home', to: initials[0] },
-    { key: 'End', to: initials.at(-1) }
-  ])('moves to $to on $key and focuses its tab', async ({ key, to }) => {
+describe('Files, across the sections', () => {
+  it('stacks the Events as bricks and opens on the latest World Championship', async () => {
+    const list = mount(Files)
+    await picked(list, 'Events')
+    expect(list.findAll('rect.sc-data-mark')).toHaveLength(4)
+    expect(shown(list)).toBe('Carlsen - Caruana 2018')
+  })
+
+  it('moves between the tabs on the arrow keys, Home, and End, and leaves another key alone', async () => {
     const list = mount(Files, { attachTo: document.body })
-    await list.find('[role="tablist"]').trigger('keydown', { key })
-    expect(shown(list)).toEqual([to, to])
-    expect(document.activeElement?.textContent).toBe(to)
+    const tabs = list.find('[role="tablist"]').element
+    expect(await pressed(tabs, 'ArrowLeft')).toBe(true)
+    expect(list.find('[aria-selected="true"]').text()).toBe('Openings5')
+    expect(document.activeElement?.textContent).toBe('Openings5')
+    await pressed(tabs, 'Home')
+    expect(list.find('[aria-selected="true"]').text()).toBe('Players4')
+    await pressed(tabs, 'End')
+    expect(list.find('[aria-selected="true"]').text()).toBe('Openings5')
+    expect(await pressed(tabs, 'Enter')).toBe(false)
+    list.unmount()
   })
+})
 
-  it('wraps from the first tab to the last and ignores any other key', async () => {
+describe('Files, on the Openings', () => {
+  it('draws a band per first move and reply and a mark per file, beside the trail', async () => {
     const list = mount(Files)
-    const tabs = list.find('[role="tablist"]')
-    await tabs.trigger('keydown', { key: 'Home' })
-    await tabs.trigger('keydown', { key: 'ArrowLeft' })
-    await tabs.trigger('keydown', { key: 'a' })
-    expect(shown(list)).toEqual([initials.at(-1), initials.at(-1)])
+    await picked(list, 'Openings')
+    expect(list.findAll('.sc-data-band')).toHaveLength(7)
+    expect(list.findAll('rect.sc-data-mark')).toHaveLength(5)
+    expect(list.findAll('text').at(-1)!.text()).toBe('All openings')
+    expect(shown(list)).toBe('Bird')
   })
 
-  it('wraps from the last tab to the first', async () => {
+  it('opens a band on a press, at once while drawings hold still, and steps back on a second', async () => {
+    reduceMotion()
     const list = mount(Files)
-    const tabs = list.find('[role="tablist"]')
-    await tabs.trigger('keydown', { key: 'End' })
-    await tabs.trigger('keydown', { key: 'ArrowRight' })
-    expect(shown(list)).toEqual([initials[0], initials[0]])
+    await picked(list, 'Openings')
+    await list.findAll('.sc-data-band')[0]!.trigger('click')
+    await flushPromises()
+    expect(list.findAll('text').at(-1)!.text())
+      .toBe('All openings  ›  1.e4   ·   press the open band to step back')
+    await list.findAll('.sc-data-band')[0]!.trigger('click')
+    await flushPromises()
+    expect(list.findAll('text').at(-1)!.text()).toBe('All openings')
   })
 
-  it('keeps the page from scrolling on a key it answers and lets any other key through', () => {
-    const tabs = mount(Files).find('[role="tablist"]').element
-    expect([prevented(tabs, 'Home'), prevented(tabs, 'a')]).toEqual([true, false])
+  it('moves the card to the busiest file under a band a pointer rests on', async () => {
+    const list = mount(Files)
+    await picked(list, 'Openings')
+    await list.findAll('.sc-data-band')[0]!.trigger('pointerenter')
+    expect(shown(list)).toBe('Najdorf')
+    await list.findAll('.sc-data-band')[3]!.trigger('pointerenter')
+    expect(shown(list)).toBe('Najdorf')
+  })
+})
+
+describe('Files, as it comes into view', () => {
+  it('unfolds its marks once, then stops', async () => {
+    vi.useFakeTimers()
+    const report = onScreen()
+    const list   = mount(Files)
+    await report()
+    expect(list.find('.sc-data-unfold').exists()).toBe(true)
+    vi.advanceTimersByTime(1800)
+    await flushPromises()
+    expect(list.find('.sc-data-unfold').exists()).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('holds still for a reader who prefers reduced motion', async () => {
+    reduceMotion()
+    const report = onScreen()
+    const list   = mount(Files)
+    await report()
+    expect(list.find('.sc-data-unfold').exists()).toBe(false)
   })
 })

@@ -51,28 +51,27 @@ class Census:
     @cached_property
     def games(self) -> DataFrame:
         """
-        Reads each stored game's file, the moves it plays, its result, and
-        the decade its `Date` tag names, which is null where the tag's year
-        holds anything but digits.
+        Reads each stored game's file, the year its `Date` tag names, the
+        moves it plays, its result, and the decade of that year, both null
+        where the tag's year holds anything but digits.
 
         Returns:
-            One row per stored game under `address`, `moves`, `result`, and
-            `decade`, where `moves` counts a move of White's and Black's
-            reply as one, so a game of 7 plies plays 4 moves.
+            One row per stored game under `address`, `year`, `moves`,
+            `result`, and `decade`, where `moves` counts a move of White's
+            and Black's reply as one, so a game of 7 plies plays 4 moves.
         """
         return self.index.games.select(
             address = col("origin").struct.field("address"),
-            decade  = (
+            year    = (
                 col("tags").list.filter(element().struct.field("name") == "Date")
                            .list.first()
                            .struct.field("value")
                            .str.slice(0, 4)
                            .cast(UInt16, strict=False)
-            )
-                // 10 * 10,
+            ),
             moves  = (col("plies") + 1) // 2,
             result = col("result")
-        ).collect()
+        ).with_columns(decade=col("year") // 10 * 10).collect()
 
     @cached_property
     def rules(self) -> Rules:
@@ -146,7 +145,13 @@ class Census:
                         )
                     },
                     games   = rows.height,
-                    undated = rows.get_column("decade").null_count()
+                    undated = rows.get_column("decade").null_count(),
+                    year    = (
+                        rows.get_column("year")
+                            .drop_nulls()
+                            .mode()
+                            .min()
+                    )
                 )
                 for (address,), rows in self.games.sort("address").group_by(
                     "address",

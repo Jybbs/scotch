@@ -20,7 +20,7 @@
 
 ## 🪺 The Games
 
-The store holds <!-- games -->435,321<!-- /games --> games read from the <!-- files -->250<!-- /files --> player archives [PGN Mentor](https://www.pgnmentor.com/files.html) publishes, each declared once in `src/scotch/sources/sources.toml`, which **[Data](https://scotch.fyi/data/)** lists file by file. A source joins the store as a row added there, then fetched and indexed again, as **[The Store](https://scotch.fyi/guide/store)** shows.
+The store holds <!-- games -->1,150,156<!-- /games --> games read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players is rated <!-- openings-floor -->2500<!-- /openings-floor --> or above, each file declared once in `src/scotch/sources/sources.toml`, which **[Data](https://scotch.fyi/data/)** lists file by file. A source joins the store as a row added there, then fetched and indexed again, as **[The Store](https://scotch.fyi/guide/store)** shows.
 
 ## 🗜️ Install
 
@@ -47,7 +47,7 @@ scotch match game docs/public/games/demo.pgn
 ```
 
 ```text
-Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??
+players/Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??
 Shares 43 positions, plies 0 to 42 of the submitted game and plies 0 to 42 of the stored game
 Parts at r1b2k1r/p3q3/1p1N1p1p/2Ppn3/6pP/2QBP1B1/P3KPP1/3R4 w - - 0 22, where the submitted game played 22. c6 and the stored game played 22. Bc2
 Continues 22. Bc2 Ba6+ 23. Ke1 Bc4 24. Nxc4 dxc4 25. Rd6 Re8 26. Bxe5 fxe5 27. Qxc4 Qf7 28. Qe4 g3 29. fxg3 1-0

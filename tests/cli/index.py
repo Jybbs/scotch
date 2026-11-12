@@ -8,10 +8,10 @@ from collections.abc import Callable
 from common.app      import invoke
 from common.sources  import zipped
 from pathlib         import Path
-from pytest          import CaptureFixture
+from pytest          import CaptureFixture, MonkeyPatch
 
 from scotch.index.tables    import PositionIndex
-from scotch.sources.schemas import Manifest, Source
+from scotch.sources.schemas import Manifest, Source, Sources
 
 
 def test_a_declared_file_not_yet_fetched_is_left_out_of_the_build(
@@ -75,6 +75,36 @@ def test_an_index_build_clears_the_files_of_the_last_build(
     assert not (data / "index" / "positions.parquet").exists()
 
 
+def test_an_index_build_leaves_out_a_game_below_its_section_s_floor(
+    capsys      : CaptureFixture[str],
+    data        : Path,
+    fetched     : Callable[..., tuple[Source, ...]],
+    monkeypatch : MonkeyPatch
+):
+    """
+    Asserts that a build reads the floor `sources.toml` sets for a file's
+    section, indexing a game rated at the floor and counting one rated a
+    point below it as left out.
+    """
+    sources = fetched(
+        (
+            "players/A.pgn",
+            b'[WhiteElo "2499"]\n\n1. e4 *\n\n[WhiteElo "2500"]\n\n1. d4 *\n'
+        )
+    )
+    monkeypatch.setattr(
+        Sources,
+        "read",
+        classmethod(lambda cls: cls(floors={"Players": 2500}, sources=sources))
+    )
+
+    assert invoke("index", "games") == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "Read 2 games from https://example.com/players/A.pgn, 1 left below 2500",
+        f"Indexed 1 game into {data / 'index'}"
+    ]
+
+
 def test_an_index_build_reports_each_file_and_each_game_left_out(
     capsys  : CaptureFixture[str],
     data    : Path,
@@ -92,7 +122,8 @@ def test_an_index_build_reports_each_file_and_each_game_left_out(
         ("players/A.zip", zipped(("A.pgn", '[White "A"]\n\n1. e4 *\n'))),
         (
             "players/B.pgn",
-            b'[White "A"]\n\n1. e4 *\n\n[White "B"]\n\n1. e4 e5 2. Qxf7 *\n\n1. d4 *\n'
+            b'[White "A"]\n\n1. e4 *\n\n[White "B"]\n\n1. e4 e5 2. Qxf7 *\n\n'
+            b'[White "C"]\n\n1. d4 *\n'
         )
     )
 

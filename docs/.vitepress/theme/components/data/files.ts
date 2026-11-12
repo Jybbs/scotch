@@ -1,116 +1,145 @@
-import { type PropType, Transition, type VNode, defineComponent, h, shallowRef, useId } from 'vue'
+import { type ShallowRef, type VNode, computed, defineComponent, h, shallowRef, useId } from 'vue'
 
-import * as files          from '../../../lib/data/files.ts'
-import { counted, summed } from '../../../lib/data/numbers.ts'
+import * as axes     from '../../../lib/data/axes.ts'
+import { useChart }  from '../../../lib/data/chart.ts'
+import * as files    from '../../../lib/data/files.ts'
+import * as list     from '../../../lib/data/list.ts'
+import * as timeline from '../../../lib/reference/timeline.ts'
+import * as drawings from './drawings.ts'
+import { Rail }      from './rail.ts'
 
 /**
- * One initial's archives, ranked by their games, each row drawn over its
- * player's games by decade, beneath a heading naming the initial and its
- * archives' games and above an axis naming the years the curves cross.
+ * How long a drawing's marks take to finish unfolding, the last one's delay
+ * included, in milliseconds.
  */
-const Ranked = defineComponent({
-  name: 'ScotchRanked',
-
-  props: {
-    initial : { required: true, type: String },
-    players : { required: true, type: Array as PropType<readonly files.Player[]> },
-    span    : { required: true, type: Object as PropType<files.Span> }
-  },
-
-  setup: props => (): VNode => {
-    const ranked = files.rankedUnder(props.players, props.initial)
-    const games  = summed(ranked.map(player => player.games))
-    const marks  = files.MARKED.filter(year => year >= props.span.low && year <= props.span.high)
-
-    return h('div', { class: 'sc-data-ranked' }, [
-      h('div', { class: 'sc-data-folio' }, [
-        h('b', props.initial),
-        h('span', `${ranked.length} ${ranked.length === 1 ? 'file' : 'files'} · ${counted(games)} games`)
-      ]),
-      h('div', { class: 'sc-data-rows-head' }, [
-        h('span', 'No.'),
-        h('span', 'Player, over the games by decade'),
-        h('span', 'Games')
-      ]),
-      h('div', { class: 'sc-data-rows' }, ranked.map((player, index) =>
-        h('div', {
-          class : 'sc-data-player',
-          style : { '--sc-data-row': index },
-          title : files.playedSpan(player)
-        }, [
-          h('svg', {
-            'aria-hidden'       : 'true',
-            class               : 'sc-data-curve',
-            preserveAspectRatio : 'none',
-            viewBox             : `0 0 ${files.CURVE.width} ${files.CURVE.height}`
-          }, [
-            h('path', { class: 'sc-data-curve-fill', d: files.curvePath(player, props.span, true) }),
-            h('path', { class: 'sc-data-curve-line', d: files.curvePath(player, props.span) })
-          ]),
-          h('span', { class: 'sc-data-number' }, String(index + 1)),
-          h('a', { class: 'sc-data-who', href: player.address }, player.name),
-          h('span', { class: 'sc-data-games' }, counted(player.games))
-        ]))),
-      h('div', { 'aria-hidden': 'true', class: 'sc-data-years' }, marks.map(year =>
-        h('span', { style: { left: `${files.yearAt(props.span, year).toFixed(2)}%` } }, String(year))))
-    ])
-  }
-})
+const UNFOLD = 1800
 
 /**
- * The rating list: a tab for each initial the archives are filed under, and
- * beneath the tabs the picked initial's archives, ranked by their games and
- * each drawn over its player's games by decade, opening on the initial whose
- * archives hold the most games.
+ * Draws the field that finds a file by its file name or its name beside its
+ * tally.
+ */
+function findField(state: list.List, marks: readonly files.Entry[]): VNode {
+  return h('label', { class: 'sc-data-files-find' }, [
+    h('input', {
+      'aria-label' : 'Find a file',
+      onInput      : (event: Event) => {
+        state.query.value = (event.target as HTMLInputElement).value.trim().toLowerCase()
+      },
+      placeholder  : 'Find a file, such as Najdorf',
+      type         : 'search'
+    }),
+    h('span', list.tallyOf(state, marks))
+  ])
+}
+
+/**
+ * Draws a tab for each section beside the count of its files, the arrow keys,
+ * Home, and End moving between them.
+ */
+function sectionTabs(id: string, state: list.List, tabs: Map<files.Section, HTMLElement>): VNode {
+  const pick = (section: files.Section, focus = false): void => {
+    list.showSection(state, section)
+    if (focus) tabs.get(section)?.focus()
+  }
+  const keyed = (event: KeyboardEvent): void => {
+    const { length } = files.SECTIONS
+    const place      = files.SECTIONS.indexOf(state.section.value)
+    const to         = { ArrowLeft: place - 1, ArrowRight: place + 1, End: length - 1, Home: 0 }[event.key]
+    if (to === undefined) return
+    event.preventDefault()
+    pick(files.SECTIONS.at(to % length)!, true)
+  }
+  const bar = { 'aria-label': 'Sections', class: 'sc-data-tabs', onKeydown: keyed, role: 'tablist' }
+
+  return h('div', bar, files.SECTIONS.map(section => h('button', {
+    'aria-controls' : `${id}-drawing`,
+    'aria-selected' : section === state.section.value,
+    class           : 'sc-data-tab',
+    onClick         : () => pick(section),
+    ref             : (node: unknown) => { if (node instanceof HTMLElement) tabs.set(section, node) },
+    role            : 'tab',
+    tabindex        : section === state.section.value ? 0 : -1,
+    type            : 'button'
+  }, [section, h('small', list.countOf(state, section))])))
+}
+
+/**
+ * Holds whether a drawing's marks are unfolding, which they do once, the first
+ * time the drawing comes into view, unless the site's drawings hold still.
+ */
+function useRise(chart: timeline.NodeRef): ShallowRef<boolean> {
+  const unfolding = shallowRef(false)
+  const still     = (): void => { unfolding.value = false }
+
+  timeline.useUnfold(chart, timeline.useBeats(), {
+    length : UNFOLD,
+    play   : (beats, done) => {
+      unfolding.value = true
+      beats.at(UNFOLD, done)
+    },
+    prime  : still,
+    settle : still
+  })
+
+  return unfolding
+}
+
+/**
+ * The file list: a tab for each of PGN Mentor's sections, a field finding a
+ * file by its file name or its name, each section drawn on the axis it reads
+ * best by, and beneath the drawing the card for the file a pointer or the
+ * arrow keys rest on. The Players are discs at the mean year of each archive's
+ * games, the Events bricks stacked in the year each was played, and the
+ * Openings bands by first move and reply that open on a press.
  */
 export const Files = defineComponent({
   name  : 'ScotchFiles',
   setup : () => {
-    const players  = files.playersOf()
-    const initials = files.initialsOf(players)
-    const span     = files.curveSpan()
-    const picked   = shallowRef(files.busiest(players))
-    const id       = useId()
-    const tabs     = new Map<string, HTMLElement>()
+    const state = list.useList()
+    const id    = useId()
+    const tabs  = new Map<files.Section, HTMLElement>()
 
-    const pick = (initial: string, focus = false): void => {
-      picked.value = initial
-      if (focus) tabs.get(initial)?.focus()
+    const { chart, layout, sized, style } = useChart(width => ({ height: width < 520 ? 200 : 184, width }))
+
+    const unfolding = useRise(chart)
+    const drawn     = computed(() => {
+      const drawing: drawings.Drawing = {
+        at      : state.at.value,
+        entries : state.entries,
+        focus   : entry => { state.at.value = entry },
+        height  : layout.value.height,
+        query   : state.query.value,
+        width   : layout.value.width
+      }
+      if (state.section.value === 'Players') return drawings.playersDrawing(drawing, state.years)
+      if (state.section.value === 'Events') return drawings.eventsDrawing(drawing, state.years)
+      const [low = 0, high = 0] = state.domain.value
+      return drawings.openingsDrawing(state.bands, [low, high], drawing, band => {
+        state.target.value = axes.zoomed(state.bands, band, state.target.value)
+      })
+    })
+    const stepped   = (event: KeyboardEvent): void => {
+      if (list.stepAlong(event.key, state, drawn.value.marks)) event.preventDefault()
     }
 
-    const keyed = (event: KeyboardEvent): void => {
-      const at = initials.indexOf(picked.value)
-      const to = { ArrowLeft: at - 1, ArrowRight: at + 1, End: initials.length - 1, Home: 0 }[event.key]
-      if (to === undefined) return
-      event.preventDefault()
-      pick(initials.at(to % initials.length)!, true)
-    }
-
-    return (): VNode => h('div', { class: 'sc-data sc-data-plate sc-data-files' }, [
-      h('div', {
-        'aria-label' : 'Initials',
-        class        : 'sc-data-tabs',
-        onKeydown    : keyed,
-        role         : 'tablist'
-      }, initials.map(initial =>
-        h('button', {
-          'aria-controls' : `${id}-panel`,
-          'aria-selected' : initial === picked.value,
-          class           : 'sc-data-tab',
-          id              : `${id}-${initial}`,
-          onClick         : () => pick(initial),
-          ref             : (node: unknown) => { if (node instanceof HTMLElement) tabs.set(initial, node) },
-          role            : 'tab',
-          tabindex        : initial === picked.value ? 0 : -1,
-          type            : 'button'
-        }, initial))),
-      h('div', {
-        'aria-labelledby' : `${id}-${picked.value}`,
-        class             : 'sc-data-swap',
-        id                : `${id}-panel`,
-        role              : 'tabpanel'
-      }, h(Transition, { name: 'sc-data-swap' }, () =>
-        h(Ranked, { initial: picked.value, key: picked.value, players, span })))
+    return (): VNode => h('div', { class: 'sc-data sc-data-files' }, [
+      sectionTabs(id, state, tabs),
+      findField(state, drawn.value.marks),
+      h('div', { class: 'sc-data-files-chart', ref: chart, style: style.value }, sized.value ? h('svg', {
+        'aria-label' : `${state.section.value}, ${files.LEGENDS[state.section.value]}`,
+        class        : ['sc-data-files-draw', { 'sc-data-unfold': unfolding.value }],
+        height       : layout.value.height,
+        id           : `${id}-drawing`,
+        onKeydown    : stepped,
+        role         : 'group',
+        tabindex     : 0,
+        viewBox      : `0 0 ${layout.value.width} ${layout.value.height}`,
+        width        : layout.value.width
+      }, drawn.value.nodes) : undefined),
+      h('p', { class: 'sc-data-files-legend' }, files.LEGENDS[state.section.value]),
+      state.at.value
+        ? h(Rail, { decades: state.decades, entries: state.entries, entry: state.at.value })
+        : null
     ])
   }
 })

@@ -1,6 +1,11 @@
 //! Holds `Game`, one game a PGN text carries, read by `read` as
 //! python-chess 1.11.2's `chess.pgn.read_game` reads it under a visitor that
-//! skips every variation, and keyed position by position through `Board::key`.
+//! skips every variation, and keyed position by position through `Board::key`,
+//! save that each set of tags opens one game whatever the spacing around it.
+//! A game's movetext ends at its result, which the PGN standard, section
+//! 8.2.6, sets last in each movetext, blank lines after the tags leave the
+//! game whole, and text past the first game holding no tag pair yields no
+//! game.
 
 use shakmaty::uci::UciMove;
 
@@ -44,8 +49,12 @@ pub struct Game {
 #[must_use]
 pub fn read(text: &str) -> Vec<Game> {
     let mut lines = Lines::new(text);
+    let first = next(&mut lines, true);
 
-    std::iter::from_fn(|| next(&mut lines)).collect()
+    first
+        .into_iter()
+        .chain(std::iter::from_fn(|| next(&mut lines, false)))
+        .collect()
 }
 
 /// Reads the game whose lines open at the byte `at` of `text`, beside the
@@ -54,24 +63,34 @@ pub fn read(text: &str) -> Vec<Game> {
 #[must_use]
 pub fn read_at(text: &str, at: usize) -> Option<(Game, usize)> {
     let mut lines = Lines::new(&text[at..]);
-    let game = next(&mut lines)?;
+    let game = next(&mut lines, at == 0)?;
 
     Some((game, text.len() - lines.remaining()))
 }
 
+/// Reports whether `text` holds a line past the byte `at` that the reader
+/// does not pass over, such as another game or text holding no tag pair.
+#[must_use]
+pub fn trails(text: &str, at: usize) -> bool {
+    !past(&mut Lines::new(&text[at..])).is_empty()
+}
+
 /// Reads the next game of `lines`, or `None` where no line is left to open
-/// one, as one call of python-chess's `read_game` does.
-fn next(lines: &mut Lines<'_>) -> Option<Game> {
+/// one, as one call of python-chess's `read_game` does, save that a game
+/// past the `first` of its text opens only on a line opening on `[`, every
+/// line before it passed over, and that blank lines after the tags lead to
+/// the game's movetext unless a line opening on `[` follows them, which opens
+/// the next game and leaves this one with no movetext.
+fn next(lines: &mut Lines<'_>, first: bool) -> Option<Game> {
     let mut line = lines.next_line().trim_start_matches('\u{feff}');
 
-    while is_blank(line) || line.starts_with(['%', ';']) {
-        line = lines.next_line();
+    while passed_over(line) || !(first || line.is_empty() || line.starts_with('[')) {
+        line = lines.next_line().trim_start_matches('\u{feff}');
     }
 
     let mut tags = Tags::default();
     let mut skipped = Vec::new();
     let mut found = false;
-    let mut blank = false;
 
     while !line.is_empty() {
         if line.starts_with(['%', ';']) {
@@ -79,9 +98,17 @@ fn next(lines: &mut Lines<'_>) -> Option<Game> {
             continue;
         }
 
-        if !blank && is_blank(line) {
-            blank = true;
-            line = lines.next_line();
+        if is_blank(line) {
+            let mut ahead = lines.clone();
+            let after = past(&mut ahead);
+
+            if after.starts_with('[') {
+                line = "";
+                break;
+            }
+
+            *lines = ahead;
+            line = after;
             continue;
         }
 
@@ -90,8 +117,6 @@ fn next(lines: &mut Lines<'_>) -> Option<Game> {
         if !line.starts_with('[') {
             break;
         }
-
-        blank = false;
 
         if let Some((name, value)) = Tags::parse(line) {
             tags.set(name, value);
@@ -141,6 +166,7 @@ fn next(lines: &mut Lines<'_>) -> Option<Game> {
         keyed,
         depth: 0,
         moved: false,
+        failed: false,
     };
     reader.movetext(lines, line);
 
@@ -150,6 +176,24 @@ fn next(lines: &mut Lines<'_>) -> Option<Game> {
 
     reader.game.tags = reader.tags.pairs();
     Some(reader.game)
+}
+
+/// Reports whether the reader passes over `line` between the parts of a
+/// game, as it does a blank line and a line opening on `%` or `;`.
+fn passed_over(line: &str) -> bool {
+    is_blank(line) || line.starts_with(['%', ';'])
+}
+
+/// Reads the next line of `lines` the reader does not pass over, or an empty
+/// line once the text is spent.
+fn past<'a>(lines: &mut Lines<'a>) -> &'a str {
+    let mut line = lines.next_line();
+
+    while passed_over(line) {
+        line = lines.next_line();
+    }
+
+    line
 }
 
 /// Skips the movetext of a game whose position cannot be set up, as the
@@ -196,11 +240,16 @@ struct Mainline {
     depth: u32,
     /// Whether a move has been played, which a variation needs to open.
     moved: bool,
+    /// Whether a move python-chess cannot read has been met, past which a
+    /// result ends the game wherever it stands.
+    failed: bool,
 }
 
 impl Mainline {
-    /// Reads the movetext from `line` to the blank line ending the game,
-    /// as the movetext loop of python-chess's reader does.
+    /// Reads the movetext from `line` to the blank line or the result ending
+    /// the game, as the movetext loop of python-chess's reader does save for
+    /// the result, which ends the game on the mainline or past an illegal
+    /// move and leaves the rest of its line unread.
     fn movetext<'a>(&mut self, lines: &mut Lines<'a>, mut line: &'a str) {
         let mut fresh = true;
 
@@ -233,15 +282,18 @@ impl Mainline {
                         fresh = false;
                         break;
                     }
+                    Kind::Result if self.depth == 0 || self.failed => {
+                        if self.depth == 0 && self.tags.get("Result") == Some("*") {
+                            self.tags.set("Result", &line[start..end]);
+                        }
+                        return;
+                    }
                     Kind::Open if self.depth > 0 => self.depth += 1,
                     Kind::Open if self.moved => self.depth = 1,
                     Kind::Close if self.depth > 0 => self.depth -= 1,
                     Kind::Open | Kind::Close => self.game.skipped.push(line[start..end].to_owned()),
                     _ if self.depth > 0 => {}
                     Kind::Rest => break,
-                    Kind::Result if self.tags.get("Result") == Some("*") => {
-                        self.tags.set("Result", &line[start..end]);
-                    }
                     Kind::Glyph | Kind::Result => {}
                     Kind::Move => self.play(&line[start..end]),
                 }
@@ -312,6 +364,7 @@ impl Mainline {
             Err(error) => {
                 self.game.errors.push(error);
                 self.depth = 1;
+                self.failed = true;
             }
         }
     }
@@ -342,7 +395,7 @@ mod tests {
 
     #[test]
     fn reading_from_where_a_game_ends_reads_the_next() {
-        let text = "1. e4 *\n\n\n1. d4 *\n";
+        let text = "1. e4 *\n\n\n[Event \"B\"]\n1. d4 *\n";
         let (first, at) = read_at(text, 0).unwrap();
         let (second, end) = read_at(text, at).unwrap();
 
@@ -362,6 +415,89 @@ mod tests {
         assert_eq!(games[1].tags[0], ("Event".to_owned(), "B".to_owned()));
         assert_eq!(games[1].tags[6], ("Result".to_owned(), "*".to_owned()));
         assert_eq!(games[0].keys.len(), 3);
+    }
+
+    #[test]
+    fn a_result_ends_a_game_whose_next_tags_follow_directly() {
+        let games = read("[Event \"A\"]\n1. e4 e5 1-0 Nf3\n[Event \"B\"]\n1. d4 *\n");
+
+        assert_eq!(games.len(), 2);
+        assert_eq!(moves(&games[0]), ["e2e4", "e7e5"]);
+        assert_eq!(games[0].tags[6], ("Result".to_owned(), "1-0".to_owned()));
+        assert_eq!(moves(&games[1]), ["d2d4"]);
+        assert_eq!(games[1].errors, Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_result_inside_a_variation_leaves_the_mainline_whole() {
+        let games = read("1. e4 e5 (1... c5 2. Nf3 1-0) 2. Nf3 *\n");
+
+        assert_eq!(games.len(), 1);
+        assert_eq!(moves(&games[0]), ["e2e4", "e7e5", "g1f3"]);
+    }
+
+    #[test]
+    fn a_result_past_an_illegal_move_ends_the_game() {
+        let games = read("[Event \"A\"]\n1. e4 e4 1-0\n[Event \"B\"]\n1. d4 *\n");
+
+        assert_eq!(games.len(), 2);
+        assert_eq!(games[0].errors.len(), 1);
+        assert_eq!(moves(&games[1]), ["d2d4"]);
+    }
+
+    #[test]
+    fn a_result_inside_a_variation_past_an_unknown_variant_leaves_the_game_open() {
+        let [game] = read("[Variant \"Foo\"]\n\n1. e4 e5 (1... c5 2. Nf3 1-0) 2. Nf3 *\n")
+            .try_into()
+            .unwrap();
+
+        assert_eq!(moves(&game), ["e2e4", "e7e5", "g1f3"]);
+    }
+
+    #[test]
+    fn text_between_games_holding_no_tag_pair_yields_no_game() {
+        let games =
+            read("[Event \"A\"]\n1. e4 *\n\n-----\n1. d4\n\n[Event \"B\"]\n1. c4 *\n-----\n");
+
+        assert_eq!(games.len(), 2);
+        assert_eq!(moves(&games[0]), ["e2e4"]);
+        assert_eq!(moves(&games[1]), ["c2c4"]);
+    }
+
+    #[test]
+    fn a_first_game_holding_no_tag_pair_is_read() {
+        let [game] = read("-- e5\n").try_into().unwrap();
+
+        assert_eq!(moves(&game), ["0000", "e7e5"]);
+    }
+
+    #[test]
+    fn blank_lines_after_the_tags_leave_the_game_whole() {
+        let [game] = read("[Event \"A\"]\n\n% an escape\n\n1. e4 *\n")
+            .try_into()
+            .unwrap();
+
+        assert_eq!(game.tags[0], ("Event".to_owned(), "A".to_owned()));
+        assert_eq!(moves(&game), ["e2e4"]);
+    }
+
+    #[test]
+    fn a_blank_line_before_more_tags_opens_another_game() {
+        let games = read("[Event \"A\"]\n\n\n[Event \"B\"]\n\n1. d4 *\n");
+
+        assert_eq!(games.len(), 2);
+        assert_eq!(
+            (games[0].tags[0].1.as_str(), games[0].moves.len()),
+            ("A", 0)
+        );
+        assert_eq!(moves(&games[1]), ["d2d4"]);
+    }
+
+    #[test]
+    fn a_byte_order_mark_opening_a_later_game_is_passed_over() {
+        let games = read("[Event \"A\"]\n1. e4 *\n\n\u{feff}[Event \"B\"]\n1. d4 *\n");
+
+        assert_eq!(games[1].tags[0], ("Event".to_owned(), "B".to_owned()));
     }
 
     #[test]

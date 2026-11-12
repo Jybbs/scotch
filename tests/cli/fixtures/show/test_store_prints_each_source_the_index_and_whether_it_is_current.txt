@@ -1,5 +1,5 @@
-A.pgn  1,234 bytes, fetched <date>
-B C.pgn  not fetched
+players/A.pgn  1,234 bytes, fetched <date>
+players/B C.pgn  not fetched
 The index holds 2 games and 5 positions
 The index was built from the files as fetched
 Next: scotch fetch games

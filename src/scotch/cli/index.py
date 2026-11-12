@@ -23,11 +23,12 @@ def games():
     folder, replacing what that folder holds, beside a copy of the manifest
     the files were read under. Files are read in the order `sources.toml`
     declares them, a game several files repeat is indexed under the first,
-    and a game the reader records an error for, or whose `Variant` tag names
-    a variant other than standard chess, is left out, each game read as
-    python-chess reads it.
+    and a game rated below the floor `sources.toml` sets for its file's
+    section, a game the reader records an error for, or one whose `Variant`
+    tag names a variant other than standard chess is left out.
 
-    Prints the count of games read from each file, one line for each problem
+    Prints the count of games read from each file beside the count left
+    below its floor where its section sets one, one line for each problem
     of a game left out naming its file, its place there, and its players,
     and the count of games indexed. Exits nonzero where no file has been
     fetched, or naming each fetched file whose copy on disk no longer holds
@@ -35,9 +36,10 @@ def games():
     """
     settings = Settings()
     manifest = Manifest.read(settings.downloads)
+    declared = Sources.read()
     sources  = [
         source
-        for source in Sources.read().sources
+        for source in declared.sources
         if source.address in manifest.downloads
     ]
 
@@ -56,7 +58,13 @@ def games():
         )
 
     with ProcessPoolExecutor() as pool:
-        batches = list(pool.map(partial(Batch.read, settings.downloads), sources))
+        batches = list(
+            pool.map(
+                partial(Batch.read, settings.downloads),
+                sources,
+                map(declared.floor, sources)
+            )
+        )
 
     for batch in batches:
         print(batch.summary)

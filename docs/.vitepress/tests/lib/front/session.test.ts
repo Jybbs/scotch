@@ -34,7 +34,7 @@ describe('commandsOf', () => {
       .toEqual(['scotch fetch games', 'scotch index games', 'scotch match game docs/public/games/front.pgn'])
   })
 
-  it("prints the last archives the fetch writes and the store's own counts", () => {
+  it("prints the last files the fetch writes and the store's own counts", () => {
     expect(commands[0]).toMatchObject({
       figure : counted(STORE.files.length),
       out    : STORE.files.slice(-2).map(({ address }) => `Fetched ${address}`)

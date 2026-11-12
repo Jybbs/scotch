@@ -1,5 +1,5 @@
-game.pgn:1  White.zip:1  White, W vs. Black, B, Event, 2000.01.02, 4 positions
+game.pgn:1  players/White.zip:1  White, W vs. Black, B, Event, 2000.01.02, 4 positions
 game.pgn:2  illegal san: 'Qxf7' in rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2
 game.pgn:3  unsupported variant: Atomic
 game.pgn:4  No stored game shares a position with this game
-game.pgn:5  White.zip:1  White, W vs. Black, B, Event, 2000.01.02, 5 positions
+game.pgn:5  players/White.zip:1  White, W vs. Black, B, Event, 2000.01.02, 5 positions

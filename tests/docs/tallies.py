@@ -8,9 +8,10 @@ the name an `Archive` is filed under.
 """
 
 from collections.abc import Callable
+from common.sources  import declare
 from pytest          import mark, param
 
-from scotch.docs.tallies import Archive, Era, Rank, Rules, Tally, ended, markdown
+from scotch.docs.tallies import Archive, Era, Listed, Rank, Rules, Tally, ended, markdown
 
 
 @mark.parametrize(
@@ -78,6 +79,54 @@ def test_a_tally_counts_no_game_for_a_result_none_records(tally: Tally):
     )
 
 
+def test_a_tally_lists_each_source_beside_the_games_the_store_holds_from_it():
+    """
+    Asserts that a tally lists each source in its order under the path its
+    address names, beside the games, the decades, and the year of the file
+    holding them, and a source the store holds no game from at none.
+    """
+    held  = declare("players/Morphy.zip")
+    tally = Tally(
+        eras  = [],
+        files = [
+            Archive(
+                address = str(held.address),
+                decades = {"1850": 4},
+                games   = 4,
+                undated = 0,
+                year    = 1858
+            )
+        ],
+        games     = 4,
+        moves     = [],
+        positions = 0,
+        results   = []
+    )
+
+    assert tally.listed([declare("openings/Bird.zip", section="Openings"), held]) == [
+        Listed(
+            decades = {},
+            file    = "openings/Bird.zip",
+            games   = 0,
+            group   = None,
+            moves   = None,
+            section = "Openings",
+            title   = "openings/Bird.zip",
+            year    = None
+        ),
+        Listed(
+            decades = {"1850": 4},
+            file    = "players/Morphy.zip",
+            games   = 4,
+            group   = None,
+            moves   = None,
+            section = "Players",
+            title   = "players/Morphy.zip",
+            year    = 1858
+        )
+    ]
+
+
 def test_a_tally_with_no_dated_game_names_no_earliest_decade(tally: Tally):
     """
     Asserts that a store none of whose games names its year writes an empty
@@ -129,20 +178,6 @@ def test_a_tally_writes_each_figure_the_pages_name(archive: Callable[..., Archiv
     }
 
 
-def test_an_archive_dumps_its_name_beside_its_counts(archive: Callable[..., Archive]):
-    """
-    Asserts that the name an archive is filed under reaches the JSON the
-    site reads, beside the counts it holds, leaving out the count of its
-    undated games the figures alone read.
-    """
-    assert archive(4, "Morphy", {"1850": 4}).model_dump(mode="json") == {
-        "address" : "https://www.pgnmentor.com/players/Morphy.zip",
-        "games"   : 4,
-        "name"    : "Morphy",
-        "decades" : {"1850": 4}
-    }
-
-
 @mark.parametrize(
     ("right", "alignment"),
     [param(True, "|---|---:|", id="right"), param(False, "|---|---|", id="left")]
@@ -158,6 +193,20 @@ def test_markdown_bolds_each_header_and_aligns_every_column_but_the_first_right(
     assert markdown(("Name", "Games"), [("Tal", "1,000")], right=right) == (
         f"| **Name** | **Games** |\n{alignment}\n| Tal | 1,000 |"
     )
+
+
+def test_an_archive_dumps_its_name_beside_its_counts(archive: Callable[..., Archive]):
+    """
+    Asserts that the name an archive is filed under reaches the JSON the
+    site reads, beside the counts it holds, leaving out the count of its
+    undated games the figures alone read.
+    """
+    assert archive(4, "Morphy", {"1850": 4}).model_dump(mode="json") == {
+        "address" : "https://www.pgnmentor.com/players/Morphy.zip",
+        "games"   : 4,
+        "name"    : "Morphy",
+        "decades" : {"1850": 4}
+    }
 
 
 def test_an_era_and_the_largest_archives_reach_the_json_the_site_reads(tally: Tally):
@@ -264,7 +313,7 @@ def test_the_archives_table_ranks_the_files_with_no_others_row_under_ten(tally: 
     store and the running share, with no row gathering the rest.
     """
     assert tally.archives == markdown(
-        headers = ("Archive", "Games", "Share of the Store", "Held Down to Here"),
+        headers = ("File", "Games", "Share of the Store", "Held Down to Here"),
         rows = [("Kasparov", "6", "60.0%", "60.0%"), ("Morphy", "4", "40.0%", "100.0%")]
     )
 
@@ -374,24 +423,18 @@ def test_the_lengths_table_names_each_decade_s_median_and_middle_half(tally: Tal
     )
 
 
-def test_the_outcomes_table_counts_each_result_within_each_span(tally: Tally):
+def test_the_others_row_counts_the_files_it_gathers_with_a_thousands_separator(
+    archive : Callable[..., Archive],
+    tally   : Tally
+):
     """
-    Pins the spans of ten moves the table opens with, the last span running
-    from move 81 to the most any game plays, and the results read in the
-    order White won, drawn, and Black won whatever order `results` names.
+    Asserts that the row gathering every file past the tenth names how many
+    it gathers with a comma between the thousands.
     """
-    table = tally.outcomes.splitlines()
+    files = [archive(1, f"Player{index:04}") for index in range(1010)]
+    many  = tally.model_copy(update={"files": files, "games": 1010})
 
-    assert table[:3] == [
-        "| **Moves** | **White Won** | **Drawn** | **Black Won** |",
-        "|---|---:|---:|---:|",
-        "| 0 to 10 | 3 | 5 | 2 |"
-    ]
-    assert table[-1] == "| 81 and over | 0 | 0 | 0 |"
-    assert [row.split(" | ")[0] for row in table[2:]] == [
-        "| 0 to 10", "| 11 to 20", "| 21 to 30", "| 31 to 40", "| 41 to 50",
-        "| 51 to 60", "| 61 to 70", "| 71 to 80", "| 81 and over"
-    ]
+    assert many.largest[-1].name == "1,000 others"
 
 
 @mark.parametrize(
@@ -439,3 +482,23 @@ def test_rules_leave_empty_each_figure_holding_no_value(
     rules = Rules(crowd=100, crowded=0, sample=1, tied=0, transposed=0, **counts)
 
     assert {name: rules.figures[name] for name in figures} == figures
+
+
+def test_the_outcomes_table_counts_each_result_within_each_span(tally: Tally):
+    """
+    Pins the spans of ten moves the table opens with, the last span running
+    from move 81 to the most any game plays, and the results read in the
+    order White won, drawn, and Black won whatever order `results` names.
+    """
+    table = tally.outcomes.splitlines()
+
+    assert table[:3] == [
+        "| **Moves** | **White Won** | **Drawn** | **Black Won** |",
+        "|---|---:|---:|---:|",
+        "| 0 to 10 | 3 | 5 | 2 |"
+    ]
+    assert table[-1] == "| 81 and over | 0 | 0 | 0 |"
+    assert [row.split(" | ")[0] for row in table[2:]] == [
+        "| 0 to 10", "| 11 to 20", "| 21 to 30", "| 31 to 40", "| 41 to 50",
+        "| 51 to 60", "| 61 to 70", "| 71 to 80", "| 81 and over"
+    ]

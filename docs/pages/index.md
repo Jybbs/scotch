@@ -4,11 +4,11 @@
 
 ## Data
 
-The store holds <!-- games -->435,321<!-- /games --> games from the <!-- files -->250<!-- /files --> player archives PGN Mentor publishes, every position they reach keyed once, and the [Data](data/index.md) section names each archive and shows when its games were played.
+The store holds <!-- games -->1,150,156<!-- /games --> games from the <!-- files -->1,465<!-- /files --> files PGN Mentor publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players is rated <!-- openings-floor -->2500<!-- /openings-floor --> or above, every position they reach keyed once, and the [Data](data/index.md) section names each file and shows when its games were played.
 
 ## Guide
 
-Three commands run from a fresh clone, `scotch fetch games` downloading the archives, `scotch index games` building the index, and `scotch match game` finding the stored game closest to yours, which for the [Guide](guide/index.md)'s demo game is <!-- demo-white -->Kasparov<!-- /demo-white --> and <!-- demo-black -->Sosonko<!-- /demo-black -->'s game from <!-- demo-event -->Tilburg<!-- /demo-event --> <!-- demo-year -->1981<!-- /demo-year -->.
+Three commands run from a fresh clone, `scotch fetch games` downloading the files, `scotch index games` building the index, and `scotch match game` finding the stored game closest to yours, which for the [Guide](guide/index.md)'s demo game is <!-- demo-white -->Kasparov<!-- /demo-white --> and <!-- demo-black -->Sosonko<!-- /demo-black -->'s game from <!-- demo-event -->Tilburg<!-- /demo-event --> <!-- demo-year -->1981<!-- /demo-year -->.
 
 ## Methods
 

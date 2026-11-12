@@ -18,7 +18,7 @@ mod tokens;
 #[cfg(feature = "wasm")]
 mod wasm;
 
-pub use games::{Game, read, read_at};
+pub use games::{Game, read, read_at, trails};
 pub use positions::{Outcomes, Positions, Run, SECTIONS, Stored, Tally, standing};
 
 use std::io;

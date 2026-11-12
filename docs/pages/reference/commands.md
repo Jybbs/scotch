@@ -63,16 +63,16 @@ Fetched https://www.pgnmentor.com/players/Abdusattorov.zip
 Fetched https://www.pgnmentor.com/players/Adams.zip
 Fetched https://www.pgnmentor.com/players/Akobian.zip
 …
-Fetched https://www.pgnmentor.com/players/Zvjaginsev.zip
+Fetched https://www.pgnmentor.com/openings/Vienna.zip
 ```
 <!-- /run-fetch-games -->
 
 <!-- command-index-games -->
 ## `scotch index games`
 
-Reads the games of every file `scotch fetch games` downloaded into the `downloads` folder of the data directory, handing the files one at a time to a pool of processes, and writes the index of them to its `index` folder, replacing what that folder holds, beside a copy of the manifest the files were read under. Files are read in the order `sources.toml` declares them, a game several files repeat is indexed under the first, and a game the reader records an error for, or whose `Variant` tag names a variant other than standard chess, is left out, each game read as python-chess reads it.
+Reads the games of every file `scotch fetch games` downloaded into the `downloads` folder of the data directory, handing the files one at a time to a pool of processes, and writes the index of them to its `index` folder, replacing what that folder holds, beside a copy of the manifest the files were read under. Files are read in the order `sources.toml` declares them, a game several files repeat is indexed under the first, and a game rated below the floor `sources.toml` sets for its file's section, a game the reader records an error for, or one whose `Variant` tag names a variant other than standard chess is left out.
 
-Prints the count of games read from each file, one line for each problem of a game left out naming its file, its place there, and its players, and the count of games indexed. Exits nonzero where no file has been fetched, or naming each fetched file whose copy on disk no longer holds the bytes the manifest records.
+Prints the count of games read from each file beside the count left below its floor where its section sets one, one line for each problem of a game left out naming its file, its place there, and its players, and the count of games indexed. Exits nonzero where no file has been fetched, or naming each fetched file whose copy on disk no longer holds the bytes the manifest records.
 
 ```text
 scotch index games
@@ -93,7 +93,7 @@ scotch index games
 
 ```text
 …
-Indexed 435,321 games into .cache/data/index
+Indexed 1,150,156 games into .cache/data/index
 ```
 <!-- /run-index-games -->
 
@@ -141,14 +141,14 @@ scotch match game docs/public/games/demo.pgn --top 3
 ```
 
 ```text
-Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??
+players/Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??
 Shares 43 positions, plies 0 to 42 of the submitted game and plies 0 to 42 of the stored game
 Parts at r1b2k1r/p3q3/1p1N1p1p/2Ppn3/6pP/2QBP1B1/P3KPP1/3R4 w - - 0 22, where the submitted game played 22. c6 and the stored game played 22. Bc2
 Continues 22. Bc2 Ba6+ 23. Ke1 Bc4 24. Nxc4 dxc4 25. Rd6 Re8 26. Bxe5 fxe5 27. Qxc4 Qf7 28. Qe4 g3 29. fxg3 1-0
 0 other stored games share a run as long
-Hou.zip:801  Kosteniuk,A vs. Hou Yifan, Sportaccord WMG Blindfold w, 2011.12.16, 20 positions
-Onischuk.zip:1266  Riazantsev,A vs. Onischuk,Al, 11th Karpov, 2010.06.13, 19 positions
-Ni.zip:966  Ding,L vs. Ni Hua, 1st Chinese Celebrity, 2011.06.14, 19 positions
+openings/QGDOther34.zip:16393  Renet,O vs. Dizdar,G, ChIP, 2007.07.12, 21 positions
+openings/QGDOther34.zip:19474  Moiseenko,A1 vs. Palac,M, 39th Olympiad Men, 2010.09.23, 20 positions
+openings/QGDOther34.zip:13675  Sargissian,G vs. Dizdar,G, ADCF Masters, 2003.08.23, 20 positions
 ```
 <!-- /run-match-game -->
 
@@ -185,7 +185,7 @@ scotch match games docs/public/games/demo.pgn
 ```
 
 ```text
-demo.pgn:1  Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??, 43 positions
+demo.pgn:1  players/Kasparov.zip:193  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??, 43 positions
 ```
 <!-- /run-match-games -->
 
@@ -208,14 +208,14 @@ It exits nonzero on each message below.
 
 | **Message** | **When** | **Clears It** |
 |---|---|---|
-| `No stored game is named <reference>` | The index holds no game under the reference | Pass the reference `scotch match game` printed, such as `Kasparov.zip:193` |
+| `No stored game is named <reference>` | The index holds no game under the reference | Pass the reference `scotch match game` printed, such as `players/Kasparov.zip:193` |
 | `No index has been built under <index>` | The data directory holds no index | Run `scotch index games` |
 | `The index under <index> holds another layout` | The index was built in a layout other than the one this version reads | Run `scotch index games`, which rebuilds the index in this layout |
 <!-- /command-show-game -->
 
 <!-- run-show-game -->
 ```bash
-scotch show game Kasparov.zip:193
+scotch show game players/Kasparov.zip:193
 ```
 
 ```text
@@ -241,7 +241,7 @@ Reports what the stored games played from one position.
 
 Prints how many stored games reach it, each move they played from it with how many games played it and how those games ended, the games ending at the position under `end`, and then the games themselves, newest first, each named as `<file>:<n>`. A game reaching the position twice counts once, under the move it played from its first reach. A line of moves is read as PGN, so it may hold move numbers, comments, annotation marks, and a result beside its moves.
 
-Warns where the files changed since the index was built, and exits nonzero naming the problem where a token opening on a hyphen names no option, where a Forsyth–Edwards Notation names no position or stops short of its first four fields, since a placement alone would read as white to move with no castling rights, where a line of moves holds an illegal move, a word naming no move, a `(` or a `{` never closed, a `(` before any move, a `)` with none open, or more past the blank line ending its moves, where no index has been built, or where the one built holds another layout.
+Warns where the files changed since the index was built, and exits nonzero naming the problem where a token opening on a hyphen names no option, where a Forsyth–Edwards Notation names no position or stops short of its first four fields, since a placement alone would read as white to move with no castling rights, where a line of moves holds an illegal move, a word naming no move, a `(` or a `{` never closed, a `(` before any move, a `)` with none open, or more past the blank line or the result ending its moves, where no index has been built, or where the one built holds another layout.
 
 ```text
 scotch show position [OPTIONS] [ARGS...]
@@ -259,9 +259,9 @@ It exits nonzero on each message below.
 | `Unknown option: <token>` | A word of the position opens on a hyphen and names no option | Name the flag the help lists, or remove the word |
 | `The FEN <position> stops short of its first four fields, the placement, the side to move, the castling rights, and the en passant square, which together name a position` | A FEN holds fewer than four fields | Write the placement, the side to move, the castling rights, and the en passant square |
 | `names no position: <fen>` | A FEN names no position a game can reach | Correct the FEN, whose placement names eight ranks and one king of each color |
-| `Found problems in <position>:` | A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line | Correct the move or the word each line below it names |
+| `Found problems in <position>:` | A line of moves holds an illegal move, a word naming no move, a bracket left open or closed with none open, or more past a blank line or on a line past its result | Correct the move or the word each line below it names |
 | `names no move: '<word>'` | A word of a line of moves reads as no move, beneath the line naming the problems | Spell the move in SAN, or remove the word |
-| `holds more past the blank line ending its moves` | A line of moves holds text past a blank line, beneath the line naming the problems | Remove the blank line, or what follows it |
+| `holds more past the end of its moves` | A line of moves holds text past a blank line or on a line past its result, beneath the line naming the problems | Remove the blank line or the result, or what follows it |
 | `No index has been built under <index>` | The data directory holds no index | Run `scotch index games` |
 | `The index under <index> holds another layout` | The index was built in a layout other than the one this version reads | Run `scotch index games`, which rebuilds the index in this layout |
 <!-- /command-show-position -->
@@ -272,22 +272,25 @@ scotch show position 1. d4 Nf6 2. c4 e6 --top 3
 ```
 
 ```text
-47,094 stored games reach this position
-Nf3        23,577  1-0 7,197  1/2-1/2 11,277  0-1 5,098  * 5
-Nc3        19,370  1-0 6,518  1/2-1/2 8,144  0-1 4,705  * 3
-g3          3,861  1-0 1,087  1/2-1/2 1,825  0-1 947  * 2
-Bg5           166  1-0 105  1/2-1/2 41  0-1 20  * 0
-Bf4            56  1-0 24  1/2-1/2 14  0-1 18  * 0
-a3             37  1-0 17  1/2-1/2 8  0-1 12  * 0
-e3             12  1-0 3  1/2-1/2 3  0-1 6  * 0
-g4             10  1-0 6  1/2-1/2 3  0-1 1  * 0
-Qc2             3  1-0 1  1/2-1/2 2  0-1 0  * 0
+124,263 stored games reach this position
+Nc3        56,957  1-0 20,032  1/2-1/2 20,949  0-1 15,972  * 4
+Nf3        56,080  1-0 18,770  1/2-1/2 23,861  0-1 13,443  * 6
+g3         10,898  1-0 3,478  1/2-1/2 4,373  0-1 3,045  * 2
+Bg5           182  1-0 111  1/2-1/2 46  0-1 25  * 0
+Bf4            58  1-0 24  1/2-1/2 16  0-1 18  * 0
+a3             45  1-0 19  1/2-1/2 11  0-1 15  * 0
+e3             23  1-0 5  1/2-1/2 8  0-1 10  * 0
+g4             11  1-0 6  1/2-1/2 4  0-1 1  * 0
+Qc2             4  1-0 1  1/2-1/2 3  0-1 0  * 0
+Bd2             1  1-0 0  1/2-1/2 1  0-1 0  * 0
+b3              1  1-0 0  1/2-1/2 1  0-1 0  * 0
 d5              1  1-0 0  1/2-1/2 1  0-1 0  * 0
+f3              1  1-0 0  1/2-1/2 1  0-1 0  * 0
 end             1  1-0 1  1/2-1/2 0  0-1 0  * 0
 Newest first:
-Karjakin.zip:3600  Tomashevsky,E vs. Karjakin,Sergey, Chess Stars 6.0 Blitz, 2026.07.06
-Tomashevsky.zip:2075  Tomashevsky,E vs. Sadhwani,Raunak, Chess Stars 6.0 Blitz, 2026.07.06
-Tomashevsky.zip:2081  Gunina,V vs. Tomashevsky,E, Chess Stars 6.0 Blitz, 2026.07.06
+players/Karjakin.zip:3599  Tomashevsky,E vs. Karjakin,Sergey, Chess Stars 6.0 Blitz, 2026.07.06
+players/Tomashevsky.zip:2073  Tomashevsky,E vs. Sadhwani,Raunak, Chess Stars 6.0 Blitz, 2026.07.06
+players/Tomashevsky.zip:2079  Gunina,V vs. Tomashevsky,E, Chess Stars 6.0 Blitz, 2026.07.06
 ```
 <!-- /run-show-position -->
 
@@ -310,7 +313,7 @@ scotch show store
 
 ```text
 …
-The index holds 435,321 games and 37,039,333 positions
+The index holds 1,150,156 games and 98,542,793 positions
 The index was built from the files as fetched
 Next: scotch match game <pgn>
 ```

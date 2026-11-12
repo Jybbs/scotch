@@ -62,7 +62,7 @@ class PositionIndex:
             ValueError: Where a FEN stops short of its first four fields or
                         names no position, or where a line of moves carries
                         a problem, a word naming no move, or more past the
-                        blank line ending its moves.
+                        blank line or the result ending its moves.
         """
         fen, moves, fields = None, (), position.split()
 
@@ -75,13 +75,14 @@ class PositionIndex:
                     " placement, the side to move, the castling rights, and the"
                     " en passant square, which together name a position"
                 )
-        elif games := tuple(Game.parse(position)):
-            line, *rest = games
-            fen, moves  = line.tags.get("FEN"), [move.uci() for move in line.moves]
-            problems    = (
+        elif line := next(Game.parse(position), None):
+            fen, moves = line.tags.get("FEN"), [move.uci() for move in line.moves]
+            problems   = (
                 *line.problems,
                 *(f"names no move: {word!r}" for word in readers.skipped(position)),
-                *(("holds more past the blank line ending its moves",) if rest else ())
+                *(("holds more past the end of its moves",) if readers.trails(
+                    position
+                ) else ())
             )
 
             if problems:
@@ -361,10 +362,14 @@ class PositionIndex:
 class Batch:
     """
     The games the fetched file of `source` holds, those read with no problem
-    laid out as `rows` under the columns `ROWS` declares and the rest kept
-    apart as `left` for a report.
+    and rated at or above the `floor` its section sets laid out as `rows`
+    under the columns `ROWS` declares, those read with a problem kept
+    apart as `left` for a report, and those rated below the floor counted
+    as `below`.
     """
 
+    below  : int
+    floor  : int
     left   : tuple[Game, ...]
     rows   : DataFrame
     source : Source
@@ -372,14 +377,16 @@ class Batch:
     @property
     def summary(self) -> str:
         """
-        Writes the count of games read from the file, then one line for
-        each problem of a game left out naming its place in the file and
-        its players.
+        Writes the count of games read from the file beside the count left
+        below its floor where it has one, then one line for each problem of
+        a game left out naming its place in the file and its players.
         """
+        count = counted(self.rows.height + len(self.left) + self.below)
+        floor = f", {self.below:,} left below {self.floor}" if self.floor else ""
+
         return "\n".join(
             (
-                f"Read {counted(self.rows.height + len(self.left))} from"
-                f" {self.source.address}",
+                f"Read {count} from {self.source.address}{floor}",
                 *(
                     f"Left out game {game.origin.place:,} of {game.origin.address},"
                     f" {game.players}: {problem}"
@@ -390,14 +397,18 @@ class Batch:
         )
 
     @classmethod
-    def read(cls, directory: Path, source: Source) -> Self:
+    def read(cls, directory: Path, source: Source, floor: int = 0) -> Self:
         """
         Reads the games of the file `source` declares, fetched under
-        `directory`, leaving out each game whose `problems` hold anything.
+        `directory`, leaving out each game rated below `floor` and each game
+        whose `problems` hold anything.
         """
-        games = list(source.games(directory))
+        read  = list(source.games(directory))
+        games = [game for game in read if game.rating >= floor]
 
         return cls(
+            below  = len(read) - len(games),
+            floor  = floor,
             left   = tuple(game for game in games if game.problems),
             rows   = PositionIndex.rows(game for game in games if not game.problems),
             source = source

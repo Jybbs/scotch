@@ -45,7 +45,8 @@ describe('loadReader', () => {
     ])
   })
 
-  it('reads a game for each blank-line-separated block of the text', () => {
-    expect(read('1. e4 *\n\n1. d4 *\n\n').map(game => game.moves)).toEqual([['e2e4'], ['d2d4']])
+  it('reads a game for each set of tags in the text, and none from tagless text between two', () => {
+    expect(read('[Event "A"]\n1. e4 1-0\n[Event "B"]\n1. d4 *\n\n-----\n').map(game => game.moves))
+      .toEqual([['e2e4'], ['d2d4']])
   })
 })

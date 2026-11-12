@@ -272,7 +272,9 @@ def test_a_game_reads_from_a_member_of_a_zip_archive(tmp_path: Path):
     Asserts that a PGN file read in place from inside a zip archive, as
     `zipfile.Path` opens it, yields every game it holds with no origin set.
     """
-    (tmp_path / "games.zip").write_bytes(zipped(("games.pgn", "1. e4 *\n\n1. d4 *\n")))
+    (
+        tmp_path / "games.zip"
+    ).write_bytes(zipped(("games.pgn", '1. e4 *\n\n[Event "?"]\n1. d4 *\n')))
 
     with ZipFile(tmp_path / "games.zip") as archive:
         games = list(Game.read(ZipPath(archive, "games.pgn")))
@@ -359,19 +361,19 @@ def test_a_move_illegal_inside_a_variation_leaves_the_mainline_whole(
         param(
             None,
             "Found several games in .*games.pgn, which --game chooses among$",
-            "1. e4 *\n\n1. d4 *\n",
+            '1. e4 *\n\n[Event "?"]\n1. d4 *\n',
             id = "several"
         ),
         param(
             3,
             "Found no game 3 in .*games.pgn$",
-            "1. e4 *\n\n1. d4 *\n",
+            '1. e4 *\n\n[Event "?"]\n1. d4 *\n',
             id = "too-few"
         ),
         param(
             2,
             "Found problems in the game in .*games.pgn:\nillegal san",
-            "1. e4 *\n\n1. Qxh7 *\n",
+            '1. e4 *\n\n[Event "?"]\n1. Qxh7 *\n',
             id = "chosen-carries-a-problem"
         )
     ]
@@ -397,8 +399,13 @@ def test_chosen_raises_naming_the_file_and_the_problem(
     ("number", "uci", "text"),
     [
         param(None, "e2e4", "1. e4 *\n", id="the-one-game"),
-        param(1, "e2e4", "1. e4 *\n\n1. Qxh7 *\n", id="first-of-several"),
-        param(2, "d2d4", "1. Qxh7 *\n\n1. d4 *\n\n1. Qxh7 *\n", id="past-a-problem")
+        param(1, "e2e4", '1. e4 *\n\n[Event "?"]\n1. Qxh7 *\n', id="first-of-several"),
+        param(
+            2,
+            "d2d4",
+            '1. Qxh7 *\n\n[Event "?"]\n1. d4 *\n\n[Event "?"]\n1. Qxh7 *\n',
+            id = "past-a-problem"
+        )
     ]
 )
 def test_chosen_reads_the_game_at_its_number(
@@ -440,20 +447,47 @@ def test_a_date_reads_as_the_number_yyyymmdd(date: str, dated: int):
 @mark.parametrize(
     ("address", "reference"),
     [
-        param("https://example.com/players/Carlsen.zip", "Carlsen.zip:12", id="plain"),
+        param(
+            "https://example.com/players/Carlsen.zip",
+            "players/Carlsen.zip:12",
+            id = "plain"
+        ),
         param(
             "https://example.com/events/World%20Cup.pgn",
-            "World Cup.pgn:12",
+            "events/World Cup.pgn:12",
             id = "percent-encoded"
         )
     ]
 )
 def test_an_origin_names_its_file_and_its_place(address: str, reference: str):
     """
-    Asserts that an origin names a game as `<file>:<n>`, the file's name
-    read from its address without its percent-encoding.
+    Asserts that an origin names a game as `<file>:<n>`, the path its
+    address names under the host read without its percent-encoding, so two
+    files of one name under two sections name their games apart.
     """
     assert Origin(address=address, place=12).reference == reference
+
+
+@mark.parametrize(
+    ("tags", "rating"),
+    [
+        param({"BlackElo": "2600", "WhiteElo": "2450"}, 2600, id="higher-of-the-two"),
+        param({"WhiteElo": "2500"}, 2500, id="one-side"),
+        param({"BlackElo": "?", "WhiteElo": "2499"}, 2499, id="unknown-side"),
+        param({"WhiteElo": "２５００"}, 0, id="digits-outside-ascii"),
+        param({}, 0, id="no-rating")
+    ]
+)
+def test_a_game_s_rating_is_the_higher_of_its_players_ratings(
+    rating : int,
+    tags   : dict[str, str]
+):
+    """
+    Asserts that a game's rating is the higher of its `WhiteElo` and
+    `BlackElo` tags, each read where it holds ASCII digits alone, or 0 where
+    neither does.
+    """
+    assert line(**tags).rating == rating
 
 
 @given(game=games())
@@ -666,7 +700,7 @@ def test_first_reads_the_first_game_a_file_holds(pgn: Callable[..., Path]):
     Asserts that the first game of a file holding two is the one it opens
     on.
     """
-    assert Game.first(pgn("1. e4 *\n\n1. d4 *\n")).moves == moves("e2e4")
+    assert Game.first(pgn('1. e4 *\n\n[Event "?"]\n1. d4 *\n')).moves == moves("e2e4")
 
 
 def test_follow_leaves_no_number_on_the_square_of_a_pawn_taken_en_passant():
