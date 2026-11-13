@@ -23,6 +23,11 @@
   border                : 1px solid var(--sc-rule);
   border-radius         : 6px;
   background            : color-mix(in oklab, var(--sc-ink) 3%, var(--sc-page));
+
+  @media (width < 34rem) {
+    grid-template-columns : repeat(3, minmax(0, 1fr));
+    grid-auto-flow        : row;
+  }
 }
 
 .sc-colophon-well {
@@ -36,6 +41,11 @@
   transition    : background-color var(--sc-duration-fade) var(--sc-curve-glide);
 
   & + & { border-left: 1px solid color-mix(in oklab, var(--sc-rule) 55%, transparent); }
+
+  @media (width < 34rem) {
+    &:nth-child(4)     { border-left: 0; }
+    &:nth-child(n + 4) { border-top: 1px solid color-mix(in oklab, var(--sc-rule) 55%, transparent); }
+  }
 
   &.is-shown { background: color-mix(in oklab, var(--sc-run) 7%, transparent); }
 }
