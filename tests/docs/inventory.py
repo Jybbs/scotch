@@ -119,7 +119,7 @@ def test_an_index_adds_the_files_written_from_it(
 
         "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
         "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
-        "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n",
+        "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
         "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n",
         **walked()
     }
@@ -149,7 +149,7 @@ def test_an_index_adds_the_files_written_from_it(
         *[(Region, "docs/pages/data/shared.md")] * 3,
         *[(Region, "docs/pages/data/tags.md")] * 2,
         (Region, "docs/pages/guide/store.md"),
-        (Region, "docs/pages/reference/identity.md"),
+        (Region, "docs/pages/identity/palette.md"),
         (Region, "docs/pages/data/tags.md"),
         *[(Region, "docs/pages/reference/commands.md")] * len(RUNS),
         (Region, "docs/pages/guide/matching.md"),
@@ -252,39 +252,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     """
     root = checkout(
         {
-            "data/index.md": (
-                "Holds <!-- files -->0<!-- /files --> files.\n\n"
-                "<!-- sources -->\n<!-- /sources -->\n"
-            ),
-
-            "guide/index.md"    : "<!-- install -->\n<!-- /install -->\n",
-            "guide/matching.md" : marked("refused"),
-            "guide/setup.md"    : marked("steps", "checks", "stops"),
-            "guide/store.md"    : "<!-- source -->\n<!-- /source -->\n",
-            "index.md"          : "<!-- tagline --><!-- /tagline -->\n",
-
-            "reference/identity.md": "".join(
-                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
-                for name in (
-                    "palette", "roles", "faces", "pieces", "marks", "construction"
-                )
-            ),
-
-            "reference/settings.md": "".join(
-                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
-                for name in ("settings", "order", "origin")
-            ),
-
-            "reference/tasks.md" : "<!-- tasks -->\n<!-- /tasks -->\n",
-            "reference/terms.md" : "<!-- terms -->\n<!-- /terms -->\n",
-
-            "reference/commands.md": marked(
-                *(f"command-{verb}-{noun}" for verb, noun in commands(app)),
-                "run-cite-source",
-                "run-fetch-games"
-            ),
-
-            "reference/files.md": marked(
+            "data/files.md": marked(
                 "layout",
                 "manifest",
                 "columns",
@@ -292,7 +260,33 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
                 "warning"
             ),
 
-            "reference/match.md": marked("export", "side", "span")
+            "data/index.md"     : "Holds <!-- files -->0<!-- /files --> files.\n",
+            "data/sources.md"   : "<!-- sources -->\n<!-- /sources -->\n",
+            "develop/tasks.md"  : "<!-- tasks -->\n<!-- /tasks -->\n",
+            "guide/index.md"    : "<!-- install -->\n<!-- /install -->\n",
+            "guide/matching.md" : marked("refused"),
+            "guide/setup.md"    : marked("steps", "checks", "stops"),
+            "guide/store.md"    : "<!-- source -->\n<!-- /source -->\n",
+            "identity/faces.md" : marked("faces", "pieces"),
+            "identity/marks.md" : marked("marks", "construction"),
+            "index.md"          : "<!-- tagline --><!-- /tagline -->\n",
+
+            "develop/citing.md": marked("command-cite-source", "run-cite-source"),
+
+            "identity/palette.md": marked("palette", "roles"),
+
+            "reference/commands.md": marked(
+                *(
+                    f"command-{verb}-{noun}"
+                    for verb, noun in commands(app)
+                    if verb != "cite"
+                ),
+                "run-fetch-games"
+            ),
+
+            "reference/settings.md" : marked("settings", "order", "origin"),
+            "reference/terms.md"    : "<!-- terms -->\n<!-- /terms -->\n",
+            "reference/match.md"    : marked("export", "side", "span")
         }
     )
     outputs = Outputs.shipped(app, Path(".github/README.md"), root)
@@ -300,14 +294,15 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     for output in outputs:
         output.write(root)
 
-    data  = (root / "docs/pages/data/index.md").read_text()
-    front = (root / "docs/pages/index.md").read_text()
-    pages = (root / "docs/pages/reference/commands.md").read_text()
-    store = (root / "docs/pages/guide/store.md").read_text()
+    citing = (root / "docs/pages/develop/citing.md").read_text()
+    data   = (root / "docs/pages/data/index.md").read_text()
+    front  = (root / "docs/pages/index.md").read_text()
+    pages  = (root / "docs/pages/reference/commands.md").read_text()
+    store  = (root / "docs/pages/guide/store.md").read_text()
 
     assert [*output.problems(root) for output in outputs] == []
     assert f"<!-- files -->{len(Sources.read().sources):,}<!-- /files -->" in data
-    assert "|---|---|---|" in data
+    assert "|---|---|---|" in (root / "docs/pages/data/sources.md").read_text()
     assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
     assert "\n".join(
         (root / "docs/pages/guide" / page).read_text()
@@ -322,10 +317,10 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     }
     assert all(
         f"<!-- command-{verb}-{noun} -->\n{Commands(app=app).section(verb, noun)}\n"
-        in pages
+        in (citing if verb == "cite" else pages)
         for verb, noun in commands(app)
     )
-    assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in pages
+    assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in citing
     assert pages.count("Fetched https://www.pgnmentor.com/") == 4
     assert loads(
         (root / "docs/public/matches/alone.json").read_text()
@@ -421,8 +416,8 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
 
             "guide/index.md"        : "<!-- example -->\n<!-- /example -->\n",
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
+            "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
             "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
-            "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n",
             **walked()
         }
     )
@@ -550,17 +545,22 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Region, "docs/pages/guide/index.md"),
         *[(Region, "docs/pages/guide/setup.md")] * 3,
         (Region, "docs/pages/guide/matching.md"),
-        (Region, "docs/pages/data/index.md"),
+        (Region, "docs/pages/data/sources.md"),
         (Region, "docs/pages/guide/store.md"),
-        *[(Region, "docs/pages/reference/settings.md")] * 3,
-        (Region, "docs/pages/reference/tasks.md"),
-        *[(Region, "docs/pages/reference/identity.md")] * 6,
-        (Region, "docs/pages/reference/terms.md"),
-        *[(Region, "docs/pages/reference/files.md")] * 5,
+        *[(Region, "docs/pages/data/files.md")] * 5,
+        (Region, "docs/pages/develop/tasks.md"),
+        *[(Region, "docs/pages/identity/faces.md")] * 2,
+        *[(Region, "docs/pages/identity/marks.md")] * 2,
+        *[(Region, "docs/pages/identity/palette.md")] * 2,
         *[(Region, "docs/pages/reference/match.md")] * 3,
+        *[(Region, "docs/pages/reference/settings.md")] * 3,
+        (Region, "docs/pages/reference/terms.md"),
+        (Region, "docs/pages/develop/citing.md"),
         *[(Region, "docs/pages/reference/commands.md")] * (len(
             list(commands(app))
-        ) + 2),
+        ) - 1),
+        (Region, "docs/pages/develop/citing.md"),
+        (Region, "docs/pages/reference/commands.md"),
         (Document, "docs/public/matches/alone.json"),
         (Figures, "docs/pages/page.md"),
         (Footnotes, "docs/pages/page.md")

@@ -37,6 +37,7 @@ class Outputs(RootModel[list[Output]]):
     The files `scotch render docs` writes, in the order it writes them.
     """
 
+    citing   : ClassVar[Path]            = Path("docs/pages/develop/citing.md")
     commands : ClassVar[Path]            = Path("docs/pages/reference/commands.md")
     games    : ClassVar[Path]            = Path("docs/public/games")
     glosses  : ClassVar[tuple[str, ...]] = (
@@ -227,7 +228,7 @@ class Outputs(RootModel[list[Output]]):
                     ("docs/pages/data/tags.md", "tags", "carried"),
                     ("docs/pages/data/tags.md", "tags", "dated"),
                     ("docs/pages/guide/store.md", "store", "archives"),
-                    ("docs/pages/reference/identity.md", "store", "series")
+                    ("docs/pages/identity/palette.md", "store", "series")
                 )
             ),
             Region(
@@ -398,7 +399,7 @@ class Outputs(RootModel[list[Output]]):
                 ),
                 Region(
                     name   = "sources",
-                    path   = Path("docs/pages/data/index.md"),
+                    path   = Path("docs/pages/data/sources.md"),
                     render = lambda: markdown(
                         headers = ("Provider", "Section", "File", "Name"),
                         right   = False,
@@ -427,42 +428,42 @@ class Outputs(RootModel[list[Output]]):
                 *(
                     Region(
                         name   = name,
-                        path   = Path("docs/pages/reference") / page,
+                        path   = Path("docs/pages") / page,
                         render = lambda name=name: getattr(reference, name)
                     )
                     for page, name in (
-                        ("settings.md", "settings"),
-                        ("settings.md", "order"),
-                        ("settings.md", "origin"),
-                        ("tasks.md", "tasks"),
-                        ("identity.md", "palette"),
-                        ("identity.md", "roles"),
-                        ("identity.md", "faces"),
-                        ("identity.md", "pieces"),
-                        ("identity.md", "marks"),
-                        ("identity.md", "construction"),
-                        ("terms.md", "terms"),
-                        ("files.md", "layout"),
-                        ("files.md", "manifest"),
-                        ("files.md", "columns"),
-                        ("files.md", "sections"),
-                        ("files.md", "warning"),
-                        ("match.md", "export"),
-                        ("match.md", "side"),
-                        ("match.md", "span")
+                        ("data/files.md", "layout"),
+                        ("data/files.md", "manifest"),
+                        ("data/files.md", "columns"),
+                        ("data/files.md", "sections"),
+                        ("data/files.md", "warning"),
+                        ("develop/tasks.md", "tasks"),
+                        ("identity/faces.md", "faces"),
+                        ("identity/faces.md", "pieces"),
+                        ("identity/marks.md", "marks"),
+                        ("identity/marks.md", "construction"),
+                        ("identity/palette.md", "palette"),
+                        ("identity/palette.md", "roles"),
+                        ("reference/match.md", "export"),
+                        ("reference/match.md", "side"),
+                        ("reference/match.md", "span"),
+                        ("reference/settings.md", "settings"),
+                        ("reference/settings.md", "order"),
+                        ("reference/settings.md", "origin"),
+                        ("reference/terms.md", "terms")
                     )
                 ),
                 *(
                     Region(
                         name   = f"command-{verb}-{noun}",
-                        path   = cls.commands,
+                        path   = cls.citing if verb == "cite" else cls.commands,
                         render = partial(described.section, verb, noun)
                     )
                     for verb, noun in commands(app)
                 ),
                 Region(
                     name   = "run-cite-source",
-                    path   = cls.commands,
+                    path   = cls.citing,
                     render = lambda: ran(
                         "scotch cite source zobrist1970",
                         references().cite("zobrist1970")

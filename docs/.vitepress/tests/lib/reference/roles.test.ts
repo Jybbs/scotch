@@ -21,8 +21,8 @@ describe('heldLine', () => {
   })
 })
 
-describe('the identity page', () => {
-  const page = fs.readFileSync(path.join(pagesDir(import.meta.url), 'reference/identity.md'), 'utf8')
+describe('the Palette and Roles page', () => {
+  const page = fs.readFileSync(path.join(pagesDir(import.meta.url), 'identity/palette.md'), 'utf8')
 
   it.each(Object.entries(ROLES))('states the hex a browser draws %s in', (role, { dark, light }) => {
     const row = page.split('\n').find(line => line.startsWith(`| \`${role}\` |`))!

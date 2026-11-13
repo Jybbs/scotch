@@ -3,19 +3,21 @@ import type { Token } from '../identity/tokens.ts'
 export type Section = (typeof SECTIONS)[number]
 
 /**
- * Each section the site carries, its label the one word that is also its
- * folder, its address, its entry in the navigation bar, and its overview's
- * heading, beside the palette token its pages' preview cards are accented in
- * and, for each section the front page opens, the question its entry there
- * names, and for the Guide the pages leading its sidebar in the order a reader
- * takes them.
+ * Each section the site carries, in the order a reader takes them, its label
+ * the one word that is also its folder, its address, its entry in the
+ * navigation bar, and its overview's heading, beside the palette token its
+ * pages' preview cards are accented in and, for each section the front page
+ * opens, the question its entry there names, and for the Identity and the
+ * Guide the pages leading its sidebar in the order a reader takes them.
  */
 export const SECTIONS = [
+  { color: 'series_3', label: 'Identity',  order: ['palette', 'faces', 'marks'],              question: 'What is the site drawn in?',                slug: 'identity'  },
   { color: 'series_1', label: 'Data',                                                         question: 'Which games does the store hold?',          slug: 'data'      },
   { color: 'series_4', label: 'Guide',     order: ['setup', 'matching', 'studying', 'store'], question: 'How do I match a game of my own?',          slug: 'guide'     },
   { color: 'series_5', label: 'Methods',                                                      question: 'How is the closest game found?',            slug: 'methods'   },
+  { color: 'series_6', label: 'Viewer',                                                       question: 'How did the grandmaster go on from there?', slug: 'viewer'    },
   { color: 'critical', label: 'Reference',                                                                                                           slug: 'reference' },
-  { color: 'series_6', label: 'Viewer',                                                       question: 'How did the grandmaster go on from there?', slug: 'viewer'    }
+  { color: 'series_2', label: 'Develop',                                                                                                             slug: 'develop'   }
 ] as const satisfies readonly { color: Token, label: string, order?: readonly string[], question?: string, slug: string }[]
 
 /**

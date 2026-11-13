@@ -14,8 +14,9 @@ export function buildNav(sections: readonly Named[] = SECTIONS): DefaultTheme.Na
 }
 
 /**
- * Builds one sidebar group per section from its pages' own first headings, the
- * overview leading and the pages a section's `order` names following it.
+ * Builds one sidebar group per section from its pages' own first headings, an
+ * Overview entry linking the section's index leading and the pages a section's
+ * `order` names following it.
  *
  * Args:
  *   pagesDir : The folder the site's pages sit in.
@@ -26,7 +27,7 @@ export function buildSidebar(
   sections : readonly Named[] = SECTIONS
 ): DefaultTheme.SidebarMulti {
   return Object.fromEntries(sections.map(({ label, order, slug }) => [`/${slug}/`, [{
-    items : sectionPages(pagesDir, slug, order).map(({ link, title }) => ({ link, text: title })),
+    items : sectionPages(pagesDir, slug, order).map(({ link, title }) => ({ link, text: link === `/${slug}/` ? 'Overview' : title })),
     text  : label
   }]]))
 }

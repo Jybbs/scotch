@@ -1,8 +1,8 @@
 import { type Component, defineAsyncComponent } from 'vue'
 
 /**
- * The widgets the identity page places, under the names `PLACED` gives them,
- * each loaded with that page, so the counts and the paths they read stay out of
+ * The widgets the Identity pages place, under the names `PLACED` gives them,
+ * each loaded with its page, so the counts and the paths they read stay out of
  * every other page.
  */
 export const REFERENCE_WIDGETS: Record<string, Component> = {

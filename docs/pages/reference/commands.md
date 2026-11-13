@@ -2,39 +2,6 @@
 
 Each command the help of `scotch` lists takes a section below, which `mise run docs:render` writes from what the command line declares, meaning the command's docstring, its usage, and the type, the bound, the default, and the help of each parameter. The messages a command exits nonzero on come from `src/scotch/docs/stops.toml`, which `mise run repo:audit` holds to the messages the code prints. Beneath each section sits an example run, its output written from the index wherever the index alone sets it. The example runs write the data directory as `.cache/data`, where a real run prints its full path under the project's root. [The Guide](../guide/index.md) walks through a first match.
 
-<!-- command-cite-source -->
-## `scotch cite source`
-
-Prints the footnote definition citing each source named by its key in `docs/references.bib`, in the order given, each on one line with a blank line between two of them, ready to paste beneath the text of an issue or a pull request citing it, since a page takes its own from `scotch render docs`.
-
-Exits nonzero without printing any definition, naming each key no entry in the file holds, or naming each block or entry that cannot be read where the file holds one.
-
-```text
-scotch cite source KEYS...
-```
-
-| **Parameter** | **Accepts** | **Default** | **Meaning** |
-|---|---|---|---|
-| `KEYS` | One or more words | Required | The key of each source, such as `zobrist1970`. |
-
-It exits nonzero on each message below.
-
-| **Message** | **When** | **Clears It** |
-|---|---|---|
-| `<key> names no entry in <file>` | No entry of `docs/references.bib` holds the key | Pass the key an entry's `@` line opens on, or add the entry |
-| `Line <line> of <file> holds a block bibtexparser could not read: <reason>` | A block of `docs/references.bib` cannot be read | Correct the block the line opens |
-<!-- /command-cite-source -->
-
-<!-- run-cite-source -->
-```bash
-scotch cite source zobrist1970
-```
-
-```text
-[^zobrist1970]: Zobrist, Albert L. 1970. "A New Hashing Method with Application for Game Playing," Technical Report 88, Computer Sciences Department, University of Wisconsin. <https://minds.wisc.edu/handle/1793/57624>
-```
-<!-- /run-cite-source -->
-
 <!-- command-fetch-games -->
 ## `scotch fetch games`
 
