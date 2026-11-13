@@ -8,16 +8,24 @@
 //! confirm the list holding the key, so no result depends on part of a key.
 //! A game is placed by its moves' bytes in a numbering of its own, its slot,
 //! which lays the games sharing an opening side by side in a list of slots.
-//! Each section is read where it lies in the mapped file, so opening the file
-//! reads little more than where each section starts.
+//!
+//! Past a short head, the file splits into key pieces, each holding the keys
+//! whose leading bits number it, and game pieces, each holding the slots
+//! whose leading bits number it, so a lookup reads the one key piece holding
+//! its key and the game pieces holding the games it plays through. Each
+//! piece is read where it lies in the mapped file on the first lookup
+//! reaching it. A file held in part, as the site holds it, starts from its
+//! head alone, reads each piece once `add` gives it, and lists each piece a
+//! lookup reached before then in `wanted`.
 
 use std::{
     cmp::Reverse,
-    collections::HashMap,
+    collections::{BTreeSet, HashMap},
     fs::{self, File},
     io::{self, ErrorKind},
     iter, mem,
     path::Path,
+    sync::{Mutex, OnceLock, PoisonError},
 };
 
 use integer_encoding::{VarIntReader, VarIntWriter};
@@ -34,16 +42,17 @@ use sucds::{
 use crate::{boards::Board, codes::Reader};
 
 /// The number opening the file, which changes with its layout.
-const MAGIC: u64 = u64::from_le_bytes(*b"scotch-1");
+const MAGIC: u64 = u64::from_le_bytes(*b"scotch-2");
 
 /// Each section of the file `image` writes, in the order it writes them, by
 /// its name, beside how it is held and what it holds. A slot is a game's place
-/// in the file, the games sorted by their moves.
-pub const SECTIONS: [(&str, &str, &str); 18] = [
+/// in the file, the games sorted by their moves, and the head's sections come
+/// first, then each key piece's, then each game piece's, then `slots`.
+pub const SECTIONS: [(&str, &str, &str); 22] = [
     (
         "magic",
         "8 bytes",
-        "The bytes `scotch-1`, which change with the layout",
+        "The bytes `scotch-2`, which change with the layout",
     ),
     (
         "count",
@@ -51,40 +60,25 @@ pub const SECTIONS: [(&str, &str, &str); 18] = [
         "The positions the stored games reach",
     ),
     (
-        "games",
-        "A compact vector",
-        "Each slot's game, its row in `games.parquet`",
+        "distinct",
+        "An integer",
+        "The distinct keys the stored games reach",
     ),
-    ("slots", "A compact vector", "Each game's slot"),
+    ("games", "An integer", "The stored games"),
     (
-        "standings",
-        "A compact vector",
-        "Each slot's rank among games tied on a run",
-    ),
-    (
-        "dates",
-        "A compact vector",
-        "Each slot's `Date` tag as a number",
-    ),
-    (
-        "results",
-        "A compact vector",
-        "Each slot's result, as its place among a win for White, a draw, a win for Black, and any other",
-    ),
-    (
-        "plies",
-        "A compact vector",
-        "The count of each slot's mainline plies, whose positions the index keys",
-    ),
-    (
-        "offsets",
+        "pieces",
         "An Elias-Fano sequence",
-        "The byte of `moves` each slot's moves open at, beside the byte past the last",
+        "The byte past the head each key piece opens at, beside the byte past the last",
+    ),
+    (
+        "shelves",
+        "An Elias-Fano sequence",
+        "The byte past the last key piece each game piece opens at, beside the byte past the last",
     ),
     (
         "once",
         "An Elias-Fano sequence",
-        "The leading bits of each key one position of one game reaches",
+        "The key piece's leading bits of each key one position of one game reaches",
     ),
     (
         "blocks",
@@ -94,14 +88,53 @@ pub const SECTIONS: [(&str, &str, &str); 18] = [
     (
         "shared",
         "An Elias-Fano sequence",
-        "The leading bits of each key several positions reach",
+        "The key piece's leading bits of each key several positions reach",
     ),
     (
         "boundaries",
         "An Elias-Fano sequence",
         "The byte of `lists` each key of `shared` opens its list at, beside the byte past the last",
     ),
-    ("started", "A vector", "Each slot whose tags name its start"),
+    (
+        "lists",
+        "Bytes",
+        "The slots reaching each key of `shared`, by the ply each reaches it at",
+    ),
+    (
+        "numbers",
+        "A compact vector",
+        "Each of the game piece's slots' game, its row in `games.parquet`",
+    ),
+    (
+        "standings",
+        "A compact vector",
+        "Each of its slots' rank among games tied on a run",
+    ),
+    (
+        "dates",
+        "A compact vector",
+        "Each of its slots' `Date` tag as a number",
+    ),
+    (
+        "results",
+        "A compact vector",
+        "Each of its slots' result, as its place among a win for White, a draw, a win for Black, and any other",
+    ),
+    (
+        "plies",
+        "A compact vector",
+        "The count of each of its slots' mainline plies, whose positions the index keys",
+    ),
+    (
+        "offsets",
+        "An Elias-Fano sequence",
+        "The byte of `moves` each of its slots' moves open at, beside the byte past the last",
+    ),
+    (
+        "started",
+        "A vector",
+        "Each of its slots whose tags name its start, by its place among them",
+    ),
     (
         "fens",
         "A vector",
@@ -112,13 +145,16 @@ pub const SECTIONS: [(&str, &str, &str); 18] = [
         "A vector",
         "The `Variant` tag of each slot `started` lists",
     ),
-    (
-        "lists",
-        "Bytes",
-        "The slots reaching each key of `shared`, by the ply each reaches it at",
-    ),
-    ("moves", "Bytes", "Each slot's mainline, encoded"),
+    ("moves", "Bytes", "Each of its slots' mainline, encoded"),
+    ("slots", "A compact vector", "Each game's slot"),
 ];
+
+/// The base 2 logarithm of the distinct keys a key piece holds on average,
+/// rounded down, from which `image` sets the count of key pieces.
+const PIECE_BITS: u32 = 11;
+
+/// The bits of a slot past those numbering its game piece.
+const SHELF_BITS: u32 = 7;
 
 /// The bits a block of slots is numbered in.
 const BLOCK_BITS: u32 = 16;
@@ -194,6 +230,8 @@ pub struct Stored<'a> {
 pub struct Run {
     /// The stored game.
     pub game: u32,
+    /// The stored game's slot.
+    pub slot: u32,
     /// The stored game's ply minus the submitted game's along the run.
     pub offset: i64,
     /// The submitted game's ply at the run's first position.
@@ -231,6 +269,17 @@ pub struct Sharing {
     /// Each count of stored games beside the count of keys exactly that many
     /// reach, the fewest first.
     pub reach: Vec<(u32, u64)>,
+}
+
+/// A piece of the file past its head, which a lookup reads whole.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Part {
+    /// The key piece of this number, holding each key whose leading bits are
+    /// the number.
+    Keys(u32),
+    /// The game piece of this number, holding each slot whose leading bits are
+    /// the number.
+    Games(u32),
 }
 
 /// The stretch of slots `lo..hi` whose games reach one position at `ply`.
@@ -306,6 +355,11 @@ impl Prefixes {
         Ok(Self(Some(builder.build().enable_rank())))
     }
 
+    /// Counts the keys whose leading bits the sequence holds.
+    fn len(&self) -> usize {
+        self.0.as_ref().map_or(0, EliasFano::len)
+    }
+
     /// Lists the place of each key whose leading bits match those of `key`.
     fn holding(&self, key: u64) -> impl Iterator<Item = usize> {
         self.0.iter().flat_map(move |sequence| {
@@ -315,34 +369,12 @@ impl Prefixes {
                 .take_while(move |&at| sequence.select(at) == Some(prefix))
         })
     }
-
-    /// Counts the keys of the list.
-    fn len(&self) -> usize {
-        self.0.as_ref().map_or(0, EliasFano::len)
-    }
 }
 
-/// The stored games, every position they reach, and their moves.
+/// The keys whose leading bits number one key piece, each held by the bits
+/// past those.
 #[derive(Debug)]
-pub struct Positions {
-    /// The file's bytes, which every section reads out of.
-    image: Bytes,
-    /// The positions the stored games reach.
-    count: u64,
-    /// Each slot's game.
-    games: CompactVector,
-    /// Each game's slot.
-    slots: CompactVector,
-    /// Each slot's rank among games tied on a run.
-    standings: CompactVector,
-    /// Each slot's date as `Stored::dated` holds it.
-    dates: CompactVector,
-    /// Each slot's place among `Outcomes`.
-    results: CompactVector,
-    /// The moves each slot's mainline holds.
-    plies: CompactVector,
-    /// The byte each slot's moves open at, beside the byte past the last.
-    offsets: EliasFano,
+struct KeyPiece {
     /// The leading bits of each key one position of one game reaches.
     once: Prefixes,
     /// The block of slots holding the game reaching each of those keys.
@@ -354,10 +386,236 @@ pub struct Positions {
     boundaries: EliasFano,
     /// The lists of slots.
     lists: Bytes,
-    /// The tags naming each slot's start, for each slot whose tags name one.
+}
+
+impl KeyPiece {
+    /// Reads the piece's sections out of `rest`, in the order `image` writes
+    /// them.
+    fn parsed(mut rest: Bytes) -> sucds::Result<Self> {
+        let once = Prefixes(section(&mut rest)?);
+        let blocks = section(&mut rest)?;
+        let shared = Prefixes(section(&mut rest)?);
+        let boundaries = section::<EliasFano>(&mut rest)?;
+
+        if boundaries.universe() - 1 != rest.len() as u64 {
+            return Err(SucdsError::invalid_data("the key piece holds another size"));
+        }
+
+        Ok(Self {
+            once,
+            blocks,
+            shared,
+            boundaries,
+            lists: rest,
+        })
+    }
+
+    /// Lays out the piece holding `rows`, which share their leading `bits`
+    /// bits and sort by key, for an index whose slots fall into blocks past
+    /// their leading `shift` bits.
+    fn image(rows: &[Row], bits: u32, shift: u32, image: &mut Vec<u8>) -> sucds::Result<()> {
+        let held = || rows.chunk_by(|a, b| a.key == b.key);
+        let once = || held().filter_map(|group| group.first().filter(|_| group.len() == 1));
+        let shared = || held().filter(|group| group.len() > 1);
+        let past = |key: u64| key << bits;
+        let mut lists = Vec::new();
+        let mut boundaries = vec![0];
+
+        for group in shared() {
+            write_list(group, &mut lists)?;
+            boundaries.push(lists.len() as u64);
+        }
+
+        let blocks = once().map(|row| row.slot >> shift).collect_vec();
+
+        Prefixes::built(once().map(|row| past(row.key)), blocks.len())?
+            .0
+            .serialize_into(&mut *image)?;
+        CompactVector::from_slice(&blocks).serialize_into(&mut *image)?;
+        Prefixes::built(
+            shared().map(|group| past(group[0].key)),
+            boundaries.len() - 1,
+        )?
+        .0
+        .serialize_into(&mut *image)?;
+        ascending(&boundaries)?.serialize_into(&mut *image)?;
+        image.extend(lists);
+
+        Ok(())
+    }
+
+    /// Reads the shared key at `entry`'s list of slots, which holds a group for
+    /// each ply reaching the key: the gap from the last group's ply and its
+    /// count of stretches, then each stretch's gap from the last stretch's end
+    /// and its length less one.
+    fn list(&self, entry: usize) -> Vec<Posting> {
+        let from = self.boundaries.select(entry).unwrap_or_default();
+        let to = self.boundaries.select(entry + 1).unwrap_or(from);
+        let mut rest = self
+            .lists
+            .get(narrow::<usize>(from)..narrow(to))
+            .unwrap_or_default();
+        let mut numbers = iter::from_fn(|| rest.read_varint::<u32>().ok());
+        let mut postings = Vec::new();
+        let mut ply = 0;
+
+        while let Some((gap, stretches)) = numbers.next_tuple() {
+            let mut end = 0;
+
+            ply += gap;
+
+            for (gap, extra) in numbers.by_ref().take(stretches as usize * 2).tuples() {
+                let lo = end + gap;
+
+                end = lo + extra + 1;
+                postings.push(Posting {
+                    lo,
+                    hi: end,
+                    ply: narrow(u64::from(ply)),
+                });
+            }
+        }
+
+        postings
+    }
+}
+
+/// The slots whose leading bits number one game piece, each column holding
+/// one number for each of its slots in order.
+#[derive(Debug)]
+struct GamePiece {
+    /// Each slot's game.
+    numbers: CompactVector,
+    /// Each slot's rank among games tied on a run.
+    standings: CompactVector,
+    /// Each slot's date as `Stored::dated` holds it.
+    dates: CompactVector,
+    /// Each slot's place among `Outcomes`.
+    results: CompactVector,
+    /// The moves each slot's mainline holds.
+    plies: CompactVector,
+    /// The byte each slot's moves open at, beside the byte past the last.
+    offsets: EliasFano,
+    /// The tags naming each slot's start, by its place in the piece, for each
+    /// slot whose tags name one.
     starts: HashMap<u32, Start>,
     /// The games' moves.
     moves: Bytes,
+}
+
+impl GamePiece {
+    /// Reads the piece's sections out of `rest`, in the order `image` writes
+    /// them.
+    fn parsed(mut rest: Bytes) -> sucds::Result<Self> {
+        let numbers = section(&mut rest)?;
+        let standings = section(&mut rest)?;
+        let dates = section(&mut rest)?;
+        let results = section(&mut rest)?;
+        let plies = section(&mut rest)?;
+        let offsets = section::<EliasFano>(&mut rest)?;
+        let started = section::<Vec<u32>>(&mut rest)?;
+        let fens = section::<Vec<Tag>>(&mut rest)?;
+        let variants = section::<Vec<Tag>>(&mut rest)?;
+        let text = |tag: Tag| tag.map(|bytes| String::from_utf8_lossy(&bytes).into_owned());
+
+        if offsets.universe() - 1 != rest.len() as u64 {
+            return Err(SucdsError::invalid_data(
+                "the game piece holds another size",
+            ));
+        }
+
+        Ok(Self {
+            numbers,
+            standings,
+            dates,
+            results,
+            plies,
+            offsets,
+            starts: izip!(started, fens, variants)
+                .map(|(at, fen, variant)| (at, (text(fen), text(variant))))
+                .collect(),
+            moves: rest,
+        })
+    }
+
+    /// Lays out the piece holding `stored`, its games in the order of their
+    /// slots, each numbered by its place in `numbers`.
+    fn image(numbers: &[u32], stored: &[Stored<'_>], image: &mut Vec<u8>) -> sucds::Result<()> {
+        let offsets = iter::once(0)
+            .chain(stored.iter().scan(0, |end, game| {
+                *end += game.moves.len() as u64;
+
+                Some(*end)
+            }))
+            .collect_vec();
+        let (started, fens, variants): (Vec<u32>, Vec<Tag>, Vec<Tag>) = (0u32..)
+            .zip(stored)
+            .filter(|(_, game)| game.fen.is_some() || game.variant.is_some())
+            .map(|(at, game)| (at, game.fen.map(Vec::from), game.variant.map(Vec::from)))
+            .multiunzip();
+
+        CompactVector::from_slice(numbers).serialize_into(&mut *image)?;
+        column(stored.iter().map(|game| game.standing)).serialize_into(&mut *image)?;
+        column(stored.iter().map(|game| game.dated)).serialize_into(&mut *image)?;
+        column(stored.iter().map(|game| game.result)).serialize_into(&mut *image)?;
+        column(stored.iter().map(|game| game.plies)).serialize_into(&mut *image)?;
+        ascending(&offsets)?.serialize_into(&mut *image)?;
+        started.serialize_into(&mut *image)?;
+        fens.serialize_into(&mut *image)?;
+        variants.serialize_into(&mut *image)?;
+        for game in stored {
+            image.extend_from_slice(game.moves);
+        }
+
+        Ok(())
+    }
+
+    /// Sets up the position the game at the piece's place `at` starts from,
+    /// beside a reader of its moves and the count of them, or returns `None`
+    /// where no position can be set up.
+    fn replay(&self, at: u32) -> Option<(Board, Reader<'_>, u16)> {
+        let board = match self.starts.get(&at) {
+            Some((fen, variant)) => Board::started(fen.as_deref(), variant.as_deref()),
+            None => Board::started(None, None),
+        }?;
+        let from = self.offsets.select(at as usize)?;
+        let to = self.offsets.select(at as usize + 1)?;
+
+        Some((
+            board,
+            Reader::new(self.moves.get(narrow::<usize>(from)..narrow(to))?),
+            cell(&self.plies, at),
+        ))
+    }
+}
+
+/// The stored games, every position they reach, and their moves.
+#[derive(Debug)]
+pub struct Positions {
+    /// The bytes of the file, whole where it was read from disk or built.
+    image: Option<Bytes>,
+    /// The bytes the head takes, which open the file.
+    head: usize,
+    /// The positions the stored games reach.
+    count: u64,
+    /// The distinct keys the stored games reach.
+    distinct: u64,
+    /// The stored games.
+    games: u32,
+    /// The byte past the head each key piece opens at, beside the byte past the
+    /// last.
+    pieces: EliasFano,
+    /// The byte past the last key piece each game piece opens at, beside the
+    /// byte past the last.
+    shelves: EliasFano,
+    /// Each game's slot, read from a whole file alone.
+    slots: Option<CompactVector>,
+    /// Each key piece once read.
+    keyed: Vec<OnceLock<KeyPiece>>,
+    /// Each game piece once read.
+    shelved: Vec<OnceLock<GamePiece>>,
+    /// Each piece a lookup reached before `add` gave it.
+    wanted: Mutex<BTreeSet<Part>>,
 }
 
 impl Positions {
@@ -388,77 +646,325 @@ impl Positions {
         Self::parsed(Bytes::from_owner(map)).map_err(invalid)
     }
 
+    /// Reads the head `head` returns, leaving each piece to `add`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidData` where `bytes` hold another layout.
+    pub fn started(bytes: Vec<u8>) -> io::Result<Self> {
+        let mut rest = Bytes::from(bytes);
+        let mut positions = Self::headed(&mut rest).map_err(invalid)?;
+
+        if !rest.is_empty() {
+            return Err(invalid(SucdsError::invalid_data("the head holds more")));
+        }
+
+        positions.image = None;
+
+        Ok(positions)
+    }
+
     /// Writes the file to `path`, a finished file replacing what `path` holds
     /// at once, so a mapping of the earlier file keeps its bytes.
     ///
     /// # Errors
     ///
-    /// Returns the error writing or renaming the file raises.
+    /// Returns `InvalidInput` where the index holds its head alone, and the
+    /// error writing or renaming the file raises.
     pub fn write(&self, path: &Path) -> io::Result<()> {
         let temporary = path.with_extension("tmp");
 
-        fs::write(&temporary, &self.image)?;
+        fs::write(&temporary, self.whole()?)?;
         fs::rename(temporary, path)
     }
 
-    /// Reads the sections out of `image`, in the order `image` writes them.
-    fn parsed(image: Bytes) -> sucds::Result<Self> {
-        let mut rest = image.clone();
+    /// Reads the sections of the head out of the front of `rest`, in the
+    /// order `image` writes them, holding the whole of `rest` as the image.
+    fn headed(rest: &mut Bytes) -> sucds::Result<Self> {
+        let image = rest.clone();
 
-        if section::<u64>(&mut rest)? != MAGIC {
+        if section::<u64>(rest)? != MAGIC {
             return Err(SucdsError::invalid_data("the file holds another layout"));
         }
 
-        let count = section(&mut rest)?;
-        let games = section(&mut rest)?;
-        let slots = section(&mut rest)?;
-        let standings = section(&mut rest)?;
-        let dates = section(&mut rest)?;
-        let results = section(&mut rest)?;
-        let plies = section(&mut rest)?;
-        let offsets = section::<EliasFano>(&mut rest)?;
-        let once = Prefixes(section(&mut rest)?);
-        let blocks = section(&mut rest)?;
-        let shared = Prefixes(section(&mut rest)?);
-        let boundaries = section::<EliasFano>(&mut rest)?;
-        let started = section::<Vec<u32>>(&mut rest)?;
-        let fens = section::<Vec<Tag>>(&mut rest)?;
-        let variants = section::<Vec<Tag>>(&mut rest)?;
-        let lists = boundaries.universe() - 1;
+        let count = section(rest)?;
+        let distinct = section(rest)?;
+        let games = section::<u32>(rest)?;
+        let pieces = section::<EliasFano>(rest)?;
+        let shelves = section::<EliasFano>(rest)?;
+        let head = image.len() - rest.len();
 
-        if lists + offsets.universe() - 1 != rest.len() as u64 {
+        if !(pieces.len() - 1).is_power_of_two()
+            || shelves.len() - 1 != (games as usize).div_ceil(1 << SHELF_BITS)
+        {
+            return Err(SucdsError::invalid_data("the head holds other pieces"));
+        }
+
+        Ok(Self {
+            image: Some(image),
+            head,
+            count,
+            distinct,
+            games,
+            keyed: iter::repeat_with(OnceLock::new)
+                .take(pieces.len() - 1)
+                .collect(),
+            shelved: iter::repeat_with(OnceLock::new)
+                .take(shelves.len() - 1)
+                .collect(),
+            pieces,
+            shelves,
+            slots: None,
+            wanted: Mutex::default(),
+        })
+    }
+
+    /// Reads the head and `slots` out of the whole file `image`, leaving each
+    /// piece to the first lookup reaching it.
+    fn parsed(image: Bytes) -> sucds::Result<Self> {
+        let mut rest = image;
+        let mut positions = Self::headed(&mut rest)?;
+        let body = positions.pieces.universe() + positions.shelves.universe() - 2;
+
+        if body > rest.len() as u64 {
             return Err(SucdsError::invalid_data("the file holds another size"));
         }
 
-        let lists = rest.split_to(narrow(lists));
-        let text = |tag: Tag| tag.map(|bytes| String::from_utf8_lossy(&bytes).into_owned());
+        let _ = rest.split_to(narrow(body));
+        let slots = section::<CompactVector>(&mut rest)?;
 
-        Ok(Self {
-            image,
-            count,
-            games,
-            slots,
-            standings,
-            dates,
-            results,
-            plies,
-            offsets,
-            once,
-            blocks,
-            shared,
-            boundaries,
-            lists,
-            starts: izip!(started, fens, variants)
-                .map(|(slot, fen, variant)| (slot, (text(fen), text(variant))))
-                .collect(),
-            moves: rest,
+        if !rest.is_empty() || slots.len() != positions.games as usize {
+            return Err(SucdsError::invalid_data("the file holds another size"));
+        }
+
+        positions.slots = Some(slots);
+
+        Ok(positions)
+    }
+
+    /// Returns the whole file.
+    fn whole(&self) -> io::Result<&Bytes> {
+        self.image.as_ref().ok_or_else(|| {
+            io::Error::new(ErrorKind::InvalidInput, "the index holds its head alone")
         })
+    }
+
+    /// Returns the bytes of the head, which `started` reads.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidInput` where the index holds its head alone.
+    pub fn head(&self) -> io::Result<Bytes> {
+        Ok(self.whole()?.slice(..self.head))
+    }
+
+    /// Writes the head of a file whose key pieces are this file's and whose
+    /// game pieces take the bytes `sizes` lists in order, which `started`
+    /// reads.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidInput` where `sizes` lists another count of game
+    /// pieces.
+    pub fn rehead(&self, sizes: &[u64]) -> io::Result<Vec<u8>> {
+        if sizes.len() != self.shelved.len() {
+            return Err(io::Error::new(
+                ErrorKind::InvalidInput,
+                "the sizes list another count of game pieces",
+            ));
+        }
+
+        let shelves = iter::once(0)
+            .chain(sizes.iter().scan(0, |end, size| {
+                *end += size;
+
+                Some(*end)
+            }))
+            .collect_vec();
+        let mut head = Vec::new();
+
+        written(
+            &mut head,
+            [self.count, self.distinct, u64::from(self.games)],
+            &self.pieces,
+            &ascending(&shelves).map_err(invalid)?,
+        )
+        .map_err(invalid)?;
+
+        Ok(head)
+    }
+
+    /// Counts the key pieces and the game pieces past the head.
+    #[must_use]
+    pub fn pieces(&self) -> (usize, usize) {
+        (self.keyed.len(), self.shelved.len())
+    }
+
+    /// Reads the number of each stored game the game piece numbered `at`
+    /// holds, in the order of their slots, or none where no piece holds it.
+    #[must_use]
+    pub fn numbers(&self, at: u32) -> Vec<u32> {
+        self.shelved
+            .get(at as usize)
+            .and_then(|cell| self.piece(cell, Part::Games(at), GamePiece::parsed))
+            .map_or_else(Vec::new, |piece| piece.numbers.iter().map(narrow).collect())
+    }
+
+    /// Returns the bytes of `part`, which `add` reads.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidInput` where the index holds its head alone or holds
+    /// no such piece.
+    pub fn part(&self, part: Part) -> io::Result<Bytes> {
+        let whole = self.whole()?;
+
+        self.span(part)
+            .and_then(|(from, to)| whole.get(narrow::<usize>(from)..narrow(to)))
+            .map(|bytes| whole.slice_ref(bytes))
+            .ok_or_else(|| io::Error::new(ErrorKind::InvalidInput, "the index holds no such piece"))
+    }
+
+    /// Reads `bytes` as `part`, which every lookup after reads in place of
+    /// listing it in `wanted`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidData` where `bytes` hold another layout and
+    /// `InvalidInput` where the index holds no such piece.
+    pub fn add(&self, part: Part, bytes: Vec<u8>) -> io::Result<()> {
+        let bytes = Bytes::from(bytes);
+        let unknown = || io::Error::new(ErrorKind::InvalidInput, "the index holds no such piece");
+
+        match part {
+            Part::Keys(at) => {
+                let cell = self.keyed.get(at as usize).ok_or_else(unknown)?;
+                let _ = cell.set(KeyPiece::parsed(bytes).map_err(invalid)?);
+            }
+            Part::Games(at) => {
+                let cell = self.shelved.get(at as usize).ok_or_else(unknown)?;
+                let _ = cell.set(GamePiece::parsed(bytes).map_err(invalid)?);
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Takes the list of each piece a lookup reached before `add` gave it,
+    /// leaving it empty, so an answer given while it held any piece is
+    /// incomplete.
+    pub fn wanted(&self) -> Vec<Part> {
+        mem::take(&mut *self.wanted.lock().unwrap_or_else(PoisonError::into_inner))
+            .into_iter()
+            .collect()
+    }
+
+    /// Reads the bytes of the file `part` spans, from its first to the one
+    /// past its last.
+    #[must_use]
+    pub fn span(&self, part: Part) -> Option<(u64, u64)> {
+        let (offsets, base, at) = match part {
+            Part::Keys(at) => (&self.pieces, self.head as u64, at),
+            Part::Games(at) => (
+                &self.shelves,
+                self.head as u64 + self.pieces.universe() - 1,
+                at,
+            ),
+        };
+
+        Some((
+            base + offsets.select(at as usize)?,
+            base + offsets.select(at as usize + 1)?,
+        ))
+    }
+
+    /// Reads `part` out of `cell` once read, out of the whole file where the
+    /// index holds it, and otherwise lists it in `wanted`.
+    fn piece<'a, T>(
+        &self,
+        cell: &'a OnceLock<T>,
+        part: Part,
+        parsed: fn(Bytes) -> sucds::Result<T>,
+    ) -> Option<&'a T> {
+        if let Some(piece) = cell.get() {
+            return Some(piece);
+        }
+
+        if self.image.is_none() {
+            self.wanted
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .insert(part);
+
+            return None;
+        }
+
+        let piece = parsed(self.part(part).ok()?).ok()?;
+
+        Some(cell.get_or_init(|| piece))
+    }
+
+    /// Reads the key piece holding `key`.
+    fn keys_holding(&self, key: u64) -> Option<&KeyPiece> {
+        let at = key
+            .checked_shr(u64::BITS - self.keyed.len().ilog2())
+            .unwrap_or_default();
+
+        self.piece(
+            self.keyed.get(narrow::<usize>(at))?,
+            Part::Keys(narrow(at)),
+            KeyPiece::parsed,
+        )
+    }
+
+    /// Reads every key piece in order, skipping each the index does not hold.
+    fn key_pieces(&self) -> impl Iterator<Item = &KeyPiece> {
+        self.keyed
+            .iter()
+            .zip(0u32..)
+            .filter_map(|(cell, at)| self.piece(cell, Part::Keys(at), KeyPiece::parsed))
+    }
+
+    /// Reads the list of slots of every key several positions reach, piece by
+    /// piece.
+    fn lists(&self) -> impl Iterator<Item = Vec<Posting>> + '_ {
+        self.key_pieces()
+            .flat_map(|piece| (0..piece.shared.len()).map(move |entry| piece.list(entry)))
+    }
+
+    /// Reads the game piece holding `slot`, beside the slot's place in it.
+    fn games_holding(&self, slot: u32) -> Option<(&GamePiece, u32)> {
+        let (at, place) = Self::shelf(slot);
+        let piece = self.piece(
+            self.shelved.get(at as usize)?,
+            Part::Games(at),
+            GamePiece::parsed,
+        )?;
+
+        Some((piece, place))
+    }
+
+    /// Names the game piece holding `slot` beside the slot's place in it.
+    #[must_use]
+    pub fn shelf(slot: u32) -> (u32, u32) {
+        (slot >> SHELF_BITS, slot & ((1 << SHELF_BITS) - 1))
+    }
+
+    /// Reads the number the column `pick` of the game piece holding `slot`
+    /// holds for it, or the default where no piece holds it.
+    fn about<T: TryFrom<u64> + Default>(
+        &self,
+        slot: u32,
+        pick: fn(&GamePiece) -> &CompactVector,
+    ) -> T {
+        self.games_holding(slot)
+            .map_or_else(T::default, |(piece, at)| cell(pick(piece), at))
     }
 
     /// Counts the stored games.
     #[must_use]
     pub fn games(&self) -> usize {
-        self.games.len()
+        self.games as usize
     }
 
     /// Counts the positions the stored games reach.
@@ -469,25 +975,44 @@ impl Positions {
 
     /// Counts the distinct keys the stored games reach.
     #[must_use]
-    pub fn keys(&self) -> usize {
-        self.once.len() + self.shared.len()
+    pub fn keys(&self) -> u64 {
+        self.distinct
     }
 
     /// Reads the moves of `game` in Universal Chess Interface (UCI) notation,
-    /// a null move as `0000`, or none where the index holds no such game.
+    /// a null move as `0000`, or none where the index holds no such game or
+    /// holds its head alone.
     #[must_use]
     pub fn moves(&self, game: u32) -> Vec<String> {
-        let Some((mut board, mut reader, plies)) = self
-            .slots
-            .get_int(game as usize)
-            .and_then(|slot| self.replay(narrow(slot)))
-        else {
-            return Vec::new();
-        };
+        self.slots
+            .as_ref()
+            .and_then(|slots| slots.get_int(game as usize))
+            .and_then(|slot| self.replayed(narrow(slot), u16::MAX))
+            .map_or_else(Vec::new, |(_, moves)| moves)
+    }
 
-        (0..plies)
-            .map_while(|_| reader.play(&mut board).map(|turn| turn.to_string()))
-            .collect()
+    /// Reads the moves of the game at `slot` in Standard Algebraic Notation
+    /// (SAN), beside the piece placement of each position from its start, as
+    /// `scored` writes them.
+    #[must_use]
+    pub fn scored(&self, slot: u32) -> (Vec<String>, Vec<String>) {
+        self.replayed(slot, u16::MAX)
+            .map_or_else(Default::default, |(board, moves)| board.scored(moves))
+    }
+
+    /// Sets up the position the game at `slot` starts from, beside at most
+    /// `most` of its moves as `moves` reads them, or returns `None` where no
+    /// piece holds it.
+    fn replayed(&self, slot: u32, most: u16) -> Option<(Board, Vec<String>)> {
+        let (board, mut reader, plies) = self
+            .games_holding(slot)
+            .and_then(|(piece, at)| piece.replay(at))?;
+        let mut playing = board.clone();
+        let moves = (0..plies.min(most))
+            .map_while(|_| reader.play(&mut playing).map(|turn| turn.to_string()))
+            .collect();
+
+        Some((board, moves))
     }
 
     /// Finds the runs a match reports for a game reaching `keys`: at most `top`
@@ -502,7 +1027,7 @@ impl Positions {
     #[must_use]
     pub fn best(&self, keys: &[u64], top: usize) -> (Vec<Run>, usize) {
         let mut ended = self.ended(keys);
-        let mut seen = vec![false; self.games.len()];
+        let mut seen = vec![false; self.games()];
         let mut chosen = Vec::new();
         let mut ties = 0;
 
@@ -592,9 +1117,9 @@ impl Positions {
     /// counts nothing.
     #[must_use]
     pub fn sharing(&self, groups: &[u16]) -> Sharing {
-        let games = self.games.len();
-        let plies = (0..narrow::<u32>(games as u64))
-            .map(|slot| usize::from(cell::<u16>(&self.plies, slot)) + 1)
+        let games = self.games();
+        let plies = (0..self.games)
+            .map(|slot| usize::from(self.about::<u16>(slot, |piece| &piece.plies)) + 1)
             .collect_vec();
         let firsts = iter::once(0).chain(plies.iter().scan(0, |end, &count| {
             *end += count;
@@ -606,8 +1131,8 @@ impl Positions {
         let mut lo = vec![0; games];
         let mut hi = vec![narrow::<u32>(games as u64); games];
 
-        for entry in 0..self.shared.len() {
-            for posting in self.list(entry) {
+        for postings in self.lists() {
+            for posting in postings {
                 for slot in posting.lo..posting.hi {
                     let at = slot as usize;
 
@@ -630,7 +1155,7 @@ impl Positions {
             .collect_vec();
         let group = |slot: u32| {
             groups
-                .get(cell::<u32>(&self.games, slot) as usize)
+                .get(self.about::<u32>(slot, |piece| &piece.numbers) as usize)
                 .map_or(usize::MAX, |&group| usize::from(group))
         };
         let width = plies.iter().copied().max().unwrap_or_default();
@@ -647,10 +1172,10 @@ impl Positions {
                 (firsts[at]..firsts[at + 1]).position(|bit| !listed.access(bit).unwrap_or_default())
             })
             .collect_vec();
-        let mut reach = HashMap::from([(1, self.once.len() as u64)]);
+        let once = self.key_pieces().map(|piece| piece.once.len() as u64).sum();
+        let mut reach = HashMap::from([(1, once)]);
 
-        for entry in 0..self.shared.len() {
-            let postings = self.list(entry);
+        for postings in self.lists() {
             let reaching = postings
                 .iter()
                 .map(|posting| (posting.lo, posting.hi))
@@ -687,7 +1212,8 @@ impl Positions {
         let mut by_game = vec![None; games];
 
         for (slot, first) in (0u32..).zip(alone) {
-            by_game[cell::<u32>(&self.games, slot) as usize] = first.map(|ply| narrow(ply as u64));
+            by_game[self.about::<u32>(slot, |piece| &piece.numbers) as usize] =
+                first.map(|ply| narrow(ply as u64));
         }
 
         Sharing {
@@ -721,17 +1247,13 @@ impl Positions {
             }
         };
 
-        for slot in 0..narrow::<u32>(self.games.len() as u64) {
-            if self.starts.contains_key(&slot) {
-                continue;
-            }
-
-            let Some((mut board, mut reader, plies)) = self.replay(slot) else {
+        for slot in 0..self.games {
+            let standard = self
+                .games_holding(slot)
+                .is_some_and(|(piece, at)| !piece.starts.contains_key(&at));
+            let Some((_, moves)) = self.replayed(slot, depth).filter(|_| standard) else {
                 continue;
             };
-            let moves = (0..plies.min(depth))
-                .map_while(|_| reader.play(&mut board).map(|turn| turn.to_string()))
-                .collect_vec();
             let kept = open
                 .iter()
                 .zip(&moves)
@@ -763,7 +1285,7 @@ impl Positions {
     pub fn tally(&self, fen: Option<&str>, moves: &[String], top: usize) -> io::Result<Tally> {
         let board = Board::reached(fen, moves)?;
         let mut cache = Cache::new();
-        let mut first = vec![u16::MAX; self.games.len()];
+        let mut first = vec![u16::MAX; self.games()];
         let mut reaching = Vec::new();
         let mut ended = Outcomes::default();
 
@@ -810,28 +1332,30 @@ impl Positions {
                 .into_iter()
                 .k_smallest_relaxed_by_key(top, |&slot| {
                     (
-                        Reverse(cell::<u32>(&self.dates, slot)),
-                        cell::<u32>(&self.games, slot),
+                        Reverse(self.about::<u32>(slot, |piece| &piece.dates)),
+                        self.about::<u32>(slot, |piece| &piece.numbers),
                     )
                 })
-                .map(|slot| cell(&self.games, slot))
+                .map(|slot| self.about(slot, |piece| &piece.numbers))
                 .collect(),
         })
     }
 
     /// Reads the place of the result of the game at `slot` among `Outcomes`.
     fn outcome(&self, slot: u32) -> usize {
-        usize::from(cell::<u8>(&self.results, slot)).min(Outcomes::default().len() - 1)
+        usize::from(self.about::<u8>(slot, |piece| &piece.results))
+            .min(Outcomes::default().len() - 1)
     }
 
     /// Lays the finished run `ended` out for the game at `slot`.
     fn run(&self, slot: u32, ended: &Ended) -> Run {
         Run {
-            game: cell(&self.games, slot),
+            game: self.about(slot, |piece| &piece.numbers),
+            slot,
             offset: ended.offset,
             start: ended.start,
             length: ended.length,
-            standing: cell(&self.standings, slot),
+            standing: self.about(slot, |piece| &piece.standings),
         }
     }
 
@@ -856,9 +1380,15 @@ impl Positions {
     /// Lists the stretches of slots reaching `key`, ordered by ply and then by
     /// slot, each candidate confirmed against a game's full keys.
     fn postings(&self, key: u64, cache: &mut Cache) -> Vec<Posting> {
-        self.shared
-            .holding(key)
-            .map(|entry| self.list(entry))
+        let Some(piece) = self.keys_holding(key) else {
+            return Vec::new();
+        };
+        let past = key << self.keyed.len().ilog2();
+
+        piece
+            .shared
+            .holding(past)
+            .map(|entry| piece.list(entry))
             .find(|postings| {
                 postings.first().is_some_and(|posting| {
                     self.keys_of(posting.lo, cache)
@@ -866,17 +1396,18 @@ impl Positions {
                         == Some(&key)
                 })
             })
-            .unwrap_or_else(|| self.once_held(key, cache).into_iter().collect())
+            .unwrap_or_else(|| self.once_held(piece, key, cache).into_iter().collect())
     }
 
     /// Finds the one game reaching `key` once, if any, among the blocks of
-    /// slots whose entries share the key's leading bits.
-    fn once_held(&self, key: u64, cache: &mut Cache) -> Option<Posting> {
-        let shift = block_shift(self.games.len());
+    /// slots whose entries in `piece` share the key's leading bits.
+    fn once_held(&self, piece: &KeyPiece, key: u64, cache: &mut Cache) -> Option<Posting> {
+        let shift = block_shift(self.games());
+        let past = key << self.keyed.len().ilog2();
 
-        self.once.holding(key).find_map(|entry| {
-            let lo = narrow::<u32>(self.blocks.get_int(entry)?) << shift;
-            let hi = (lo + (1 << shift)).min(narrow(self.games.len() as u64));
+        piece.once.holding(past).find_map(|entry| {
+            let lo = narrow::<u32>(piece.blocks.get_int(entry)?) << shift;
+            let hi = (lo + (1 << shift)).min(self.games);
 
             (lo..hi).find_map(|slot| {
                 let ply = self
@@ -893,41 +1424,6 @@ impl Positions {
         })
     }
 
-    /// Reads the shared key at `entry`'s list of slots, which holds a group for
-    /// each ply reaching the key: the gap from the last group's ply and its
-    /// count of stretches, then each stretch's gap from the last stretch's end
-    /// and its length less one.
-    fn list(&self, entry: usize) -> Vec<Posting> {
-        let from = self.boundaries.select(entry).unwrap_or_default();
-        let to = self.boundaries.select(entry + 1).unwrap_or(from);
-        let mut rest = self
-            .lists
-            .get(narrow::<usize>(from)..narrow(to))
-            .unwrap_or_default();
-        let mut numbers = iter::from_fn(|| rest.read_varint::<u32>().ok());
-        let mut postings = Vec::new();
-        let mut ply = 0;
-
-        while let Some((gap, stretches)) = numbers.next_tuple() {
-            let mut end = 0;
-
-            ply += gap;
-
-            for (gap, extra) in numbers.by_ref().take(stretches as usize * 2).tuples() {
-                let lo = end + gap;
-
-                end = lo + extra + 1;
-                postings.push(Posting {
-                    lo,
-                    hi: end,
-                    ply: narrow(u64::from(ply)),
-                });
-            }
-        }
-
-        postings
-    }
-
     /// Returns the keys of the game at `slot`, playing it through on the
     /// first read of each query.
     fn keys_of<'a>(&self, slot: u32, cache: &'a mut Cache) -> &'a [u64] {
@@ -936,28 +1432,11 @@ impl Positions {
 
     /// Keys each position of the game at `slot`.
     fn played(&self, slot: u32) -> Vec<u64> {
-        self.replay(slot)
+        self.games_holding(slot)
+            .and_then(|(piece, at)| piece.replay(at))
             .map_or_else(Vec::new, |(board, reader, plies)| {
                 reader.keys(board, plies).collect()
             })
-    }
-
-    /// Sets up the position the game at `slot` starts from, beside a reader of
-    /// its moves and the count of them, or returns `None` where no position
-    /// can be set up.
-    fn replay(&self, slot: u32) -> Option<(Board, Reader<'_>, u16)> {
-        let board = match self.starts.get(&slot) {
-            Some((fen, variant)) => Board::started(fen.as_deref(), variant.as_deref()),
-            None => Board::started(None, None),
-        }?;
-        let at = self.offsets.select(slot as usize)?;
-        let end = self.offsets.select(slot as usize + 1)?;
-
-        Some((
-            board,
-            Reader::new(self.moves.get(narrow::<usize>(at)..narrow(end))?),
-            cell(&self.plies, slot),
-        ))
     }
 }
 
@@ -984,7 +1463,7 @@ fn reached<'a>(by_slot: impl Iterator<Item = Stored<'a>> + Clone) -> Vec<Row> {
     rows
 }
 
-/// Writes the list of slots of one shared key, per `Positions::list`, from its
+/// Writes the list of slots of one shared key, per `KeyPiece::list`, from its
 /// rows.
 fn write_list(rows: &[Row], lists: &mut Vec<u8>) -> io::Result<()> {
     let mut last = 0;
@@ -1010,36 +1489,47 @@ fn write_list(rows: &[Row], lists: &mut Vec<u8>) -> io::Result<()> {
     Ok(())
 }
 
-/// Lays out the whole file for `stored`, its sections in the order
-/// `Positions::parsed` reads them and the raw bytes behind the rest.
+/// Lays out the whole file for `stored`: the head, each key piece, each game
+/// piece, then `slots`, in the order `Positions::parsed` and the pieces' own
+/// `parsed` read them.
 fn image(stored: &[Stored<'_>]) -> sucds::Result<Vec<u8>> {
     let games = (0u32..)
         .take(stored.len())
         .sorted_by_key(|&game| stored[game as usize].moves)
         .collect_vec();
-    let by_slot = || games.iter().map(|&game| stored[game as usize]);
-    let mut rows = reached(by_slot());
+    let by_slot = games
+        .iter()
+        .map(|&game| stored[game as usize])
+        .collect_vec();
+    let mut rows = reached(by_slot.iter().copied());
 
     rows.sort_unstable();
 
-    let positions = rows.len() as u64;
-    let held = || rows.chunk_by(|a, b| a.key == b.key);
-    let once = || held().filter_map(|group| group.first().filter(|_| group.len() == 1));
-    let shared = || held().filter(|group| group.len() > 1);
+    let distinct = rows.chunk_by(|a, b| a.key == b.key).count() as u64;
+    let bits = (distinct.bit_width().saturating_sub(PIECE_BITS)).max(1);
     let shift = block_shift(games.len());
-    let mut lists = Vec::new();
-    let mut boundaries = vec![0];
+    let mut body = Vec::new();
+    let mut pieces = vec![0];
+    let mut rest = rows.as_slice();
 
-    for group in shared() {
-        write_list(group, &mut lists)?;
-        boundaries.push(lists.len() as u64);
+    for at in 0..1u64 << bits {
+        let held = rest.partition_point(|row| row.key >> (u64::BITS - bits) == at);
+
+        KeyPiece::image(&rest[..held], bits, shift, &mut body)?;
+        pieces.push(body.len() as u64);
+        rest = &rest[held..];
     }
 
-    let blocks = once().map(|row| row.slot >> shift).collect_vec();
-    let once = Prefixes::built(once().map(|row| row.key), blocks.len())?;
-    let shared = Prefixes::built(shared().map(|group| group[0].key), boundaries.len() - 1)?;
+    let keyed = body.len() as u64;
+    let mut shelves = vec![0];
 
-    drop(rows);
+    for (numbers, shelf) in games
+        .chunks(1 << SHELF_BITS)
+        .zip(by_slot.chunks(1 << SHELF_BITS))
+    {
+        GamePiece::image(numbers, shelf, &mut body)?;
+        shelves.push(body.len() as u64 - keyed);
+    }
 
     let mut slots = vec![0; games.len()];
 
@@ -1047,40 +1537,37 @@ fn image(stored: &[Stored<'_>]) -> sucds::Result<Vec<u8>> {
         slots[game as usize] = slot;
     }
 
-    let offsets = iter::once(0)
-        .chain(by_slot().scan(0, |end, game| {
-            *end += game.moves.len() as u64;
-
-            Some(*end)
-        }))
-        .collect_vec();
-    let (started, fens, variants): (Vec<u32>, Vec<Tag>, Vec<Tag>) = (0u32..)
-        .zip(by_slot())
-        .filter(|(_, game)| game.fen.is_some() || game.variant.is_some())
-        .map(|(slot, game)| (slot, game.fen.map(Vec::from), game.variant.map(Vec::from)))
-        .multiunzip();
     let mut image = Vec::new();
 
-    MAGIC.serialize_into(&mut image)?;
-    positions.serialize_into(&mut image)?;
-    CompactVector::from_slice(&games).serialize_into(&mut image)?;
+    written(
+        &mut image,
+        [rows.len() as u64, distinct, games.len() as u64],
+        &ascending(&pieces)?,
+        &ascending(&shelves)?,
+    )?;
+    image.extend(body);
     CompactVector::from_slice(&slots).serialize_into(&mut image)?;
-    column(by_slot().map(|game| game.standing)).serialize_into(&mut image)?;
-    column(by_slot().map(|game| game.dated)).serialize_into(&mut image)?;
-    column(by_slot().map(|game| game.result)).serialize_into(&mut image)?;
-    column(by_slot().map(|game| game.plies)).serialize_into(&mut image)?;
-    ascending(&offsets)?.serialize_into(&mut image)?;
-    once.0.serialize_into(&mut image)?;
-    CompactVector::from_slice(&blocks).serialize_into(&mut image)?;
-    shared.0.serialize_into(&mut image)?;
-    ascending(&boundaries)?.serialize_into(&mut image)?;
-    started.serialize_into(&mut image)?;
-    fens.serialize_into(&mut image)?;
-    variants.serialize_into(&mut image)?;
-    image.extend(lists);
-    by_slot().for_each(|game| image.extend_from_slice(game.moves));
 
     Ok(image)
+}
+
+/// Writes the head into `image`: the magic number, the count of positions,
+/// of distinct keys, and of games `counts` holds, then the bytes each key
+/// piece and each game piece open at.
+fn written(
+    image: &mut Vec<u8>,
+    [count, distinct, games]: [u64; 3],
+    pieces: &EliasFano,
+    shelves: &EliasFano,
+) -> sucds::Result<()> {
+    MAGIC.serialize_into(&mut *image)?;
+    count.serialize_into(&mut *image)?;
+    distinct.serialize_into(&mut *image)?;
+    narrow::<u32>(games).serialize_into(&mut *image)?;
+    pieces.serialize_into(&mut *image)?;
+    shelves.serialize_into(&mut *image)?;
+
+    Ok(())
 }
 
 /// Holds `values`, each in as few bits as the largest of them takes.
@@ -1178,7 +1665,6 @@ fn invalid(error: SucdsError) -> io::Error {
 fn narrow<T: TryFrom<u64> + Default>(value: u64) -> T {
     T::try_from(value).unwrap_or_default()
 }
-
 #[cfg(test)]
 mod tests {
     use std::{env, path::PathBuf, process};
@@ -1186,20 +1672,37 @@ mod tests {
     use super::*;
     use crate::codes::Writer;
 
-    /// Pins `SECTIONS` to the order `Positions::parsed` reads the file in,
-    /// which opens on the magic number and leaves `lists` and `moves` as the
-    /// bytes past the last section it reads.
+    /// Pins `SECTIONS` to the order `Positions::headed`, the pieces' `parsed`,
+    /// and `Positions::parsed` read the file in, which opens on the magic
+    /// number and leaves `lists` and `moves` as the bytes past the last
+    /// section a piece reads.
     #[test]
     fn sections_follow_the_order_the_file_is_read_in() {
         let source = include_str!("positions.rs");
-        let body = &source[source.find("fn parsed(").unwrap()..];
-        let body = &body[..body.find("Ok(Self").unwrap()];
-        let read = body.lines().filter_map(|line| {
-            let (name, value) = line.trim().strip_prefix("let ")?.split_once(" = ")?;
+        let read = |function: &str| {
+            let body = &source[source.find(function).unwrap()..];
 
-            value.contains("section").then_some(name)
-        });
-        let expected = ["magic"].into_iter().chain(read).chain(["lists", "moves"]);
+            body[..body.find("Ok(").unwrap()]
+                .lines()
+                .filter_map(|line| {
+                    let (name, value) = line.trim().strip_prefix("let ")?.split_once(" = ")?;
+
+                    value.contains("section").then_some(name)
+                })
+                .collect_vec()
+        };
+        let expected = ["magic"]
+            .into_iter()
+            .chain(read("fn headed("))
+            .chain(read(
+                "fn parsed(mut rest: Bytes) -> sucds::Result<Self> {\n        let once",
+            ))
+            .chain(["lists"])
+            .chain(read(
+                "fn parsed(mut rest: Bytes) -> sucds::Result<Self> {\n        let numbers",
+            ))
+            .chain(["moves"])
+            .chain(read("fn parsed(image"));
 
         assert_eq!(
             SECTIONS.map(|(name, ..)| name).to_vec(),
@@ -1260,7 +1763,7 @@ mod tests {
         let keys = [1, 2, 1 << 60, u64::MAX];
         let prefixes = Prefixes::built(keys.into_iter(), keys.len()).unwrap();
 
-        assert_eq!(prefixes.len(), 4);
+        assert_eq!(prefixes.0.as_ref().map(EliasFano::len), Some(4));
         assert_eq!(prefixes.holding(3).collect_vec(), [0, 1]);
         assert_eq!(prefixes.holding(1 << 60).collect_vec(), [2]);
         assert_eq!(prefixes.holding(u64::MAX).collect_vec(), [3]);
@@ -1271,7 +1774,7 @@ mod tests {
     fn a_list_of_no_keys_holds_no_prefix() {
         let prefixes = Prefixes::built(iter::empty(), 0).unwrap();
 
-        assert_eq!(prefixes.len(), 0);
+        assert!(prefixes.0.is_none());
         assert!(prefixes.holding(0).next().is_none());
     }
 
@@ -1357,6 +1860,35 @@ mod tests {
     }
 
     #[test]
+    fn each_game_past_the_first_game_piece_reads_back_its_moves() {
+        let advances = |from: char, to: [char; 2]| {
+            ('a'..='h').flat_map(move |file| to.map(|rank| format!("{file}{from}{file}{rank}")))
+        };
+        let lines = advances('2', ['3', '4'])
+            .cartesian_product(advances('7', ['6', '5']).collect_vec())
+            .map(|(white, black)| format!("{white} {black}"))
+            .take((1 << SHELF_BITS) + 1)
+            .collect_vec();
+        let positions = built(
+            &lines
+                .iter()
+                .map(|line| (line.as_str(), 0, 0, 0))
+                .collect_vec(),
+        );
+        let last = 1 << SHELF_BITS;
+
+        assert_eq!(positions.pieces().1, 2);
+        assert_eq!(
+            positions.best(&keyed(&lines[last as usize]), 1).0[0].game,
+            last
+        );
+
+        for (game, line) in (0..).zip(&lines) {
+            assert_eq!(positions.moves(game), line.split_whitespace().collect_vec());
+        }
+    }
+
+    #[test]
     fn a_file_reads_back_from_disk_as_it_was_built() {
         let positions = built(&[("e2e4 e7e5", 0, 0, 0), ("e2e4 c7c5", 0, 0, 2)]);
         let folder = scratch("disk");
@@ -1379,13 +1911,13 @@ mod tests {
     fn a_file_under_another_layout_reads_as_invalid_data() {
         let folder = scratch("layout");
         let path = folder.join("positions.bin");
-        let whole = built(&[("e2e4 e7e5", 0, 0, 0)]);
+        let whole = built(&[("e2e4 e7e5", 0, 0, 0)]).image.unwrap();
 
         for image in [
             Vec::new(),
             vec![0; 64],
-            whole.image[..8].to_vec(),
-            whole.image[..whole.image.len() - 1].to_vec(),
+            whole[..8].to_vec(),
+            whole[..whole.len() - 1].to_vec(),
         ] {
             fs::write(&path, image).unwrap();
 
@@ -1396,6 +1928,108 @@ mod tests {
         }
 
         fs::remove_dir_all(folder).unwrap();
+    }
+
+    /// Answers `best` from the head of `whole` alone, adding each piece the
+    /// last answer listed in `wanted` until it lists none, and returns the
+    /// answer beside the rounds it took.
+    fn answered(whole: &Positions, keys: &[u64]) -> ((Vec<Run>, usize), usize) {
+        let held = Positions::started(whole.head().unwrap().to_vec()).unwrap();
+
+        for round in 1.. {
+            let answer = held.best(keys, whole.games());
+            let wanted = held.wanted();
+
+            if wanted.is_empty() {
+                return (answer, round);
+            }
+
+            for part in wanted {
+                held.add(part, whole.part(part).unwrap().to_vec()).unwrap();
+            }
+        }
+
+        unreachable!()
+    }
+
+    #[test]
+    fn a_head_alone_answers_as_the_whole_file_once_each_piece_is_added() {
+        let positions = built(&[
+            ("e2e4 e7e5 g1f3 b8c6", 100, 0, 0),
+            ("e2e4 c7c5 g1f3 d7d6", 300, 0, 2),
+            ("d2d4 d7d5 c2c4", 0, 0, 1),
+        ]);
+        let keys = keyed("e2e4 e7e5 g1f3 b8c6 f1b5");
+        let (answer, rounds) = answered(&positions, &keys);
+
+        assert_eq!(answer, positions.best(&keys, positions.games()));
+        assert!(rounds > 1);
+    }
+
+    #[test]
+    fn a_head_alone_reads_no_moves_and_writes_no_file() {
+        let positions = built(&[("e2e4 e7e5", 0, 0, 0)]);
+        let held = Positions::started(positions.head().unwrap().to_vec()).unwrap();
+
+        assert_eq!(held.moves(0), Vec::<String>::new());
+        assert_eq!(held.games(), 1);
+        assert_eq!(held.head().unwrap_err().kind(), ErrorKind::InvalidInput);
+        assert_eq!(
+            held.part(Part::Keys(0)).unwrap_err().kind(),
+            ErrorKind::InvalidInput
+        );
+        assert_eq!(
+            held.write(Path::new("/nonexistent/positions.bin"))
+                .unwrap_err()
+                .kind(),
+            ErrorKind::InvalidInput
+        );
+    }
+
+    #[test]
+    fn a_piece_the_head_names_nothing_for_or_cannot_read_is_refused() {
+        let positions = built(&[("e2e4 e7e5", 0, 0, 0)]);
+        let held = Positions::started(positions.head().unwrap().to_vec()).unwrap();
+        let mut longer = positions.head().unwrap().to_vec();
+
+        longer.push(0);
+
+        for (part, bytes, kind) in [
+            (Part::Keys(1 << 20), Vec::new(), ErrorKind::InvalidInput),
+            (Part::Games(1), Vec::new(), ErrorKind::InvalidInput),
+            (Part::Keys(0), vec![1; 3], ErrorKind::InvalidData),
+            (Part::Games(0), vec![1; 3], ErrorKind::InvalidData),
+        ] {
+            assert_eq!(held.add(part, bytes).unwrap_err().kind(), kind);
+        }
+
+        assert_eq!(
+            Positions::started(longer).unwrap_err().kind(),
+            ErrorKind::InvalidData
+        );
+    }
+
+    #[test]
+    fn a_rehead_places_each_game_piece_at_the_size_given() {
+        let positions = built(&[("e2e4 e7e5", 0, 0, 0), ("d2d4", 0, 0, 1)]);
+        let sizes = (0..positions.pieces().1)
+            .map(|at| {
+                positions
+                    .part(Part::Games(narrow(at as u64)))
+                    .unwrap()
+                    .len() as u64
+            })
+            .collect_vec();
+        let wider = sizes.iter().map(|size| size + 7).collect_vec();
+        let held = Positions::started(positions.rehead(&wider).unwrap()).unwrap();
+        let (from, to) = held.span(Part::Games(0)).unwrap();
+
+        assert_eq!(positions.rehead(&sizes).unwrap(), positions.head().unwrap());
+        assert_eq!(to - from, wider[0]);
+        assert_eq!(
+            positions.rehead(&[]).unwrap_err().kind(),
+            ErrorKind::InvalidInput
+        );
     }
 
     #[test]
@@ -1567,6 +2201,9 @@ mod tests {
         assert_eq!(positions.moves(2), ["e2e4"]);
         assert_eq!(
             positions
+                .games_holding(0)
+                .unwrap()
+                .0
                 .starts
                 .values()
                 .cloned()

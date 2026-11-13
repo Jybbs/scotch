@@ -8,9 +8,14 @@ use std::{
 };
 
 use itertools::{Itertools, izip};
-use pyo3::{exceptions::PyValueError, prelude::*, pybacked::PyBackedBytes, types::PyString};
+use pyo3::{
+    exceptions::PyValueError,
+    prelude::*,
+    pybacked::PyBackedBytes,
+    types::{PyBytes, PyString},
+};
 
-use crate::{Outcomes, Sharing, Stored, Tally};
+use crate::{Outcomes, Part, Sharing, Stored, Tally};
 
 /// The tags, the moves, the keys, and the errors of one game, in the order
 /// `Game` declares them.
@@ -85,6 +90,19 @@ fn keys(moves: Vec<String>, fen: Option<&str>, variant: Option<&str>) -> Vec<u64
 #[pyo3(signature = (moves, fen=None, variant=None))]
 fn encoded(moves: Vec<String>, fen: Option<&str>, variant: Option<&str>) -> PyResult<Vec<u8>> {
     crate::encoded(fen, variant, moves).map_err(raised)
+}
+
+/// Writes each move of the mainline `moves` names in UCI notation in SAN,
+/// beside the piece placement of each position from the start, from the
+/// position `fen` sets up under the variant `variant` names.
+#[pyfunction]
+#[pyo3(signature = (moves, fen=None, variant=None))]
+fn scored(
+    moves: Vec<String>,
+    fen: Option<&str>,
+    variant: Option<&str>,
+) -> (Vec<String>, Vec<String>) {
+    crate::scored(fen, variant, moves)
 }
 
 /// Ranks a game among those tied on their longest run from its `WhiteElo` and
@@ -189,8 +207,39 @@ impl Held {
 
     /// Counts the distinct keys the stored games reach.
     #[getter]
-    fn keys(&self) -> usize {
+    fn keys(&self) -> u64 {
         self.0.keys()
+    }
+
+    /// Counts the key pieces and the game pieces past the head.
+    #[getter]
+    fn pieces(&self) -> (usize, usize) {
+        self.0.pieces()
+    }
+
+    /// Returns the bytes of the key piece numbered `at` where `keys` is set,
+    /// and otherwise of the game piece numbered `at`.
+    fn part<'py>(&self, py: Python<'py>, keys: bool, at: u32) -> PyResult<Bound<'py, PyBytes>> {
+        let part = if keys {
+            Part::Keys(at)
+        } else {
+            Part::Games(at)
+        };
+
+        Ok(PyBytes::new(py, &self.0.part(part).map_err(raised)?))
+    }
+
+    /// Reads the number of each stored game the game piece numbered `at`
+    /// holds, in the order of their slots.
+    fn numbers(&self, at: u32) -> Vec<u32> {
+        self.0.numbers(at)
+    }
+
+    /// Writes the head of a file holding these key pieces and game pieces
+    /// of the bytes `sizes` lists in order.
+    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
+    fn rehead<'py>(&self, py: Python<'py>, sizes: Vec<u64>) -> PyResult<Bound<'py, PyBytes>> {
+        Ok(PyBytes::new(py, &self.0.rehead(&sizes).map_err(raised)?))
     }
 
     /// Reads the moves of `game` in UCI notation.
@@ -264,10 +313,13 @@ impl Held {
 #[pymodule]
 mod readers {
     #[pymodule_export]
-    use super::{Held, encoded, keys, read, skipped, standing, trails};
+    use super::{Held, encoded, keys, read, scored, skipped, standing, trails};
 
     /// Each section of `positions.bin`, by its name, beside how it is held and
     /// what it holds, in the order the file holds them.
     #[pymodule_export]
-    const SECTIONS: [(&str, &str, &str); 18] = crate::SECTIONS;
+    const STANDARD: [&str; 6] = crate::STANDARD;
+
+    #[pymodule_export]
+    const SECTIONS: [(&str, &str, &str); 22] = crate::SECTIONS;
 }

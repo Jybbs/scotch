@@ -3,7 +3,8 @@ Pins what `PositionIndex` finds for a submitted game against a store built
 from the three games in `fixtures/stored.pgn`, what it reports for one
 position, that a store reads back from its files as it was built, that a
 read holds each file to its layout, and what a `Batch` keeps of a fetched
-file and an index merged from several keeps of a game they repeat.
+file and an index merged from several keeps of a game they repeat, and what
+a published store holds.
 """
 
 from collections           import Counter
@@ -11,13 +12,16 @@ from collections.abc       import Callable
 from common.games          import line
 from common.sources        import declare, land
 from common.strategies     import games
+from hashlib               import sha256
 from hypothesis            import given
 from hypothesis.strategies import integers, lists
 from itertools             import product, takewhile
-from pathlib               import Path
-from polars                import DataFrame, read_parquet
-from polars.exceptions     import SchemaError
-from pytest                import TempPathFactory, mark, param, raises
+from json              import loads
+from pathlib           import Path
+from polars            import DataFrame, read_parquet
+from polars.exceptions import SchemaError
+from pytest            import TempPathFactory, mark, param, raises
+from zlib              import decompressobj
 
 from scotch.games.schemas import Game, Origin
 from scotch.index.schemas import Answer, GAMES, LEFT, ROWS, RUNS, Reply, Span
@@ -229,6 +233,44 @@ def test_a_game_two_batches_repeat_is_indexed_once_under_the_first(tmp_path: Pat
     ] == [
         ("1", "https://example.com/First.pgn", 1),
         ("2", "https://example.com/Second.pgn", 2)
+    ]
+
+
+def test_a_published_store_holds_each_piece_and_the_tags_of_its_games(
+    index    : PositionIndex,
+    stored   : list[Game],
+    tmp_path : Path
+):
+    """
+    Asserts that a published store opens on a head as long as its manifest
+    names, then holds each key piece as `positions.bin` holds it, then one
+    block of raw DEFLATE per game piece holding the piece and the tags of
+    each stored game its slots hold, under a name hashed from its bytes.
+    """
+    path           = index.publish(tmp_path)
+    data           = path.read_bytes()
+    manifest       = loads((tmp_path / "manifest.json").read_text())
+    keyed, shelved = index.positions.pieces
+    keys           = b"".join(index.positions.part(True, at) for at in range(keyed))
+    rest           = data[manifest["head"] + len(keys) :]
+    shelves        = []
+
+    for _ in range(shelved):
+        block = decompressobj(wbits=-15)
+        whole = block.decompress(rest)
+        rest  = block.unused_data
+        size  = int.from_bytes(whole[:4], "little")
+        shelves.append((whole[4 : 4 + size], loads(whole[4 + size :])))
+
+    assert manifest["store"] == path.name == f"{sha256(data).hexdigest()[:16]}.bin"
+    assert data[manifest["head"] :].startswith(keys)
+    assert rest == b""
+    assert shelves == [
+        (
+            index.positions.part(False, at),
+            [stored[number].tags for number in index.positions.numbers(at)]
+        )
+        for at in range(shelved)
     ]
 
 

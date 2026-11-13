@@ -19,9 +19,11 @@ mod tokens;
 mod wasm;
 
 pub use games::{Game, read, read_at, trails};
-pub use positions::{Outcomes, Positions, Run, SECTIONS, Sharing, Stored, Tally, standing};
+pub use positions::{Outcomes, Part, Positions, Run, SECTIONS, Sharing, Stored, Tally, standing};
 
 use std::io;
+
+use itertools::Itertools;
 
 use crate::{boards::Board, codes::Writer};
 
@@ -51,6 +53,53 @@ pub fn keys(
                 .then(|| board.key())
         }))
         .collect()
+}
+
+/// The names python-chess's `Board.aliases` gives standard chess, the one
+/// variant a game is matched under.
+pub const STANDARD: [&str; 6] = [
+    "Standard",
+    "Chess",
+    "Classical",
+    "Normal",
+    "Illegal",
+    "From Position",
+];
+
+/// Lists `errors` beside a message naming the variant `variant` names
+/// wherever it names other than standard chess, once each in the order
+/// first listed, as `Game.problems` lists them.
+#[must_use]
+pub fn problems(variant: Option<&str>, errors: Vec<String>) -> Vec<String> {
+    let variant = variant.unwrap_or("Standard");
+
+    if STANDARD
+        .iter()
+        .any(|name| name.eq_ignore_ascii_case(variant))
+    {
+        return errors;
+    }
+
+    errors
+        .into_iter()
+        .chain([format!("unsupported variant: {variant}")])
+        .unique()
+        .collect()
+}
+
+/// Writes each move of the mainline `moves` names in UCI notation in
+/// Standard Algebraic Notation (SAN), beside the piece placement of each
+/// position from the start, one more than the moves, from the position `fen`
+/// sets up or the standard starting position.
+///
+/// Returns neither where `keys` returns no key, and stops where it stops.
+#[must_use]
+pub fn scored(
+    fen: Option<&str>,
+    variant: Option<&str>,
+    moves: impl IntoIterator<Item = impl AsRef<str>>,
+) -> (Vec<String>, Vec<String>) {
+    Board::started(fen, variant).map_or_else(Default::default, |board| board.scored(moves))
 }
 
 /// Writes the mainline `moves` names in UCI notation as `Positions` stores
@@ -86,4 +135,33 @@ pub fn encoded(
     }
 
     writer.finish()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_variant_adds_one_problem_unless_it_names_standard_chess() {
+        let unsupported = |variant: &str| vec![format!("unsupported variant: {variant}")];
+
+        for (variant, errors, expected) in [
+            (None, vec![], vec![]),
+            (Some("chess"), vec![], vec![]),
+            (
+                Some("From Position"),
+                vec!["illegal san".to_owned()],
+                vec!["illegal san".to_owned()],
+            ),
+            (Some("Atomic"), vec![], unsupported("Atomic")),
+            (
+                Some("Bughouse"),
+                unsupported("Bughouse"),
+                unsupported("Bughouse"),
+            ),
+            (Some(""), unsupported(""), unsupported("")),
+        ] {
+            assert_eq!(problems(variant, errors), expected, "{variant:?}");
+        }
+    }
 }

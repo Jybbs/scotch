@@ -4,11 +4,13 @@ import init, { type InitInput, read } from './crate/scotch.js'
  * One game a PGN text carries, read and keyed by the WebAssembly build of the
  * crate the command line reads its games through.
  */
-interface Game {
-  errors : string[]
-  keys   : bigint[]
-  moves  : string[]
-  tags   : Record<string, string>
+export interface Game {
+  errors     : string[]
+  keys       : bigint[]
+  moves      : string[]
+  placements : string[]
+  sans       : string[]
+  tags       : Record<string, string>
 }
 
 /**
@@ -22,10 +24,12 @@ export async function loadReader(source: InitInput): Promise<(text: string) => G
   return text => read(text).map(game => {
     using owned = game
     return {
-      errors : owned.errors,
-      keys   : [...owned.keys],
-      moves  : owned.moves,
-      tags   : Object.fromEntries(owned.names.map((name, at) => [name, owned.values[at] ?? '']))
+      errors     : owned.errors,
+      keys       : [...owned.keys],
+      moves      : owned.moves,
+      placements : owned.placements,
+      sans       : owned.sans,
+      tags       : Object.fromEntries(owned.names.map((name, at) => [name, owned.values[at] ?? '']))
     }
   })
 }

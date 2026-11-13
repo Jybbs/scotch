@@ -12,7 +12,7 @@ from collections.abc import Sequence
 from pydantic        import BaseModel, NonNegativeInt, computed_field
 from typing          import Self
 
-from scotch.docs.tallies import ended, markdown, numbered
+from scotch.docs.tallies import ended, markdown, notated
 
 
 class Crowd(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -250,7 +250,7 @@ class Shared(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
                     headers = ("Line", "Playing It", "Reaching It"),
                     rows    = (
                         (
-                            f"`{numbered(line.sans)}`",
+                            f"`{notated(line.sans)}`",
                             f"{line.games:,}",
                             f"{line.reach:,}"
                         )

@@ -1,0 +1,6 @@
+1. `git clone --filter=blob:none https://github.com/owner/scotch.git` clones the repository, leaving out every earlier layout of the game store the history keeps, which git downloads only where a checkout reaches it
+2. `mise trust scotch` marks the clone's `.mise/config.toml` trusted, so mise loads it rather than prompting, skipping the file, or failing with an untrusted-config error
+3. `mise -C scotch install` installs each tool `.mise/config.toml` pins, the Python interpreter, uv, and the Rust toolchain among them
+4. `cd scotch` enters the clone, where mise puts uv and the wrapper at `.mise/bin/scotch` on the path
+5. `scotch --help` builds `.venv` from `uv.lock` on the wrapper's first run, compiling the crate under `rust/`, then prints the command's help
+6. `mise doctor project` runs each check `.mise/config.toml` declares and prints the step that clears any that fails

@@ -3,9 +3,9 @@ Holds `Reference`, the tables the Reference section's pages set beneath
 their drawings, each written from what declares it, meaning `Settings`, what
 `mise tasks` reports, the `Identity`, `Marks`, `Terms`, what python-chess
 ships, the hosts `sources.toml` names, the records of the manifest and the
-match file, the `COLUMNS` of the games table, and the crate's `SECTIONS`
-of `positions.bin`, so a change to any of them reaches its page through the
-next `scotch render docs`.
+match file, the `COLUMNS` of the games table, the crate's `SECTIONS` of
+`positions.bin`, and the checks `.mise/config.toml` declares, so a change to
+any of them reaches its page through the next `scotch render docs`.
 """
 
 from chess     import Board, COLOR_NAMES, Piece, parse_square, piece_name
@@ -32,7 +32,7 @@ from scotch.games            import readers
 from scotch.identity.schemas import Color, Identity, Role
 from scotch.index.schemas    import COLUMNS, Export, Side, Span
 from scotch.index.tables     import PositionIndex
-from scotch.repo.schemas     import Task
+from scotch.repo.schemas     import MiseConfig, Task
 from scotch.sources.schemas  import Download, Manifest, Sources
 
 
@@ -68,6 +68,24 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     """
     The identity the section's identity page draws.
     """
+
+    @property
+    def checks(self) -> str:
+        """
+        Writes a table of each check `mise doctor project` runs, the
+        condition it passes on, and the step it prints where it fails, as
+        the `[doctor.checks]` tables of `.mise/config.toml` declare them.
+        """
+        return markdown(
+            headers = ("Check", "Passes Where", "Prints Where It Fails"),
+            right   = False,
+            rows    = (
+                (f"`{name}`", check.description, f"`{check.hint}`")
+                for name, check in MiseConfig.read(
+                    self.root / ".mise/config.toml"
+                ).diagnostics.items()
+            )
+        )
 
     @property
     def columns(self) -> str:

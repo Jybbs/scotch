@@ -1,9 +1,11 @@
 """
 Holds `Stops`, the messages a command exits nonzero on, read from the
 `stops.toml` beside this module, which the commands page sets beneath each
-command and the audit's `StopCheck` holds to the messages the code prints.
+command, the Guide's walkthroughs set for the steps they cover, and the
+audit's `StopCheck` holds to the messages the code prints.
 """
 
+from collections.abc         import Iterable, Iterator
 from importlib.resources     import files
 from importlib.resources.abc import Traversable
 from pathlib                 import Path
@@ -12,7 +14,7 @@ from re      import sub
 from tomllib import loads
 from typing  import ClassVar, Self
 
-from scotch.docs.tallies import markdown
+from scotch.docs.tallies import coded, markdown
 
 
 class Stop(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -72,6 +74,17 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     Each message, in the order the commands page lists it.
     """
 
+    def printed(self, command: str, naming: str | None = None) -> Iterator[Stop]:
+        """
+        Yields each message `command` exits nonzero on, or each one holding
+        `naming` where it is given, in the order the registry lists them.
+        """
+        return (
+            stop
+            for stop in self.stops
+            if command in stop.commands and (naming is None or naming in stop.message)
+        )
+
     @classmethod
     def read(cls, path: Traversable = files("scotch.docs") / "stops.toml") -> Self:
         """
@@ -80,16 +93,39 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         """
         return cls.model_validate(loads(path.read_text(encoding="utf-8")))
 
-    def table(self, command: str) -> str:
+    def steps(self, commands: Iterable[tuple[str, str | None]]) -> str:
         """
-        Writes the table of each message `command` exits nonzero on, beside
-        when it prints it and the step that clears it, or nothing where it
-        exits on none.
+        Writes the table of each message the commands of `commands` exit
+        nonzero on, in the order given, each command paired with the part a
+        message must hold to be listed, or with `None` to list every message
+        it exits on. Each message sits beside its command linked to its
+        section of the commands page, when it prints the message, and the
+        step that clears it.
+        """
+        return markdown(
+            headers = ("Command", "Message", "When", "Clears It"),
+            right   = False,
+            rows    = (
+                (
+                    f"[`scotch {command}`](../reference/commands.md"
+                    f"#scotch-{command.replace(' ', '-')})",
+                    coded(stop.message),
+                    stop.when, stop.clears
+                )
+                for command, naming in commands
+                for stop in self.printed(command, naming)
+            )
+        )
+
+    def table(self, command: str, naming: str | None = None) -> str:
+        """
+        Writes the table of each message `command` exits nonzero on, or each
+        one holding `naming` where it is given, beside when it prints it and
+        the step that clears it, or nothing where it exits on none.
         """
         rows = [
             (coded(stop.message), stop.when, stop.clears)
-            for stop in self.stops
-            if command in stop.commands
+            for stop in self.printed(command, naming)
         ]
 
         return markdown(
@@ -97,11 +133,3 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
             right   = False,
             rows    = rows
         ) if rows else ""
-
-
-def coded(text: str) -> str:
-    """
-    Writes `text` as inline code, between doubled backticks where it holds
-    one, as CommonMark reads a code span.
-    """
-    return f"`` {text} ``" if "`" in text else f"`{text}`"

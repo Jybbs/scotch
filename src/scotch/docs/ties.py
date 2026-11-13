@@ -9,7 +9,7 @@ from chess.pgn import TAG_ROSTER
 from pydantic  import BaseModel, NonNegativeInt
 from typing    import Self
 
-from scotch.docs.tallies  import markdown, numbered
+from scotch.docs.tallies  import markdown, notated
 from scotch.index.schemas import Match
 
 
@@ -113,7 +113,7 @@ class Tie(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True)
         """
         return {
             "tie-games" : str(len(self.games)),
-            "tie-line"  : f"`{numbered(self.line)}`"
+            "tie-line"  : f"`{notated(self.line)}`"
         }
 
     @property

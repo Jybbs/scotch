@@ -4,6 +4,9 @@ import { ROLES }               from '../../../lib/identity/roles.ts'
 import { SECTIONS, sectionOf } from '../../../lib/site/sections.ts'
 import { pageText }            from '../../common/pages.ts'
 
+const ordered = SECTIONS.flatMap(({ slug, ...section }) =>
+  ('order' in section ? section.order : []).map(stem => ({ page: `${slug}/${stem}.md` })))
+
 describe('SECTIONS', () => {
   it.each(SECTIONS)('opens the $label section on an overview headed $label in $slug/', ({ label, slug }) => {
     expect(pageText(`${slug}/index.md`)).toMatch(new RegExp(`^# ${label}$`, 'mu'))
@@ -15,6 +18,10 @@ describe('SECTIONS', () => {
 
   it('lists the sections alphabetically', () => {
     expect(SECTIONS.map(({ slug }) => slug)).toEqual(SECTIONS.map(({ slug }) => slug).toSorted())
+  })
+
+  it.each(ordered)('orders a page its section carries, $page', ({ page }) => {
+    expect(pageText(page)).toMatch(/^# /mu)
   })
 
   it('accents each section in a color of its own, never a game\'s or the run\'s', () => {

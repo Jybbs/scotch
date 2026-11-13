@@ -41,6 +41,28 @@ def listing(fp: FakeProcess) -> Callable[..., None]:
 
 
 @fixture
+def objects(fp: FakeProcess) -> Callable[..., None]:
+    """
+    Builds a registrar answering `aws s3api list-objects-v2` with the
+    objects it is given, each a key and the instant R2 last wrote it, as the
+    command's `--query` prints them, and `null` where it is given none.
+    """
+    def register(*entries: tuple[str, str]):
+        """
+        Registers the listing of `entries`.
+        """
+        fp.register(
+            ["aws", "s3api", "list-objects-v2", fp.any()],
+            stdout = dumps(
+                [{"key": key, "modified": modified} for key, modified in entries]
+                or None
+            )
+        )
+
+    return register
+
+
+@fixture
 def task(request: FixtureRequest) -> ModuleType:
     """
     Imports the task script the requesting test module mirrors.

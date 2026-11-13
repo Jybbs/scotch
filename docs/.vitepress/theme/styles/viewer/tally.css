@@ -1,0 +1,136 @@
+.sc-viewer-tally {
+  display     : grid;
+  gap         : 8px;
+  min-width   : 0;
+  padding-top : 12px;
+  border-top  : 1px solid var(--sc-rule);
+}
+
+.sc-viewer-tally-kicker {
+  display              : flex;
+  align-items          : center;
+  justify-content      : space-between;
+  gap                  : 12px;
+  color                : var(--sc-quiet);
+  font                 : 500 0.62rem/16px var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+  letter-spacing       : 0.12em;
+  text-transform       : uppercase;
+
+  & b {
+    color       : var(--sc-ink);
+    font-weight : 600;
+  }
+}
+
+.sc-viewer-ranks {
+  display     : flex;
+  flex-wrap   : wrap;
+  align-items : flex-start;
+  gap         : 10px 8px;
+}
+
+.sc-viewer-rank {
+  display       : grid;
+  justify-items : center;
+  gap           : 7px;
+}
+
+.sc-viewer-rank-chip {
+  display              : inline-flex;
+  align-items          : center;
+  gap                  : 4px;
+  height               : 40px;
+  padding              : 0 12px 0 5px;
+  border               : 1px solid var(--sc-rule);
+  border-radius        : 999px;
+  background           : var(--sc-raised);
+  color                : var(--sc-ink);
+  font                 : 600 0.76rem/1 var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+  cursor               : pointer;
+
+  &:hover { border-color: var(--sc-run); }
+
+  &[aria-pressed="true"] {
+    border-color : var(--sc-run);
+    background   : var(--sc-tint);
+    box-shadow   : inset 0 0 0 1px var(--sc-run);
+  }
+
+  & i {
+    margin-right : 1px;
+    color        : var(--sc-quiet);
+    font-style   : normal;
+    font-weight  : 500;
+  }
+}
+
+.sc-viewer-rank-piece {
+  display : block;
+  width   : 30px;
+  height  : 30px;
+}
+
+.sc-viewer-rank-dots {
+  display     : flex;
+  align-items : center;
+  height      : 10px;
+
+  &[data-more] .sc-viewer-rank-dot:last-child::before {
+    width  : 3px;
+    height : 3px;
+  }
+}
+
+.sc-viewer-rank-dot {
+  display     : grid;
+  place-items : center;
+  width       : 9px;
+  height      : 10px;
+  padding     : 0;
+  border      : 0;
+  background  : none;
+  cursor      : pointer;
+
+  &::before {
+    content       : '';
+    width         : 5px;
+    height        : 5px;
+    border-radius : 50%;
+    box-shadow    : inset 0 0 0 1px color-mix(in oklab, var(--sc-quiet) 70%, transparent);
+    transition    : background-color var(--sc-duration-fade) var(--sc-curve-glide), transform var(--sc-duration-fade) var(--sc-curve-glide);
+  }
+
+  &:hover::before { box-shadow: inset 0 0 0 1px var(--sc-run); }
+
+  &[data-on]::before {
+    background : var(--sc-run);
+    box-shadow : none;
+    transform  : scale(1.3);
+  }
+
+  &:focus-visible {
+    border-radius  : 3px;
+    outline        : 2px solid var(--sc-run);
+    outline-offset : 1px;
+  }
+}
+
+.sc-viewer-meter {
+  position      : relative;
+  height        : 6px;
+  overflow      : hidden;
+  border-radius : 3px;
+  background    : var(--sc-raised);
+  box-shadow    : inset 0 0 0 1px var(--sc-rule);
+
+  & span {
+    position   : absolute;
+    top        : 0;
+    bottom     : 0;
+    background : color-mix(in oklab, var(--sc-run) 28%, transparent);
+  }
+
+  & span[data-on] { background: var(--sc-run); }
+}

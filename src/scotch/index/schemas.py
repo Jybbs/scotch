@@ -5,6 +5,8 @@ Holds the records a command reads a match or a position through:
 - `Match`, what a `PositionIndex` finds for a submitted game
 - `Export`, what `scotch match game --json` writes for the Viewer
 - `Answer`, what `scotch show position` prints for a position
+- `Pairing`, what `scotch match games` prints for one game of a file
+- `Holding`, what `scotch show store` prints for the store
 
 The Polars schemas sit beside them, meaning `GAMES`, the index's Parquet
 table of stored games, built from the type and the meaning `COLUMNS`
@@ -15,13 +17,15 @@ index leaves out, each under one of the `REASONS`, and `RUNS`, the runs
 """
 
 from base64   import urlsafe_b64encode
+from pathlib  import Path
 from polars   import Binary, Enum, Int64, List, Schema, String, Struct, UInt16, UInt32
 from pydantic import BaseModel, NonNegativeInt, PositiveInt
 from typing   import Self
 from zlib     import compress
 
-from scotch.docs.project  import Project
-from scotch.games.schemas import Game
+from scotch.docs.project    import Project
+from scotch.games.schemas   import Game
+from scotch.sources.schemas import Download
 
 COLUMNS = {
     "game"   : (UInt32, "The game's place in the index's order, from 0"),
@@ -84,6 +88,73 @@ RUNS = Schema(
 )
 # The order `readers.Positions` counts outcomes in.
 RESULTS = ("1-0", "1/2-1/2", "0-1", "*")
+
+
+class Holding(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    What the store holds, as `scotch show store` reports it.
+    """
+
+    fetched: tuple[tuple[str, Download | None], ...]
+    """
+    Each file `sources.toml` declares, by its name, beside its download, or
+    `None` where it has not been fetched.
+    """
+
+    folder: Path
+    """
+    The folder the index is read from.
+    """
+
+    held: tuple[NonNegativeInt, NonNegativeInt] | None
+    """
+    The count of games and of positions the index holds, or `None` where no
+    index in this layout has been built.
+    """
+
+    stale: bool
+    """
+    Whether a fetch since the index was built recorded other bytes for the
+    files than the ones the index was read from.
+    """
+
+    @property
+    def summary(self) -> str:
+        """
+        Writes each file with its size and fetch date, the games and the
+        positions the index holds, whether the files have changed since
+        the index was built from them, and the command to run next, one to
+        a line.
+        """
+        current = self.held is not None and not self.stale
+
+        return "\n".join(
+            (
+                *(
+                    f"{name}  {download.summary if download else 'not fetched'}"
+                    for name, download in self.fetched
+                ),
+                *(
+                    (
+                        f"The index holds {counted(self.held[0])} and"
+                        f" {self.held[1]:,} positions",
+                        "The index was built from the files as fetched"
+                        if current
+                        else "The files have changed since the index was built"
+                        " from them"
+                    )
+                    if self.held
+                    else (
+                        f"No index in this layout has been built under {self.folder}",
+                    )
+                ),
+                "Next: scotch fetch games"
+                if any(download is None for _, download in self.fetched)
+                else "Next: scotch match game <pgn>"
+                if current
+                else "Next: scotch index games"
+            )
+        )
 
 
 class Reply(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -413,3 +484,55 @@ class Export(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
             submitted = Side.from_game(submitted),
             ties      = match.ties
         )
+
+
+class Pairing(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    One game of a file beside the stored game closest to it, as `scotch
+    match games` prints it.
+    """
+
+    file: str
+    """
+    The name of the file the game was read from.
+    """
+
+    match: Match | None
+    """
+    The match the index finds for the game, or `None` where the game carries
+    a problem or no stored game shares a position with it.
+    """
+
+    place: PositiveInt
+    """
+    The game's place in the file, counting from 1.
+    """
+
+    submitted: Game
+    """
+    The game.
+    """
+
+    @property
+    def line(self) -> str:
+        """
+        Writes the game as `<file>:<n>` beside its problems, the stored game
+        closest to it, or a sentence saying no stored game shares a position
+        with it.
+        """
+        return f"{self.file}:{self.place}  " + (
+            ", ".join(self.submitted.problems)
+            or (
+                self.match.line
+                if self.match
+                else "No stored game shares a position with this game"
+            )
+        )
+
+
+def counted(count: int) -> str:
+    """
+    Writes `count` with its thousands separated, followed by game or games
+    to agree with it.
+    """
+    return f"{count:,} {'game' if count == 1 else 'games'}"

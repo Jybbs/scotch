@@ -4,11 +4,12 @@ Holds `Tally`, the counts `Census.store` draws from the index, beside the
 file the Data page's file list shows, the `Rank` of one row of the files the
 store keeps the most games from, the `Rules` measuring what the longest-run
 rule leaves out, `ended`, which reads the moves a share of games end by,
-`markdown`, which writes each table, and `numbered`, which writes a line
-of moves. Their properties write the tables the Data pages and the Guide's
-store page set beneath their widgets and the figures the pages set inside
-their sentences, which `scotch render docs` writes between each pair of
-markers.
+`markdown`, which writes each table, `notated`, which writes a line of
+moves, `numbered`, which writes a numbered list of code, and `coded`, which
+writes one code span. Their properties write the tables the Data pages and
+the Guide's store page set beneath their widgets and the figures the pages
+set inside their sentences, which `scotch render docs` writes between each
+pair of markers.
 """
 
 from bisect          import bisect_left
@@ -564,6 +565,14 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         ]
 
 
+def coded(text: str) -> str:
+    """
+    Writes `text` as inline code, between doubled backticks where it holds
+    one, as CommonMark reads a code span.
+    """
+    return f"`` {text} ``" if "`" in text else f"`{text}`"
+
+
 def ended(counts: Iterable[int], share: float) -> int:
     """
     Finds the fewest moves at least `share` of the games `counts` holds end
@@ -595,11 +604,22 @@ def markdown(
     )
 
 
-def numbered(sans: Iterable[str]) -> str:
+def notated(sans: Iterable[str]) -> str:
     """
     Writes moves in Standard Algebraic Notation (SAN) from the standard
     starting position as numbered moves, such as `1.d4 d5 2.c4`.
     """
     return " ".join(
         f"{ply // 2 + 1}.{san}" if ply % 2 == 0 else san for ply, san in enumerate(sans)
+    )
+
+
+def numbered(items: Iterable[tuple[str, str]]) -> str:
+    """
+    Writes a numbered Markdown list, each item a line of code beside the
+    words saying what it does.
+    """
+    return "\n".join(
+        f"{number}. {coded(code)} {gloss}"
+        for number, (code, gloss) in enumerate(items, start=1)
     )

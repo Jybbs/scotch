@@ -6,14 +6,15 @@ the Markdown files git tracks or would track, and that every declared output
 renders into a fresh checkout and then reports no drift.
 """
 
-from chess.svg       import PIECES
-from collections.abc import Callable, Iterable
-from common.app      import invoke
-from common.games    import line
-from json            import loads
-from pathlib         import Path
-from pytest          import CaptureFixture, MonkeyPatch, mark, param
-from tomllib         import loads as from_toml
+from chess.svg        import PIECES
+from collections.abc  import Callable, Iterable
+from common.app       import invoke
+from common.games     import line
+from json             import loads
+from pathlib          import Path
+from pytest           import CaptureFixture, MonkeyPatch, mark, param
+from syrupy.assertion import SnapshotAssertion
+from tomllib          import loads as from_toml
 
 from scotch.cli              import app
 from scotch.cli.settings     import Settings
@@ -32,6 +33,7 @@ RUNS = (
     "index-games", "match-game", "match-games",
     "show-game", "show-position", "show-store"
 )
+STUDIED = ("plies", *RUNS[1:])
 
 
 def marked(*names: str) -> str:
@@ -46,8 +48,10 @@ def test_an_index_adds_the_files_written_from_it(
     checkout    : Callable[..., Path],
     monkeypatch : MonkeyPatch,
     scanned     : Callable[[Iterable[Game]], PositionIndex],
+    snapshot    : SnapshotAssertion,
     stored      : list[Game],
-    tally       : Tally
+    tally       : Tally,
+    tmp_path    : Path
 ):
     """
     Asserts that an index adds these files and nothing else, each rendering
@@ -64,9 +68,13 @@ def test_an_index_adds_the_files_written_from_it(
     - The demo game's match file
     - The example run of each command whose output the index sets, the
       commands page's
+    - The demo's match, each line of its report beside what it holds, then
+      the Guide's example runs of a match, one cut to its first plies, the
+      walkthrough pages holding the text their snapshot holds
     - The measured figures of each Markdown file, each the count its marker
-      names, an example's under the example's name and the figure's, and the
-      length of the demo's address
+      names, an example's under the example's name and the figure's, the
+      length of the demo's address, and the bytes the downloads and the
+      index take
     """
     monkeypatch.setattr(Census, "store", tally)
     index = scanned(
@@ -104,14 +112,25 @@ def test_an_index_adds_the_files_written_from_it(
             "Shares <!-- demo-run -->0<!-- /demo-run --> positions.\n"
         ),
 
+        "guide/setup.md": (
+            "Take <!-- downloads-size -->0 bytes<!-- /downloads-size --> and"
+            " <!-- index-size -->0 bytes<!-- /index-size -->.\n"
+        ),
+
         "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
         "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
         "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n",
-        "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n"
+        "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n",
+        **walked()
     }
     readme   = Path(".github/README.md")
     root     = checkout(pages)
-    measured = Outputs.measured(index, tracked(root), readme, root)
+    settings = Settings.model_construct(data=tmp_path / "data")
+
+    (settings.downloads / "players").mkdir(parents=True)
+    (settings.downloads / "players/Kasparov.zip").write_bytes(bytes(1_500))
+
+    measured = Outputs.measured(index, tracked(root), readme, root, settings)
 
     assert [(type(output), str(output.path)) for output in measured] == [
         (Document, "docs/.vitepress/lib/rendered/examples.json"),
@@ -132,9 +151,11 @@ def test_an_index_adds_the_files_written_from_it(
         (Region, "docs/pages/guide/store.md"),
         (Region, "docs/pages/reference/identity.md"),
         *[(Region, "docs/pages/reference/commands.md")] * len(RUNS),
-        *((Figures, f"docs/pages/{page}") for page in pages)
+        (Region, "docs/pages/guide/matching.md"),
+        *[(Region, "docs/pages/guide/studying.md")] * len(STUDIED),
+        *((Figures, f"docs/pages/{page}") for page in sorted(pages))
     ]
-    assert len(Outputs.shipped(app, readme, root, index).root) == (
+    assert len(Outputs.shipped(app, readme, root, index, settings).root) == (
         len(Outputs.shipped(app, readme, root).root) + len(measured)
     )
 
@@ -185,6 +206,152 @@ def test_an_index_adds_the_files_written_from_it(
     assert '\n[White "Kasparov, Gary"]\n' in text["reference/commands.md"]
     assert "The index holds 3 games and" in text["reference/commands.md"]
     assert "scotch show game players/Kasparov.zip:1\n" in text["reference/commands.md"]
+    assert text["guide/matching.md"].startswith(
+        "<!-- gloss -->\n1. `players/Kasparov.zip:1  Kasparov, Gary vs. Sosonko,"
+        " Gennadi, Tilburg, 1981.??.??` names the stored game as its file and its"
+        " place there"
+    )
+    assert [
+        line.split(". ", 1)[0]
+        for line in text["guide/matching.md"].split(
+            "<!-- /gloss -->"
+        )[0].splitlines()[1:]
+    ] == [str(number) for number in range(1, len(Outputs.glosses) + 1)]
+    assert all(
+        text["reference/commands.md"].split(f"<!-- run-{run} -->")[1].split(
+            f"<!-- /run-{run} -->"
+        )[0] in text["guide/studying.md"]
+        for run in RUNS[1:]
+    )
+    assert (
+        f"scotch match game docs/public/games/demo.pgn --plies {Outputs.plies}\n"
+        in text["guide/studying.md"]
+    )
+    assert "\n".join(
+        text[page] for page in ("guide/matching.md", "guide/studying.md")
+    ) == snapshot
+    assert "<!-- downloads-size -->1.5 kB<!-- /downloads-size -->" in text[
+        "guide/setup.md"
+    ]
+    assert "<!-- index-size -->0 bytes<!-- /index-size -->" in text["guide/setup.md"]
+
+
+def test_every_declared_output_renders_and_then_holds_its_rendering(
+    checkout : Callable[..., Path],
+    snapshot : SnapshotAssertion
+):
+    """
+    Asserts that each output declared without an index writes into a fresh
+    checkout whose pages hold their markers, and that each then reports
+    no drift, the pieces written in the order of their names, the favicon
+    colored in Walnut on a light ground and Cashmere on a dark one, each
+    lockup's wordmark and tagline filled in the colors their roles take in
+    its scheme, the front page's tagline filled in from the identity, and
+    the walkthrough pages holding the text their snapshot holds.
+    """
+    root = checkout(
+        {
+            "data/index.md": (
+                "Holds <!-- files -->0<!-- /files --> files.\n\n"
+                "<!-- sources -->\n<!-- /sources -->\n"
+            ),
+
+            "guide/index.md"    : "<!-- install -->\n<!-- /install -->\n",
+            "guide/matching.md" : marked("refused"),
+            "guide/setup.md"    : marked("steps", "checks", "stops"),
+            "guide/store.md"    : "<!-- source -->\n<!-- /source -->\n",
+            "index.md"          : "<!-- tagline --><!-- /tagline -->\n",
+
+            "reference/identity.md": "".join(
+                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
+                for name in (
+                    "palette", "roles", "faces", "pieces", "marks", "construction"
+                )
+            ),
+
+            "reference/settings.md": "".join(
+                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
+                for name in ("settings", "order", "origin")
+            ),
+
+            "reference/tasks.md" : "<!-- tasks -->\n<!-- /tasks -->\n",
+            "reference/terms.md" : "<!-- terms -->\n<!-- /terms -->\n",
+
+            "reference/commands.md": marked(
+                *(f"command-{verb}-{noun}" for verb, noun in commands(app)),
+                "run-cite-source",
+                "run-fetch-games"
+            ),
+
+            "reference/files.md": marked(
+                "layout",
+                "manifest",
+                "columns",
+                "sections",
+                "warning"
+            ),
+
+            "reference/match.md": marked("export", "side", "span")
+        }
+    )
+    outputs = Outputs.shipped(app, Path(".github/README.md"), root)
+
+    for output in outputs:
+        output.write(root)
+
+    data  = (root / "docs/pages/data/index.md").read_text()
+    front = (root / "docs/pages/index.md").read_text()
+    pages = (root / "docs/pages/reference/commands.md").read_text()
+    store = (root / "docs/pages/guide/store.md").read_text()
+
+    assert [*output.problems(root) for output in outputs] == []
+    assert f"<!-- files -->{len(Sources.read().sources):,}<!-- /files -->" in data
+    assert "|---|---|---|" in data
+    assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
+    assert "\n".join(
+        (root / "docs/pages/guide" / page).read_text()
+        for page in ("setup.md", "matching.md")
+    ) == snapshot
+    assert from_toml(store.split("```toml\n")[1].split("\n```")[0]) == {
+        "floors"  : Sources.read().floors,
+        "sources" : [Sources.read().sources[0].model_dump(
+            exclude_none = True,
+            mode         = "json"
+        )]
+    }
+    assert all(
+        f"<!-- command-{verb}-{noun} -->\n{Commands(app=app).section(verb, noun)}\n"
+        in pages
+        for verb, noun in commands(app)
+    )
+    assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in pages
+    assert pages.count("Fetched https://www.pgnmentor.com/") == 4
+    assert loads(
+        (root / "docs/public/matches/alone.json").read_text()
+    )["stored"] is None
+    assert Project.installed().badges(Path(".github/README.md")) in (
+        root / ".github/README.md"
+    ).read_text()
+    assert [
+        (root / "docs/assets" / f"lockup-{scheme}.svg").read_text().count(hexed)
+        for scheme, hexed in (
+            ("dark", "#e3c3a3"),
+            ("dark", "#a1a09e"),
+            ("light", "#764017"),
+            ("light", "#4f4e4e")
+        )
+    ] == [1, 1, 1, 1]
+    assert loads((root / "docs/.vitepress/lib/rendered/identity.json").read_text())[
+        "tagline"
+    ] == "Find the grandmaster game closest to yours."
+    assert list(
+        loads((root / "docs/.vitepress/lib/rendered/pieces.json").read_text())
+    ) == sorted(PIECES)
+    assert (root / "docs/public/favicon.svg").read_text() == (
+        '<svg viewBox="0 0 1 1"><style>path{fill:#764017}'
+        "@media (prefers-color-scheme:dark){path{fill:#e3c3a3}}</style>"
+        '<path d="M0 0M0 0M0 0M0 0M0 0"/></svg>'
+    )
 
 
 @mark.parametrize(
@@ -254,11 +421,18 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
             "guide/index.md"        : "<!-- example -->\n<!-- /example -->\n",
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
             "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
-            "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n"
+            "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n",
+            **walked()
         }
     )
 
-    for output in Outputs.measured(index, tracked(root), readme, root):
+    for output in Outputs.measured(
+        index,
+        tracked(root),
+        readme,
+        root,
+        Settings.model_construct(data=root / ".cache/data")
+    ):
         if output.path != readme:
             output.write(root)
 
@@ -270,6 +444,10 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
     [
         param(("match", "game", str(Outputs.demo.path), "--top", "1"), id="match-game"),
         param(("match", "games", str(Outputs.demo.path)), id="match-games"),
+        param(
+            ("match", "game", str(Outputs.demo.path), "--plies", str(Outputs.plies)),
+            id = "match-game-plies"
+        ),
         param(("show", "game", "players/Kasparov.zip:1"), id="show-game"),
         param(
             ("show", "position", "1.", "Nf3", "Nf6", "2.", "c4", "--top", "1"),
@@ -304,133 +482,29 @@ def test_each_example_run_holds_what_its_command_prints(
         )
         for place, game in enumerate(stored, start=1)
     )
-    root = checkout({"reference/commands.md": marked(*(f"run-{run}" for run in RUNS))})
+    root = checkout(
+        {"reference/commands.md": marked(*(f"run-{run}" for run in RUNS)), **walked()}
+    )
 
     for output in Outputs.measured(
         index,
         tracked(root),
         Path(".github/README.md"),
-        root
+        root,
+        Settings.model_construct(data=root / ".cache/data")
     ):
-        if output.path == Outputs.commands:
+        if output.path in {Outputs.commands, Outputs.guide / "studying.md"}:
             output.write(root)
 
     monkeypatch.chdir(root)
     monkeypatch.setattr(Settings, "opened", lambda _: index)
     invoke(*argv)
-    printed = capsys.readouterr().out
-
-    assert f"```text\n{printed}```" in (root / Outputs.commands).read_text()
-
-
-def test_every_declared_output_renders_and_then_holds_its_rendering(
-    checkout: Callable[..., Path]
-):
-    """
-    Asserts that each output declared without an index writes into a fresh
-    checkout whose pages hold their markers, and that each then reports
-    no drift, the pieces written in the order of their names, the favicon
-    colored in Walnut on a light ground and Cashmere on a dark one, each
-    lockup's wordmark and tagline filled in the colors their roles take in
-    its scheme, and the front page's tagline filled in from the identity.
-    """
-    root = checkout(
-        {
-            "data/index.md": (
-                "Holds <!-- files -->0<!-- /files --> files.\n\n"
-                "<!-- sources -->\n<!-- /sources -->\n"
-            ),
-
-            "guide/index.md" : "<!-- install -->\n<!-- /install -->\n",
-            "guide/store.md" : "<!-- source -->\n<!-- /source -->\n",
-            "index.md"       : "<!-- tagline --><!-- /tagline -->\n",
-
-            "reference/identity.md": "".join(
-                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
-                for name in (
-                    "palette", "roles", "faces", "pieces", "marks", "construction"
-                )
-            ),
-
-            "reference/settings.md": "".join(
-                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
-                for name in ("settings", "order", "origin")
-            ),
-
-            "reference/tasks.md" : "<!-- tasks -->\n<!-- /tasks -->\n",
-            "reference/terms.md" : "<!-- terms -->\n<!-- /terms -->\n",
-
-            "reference/commands.md": marked(
-                *(f"command-{verb}-{noun}" for verb, noun in commands(app)),
-                "run-cite-source",
-                "run-fetch-games"
-            ),
-
-            "reference/files.md": marked(
-                "layout",
-                "manifest",
-                "columns",
-                "sections",
-                "warning"
-            ),
-
-            "reference/match.md": marked("export", "side", "span")
-        }
+    pages = "".join(
+        (root / page).read_text()
+        for page in (Outputs.commands, Outputs.guide / "studying.md")
     )
-    outputs = Outputs.shipped(app, Path(".github/README.md"), root)
 
-    for output in outputs:
-        output.write(root)
-
-    data  = (root / "docs/pages/data/index.md").read_text()
-    front = (root / "docs/pages/index.md").read_text()
-    pages = (root / "docs/pages/reference/commands.md").read_text()
-    store = (root / "docs/pages/guide/store.md").read_text()
-
-    assert [*output.problems(root) for output in outputs] == []
-    assert f"<!-- files -->{len(Sources.read().sources):,}<!-- /files -->" in data
-    assert "|---|---|---|" in data
-    assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
-    assert from_toml(store.split("```toml\n")[1].split("\n```")[0]) == {
-        "floors"  : Sources.read().floors,
-        "sources" : [Sources.read().sources[0].model_dump(
-            exclude_none = True,
-            mode         = "json"
-        )]
-    }
-    assert all(
-        f"<!-- command-{verb}-{noun} -->\n{Commands(app=app).section(verb, noun)}\n"
-        in pages
-        for verb, noun in commands(app)
-    )
-    assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in pages
-    assert pages.count("Fetched https://www.pgnmentor.com/") == 4
-    assert loads(
-        (root / "docs/public/matches/alone.json").read_text()
-    )["stored"] is None
-    assert Project.installed().badges(Path(".github/README.md")) in (
-        root / ".github/README.md"
-    ).read_text()
-    assert [
-        (root / "docs/assets" / f"lockup-{scheme}.svg").read_text().count(hexed)
-        for scheme, hexed in (
-            ("dark", "#e3c3a3"),
-            ("dark", "#a1a09e"),
-            ("light", "#764017"),
-            ("light", "#4f4e4e")
-        )
-    ] == [1, 1, 1, 1]
-    assert loads((root / "docs/.vitepress/lib/rendered/identity.json").read_text())[
-        "tagline"
-    ] == "Find the grandmaster game closest to yours."
-    assert list(
-        loads((root / "docs/.vitepress/lib/rendered/pieces.json").read_text())
-    ) == sorted(PIECES)
-    assert (root / "docs/public/favicon.svg").read_text() == (
-        '<svg viewBox="0 0 1 1"><style>path{fill:#764017}'
-        "@media (prefers-color-scheme:dark){path{fill:#e3c3a3}}</style>"
-        '<path d="M0 0M0 0M0 0M0 0M0 0"/></svg>'
-    )
+    assert f"```text\n{capsys.readouterr().out}```" in pages
 
 
 def test_shipped_declares_the_files_written_from_declarations(
@@ -446,6 +520,9 @@ def test_shipped_declares_the_files_written_from_declarations(
     - The favicon and each lockup
     - The README's badges, then the install steps of the README and the
       Guide
+    - The Guide's setup walkthrough, its install steps each beside what it
+      does, the checks `mise doctor project` runs, and the ways fetching and
+      indexing stop, then the games matching refuses
     - The table of sources, then the row of sources the store page copies
     - The Reference section's settings with their read order and root,
       tasks, identity tables, terms, data files, and match file
@@ -470,6 +547,8 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
         (Region, "docs/pages/guide/index.md"),
+        *[(Region, "docs/pages/guide/setup.md")] * 3,
+        (Region, "docs/pages/guide/matching.md"),
         (Region, "docs/pages/data/index.md"),
         (Region, "docs/pages/guide/store.md"),
         *[(Region, "docs/pages/reference/settings.md")] * 3,
@@ -508,3 +587,14 @@ def test_tracked_lists_each_markdown_file_gitignore_leaves_in_with_no_repository
         path.write_text(text)
 
     assert tracked(tmp_path) == [Path("a/c.md"), Path("b.md")]
+
+
+def walked() -> dict[str, str]:
+    """
+    Writes the Guide's walkthroughs of a match as they stand before their
+    first render, holding the regions the index sets.
+    """
+    return {
+        "guide/matching.md" : marked("gloss"),
+        "guide/studying.md" : marked(*(f"run-{run}" for run in STUDIED))
+    }

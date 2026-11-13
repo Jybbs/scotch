@@ -1,0 +1,11 @@
+## 🖋️ Scoresheet
+
+| **Job** | **Result** |
+|---|---|
+| `build` | success |
+| `deploy` | success |
+| `publish` | success |
+
+The run published `474151645cdb4cc7.bin` to the store and named it in the manifest, then started the `♟️ Deploy` run publishing the site that reads it.
+
+The run checked `560c4d8` on `4/ci-gate`.
