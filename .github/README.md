@@ -18,6 +18,11 @@
 
 ***Scotch*** reads a chess game you played from a Portable Game Notation (PGN) file, finds the grandmaster game sharing the longest unbroken run of positions with it, and shows how that game continued from the last position the two share. A game reaching a stored position by another order of moves still meets it there, since each position is matched by its key rather than by the moves reaching it, as **[Methods](https://scotch.fyi/methods/)** sets out.
 
+<a href="https://scotch.fyi/viewer/"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/preview-dark.gif">
+  <img src="../docs/assets/readme/preview-light.gif" alt="Two boards step through a game and the grandmaster game it reaches by another order of moves, their rings turning one shared color while the two show one position, until the games part." width="100%">
+</picture></a>
+
 ## 🪺 The Games
 
 The store holds <!-- games -->1,150,156<!-- /games --> games read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players is rated <!-- openings-floor -->2500<!-- /openings-floor --> or above, each file declared once in `src/scotch/sources/sources.toml`, which **[The Source Files](https://scotch.fyi/data/sources)** lists file by file. A source joins the store as a row added there, then fetched and indexed again, as **[The Store](https://scotch.fyi/guide/store)** shows.
@@ -56,6 +61,18 @@ Continues 22. Bc2 Ba6+ 23. Ke1 Bc4 24. Nxc4 dxc4 25. Rd6 Re8 26. Bxe5 fxe5 27. Q
 <!-- /example -->
 
 With `--json` and a path, the same command writes the match to a file the **[Viewer](https://scotch.fyi/viewer/)** opens, setting the two games side by side and stepping through them together.
+
+## 🧭 Where to Start
+
+<p align="center">
+<a href="https://scotch.fyi/guide/"><picture><source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/guide-dark.svg"><img src="../docs/assets/readme/guide-light.svg" alt="Guide" width="260"></picture></a>
+<a href="https://scotch.fyi/viewer/"><picture><source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/viewer-dark.svg"><img src="../docs/assets/readme/viewer-light.svg" alt="Viewer" width="260"></picture></a>
+<a href="https://scotch.fyi/methods/"><picture><source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/methods-dark.svg"><img src="../docs/assets/readme/methods-light.svg" alt="Methods" width="260"></picture></a>
+</p>
+
+- **[Guide](https://scotch.fyi/guide/)** takes a fresh clone through building the store to reading each line of a match's report, from **[Setting Up](https://scotch.fyi/guide/setup)** to **[Studying a Match](https://scotch.fyi/guide/studying)**
+- **[Viewer](https://scotch.fyi/viewer/)** matches a game pasted or dropped in as PGN right in the browser, against the published store, with no clone at all
+- **[Methods](https://scotch.fyi/methods/)** measures how often two positions share a key by accident and how often the longest run passes over a match a reader would also want
 
 ## 📗 License
 
