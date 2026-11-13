@@ -1,7 +1,8 @@
 """
 Pins where `Settings` reads each setting from, meaning a keyword argument,
-then a `SCOTCH_` environment variable, then the `[tool.scotch]` table of the
-`pyproject.toml` at the project's root, and how it finds that root.
+then a `SCOTCH_` environment variable, then the `[tool.scotch]` table of
+the `pyproject.toml` at the project's root, how it finds that root, and what
+reading the index under the data directory returns or exits on.
 """
 
 from pathlib  import Path
@@ -89,6 +90,18 @@ def test_an_absolute_data_directory_stands_as_given(project: Path, tmp_path: Pat
     assert Settings(data=tmp_path / "absolute").data == tmp_path / "absolute"
 
 
+def test_an_index_holding_another_layout_exits_in_one_form(relaid: Path):
+    """
+    Asserts that `built` exits nonzero naming the folder where the index
+    built there holds another layout, the one form every command reading the
+    index reports it in.
+    """
+    with raises(SystemExit) as exited:
+        Settings().built()
+
+    assert exited.value.code == f"The index under {relaid} holds another layout"
+
+
 def test_the_data_defaults_under_the_projects_root(pytestconfig: Config):
     """
     Asserts that a run setting nothing reads the index from the `index`
@@ -97,6 +110,22 @@ def test_the_data_defaults_under_the_projects_root(pytestconfig: Config):
     assert Settings().index == (
         pytestconfig.rootpath / Settings.model_fields["data"].default / "index"
     )
+
+
+@mark.usefixtures("data")
+def test_a_folder_holding_no_index_reads_as_none_built():
+    """
+    Asserts that `built` returns `None` where no index has been built.
+    """
+    assert Settings().built() is None
+
+
+@mark.usefixtures("indexed")
+def test_an_index_built_reads_as_the_one_built():
+    """
+    Asserts that `built` reads the index under the data directory.
+    """
+    assert Settings().built().games.collect().height == 1
 
 
 def test_the_fetched_files_sit_beside_the_index(project: Path):

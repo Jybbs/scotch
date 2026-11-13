@@ -16,7 +16,6 @@ from errno            import EACCES, EISDIR, ENOENT
 from io               import BytesIO, StringIO
 from os               import strerror
 from pathlib          import Path
-from polars           import read_parquet
 from pytest           import CaptureFixture, MonkeyPatch, mark, param
 from syrupy.assertion import SnapshotAssertion
 from types            import SimpleNamespace
@@ -278,44 +277,38 @@ def test_a_match_prints_the_stored_game_the_span_and_the_parting(
     assert capsys.readouterr().out == snapshot
 
 
-@mark.usefixtures("indexed")
 def test_an_index_holding_another_layout_exits_naming_where_it_was_read(
-    data : Path,
-    pgn  : Callable[..., Path]
+    pgn    : Callable[..., Path],
+    relaid : Path
 ):
     """
     Asserts that a run against an index whose games table lacks a column
     exits nonzero naming the directory it read.
     """
-    games = PositionIndex.table(data / "index")
-    read_parquet(games).drop("errors").write_parquet(games)
-
     assert invoke(
         "match",
         "game",
         str(pgn("1. e4 *"))
-    ) == f"The index under {data / 'index'} holds another layout"
+    ) == f"The index under {relaid} holds another layout"
 
 
-@mark.usefixtures("indexed")
 def test_an_index_of_an_earlier_layout_exits_naming_where_it_was_read(
-    data : Path,
-    pgn  : Callable[..., Path]
+    data   : Path,
+    pgn    : Callable[..., Path],
+    relaid : Path
 ):
     """
     Asserts that a folder holding a games table under another layout and
     no file of positions exits nonzero as another layout rather than as
     no index.
     """
-    games = PositionIndex.table(data / "index")
-    read_parquet(games).drop("errors").write_parquet(games)
-    PositionIndex.path(data / "index").rename(data / "moved")
+    PositionIndex.path(relaid).rename(data / "moved")
 
     assert invoke(
         "match",
         "game",
         str(pgn("1. e4 *"))
-    ) == f"The index under {data / 'index'} holds another layout"
+    ) == f"The index under {relaid} holds another layout"
 
 
 @mark.usefixtures("indexed")
