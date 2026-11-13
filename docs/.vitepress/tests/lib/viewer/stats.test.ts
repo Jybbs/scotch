@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { statsOf } from '../../../lib/viewer/colophon.ts'
+import { statsOf } from '../../../lib/viewer/stats.ts'
 
 describe('statsOf', () => {
   it('names the version, the commit, and the counts the index holds, each grouped by thousands', () => {

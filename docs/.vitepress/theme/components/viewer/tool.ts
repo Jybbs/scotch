@@ -1,7 +1,7 @@
 import { useData }                        from 'vitepress'
 import { type VNode, defineComponent, h } from 'vue'
 
-import type { Stat }              from '../../../lib/viewer/colophon.ts'
+import type { Stat }              from '../../../lib/viewer/stats.ts'
 import * as drives                from '../../../lib/viewer/drive.ts'
 import type { Offer }             from '../../../lib/viewer/guesses.ts'
 import { type Viewer, useViewer } from '../../../lib/viewer/state.ts'
@@ -84,7 +84,7 @@ export const Tool = defineComponent({
         'class'     : 'sc-viewer-hidden',
         'role'      : 'status'
       }, [viewer.verdict.value?.say, viewer.status.value.say].filter(Boolean).join(' ')),
-      h('dl', { class: 'sc-viewer-colophon' }, stats().map(({ label, value }) =>
+      h('dl', { class: 'sc-viewer-stats' }, stats().map(({ label, value }) =>
         h('div', { class: 'sc-viewer-stat' }, [h('dt', label), h('dd', value)])))
     ])
   }

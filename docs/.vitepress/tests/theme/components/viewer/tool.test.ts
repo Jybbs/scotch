@@ -34,7 +34,7 @@ describe('Tool as the build renders it', () => {
       .toEqual([EXAMPLES.match.submitted.moves[meet - 1], EXAMPLES.match.stored!.moves[meet - 1]])
     expect(host.querySelector('.sc-viewer-count')?.textContent).toBe(String(length))
     expect(host.querySelector('.sc-viewer-status')?.textContent).toBe(`Same position · 1 of ${length}`)
-    expect(host.querySelector('.sc-viewer-colophon')?.textContent).toBe('Games435,321')
+    expect(host.querySelector('.sc-viewer-stats')?.textContent).toBe('Games435,321')
   })
 
   it('hydrates the rendered markup at that position with nothing moved', async () => {
