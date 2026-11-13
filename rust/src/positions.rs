@@ -33,6 +33,7 @@ use itertools::{Itertools, izip};
 use memmap2::Mmap;
 use sucds::{
     Serializable, SucdsError,
+    bit_vectors::{Access, BitVector},
     int_vectors::CompactVector,
     mii_sequences::{EliasFano, EliasFanoBuilder},
     serial::Bytes,
@@ -253,6 +254,23 @@ pub struct Tally {
     pub games: Vec<u32>,
 }
 
+/// What `Positions::sharing` counts over every stored game, a copy of a game
+/// being a stored game that plays its whole mainline from the position it
+/// starts in, the game itself among them.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Sharing {
+    /// Each game's first ply standing in a position no stored game reaches
+    /// save its copies, or `None` where every position it reaches has another
+    /// stored game standing in it, in the order the index holds the games.
+    pub alone: Vec<Option<u16>>,
+    /// For each group, the count of its games standing at each ply in a
+    /// position some stored game other than its copies reaches.
+    pub shared: Vec<Vec<u32>>,
+    /// Each count of stored games beside the count of keys exactly that many
+    /// reach, the fewest first.
+    pub reach: Vec<(u32, u64)>,
+}
+
 /// A piece of the file past its head, which a lookup reads whole.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Part {
@@ -335,6 +353,11 @@ impl Prefixes {
         builder.extend(keys.map(|key| key >> (u64::BITS - width)))?;
 
         Ok(Self(Some(builder.build().enable_rank())))
+    }
+
+    /// Counts the keys whose leading bits the sequence holds.
+    fn len(&self) -> usize {
+        self.0.as_ref().map_or(0, EliasFano::len)
     }
 
     /// Lists the place of each key whose leading bits match those of `key`.
@@ -894,6 +917,21 @@ impl Positions {
         )
     }
 
+    /// Reads every key piece in order, skipping each the index does not hold.
+    fn key_pieces(&self) -> impl Iterator<Item = &KeyPiece> {
+        self.keyed
+            .iter()
+            .zip(0u32..)
+            .filter_map(|(cell, at)| self.piece(cell, Part::Keys(at), KeyPiece::parsed))
+    }
+
+    /// Reads the list of slots of every key several positions reach, piece by
+    /// piece.
+    fn lists(&self) -> impl Iterator<Item = Vec<Posting>> + '_ {
+        self.key_pieces()
+            .flat_map(|piece| (0..piece.shared.len()).map(move |entry| piece.list(entry)))
+    }
+
     /// Reads the game piece holding `slot`, beside the slot's place in it.
     fn games_holding(&self, slot: u32) -> Option<(&GamePiece, u32)> {
         let (at, place) = Self::shelf(slot);
@@ -949,7 +987,7 @@ impl Positions {
         self.slots
             .as_ref()
             .and_then(|slots| slots.get_int(game as usize))
-            .and_then(|slot| self.replayed(narrow(slot)))
+            .and_then(|slot| self.replayed(narrow(slot), u16::MAX))
             .map_or_else(Vec::new, |(_, moves)| moves)
     }
 
@@ -958,18 +996,19 @@ impl Positions {
     /// `scored` writes them.
     #[must_use]
     pub fn scored(&self, slot: u32) -> (Vec<String>, Vec<String>) {
-        self.replayed(slot)
+        self.replayed(slot, u16::MAX)
             .map_or_else(Default::default, |(board, moves)| board.scored(moves))
     }
 
-    /// Sets up the position the game at `slot` starts from, beside its moves
-    /// as `moves` reads them, or returns `None` where no piece holds it.
-    fn replayed(&self, slot: u32) -> Option<(Board, Vec<String>)> {
+    /// Sets up the position the game at `slot` starts from, beside at most
+    /// `most` of its moves as `moves` reads them, or returns `None` where no
+    /// piece holds it.
+    fn replayed(&self, slot: u32, most: u16) -> Option<(Board, Vec<String>)> {
         let (board, mut reader, plies) = self
             .games_holding(slot)
             .and_then(|(piece, at)| piece.replay(at))?;
         let mut playing = board.clone();
-        let moves = (0..plies)
+        let moves = (0..plies.min(most))
             .map_while(|_| reader.play(&mut playing).map(|turn| turn.to_string()))
             .collect();
 
@@ -1064,6 +1103,173 @@ impl Positions {
                     .sum()
             })
             .collect()
+    }
+
+    /// Counts, in two reads of every list of slots, how far each stored game
+    /// shares its positions with the rest. The first read narrows each game's
+    /// copies to the slots every stretch holding the game at one of its plies
+    /// also holds, since games sorted by their moves lay a game's copies beside
+    /// it, and a game standing at any ply in a position no other game reaches
+    /// keeps itself alone as its copy. The second counts the games reaching each
+    /// key and tells, for each game standing in it, whether any of them is
+    /// other than its copies. `groups` names each game's group, in the order
+    /// the index holds the games, and a group past the last `groups` names
+    /// counts nothing.
+    #[must_use]
+    pub fn sharing(&self, groups: &[u16]) -> Sharing {
+        let games = self.games();
+        let plies = (0..self.games)
+            .map(|slot| usize::from(self.about::<u16>(slot, |piece| &piece.plies)) + 1)
+            .collect_vec();
+        let firsts = iter::once(0).chain(plies.iter().scan(0, |end, &count| {
+            *end += count;
+
+            Some(*end)
+        }));
+        let firsts = firsts.collect_vec();
+        let mut listed = BitVector::from_bit(false, firsts[games]);
+        let mut lo = vec![0; games];
+        let mut hi = vec![narrow::<u32>(games as u64); games];
+
+        for postings in self.lists() {
+            for posting in postings {
+                for slot in posting.lo..posting.hi {
+                    let at = slot as usize;
+
+                    lo[at] = lo[at].max(posting.lo);
+                    hi[at] = hi[at].min(posting.hi);
+                    listed
+                        .set_bit(firsts[at] + usize::from(posting.ply), true)
+                        .unwrap_or_default();
+                }
+            }
+        }
+
+        let copies = (0..games)
+            .map(|at| {
+                let whole =
+                    (firsts[at]..firsts[at + 1]).all(|bit| listed.access(bit).unwrap_or_default());
+
+                if whole { hi[at] - lo[at] } else { 1 }
+            })
+            .collect_vec();
+        let group = |slot: u32| {
+            groups
+                .get(self.about::<u32>(slot, |piece| &piece.numbers) as usize)
+                .map_or(usize::MAX, |&group| usize::from(group))
+        };
+        let width = plies.iter().copied().max().unwrap_or_default();
+        let mut shared = vec![
+            vec![0; width];
+            groups
+                .iter()
+                .map(|&g| usize::from(g) + 1)
+                .max()
+                .unwrap_or_default()
+        ];
+        let mut alone = (0..games)
+            .map(|at| {
+                (firsts[at]..firsts[at + 1]).position(|bit| !listed.access(bit).unwrap_or_default())
+            })
+            .collect_vec();
+        let once = self.key_pieces().map(|piece| piece.once.len() as u64).sum();
+        let mut reach = HashMap::from([(1, once)]);
+
+        for postings in self.lists() {
+            let reaching = postings
+                .iter()
+                .map(|posting| (posting.lo, posting.hi))
+                .sorted_unstable()
+                .coalesce(|(lo, hi), (next, end)| {
+                    if next <= hi {
+                        Ok((lo, hi.max(end)))
+                    } else {
+                        Err(((lo, hi), (next, end)))
+                    }
+                })
+                .map(|(lo, hi)| hi - lo)
+                .sum::<u32>();
+
+            *reach.entry(reaching).or_default() += 1;
+
+            for posting in &postings {
+                let ply = usize::from(posting.ply);
+
+                for slot in posting.lo..posting.hi {
+                    let at = slot as usize;
+
+                    if reaching > copies[at] {
+                        if let Some(row) = shared.get_mut(group(slot)) {
+                            row[ply] += 1;
+                        }
+                    } else if alone[at].is_none_or(|first| ply < first) {
+                        alone[at] = Some(ply);
+                    }
+                }
+            }
+        }
+
+        let mut by_game = vec![None; games];
+
+        for (slot, first) in (0u32..).zip(alone) {
+            by_game[self.about::<u32>(slot, |piece| &piece.numbers) as usize] =
+                first.map(|ply| narrow(ply as u64));
+        }
+
+        Sharing {
+            alone: by_game,
+            shared,
+            reach: reach
+                .into_iter()
+                .filter(|&(_, keys)| keys > 0)
+                .sorted_unstable()
+                .collect(),
+        }
+    }
+
+    /// Counts the stored games playing each line of at most `depth` moves
+    /// from the standard starting position that at least `least` of them
+    /// play, each line as its moves in UCI notation, in the order the games
+    /// sort by their moves. Games playing one line sit side by side in that
+    /// order, so each line is counted in one read of the games from the first
+    /// slot to the last.
+    #[must_use]
+    pub fn lines(&self, depth: u16, least: u32) -> Vec<(Vec<String>, u32)> {
+        let mut open: Vec<(String, u32)> = Vec::new();
+        let mut counted = Vec::new();
+        let mut close = |open: &mut Vec<(String, u32)>, keep: usize| {
+            while open.len() > keep {
+                if let Some((_, games)) = open.last().filter(|(_, games)| *games >= least) {
+                    counted.push((open.iter().map(|(name, _)| name.clone()).collect(), *games));
+                }
+
+                open.pop();
+            }
+        };
+
+        for slot in 0..self.games {
+            let standard = self
+                .games_holding(slot)
+                .is_some_and(|(piece, at)| !piece.starts.contains_key(&at));
+            let Some((_, moves)) = self.replayed(slot, depth).filter(|_| standard) else {
+                continue;
+            };
+            let kept = open
+                .iter()
+                .zip(&moves)
+                .take_while(|((name, _), played)| name == *played)
+                .count();
+
+            close(&mut open, kept);
+            for (_, games) in &mut open {
+                *games += 1;
+            }
+
+            open.extend(moves.into_iter().skip(kept).map(|name| (name, 1)));
+        }
+
+        close(&mut open, 0);
+        counted
     }
 
     /// Counts what the stored games played from the position `moves` reach in
@@ -1578,6 +1784,64 @@ mod tests {
         assert_eq!(block_shift(0xffff), 0);
         assert_eq!(block_shift(0x1_0000), 1);
         assert_eq!(block_shift(435_321), 3);
+    }
+
+    #[test]
+    fn a_game_shares_a_position_only_with_a_game_other_than_its_copies() {
+        let positions = built(&[
+            ("e2e4 e7e5", 0, 0, 0),
+            ("e2e4 e7e5 g1f3", 0, 0, 0),
+            ("d2d4", 0, 0, 0),
+        ]);
+        let sharing = positions.sharing(&[0, 0, 1]);
+
+        assert_eq!(sharing.alone, [Some(1), Some(3), Some(1)]);
+        assert_eq!(sharing.shared, [vec![2, 1, 1, 0], vec![1, 0, 0, 0]]);
+        assert_eq!(sharing.reach, [(1, 2), (2, 2), (3, 1)]);
+    }
+
+    #[test]
+    fn a_game_every_position_of_which_another_game_reaches_stands_alone_nowhere() {
+        let positions = built(&[
+            ("g1f3 g8f6 b1c3", 0, 0, 0),
+            ("b1c3 g8f6 g1f3", 0, 0, 0),
+            ("g1f3 g8f6 d2d4", 0, 0, 0),
+            ("b1c3 g8f6 e2e4", 0, 0, 0),
+        ]);
+
+        assert_eq!(
+            positions.sharing(&[0; 4]).alone,
+            [None, None, Some(3), Some(3)]
+        );
+    }
+
+    #[test]
+    fn a_game_past_the_groups_named_is_counted_in_none_and_a_copy_holds_the_whole_game() {
+        let positions = built(&[("e2e4", 0, 0, 0), ("e2e4 e7e5", 0, 0, 0)]);
+        let sharing = positions.sharing(&[0]);
+
+        assert_eq!(sharing.shared, [vec![0, 0, 0]]);
+        assert_eq!(sharing.alone, [Some(0), Some(2)]);
+    }
+
+    #[test]
+    fn a_line_counts_every_game_playing_it_from_the_start() {
+        let positions = built(&[
+            ("e2e4 e7e5 g1f3", 0, 0, 0),
+            ("d2d4", 0, 0, 0),
+            ("e2e4 c7c5", 0, 0, 0),
+            ("e2e4 e7e5 f1c4", 0, 0, 0),
+        ]);
+        let mut lines = positions.lines(2, 2);
+
+        lines.sort();
+        assert_eq!(
+            lines,
+            [
+                (vec!["e2e4".to_owned()], 3),
+                (vec!["e2e4".to_owned(), "e7e5".to_owned()], 2),
+            ]
+        );
     }
 
     #[test]

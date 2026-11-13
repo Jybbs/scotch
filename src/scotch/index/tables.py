@@ -1,13 +1,14 @@
 """
 Holds `PositionIndex`, what a match reads, meaning the Apache Parquet table
 of the stored games' tags beside the file of every position they reach and
-their moves, and the `Batch` of games each fetched file holds, which `scotch
-index games` merges into one index.
+their moves and the table of the games the fetched files hold that it leaves
+out, and the `Batch` of games each fetched file holds, which `scotch index
+games` merges into one index.
 """
 
 from chess           import Move
 from collections.abc import Iterable, Mapping
-from dataclasses     import dataclass
+from dataclasses     import dataclass, field
 from hashlib         import file_digest
 from json            import dumps
 from pathlib         import Path
@@ -18,6 +19,7 @@ from polars          import (
     UInt8,
     col,
     concat,
+    lit,
     read_parquet_schema,
     scan_parquet,
     struct
@@ -32,6 +34,7 @@ from scotch.games.schemas import Game, Origin
 from scotch.index.schemas   import (
     Answer,
     GAMES,
+    LEFT,
     Match,
     RESULTS,
     ROWS,
@@ -47,12 +50,15 @@ from scotch.sources.schemas import Source
 class PositionIndex:
     """
     Holds the stored games' tags as the Polars `LazyFrame` `GAMES`
-    declares, beside every position the games reach and their moves as the
-    `readers.Positions` the crate maps from its file.
+    declares, beside every position the games reach and their moves as
+    the `readers.Positions` the crate maps from its file and each game the
+    fetched files hold that the index leaves out, under the columns `LEFT`
+    declares.
     """
 
     games     : LazyFrame
     positions : readers.Positions
+    left      : LazyFrame = field(default_factory=lambda: LazyFrame(schema=LEFT))
 
     def answer(self, position: str, top: int) -> Answer:
         """
@@ -191,32 +197,60 @@ class PositionIndex:
         """
         Builds the index from the games each batch lays out, in the order
         `batches` yields them, keeping a game several batches repeat once,
-        in the first batch holding it. Two games are the same where their
+        in the first batch holding it, and recording each repeat beside
+        the games each batch leaves out. Two games are the same where their
         Seven Tag Roster, the position they start from, and their moves are.
         """
-        # `concat` raises on no frame, so an empty frame under `ROWS` leads the list.
+        batches = list(batches)
+        # `concat` raises on no frame, so an empty frame leads each list.
+        rows = concat(
+            (LazyFrame(schema=ROWS), *(batch.rows.lazy() for batch in batches))
+        ).with_columns(
+            first = struct(
+                "fen",
+                "moves",
+                "plies",
+                "roster",
+                "variant"
+            ).is_first_distinct()
+        ).collect()
+
         return cls.number(
-            concat(
+            (
+                rows.filter("first")
+                    .drop("first")
+                    .lazy()
+            ),
+            left = concat(
                 (
-                    LazyFrame(schema=ROWS),
-                    *(batch.rows.lazy() for batch in batches)
+                    LazyFrame(schema=LEFT),
+                    *(batch.omitted.lazy() for batch in batches),
+                    rows.lazy()
+                        .filter(~col("first"))
+                        .select(
+                            address = col("origin").struct.field("address"),
+                            place   = col("origin").struct.field("place"),
+                            reason  = lit("repeat", dtype=LEFT["reason"]),
+                            dated   = "dated",
+                            rating  = "rating"
+                        )
+                        .select(LEFT.names())
                 )
-            ).filter(
-                struct("fen", "moves", "plies", "roster", "variant").is_first_distinct()
             )
         )
 
     @classmethod
-    def number(cls, rows: LazyFrame) -> Self:
+    def number(cls, rows: LazyFrame, left: LazyFrame | None = None) -> Self:
         """
         Numbers the games `rows` holds in order as the `game` column and
         splits them into the table of their tags and the file of their
-        positions.
+        positions, beside the games `left` records as left out, or none.
         """
         frame = rows.with_row_index("game").collect()
 
         return cls(
             games     = frame.select(GAMES.names()).lazy(),
+            left      = LazyFrame(schema=LEFT) if left is None else left,
             positions = readers.Positions.build(
                 *(
                     column.to_list()
@@ -237,6 +271,14 @@ class PositionIndex:
                 )
             )
         )
+
+    @staticmethod
+    def omitted(directory: Path) -> Path:
+        """
+        Names the Parquet file in `directory` holding the games the fetched
+        files hold that the index leaves out.
+        """
+        return directory / "left.parquet"
 
     @staticmethod
     def path(directory: Path) -> Path:
@@ -312,27 +354,33 @@ class PositionIndex:
     @classmethod
     def read(cls, directory: Path) -> Self:
         """
-        Scans the table of the stored games under `GAMES`, which the file's
-        own columns are held to first, and maps the file of their positions
-        in `directory`.
+        Scans the table of the stored games under `GAMES` and the table of
+        the games left out under `LEFT`, which each file's own columns are
+        held to first, and maps the file of their positions in `directory`.
 
         Raises:
             FileNotFoundError : Where a file is missing.
             SchemaError       : Where a file holds another layout.
         """
-        table = cls.table(directory)
+        games, left = (
+            (cls.table(directory), GAMES),
+            (cls.omitted(directory), LEFT)
+        )
 
         try:
-            found = read_parquet_schema(table)
-
-            if found != GAMES:
-                raise SchemaError(f"{table} holds {found} rather than {GAMES}")
+            for table, schema in (games, left):
+                if (found := read_parquet_schema(table)) != schema:
+                    raise SchemaError(f"{table} holds {found} rather than {schema}")
 
             positions = readers.Positions.read(cls.path(directory))
         except (ComputeError, ValueError) as error:
             raise SchemaError(f"{directory}: {error}") from error
 
-        return cls(games=scan_parquet(table, schema=GAMES), positions=positions)
+        return cls(
+            games     = scan_parquet(games[0], schema=GAMES),
+            left      = scan_parquet(left[0], schema=LEFT),
+            positions = positions
+        )
 
     def referenced(self, reference: str) -> Game | None:
         """
@@ -369,6 +417,7 @@ class PositionIndex:
                     "errors"   : game.errors,
                     "fen"      : game.tags.get("FEN"),
                     "moves"    : game.encoded,
+                    "rating"   : game.rating,
                     "origin"   : game.origin.model_dump() if game.origin else None,
                     "plies"    : max(len(game.keys) - 1, 0),
                     "result"   : game.tags["Result"],
@@ -414,14 +463,16 @@ class PositionIndex:
 
     def write(self, directory: Path):
         """
-        Writes the table of the stored games and the file of their positions
-        to `directory`, creating it where it is missing.
+        Writes the table of the stored games, the table of the games left
+        out, and the file of their positions to `directory`, creating it
+        where it is missing.
         """
         self.games.sink_parquet(
             self.table(directory),
             mkdir          = True,
             row_group_size = 4096  # A filter on `game` decodes one row group alone.
         )
+        self.left.sink_parquet(self.omitted(directory))
         self.positions.write(self.path(directory))
 
     def written(self, directory: Path) -> str:
@@ -437,16 +488,27 @@ class Batch:
     """
     The games the fetched file of `source` holds, those read with no problem
     and rated at or above the `floor` its section sets laid out as `rows`
-    under the columns `ROWS` declares, those read with a problem kept
-    apart as `left` for a report, and those rated below the floor counted
-    as `below`.
+    under the columns `ROWS` declares, those read with a problem kept apart
+    as `left` for a report, and each game rated below the floor or read with
+    a problem recorded in `omitted` under the columns `LEFT` declares.
     """
 
-    below  : int
-    floor  : int
-    left   : tuple[Game, ...]
-    rows   : DataFrame
-    source : Source
+    floor   : int
+    left    : tuple[Game, ...]
+    omitted : DataFrame
+    rows    : DataFrame
+    source  : Source
+
+    @property
+    def below(self) -> int:
+        """
+        Counts the games the file holds rated below the floor.
+        """
+        return (
+            self.omitted.get_column("reason")
+                .eq("below")
+                .sum()
+        )
 
     @property
     def summary(self) -> str:
@@ -479,11 +541,29 @@ class Batch:
         """
         read  = list(source.games(directory))
         games = [game for game in read if game.rating >= floor]
+        left  = tuple(game for game in games if game.problems)
 
         return cls(
-            below  = len(read) - len(games),
-            floor  = floor,
-            left   = tuple(game for game in games if game.problems),
+            floor   = floor,
+            left    = left,
+            omitted = DataFrame(
+                [
+                    {
+                        "address" : game.origin.address,
+                        "dated"   : game.dated,
+                        "place"   : game.origin.place,
+                        "rating"  : game.rating,
+                        "reason"  : reason
+                    }
+                    for reason, chosen in (
+                        ("below", (game for game in read if game.rating < floor)),
+                        ("unread", (game for game in left if game.standard)),
+                        ("variant", (game for game in left if not game.standard))
+                    )
+                    for game in chosen
+                ],
+                schema = LEFT
+            ),
             rows   = PositionIndex.rows(game for game in games if not game.problems),
             source = source
         )

@@ -1,0 +1,56 @@
+.sc-data-parting {
+  --sc-data-bar : color-mix(in oklab, var(--sc-data-ink) 45%, var(--sc-data-page));
+  display       : grid;
+  gap           : 8px;
+}
+
+.sc-data-parting .sc-data-svg {
+  cursor       : crosshair;
+  touch-action : pan-y;
+}
+
+.sc-data-parting-area {
+  fill       : color-mix(in oklab, var(--sc-data-link) 16%, var(--sc-data-page));
+  transition : opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-parting-line {
+  fill         : none;
+  stroke       : var(--sc-data-link);
+  stroke-width : 2;
+  transition   : opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-parting-bar {
+  fill       : var(--sc-data-bar);
+  transition : fill var(--sc-duration-fade) var(--sc-curve-glide),
+               opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-parting-bar.sc-data-on { fill: var(--sc-data-ink); }
+
+.sc-data-parting-half {
+  transition: opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-parting-half line {
+  stroke           : var(--sc-data-ink);
+  stroke-dasharray : 3 3;
+}
+
+.sc-data-parting-half text,
+.sc-data-parting-tag {
+  fill : var(--sc-data-ink);
+  font : 500 0.62rem var(--sc-face-code);
+}
+
+.sc-data-parting-cursor {
+  stroke       : var(--sc-data-ink);
+  stroke-width : 1;
+}
+
+.sc-data-parting-dot {
+  fill         : var(--sc-data-link);
+  stroke       : var(--sc-data-page);
+  stroke-width : 2;
+}

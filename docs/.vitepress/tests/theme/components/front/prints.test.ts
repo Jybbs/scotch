@@ -33,7 +33,8 @@ describe('Prints', () => {
     expect(prints.findAll('.sc-front-ties i[data-on]')).toHaveLength(7)
     expect(prints.find('.sc-front-runbar b').attributes('data-on')).toBe('')
     expect(prints.find('.sc-front-runbar span').text()).toBe('The run · 6')
-    expect(prints.find('.sc-data-big').text()).toBe('6')
+    expect(prints.find('.sc-front-spoken').text()).toBe('6')
+    expect(prints.find('.sc-front-unit').text()).toBe('positions shared')
   })
 
   test('moves to the ply a fingerprint is pressed on', async () => {

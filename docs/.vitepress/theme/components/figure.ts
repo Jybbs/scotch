@@ -1,4 +1,5 @@
-import { type Component, defineComponent, h } from 'vue'
+import { useMounted }                                                     from '@vueuse/core'
+import { type Component, type ShallowRef, defineComponent, h, shallowRef } from 'vue'
 
 import { FIGURE }            from '../../lib/markdown/placements.ts'
 import { DATA_WIDGETS }      from './data/index.ts'
@@ -17,20 +18,50 @@ export const WIDGETS: Record<string, Component> = {
 }
 
 /**
+ * Builds the call hiding each row of the tables inside `folded` whose text
+ * does not hold the query a field beside them reads.
+ */
+function finding(folded: ShallowRef<HTMLElement | null>): (event: Event) => void {
+  return event => {
+    const query = (event.target as HTMLInputElement).value.trim().toLowerCase()
+    for (const row of folded.value?.querySelectorAll<HTMLTableRowElement>('tbody tr') ?? [])
+      row.hidden = !row.textContent!.toLowerCase().includes(query)
+  }
+}
+
+/**
  * Draws the widget a placement names, setting any content the placement wraps,
- * such as a region's table, folded shut beneath it for a reader without scripts
- * and for the site's search.
+ * such as a region's tables, folded shut beneath it for a reader without
+ * scripts and for the site's search, with a field finding a row once scripts
+ * run.
  */
 export const Figure = defineComponent({
   name  : FIGURE,
   props : { name: { required: true, type: String } },
-  setup : (props, { slots }) => () => {
-    const widget = WIDGETS[props.name]
-    return h('figure', { class: 'sc-figure', 'data-name': props.name }, [
-      widget ? h(widget) : null,
-      slots.default
-        ? h('details', { class: 'sc-folded' }, [h('summary', 'The table beneath'), slots.default()])
-        : null
-    ])
+  setup : (props, { slots }) => {
+    const folded = shallowRef<HTMLElement | null>(null)
+    const live   = useMounted()
+
+    return () => {
+      const widget = WIDGETS[props.name]
+      return h('figure', { class: 'sc-figure', 'data-name': props.name }, [
+        widget ? h(widget) : null,
+        slots.default
+          ? h('details', { class: 'sc-folded', ref: folded }, [
+            h('summary', 'The table beneath'),
+            live.value
+              ? h('input', {
+                'aria-label' : 'Find a row',
+                class        : 'sc-folded-find',
+                onInput      : finding(folded),
+                placeholder  : 'Find a row',
+                type         : 'search'
+              })
+              : null,
+            slots.default()
+          ])
+          : null
+      ])
+    }
   }
 })

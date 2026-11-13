@@ -31,17 +31,19 @@
 }
 
 .vp-doc .sc-entry-head {
-  display               : grid;
-  grid-template-columns : auto minmax(0, 1fr);
-  gap                   : 6px 18px;
-  align-items           : end;
+  position : relative;
+  display  : grid;
+  gap      : 6px;
 }
 
 .vp-doc .sc-entry-numeral {
-  grid-row             : span 2;
+  position             : absolute;
+  top                  : 0;
+  right                : calc(100% + 26px);
   color                : var(--sc-entry);
-  font                 : 400 3.6rem/0.8 var(--sc-face-display);
+  font                 : 400 3.6rem/1 var(--sc-face-display);
   font-variant-numeric : lining-nums;
+  text-box             : trim-both cap alphabetic;
 }
 
 .vp-doc .sc-entry-kicker {
@@ -53,7 +55,10 @@
   letter-spacing  : 0.16em;
   text-decoration : none;
   text-transform  : uppercase;
+  margin-bottom   : 6px;
 }
+
+.vp-doc .sc-entry-kicker > span { text-box: trim-both cap alphabetic; }
 
 .vp-doc .sc-entry-kicker::after {
   content    : '';
@@ -86,6 +91,18 @@
   }
 }
 
-@media (width < 40rem) {
-  .vp-doc .sc-entry-numeral { font-size: 2.6rem; }
+@media (width < 60rem) {
+  .vp-doc .sc-entry-head {
+    grid-template-columns : auto minmax(0, 1fr);
+    column-gap            : 12px;
+    align-items           : baseline;
+  }
+
+  .vp-doc .sc-entry-numeral {
+    position  : static;
+    font-size : 1.35rem;
+    text-box  : normal;
+  }
+
+  .vp-doc .sc-entry h2 { grid-column: 1 / -1; }
 }

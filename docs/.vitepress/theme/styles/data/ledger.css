@@ -1,0 +1,107 @@
+.sc-data-ledger {
+  --sc-data-kept    : var(--sc-data-link);
+  --sc-data-below   : color-mix(in oklab, var(--sc-data-ink) 46%, var(--sc-data-page));
+  --sc-data-repeat  : color-mix(in oklab, var(--sc-data-ink) 26%, var(--sc-data-page));
+  --sc-data-unread  : color-mix(in oklab, var(--sc-data-ink) 78%, var(--sc-data-page));
+  --sc-data-variant : color-mix(in oklab, var(--sc-data-ink) 62%, var(--sc-data-page));
+  display           : grid;
+  gap               : 14px;
+}
+
+.sc-data-ledger-section header {
+  display         : flex;
+  justify-content : space-between;
+  gap             : 12px;
+  margin-bottom   : 4px;
+  font            : 500 0.65rem/16px var(--sc-face-code);
+  letter-spacing  : 0.08em;
+  text-transform  : uppercase;
+}
+
+.sc-data-ledger-section small {
+  color                : var(--sc-data-quiet);
+  font-size            : 0.6rem;
+  font-variant-numeric : tabular-nums;
+}
+
+.sc-data-ledger-bar {
+  display    : flex;
+  gap        : 2px;
+  height     : 26px;
+  transition : width var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-ledger-segment {
+  container-type : inline-size;
+  min-width      : 3px;
+  padding        : 0;
+  border         : 0;
+  border-radius  : 2px;
+  background     : var(--sc-data-mark, var(--sc-data-fill));
+  color          : var(--sc-data-page);
+  font           : 500 0.6rem/26px var(--sc-face-code);
+  letter-spacing : 0.06em;
+  text-transform : uppercase;
+  cursor         : pointer;
+  transition     : opacity var(--sc-duration-settle) var(--sc-curve-glide),
+                   flex-grow var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-ledger-segment[data-k='kept'] { --sc-data-mark: var(--sc-data-kept); }
+
+.sc-data-ledger-segment[data-k='below'] { --sc-data-mark: var(--sc-data-below); }
+
+.sc-data-ledger-segment[data-k='repeat'] {
+  --sc-data-mark : var(--sc-data-repeat);
+  color          : var(--sc-data-ink);
+}
+
+.sc-data-ledger-segment[data-k='unread'] { --sc-data-mark: var(--sc-data-unread); }
+
+.sc-data-ledger-segment[data-k='variant'] { --sc-data-mark: var(--sc-data-variant); }
+
+.sc-data-ledger-segment span {
+  display     : block;
+  overflow    : hidden;
+  padding     : 0 8px;
+  white-space : nowrap;
+}
+
+@container (width < 12em) {
+  .sc-data-ledger-segment span { visibility: hidden; }
+}
+
+.sc-data-ledger-segment[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px var(--sc-data-page), 0 0 0 3.5px var(--sc-data-ink);
+}
+
+.sc-data-ledger-segment:focus-visible { outline: 2px solid var(--sc-data-link); outline-offset: 3px; }
+
+.sc-data-drawer summary {
+  color  : var(--sc-data-link);
+  font   : 600 0.78rem/24px var(--sc-face-body);
+  cursor : pointer;
+}
+
+.sc-data-drawer[open] summary { margin-bottom: 6px; }
+
+.sc-data-drawer-files {
+  display               : grid;
+  grid-template-columns : repeat(auto-fill, minmax(15rem, 1fr));
+  column-gap            : 20px;
+  overflow-y            : auto;
+  max-height            : 16rem;
+  margin                : 0;
+  padding               : 0;
+  list-style            : none;
+  font                  : 500 0.65rem/22px var(--sc-face-code);
+  font-variant-numeric  : tabular-nums;
+}
+
+.sc-data-drawer-files li {
+  display         : flex;
+  justify-content : space-between;
+  gap             : 12px;
+  margin          : 0;
+  border-bottom   : var(--sc-data-hairline);
+}

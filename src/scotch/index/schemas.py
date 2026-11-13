@@ -9,14 +9,16 @@ Holds the records a command reads a match or a position through:
 - `Holding`, what `scotch show store` prints for the store
 
 The Polars schemas sit beside them, meaning `GAMES`, the index's Parquet
-table of stored games, built from the type and the meaning `COLUMNS` gives
-each column, `ROWS`, the games `PositionIndex.rows` lays out before the
-index numbers them, and `RUNS`, the runs `PositionIndex.runs` finds.
+table of stored games, built from the type and the meaning `COLUMNS`
+gives each column, `ROWS`, the games `PositionIndex.rows` lays out before
+the index numbers them, `LEFT`, the games a fetched file holds that the
+index leaves out, each under one of the `REASONS`, and `RUNS`, the runs
+`PositionIndex.runs` finds.
 """
 
 from base64   import urlsafe_b64encode
 from pathlib  import Path
-from polars   import Binary, Int64, List, Schema, String, Struct, UInt16, UInt32
+from polars   import Binary, Enum, Int64, List, Schema, String, Struct, UInt16, UInt32
 from pydantic import BaseModel, NonNegativeInt, PositiveInt
 from typing   import Self
 from zlib     import compress
@@ -50,6 +52,8 @@ ROWS  = Schema(
         "dated": UInt32,
         # The `FEN` tag
         "fen": String,
+        # The higher rating `Game.rating` reads
+        "rating": UInt32,
         # The mainline as `Game.encoded` writes it
         "moves": Binary,
         # The values of the Seven Tag Roster, as `Game.roster` reads them
@@ -58,6 +62,20 @@ ROWS  = Schema(
         "standing": UInt16,
         # The `Variant` tag
         "variant": String
+    }
+)
+# `REASONS` names why the index leaves a game out, meaning a repeat of a game
+# a file declared earlier holds, a rating under its section's floor, a problem
+# reading its moves, or a variant other than standard chess, and `LEFT` holds
+# one row per game left out, by its file's address and its place there.
+REASONS = Enum(("repeat", "below", "unread", "variant"))
+LEFT    = Schema(
+    {
+        "address" : String,
+        "dated"   : ROWS["dated"],
+        "place"   : UInt32,
+        "rating"  : ROWS["rating"],
+        "reason"  : REASONS
     }
 )
 RUNS = Schema(

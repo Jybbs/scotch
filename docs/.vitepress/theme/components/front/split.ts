@@ -79,8 +79,8 @@ function readoutOf(front: Front, ply: number): Readout {
       ['Your move', reading.moves.submitted],
       ['Stored move', met ? 'Its own order' : reading.moves.stored]
     ],
-    say      : `${reading.figure === 1 ? 'position' : 'positions'} shared. `
-             + (ply > last ? parted : met ? reading.say : 'Both games, one position.')
+    say      : ply > last ? parted : met ? reading.say : 'Both games, one position.',
+    unit     : `${reading.figure === 1 ? 'position' : 'positions'} shared`
   }
 }
 

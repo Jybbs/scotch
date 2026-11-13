@@ -1,0 +1,279 @@
+{
+  "games": [
+    {
+      "file": "players/Portisch.zip",
+      "game": 331062,
+      "next": [
+        "Ne2",
+        "Bb7",
+        "Nf4",
+        "c5",
+        "Be2",
+        "cxd4",
+        "Qxd4",
+        "Nc6"
+      ],
+      "placements": [
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP3PPP/2RQKBNR",
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP2NPPP/2RQKB1R",
+        "rn3rk1/pbp1qpp1/1p5p/3p4/3P4/4P3/PP2NPPP/2RQKB1R",
+        "rn3rk1/pbp1qpp1/1p5p/3p4/3P1N2/4P3/PP3PPP/2RQKB1R",
+        "rn3rk1/pb2qpp1/1p5p/2pp4/3P1N2/4P3/PP3PPP/2RQKB1R",
+        "rn3rk1/pb2qpp1/1p5p/2pp4/3P1N2/4P3/PP2BPPP/2RQK2R",
+        "rn3rk1/pb2qpp1/1p5p/3p4/3p1N2/4P3/PP2BPPP/2RQK2R",
+        "rn3rk1/pb2qpp1/1p5p/3p4/3Q1N2/4P3/PP2BPPP/2R1K2R",
+        "r4rk1/pb2qpp1/1pn4p/3p4/3Q1N2/4P3/PP2BPPP/2R1K2R"
+      ],
+      "tags": {
+        "Event": "Candidats qf3",
+        "Site": "Mexico",
+        "Date": "1980.??.??",
+        "Round": "2",
+        "White": "Portisch, Lajos",
+        "Black": "Spassky, Boris V",
+        "Result": "1/2-1/2",
+        "WhiteElo": "2655",
+        "BlackElo": "2615"
+      }
+    },
+    {
+      "file": "players/Christiansen.zip",
+      "game": 90976,
+      "next": [
+        "Ne2",
+        "Bb7",
+        "g3",
+        "Qe4",
+        "Rg1",
+        "c5",
+        "dxc5",
+        "Nc6"
+      ],
+      "placements": [
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP3PPP/2RQKBNR",
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP2NPPP/2RQKB1R",
+        "rn3rk1/pbp1qpp1/1p5p/3p4/3P4/4P3/PP2NPPP/2RQKB1R",
+        "rn3rk1/pbp1qpp1/1p5p/3p4/3P4/4P1P1/PP2NP1P/2RQKB1R",
+        "rn3rk1/pbp2pp1/1p5p/3p4/3Pq3/4P1P1/PP2NP1P/2RQKB1R",
+        "rn3rk1/pbp2pp1/1p5p/3p4/3Pq3/4P1P1/PP2NP1P/2RQKBR1",
+        "rn3rk1/pb3pp1/1p5p/2pp4/3Pq3/4P1P1/PP2NP1P/2RQKBR1",
+        "rn3rk1/pb3pp1/1p5p/2Pp4/4q3/4P1P1/PP2NP1P/2RQKBR1",
+        "r4rk1/pb3pp1/1pn4p/2Pp4/4q3/4P1P1/PP2NP1P/2RQKBR1"
+      ],
+      "tags": {
+        "Event": "Groningen",
+        "Site": "Groningen",
+        "Date": "1992.??.??",
+        "Round": "5",
+        "White": "Christiansen, Larry Mark",
+        "Black": "Klovans, Janis",
+        "Result": "1/2-1/2",
+        "WhiteElo": "2625",
+        "BlackElo": "2470"
+      }
+    },
+    {
+      "file": "players/Sokolov.zip",
+      "game": 371556,
+      "next": [
+        "Bd3",
+        "c5",
+        "Ne2",
+        "Nd7",
+        "O-O",
+        "Nf6",
+        "dxc5",
+        "bxc5"
+      ],
+      "placements": [
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP3PPP/2RQKBNR",
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/3BP3/PP3PPP/2RQK1NR",
+        "rnb2rk1/p3qpp1/1p5p/2pp4/3P4/3BP3/PP3PPP/2RQK1NR",
+        "rnb2rk1/p3qpp1/1p5p/2pp4/3P4/3BP3/PP2NPPP/2RQK2R",
+        "r1b2rk1/p2nqpp1/1p5p/2pp4/3P4/3BP3/PP2NPPP/2RQK2R",
+        "r1b2rk1/p2nqpp1/1p5p/2pp4/3P4/3BP3/PP2NPPP/2RQ1RK1",
+        "r1b2rk1/p3qpp1/1p3n1p/2pp4/3P4/3BP3/PP2NPPP/2RQ1RK1",
+        "r1b2rk1/p3qpp1/1p3n1p/2Pp4/8/3BP3/PP2NPPP/2RQ1RK1",
+        "r1b2rk1/p3qpp1/5n1p/2pp4/8/3BP3/PP2NPPP/2RQ1RK1"
+      ],
+      "tags": {
+        "Event": "10th dMP Batavia GM 2018",
+        "Site": "Amsterdam NED",
+        "Date": "2018.03.03",
+        "Round": "8.4",
+        "White": "Sokolov,Ivan",
+        "Black": "Zatonskih,A",
+        "Result": "1/2-1/2",
+        "WhiteElo": "2567",
+        "BlackElo": "2447"
+      }
+    },
+    {
+      "file": "players/Korchnoi.zip",
+      "game": 227060,
+      "next": [
+        "Bd3",
+        "Be6",
+        "Ne2",
+        "c5",
+        "O-O",
+        "Nd7",
+        "Bb1",
+        "Rac8"
+      ],
+      "placements": [
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP3PPP/2RQKBNR",
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/3BP3/PP3PPP/2RQK1NR",
+        "rn3rk1/p1p1qpp1/1p2b2p/3p4/3P4/3BP3/PP3PPP/2RQK1NR",
+        "rn3rk1/p1p1qpp1/1p2b2p/3p4/3P4/3BP3/PP2NPPP/2RQK2R",
+        "rn3rk1/p3qpp1/1p2b2p/2pp4/3P4/3BP3/PP2NPPP/2RQK2R",
+        "rn3rk1/p3qpp1/1p2b2p/2pp4/3P4/3BP3/PP2NPPP/2RQ1RK1",
+        "r4rk1/p2nqpp1/1p2b2p/2pp4/3P4/3BP3/PP2NPPP/2RQ1RK1",
+        "r4rk1/p2nqpp1/1p2b2p/2pp4/3P4/4P3/PP2NPPP/1BRQ1RK1",
+        "2r2rk1/p2nqpp1/1p2b2p/2pp4/3P4/4P3/PP2NPPP/1BRQ1RK1"
+      ],
+      "tags": {
+        "Event": "Zuerich sim",
+        "Site": "Zuerich",
+        "Date": "1988.??.??",
+        "Round": "?",
+        "White": "Kortschnoj, Viktor",
+        "Black": "Kapralos, A.",
+        "Result": "1/2-1/2",
+        "WhiteElo": "2640",
+        "BlackElo": ""
+      }
+    },
+    {
+      "file": "openings/QGDOrthoMain.zip",
+      "game": 840628,
+      "next": [
+        "Bd3",
+        "Be6",
+        "Ne2",
+        "c5",
+        "O-O",
+        "Nd7",
+        "Nf4",
+        "Rac8"
+      ],
+      "placements": [
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP3PPP/2RQKBNR",
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/3BP3/PP3PPP/2RQK1NR",
+        "rn3rk1/p1p1qpp1/1p2b2p/3p4/3P4/3BP3/PP3PPP/2RQK1NR",
+        "rn3rk1/p1p1qpp1/1p2b2p/3p4/3P4/3BP3/PP2NPPP/2RQK2R",
+        "rn3rk1/p3qpp1/1p2b2p/2pp4/3P4/3BP3/PP2NPPP/2RQK2R",
+        "rn3rk1/p3qpp1/1p2b2p/2pp4/3P4/3BP3/PP2NPPP/2RQ1RK1",
+        "r4rk1/p2nqpp1/1p2b2p/2pp4/3P4/3BP3/PP2NPPP/2RQ1RK1",
+        "r4rk1/p2nqpp1/1p2b2p/2pp4/3P1N2/3BP3/PP3PPP/2RQ1RK1",
+        "2r2rk1/p2nqpp1/1p2b2p/2pp4/3P1N2/3BP3/PP3PPP/2RQ1RK1"
+      ],
+      "tags": {
+        "Event": "RUS-chT",
+        "Site": "Orel",
+        "Date": "1996.??.??",
+        "Round": "?",
+        "White": "Chekhov, Valery A",
+        "Black": "Tjutiunnikov, I.",
+        "Result": "1-0",
+        "WhiteElo": "2505",
+        "BlackElo": ""
+      }
+    },
+    {
+      "file": "players/Euwe.zip",
+      "game": 119787,
+      "next": [
+        "Qc2",
+        "Qb4+",
+        "Qc3",
+        "Qa4",
+        "Bd3",
+        "Ba6",
+        "Ne2",
+        "Bxd3"
+      ],
+      "placements": [
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP3PPP/2RQKBNR",
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PPQ2PPP/2R1KBNR",
+        "rnb2rk1/p1p2pp1/1p5p/3p4/1q1P4/4P3/PPQ2PPP/2R1KBNR",
+        "rnb2rk1/p1p2pp1/1p5p/3p4/1q1P4/2Q1P3/PP3PPP/2R1KBNR",
+        "rnb2rk1/p1p2pp1/1p5p/3p4/q2P4/2Q1P3/PP3PPP/2R1KBNR",
+        "rnb2rk1/p1p2pp1/1p5p/3p4/q2P4/2QBP3/PP3PPP/2R1K1NR",
+        "rn3rk1/p1p2pp1/bp5p/3p4/q2P4/2QBP3/PP3PPP/2R1K1NR",
+        "rn3rk1/p1p2pp1/bp5p/3p4/q2P4/2QBP3/PP2NPPP/2R1K2R",
+        "rn3rk1/p1p2pp1/1p5p/3p4/q2P4/2QbP3/PP2NPPP/2R1K2R"
+      ],
+      "tags": {
+        "Event": "Amsterdam KNSB",
+        "Site": "Amsterdam",
+        "Date": "1939.??.??",
+        "Round": "3",
+        "White": "Euwe, Max",
+        "Black": "Landau, Salo",
+        "Result": "1/2-1/2",
+        "WhiteElo": "",
+        "BlackElo": ""
+      }
+    },
+    {
+      "file": "players/Portisch.zip",
+      "game": 330620,
+      "next": [
+        "Be2",
+        "Bb7",
+        "Bf3",
+        "c5",
+        "Ne2",
+        "Nd7",
+        "dxc5",
+        "Ne5"
+      ],
+      "placements": [
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP3PPP/2RQKBNR",
+        "rnb2rk1/p1p1qpp1/1p5p/3p4/3P4/4P3/PP2BPPP/2RQK1NR",
+        "rn3rk1/pbp1qpp1/1p5p/3p4/3P4/4P3/PP2BPPP/2RQK1NR",
+        "rn3rk1/pbp1qpp1/1p5p/3p4/3P4/4PB2/PP3PPP/2RQK1NR",
+        "rn3rk1/pb2qpp1/1p5p/2pp4/3P4/4PB2/PP3PPP/2RQK1NR",
+        "rn3rk1/pb2qpp1/1p5p/2pp4/3P4/4PB2/PP2NPPP/2RQK2R",
+        "r4rk1/pb1nqpp1/1p5p/2pp4/3P4/4PB2/PP2NPPP/2RQK2R",
+        "r4rk1/pb1nqpp1/1p5p/2Pp4/8/4PB2/PP2NPPP/2RQK2R",
+        "r4rk1/pb2qpp1/1p5p/2Ppn3/8/4PB2/PP2NPPP/2RQK2R"
+      ],
+      "tags": {
+        "Event": "Skopje/Ohrid",
+        "Site": "Skopje",
+        "Date": "1968.??.??",
+        "Round": "12",
+        "White": "Portisch, Lajos",
+        "Black": "Ilievski, Borce",
+        "Result": "1-0",
+        "WhiteElo": "",
+        "BlackElo": ""
+      }
+    }
+  ],
+  "line": [
+    "d4",
+    "d5",
+    "c4",
+    "e6",
+    "Nc3",
+    "Nf6",
+    "Bg5",
+    "Be7",
+    "e3",
+    "O-O",
+    "Rc1",
+    "h6",
+    "Bh4",
+    "b6",
+    "cxd5",
+    "Nxd5",
+    "Nxd5",
+    "exd5",
+    "Bxe7",
+    "Qxe7"
+  ],
+  "plies": 8
+}

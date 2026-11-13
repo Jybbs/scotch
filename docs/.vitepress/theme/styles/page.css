@@ -20,6 +20,17 @@
 
 .sc-figure { margin: 24px 0; }
 
+.sc-folded-find {
+  width         : 100%;
+  margin-top    : 12px;
+  padding       : 8px 10px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 6px;
+  background    : var(--sc-raised);
+  color         : inherit;
+  font          : 400 0.95rem/1 var(--sc-face-body);
+}
+
 .sc-data-plate,
 .sc-run {
   padding       : 16px;

@@ -249,12 +249,14 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         the reader records no message naming Chess960 or another variant
         python-chess reads under rules of its own.
         """
-        variant = self.tags.get("Variant", "Standard")
-
-        if variant.casefold() in map(str.casefold, Board.aliases):
+        if self.standard:
             return self.errors
 
-        return tuple(dict.fromkeys((*self.errors, f"unsupported variant: {variant}")))
+        return tuple(
+            dict.fromkeys(
+                (*self.errors, f"unsupported variant: {self.tags['Variant']}")
+            )
+        )
 
     @property
     def rating(self) -> int:
@@ -288,6 +290,18 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         (SAN), read against the position it was played from.
         """
         return tuple(map(Board.san, self.boards(), self.moves))
+
+    @property
+    def standard(self) -> bool:
+        """
+        Checks whether the game is one of standard chess, its `Variant` tag
+        missing or naming standard chess under any name python-chess reads
+        for it.
+        """
+        return self.tags.get("Variant", "Standard").casefold() in map(
+            str.casefold,
+            Board.aliases
+        )
 
     @property
     def standing(self) -> int:
