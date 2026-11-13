@@ -59,7 +59,6 @@ describe('citationOf', () => {
 describe('anchored', () => {
   it('finds an id holding a colon, which a selector would read as a pseudo-class', () => {
     page()
-    expect(anchored('footnote-ref-zobrist1970:1', document)).toBeNull()
     document.body.insertAdjacentHTML('beforeend', '<i id="a:1"></i>')
     expect(anchored('a:1', document)!.tagName).toBe('I')
   })

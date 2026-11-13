@@ -83,9 +83,12 @@ describe('providersOf', () => {
     expect(manifest.providersOf(repo.metaUrl)).toEqual([])
   })
 
-  test('fails by name where a source leaves out its provider', ({ repo }) => {
-    repo.write(SOURCES, '[[sources]]\nhome = "https://a.org/"\n')
-    expect(() => manifest.providersOf(repo.metaUrl)).toThrow(/sources\.toml names no provider/u)
+  test.for([
+    ['provider', '[[sources]]\nhome = "https://a.org/"\n'],
+    ['front page', '[[sources]]\nprovider = "A"\n']
+  ])('fails by name where a source leaves out its %s', ([, text], { repo }) => {
+    repo.write(SOURCES, text!)
+    expect(() => manifest.providersOf(repo.metaUrl)).toThrow(/sources\.toml names no provider or home/u)
   })
 })
 

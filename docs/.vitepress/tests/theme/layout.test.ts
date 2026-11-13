@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h }       from 'vue'
 
 import { IDENTITY } from '../../lib/identity/tokens.ts'
+import { Notes }    from '../../theme/components/notes.ts'
 import { Layout }   from '../../theme/layout.ts'
 
 vi.mock('vitepress/theme-without-fonts', () => ({
@@ -29,6 +30,10 @@ describe('Layout', () => {
 
   it("sets beneath every page the slip a term's link opens", () => {
     expect(mount(Layout).find("[data-slot='layout-bottom'] .sc-slip").exists()).toBe(true)
+  })
+
+  it('sets beneath every page the component picking out a citation and its source', () => {
+    expect(mount(Layout).findComponent(Notes).exists()).toBe(true)
   })
 
   it('draws the layer the pour plays on before the hero', () => {
