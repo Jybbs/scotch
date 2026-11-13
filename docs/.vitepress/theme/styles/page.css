@@ -37,11 +37,3 @@
     overflow-x : auto;
   }
 }
-
-.Layout .VPFooter.has-sidebar {
-  display: block;
-
-  @media (width >= 60rem) { padding-left: calc(var(--vp-sidebar-width) + 2rem); }
-}
-
-.VPFooter .message { text-wrap: balance; }

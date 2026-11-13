@@ -6,8 +6,12 @@ import { parse } from 'smol-toml'
 
 import { repoRoot } from './paths.ts'
 
+interface Declared {
+  sources? : readonly { home?: unknown, provider?: unknown }[]
+}
+
 interface Manifest {
-  project? : { description?: unknown, urls?: Record<string, unknown>, version?: unknown }
+  project? : { description?: unknown, license?: unknown, urls?: Record<string, unknown>, version?: unknown }
   tool?    : { coverage?: { report?: { fail_under?: unknown } } }
 }
 
@@ -16,7 +20,18 @@ export interface ProjectFacts {
   gate        : number
   homepage    : string
   host        : string
+  license     : string
+  repository  : string
   version     : string
+}
+
+/**
+ * One site the store's files come from, by the name the declared sources give
+ * it beside the address of its front page.
+ */
+export interface Provider {
+  home : string
+  name : string
 }
 
 function required(value: unknown, file: string, key: string): string {
@@ -54,8 +69,9 @@ export function commitOf(
 /**
  * Reads what the site states about the project out of `pyproject.toml`, meaning
  * its description, the homepage the site serves at and that homepage's host,
- * and the version the package declares, beside the coverage below which the
- * package's suite fails, which the site's suite takes as well.
+ * the license the code carries, the repository it is kept in, and the version
+ * the package declares, beside the coverage below which the package's suite
+ * fails, which the site's suite takes as well.
  */
 export function projectFacts(metaUrl: string): ProjectFacts {
   const file     = path.join(repoRoot(metaUrl), 'pyproject.toml')
@@ -70,6 +86,26 @@ export function projectFacts(metaUrl: string): ProjectFacts {
     gate        : gate,
     homepage    : homepage,
     host        : new URL(homepage).host,
+    license     : required(manifest.project?.license, file, 'project.license'),
+    repository  : required(manifest.project?.urls?.Repository, file, 'project.urls.Repository'),
     version     : required(manifest.project?.version, file, 'project.version')
   }
+}
+
+/**
+ * Reads each provider the sources `src/scotch/sources/sources.toml` declares
+ * name, once each in the order they first appear, and fails by name where a
+ * source leaves out its provider or its front page.
+ */
+export function providersOf(metaUrl: string): Provider[] {
+  const file     = path.join(repoRoot(metaUrl), 'src', 'scotch', 'sources', 'sources.toml')
+  const declared = parse(fs.readFileSync(file, 'utf8')) as Declared
+  const named    = new Map<string, string>()
+  for (const { home, provider } of declared.sources ?? []) {
+    if (typeof home !== 'string' || typeof provider !== 'string') {
+      throw new TypeError(`a source in ${file} names no provider or home`)
+    }
+    if (!named.has(provider)) named.set(provider, home)
+  }
+  return [...named].map(([name, home]) => ({ home, name }))
 }
