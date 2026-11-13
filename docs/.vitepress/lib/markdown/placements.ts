@@ -18,7 +18,6 @@ export const PLACED: Readonly<Record<string, readonly Placement[]>> = {
   'data/index.md'   : [{ draw: 'decades', region: 'decades' }, { draw: 'files', region: 'sources' }],
   'data/lengths.md' : [{ draw: 'eras', region: 'lengths' }, { draw: 'results', region: 'outcomes' }],
   'data/omitted.md' : [{ draw: 'ledger', region: 'ledger' }, { draw: 'floor', region: 'floors' }],
-  'data/tags.md'    : [{ draw: 'carried', region: 'carried' }, { draw: 'dated', region: 'dated' }],
   'guide/store.md'  : [{ draw: 'archives', region: 'archives' }],
   'methods/runs.md' : [{ after: 'Stepping Through a Match', draw: 'run' }],
 
@@ -26,6 +25,12 @@ export const PLACED: Readonly<Record<string, readonly Placement[]>> = {
     { draw: 'parting', region: 'parting' },
     { draw: 'partings', region: 'partings' },
     { draw: 'crowding', region: 'crowding' }
+  ],
+
+  'data/tags.md': [
+    { draw: 'carried', region: 'carried' },
+    { draw: 'dated', region: 'dated' },
+    { draw: 'tie', region: 'order' }
   ],
 
   'index.md': [

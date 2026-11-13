@@ -17,5 +17,6 @@ export const DATA_WIDGETS: Record<string, Component> = {
   ledger   : defineAsyncComponent(async () => (await import('./ledger.ts')).GameLedger),
   parting  : defineAsyncComponent(async () => (await import('./parting.ts')).SharedParting),
   partings : defineAsyncComponent(async () => (await import('./partings.ts')).SharedPartings),
-  results  : defineAsyncComponent(async () => (await import('./results.ts')).Results)
+  results  : defineAsyncComponent(async () => (await import('./results.ts')).Results),
+  tie      : defineAsyncComponent(async () => (await import('./tie.ts')).TieOrder)
 }

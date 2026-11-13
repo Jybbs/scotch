@@ -47,6 +47,16 @@ interface Held {
 }
 
 /**
+ * One bin of the games carrying both ratings, by the mean of the two, open
+ * below where `low` is `null` and above where `high` is.
+ */
+export interface MeanBin {
+  games : number
+  high  : number | null
+  low   : number | null
+}
+
+/**
  * The games of one decade, or of every decade, by the precision of their
  * `Date` tag, by the ratings they carry, and by each tag they carry with a
  * value, beside their count and the decade's name.
@@ -61,12 +71,14 @@ export interface TagCounts {
 
 /**
  * The counts `scotch render docs` writes for the Tags page: each decade's,
- * every stored game's, each decade's gap in each tag, and the tags counted.
+ * every stored game's, each decade's gap in each tag, the games carrying both
+ * ratings by their mean, and the tags counted.
  */
 export interface Tags {
   decades : readonly TagCounts[]
   every   : TagCounts
   gaps    : readonly Gap[]
+  means   : readonly MeanBin[]
   names   : readonly string[]
 }
 

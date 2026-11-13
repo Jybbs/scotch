@@ -499,13 +499,54 @@ def test_tagged_reads_ratings_and_a_partial_date(
     index = scanned(
         [
             line("e4", BlackElo="0", Date="1990.05.??", WhiteElo="2600"),
-            line("d4", BlackElo="2400", Date="1990.??.??", WhiteElo="2500")
+            line("d4", BlackElo="2400", Date="1990.??.??", WhiteElo="2501")
         ]
     )
 
-    assert Census(index=index).tagged.select("dates", "rated", "rating").rows() == [
-        ("month", 1, 2600),
-        ("year", 2, 2500)
+    assert Census(index=index).tagged.select(
+        "dates",
+        "rated",
+        "rating",
+        "mean"
+    ).rows() == [
+        ("month", 1, 2600, None),
+        ("year", 2, 2501, 2450.5)
+    ]
+
+
+def test_tags_bin_the_games_carrying_both_ratings_by_their_mean(
+    scanned: Callable[[Iterable[Game]], PositionIndex]
+):
+    """
+    Asserts that a mean falling on an edge counts in the bin it opens, that
+    a mean past the last edge counts in the last bin, that a bin no game
+    falls in counts 0, and that a game carrying one rating counts in no bin.
+    """
+    index = scanned(
+        [
+            line(
+                san,
+                origin = Origin(address="https://example.com/X.zip", place=place),
+                **ratings
+            )
+            for place, (san, ratings) in enumerate(
+                (
+                    ("e4", {"BlackElo": "2300", "WhiteElo": "2400"}),
+                    ("d4", {"BlackElo": "2199", "WhiteElo": "2200"}),
+                    ("c4", {"BlackElo": "3000", "WhiteElo": "3000"}),
+                    ("Nf3", {"WhiteElo": "2600"})
+                ),
+                start = 1
+            )
+        ]
+    )
+    means = Census(index=index, means=range(2200, 2401, 100)).tags.means
+
+    assert [(mean.low, mean.high, mean.games) for mean in means] == [
+        (None, 2200, 1),
+        (2200, 2300, 0),
+        (2300, 2400, 1),
+        (2400, None, 1)
     ]
 
 

@@ -226,10 +226,14 @@ class Outputs(RootModel[list[Output]]):
                     ("docs/pages/data/shared.md", "shared", "partings"),
                     ("docs/pages/data/tags.md", "tags", "carried"),
                     ("docs/pages/data/tags.md", "tags", "dated"),
-                    ("docs/pages/data/tags.md", "tie", "order"),
                     ("docs/pages/guide/store.md", "store", "archives"),
                     ("docs/pages/reference/identity.md", "store", "series")
                 )
+            ),
+            Region(
+                name   = "order",
+                path   = Path("docs/pages/data/tags.md"),
+                render = lambda: f"{census.tie.order}\n\n{census.tags.rated}"
             ),
             Region(
                 name   = "run-index-games",

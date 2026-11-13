@@ -1,7 +1,8 @@
 """
 Holds `Tags`, how fully the stored games carry their tags as `Census.tags`
-counts them, beside the `Tagged` count of one group of games, the `Gap`
-of one tag in one decade, and the `Held` games of a gap in one file, whose
+counts them, beside the `Tagged` count of one group of games, the `Gap` of
+one tag in one decade, the `Held` games of a gap in one file, and the `Bin`
+of the games carrying both ratings whose mean falls in one range, whose
 properties write the tables the Tags page sets beneath its figures and the
 figures it sets inside its sentences.
 """
@@ -12,6 +13,43 @@ from pydantic        import BaseModel, NonNegativeInt
 from typing          import Self
 
 from scotch.docs.tallies import markdown
+
+
+class Bin(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The games carrying both ratings whose mean falls from `low` to under
+    `high`, the first bin open below and the last open above.
+    """
+
+    games: NonNegativeInt
+    """
+    The count of the games.
+    """
+
+    high: int | None
+    """
+    The mean the bin holds the games under, or `None` for the last bin.
+    """
+
+    low: int | None
+    """
+    The least mean the bin holds, or `None` for the first bin.
+    """
+
+    @property
+    def name(self) -> str:
+        """
+        Names the range of means the bin holds, such as `2200 to under
+        2250`.
+        """
+        if self.low is None:
+            return f"Under {self.high}"
+
+        return (
+            f"{self.low} or more"
+            if self.high is None
+            else f"{self.low} to under {self.high}"
+        )
 
 
 class Held(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -158,6 +196,12 @@ class Tags(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     by decade.
     """
 
+    means: list[Bin]
+    """
+    The games carrying both ratings counted by the mean of the two, the
+    value a match orders them by, in bins from the lowest.
+    """
+
     names: list[str]
     """
     The tags counted, the Seven Tag Roster followed by the ratings and the
@@ -242,6 +286,23 @@ class Tags(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             "tags-day"     : f"{every.dates['day'] / every.games:.0%}",
             "tags-neither" : f"{every.ratings['neither'] / every.games:.0%}"
         }
+
+    @property
+    def rated(self) -> str:
+        """
+        Writes a table of each bin of the mean of both ratings beside the
+        games it holds and their share of every game carrying both, or 0
+        where no game carries both.
+        """
+        both = self.every.ratings["both"] or 1
+
+        return markdown(
+            headers = ("Mean of Both Ratings", "Games", "Share"),
+            rows    = (
+                (mean.name, f"{mean.games:,}", f"{mean.games / both:.1%}")
+                for mean in self.means
+            )
+        )
 
     def least(self, name: str) -> Tagged | None:
         """

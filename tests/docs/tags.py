@@ -1,12 +1,13 @@
 """
 Pins the tables and figures `Tags` writes for the Tags page, meaning each
-tag's share and the decade carrying it least, and each decade's dates and
-ratings, beside the share `Tagged` reads for one tag.
+tag's share and the decade carrying it least, each decade's dates and
+ratings, and the games carrying both ratings by their mean, beside the share
+`Tagged` reads for one tag and the name of each `Bin`.
 """
 
-from pytest import fixture
+from pytest import fixture, mark
 
-from scotch.docs.tags import Gap, Held, Tagged, Tags
+from scotch.docs.tags import Bin, Gap, Held, Tagged, Tags
 
 
 def tagged(
@@ -73,6 +74,11 @@ def tags() -> Tags:
                 tag     = "Round"
             )
         ],
+        means = [
+            Bin(games=1, high=2200, low=None),
+            Bin(games=2, high=2850, low=2200),
+            Bin(games=1, high=None, low=2850)
+        ],
         names = ["Round", "Event"]
     )
 
@@ -89,6 +95,26 @@ def test_a_group_holding_no_games_shares_nothing():
         name  = "1900s",
         round = 0
     ).share("Round") == 0
+
+
+@mark.parametrize(
+    ("low", "high", "name"),
+    [
+        (None, 2200, "Under 2200"),
+        (2200, 2250, "2200 to under 2250"),
+        (2850, None, "2850 or more")
+    ]
+)
+def test_a_bin_names_its_range_open_below_and_above(
+    high : int | None,
+    low  : int | None,
+    name : str
+):
+    """
+    Asserts that the first bin reads as every mean under its edge, the last
+    as every mean at or past its edge, and every other as its two edges.
+    """
+    assert Bin(games=0, high=high, low=low).name == name
 
 
 def test_tags_write_their_figures_and_tables(tags: Tags):
@@ -114,6 +140,10 @@ def test_tags_write_their_figures_and_tables(tags: Tags):
     ]
     assert tags.dated.splitlines()[2:] == [
         "| 1970s | 4 | 50.0% | 0.0% |", "| 1980s | 16 | 50.0% | 25.0% |"
+    ]
+    assert tags.rated.splitlines()[2:] == [
+        "| Under 2200 | 1 | 25.0% |", "| 2200 to under 2850 | 2 | 50.0% |",
+        "| 2850 or more | 1 | 25.0% |"
     ]
 
 

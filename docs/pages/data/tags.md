@@ -121,7 +121,7 @@ Of the stored games, <!-- tags-day -->78%<!-- /tags-day --> carry a `Date` tag n
 
 ## The Tie Order
 
-Where several stored games share the longest run with a submitted game, the match shows them in one order, as [The Longest Run](../methods/runs.md) sets out, the games rated on both sides by the mean of the two ratings from the highest, then the games rated on one side from the highest, then the games rated on neither in the order the index holds them, so the ratings above decide which game a reader meets first. The opening <!-- tie-line -->`1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Rc1 h6 7.Bh4 b6 8.cxd5 Nxd5 9.Nxd5 exd5 10.Bxe7 Qxe7`<!-- /tie-line --> ties <!-- tie-games -->7<!-- /tie-games --> stored games on every position it reaches, and the table beneath the figure names each in the order a match shows them, beside the move it plays once the tie ends.
+Where several stored games share the longest run with a submitted game, the match shows them in one order, as [The Longest Run](../methods/runs.md) sets out, the games rated on both sides by the mean of the two ratings from the highest, then the games rated on one side from the highest, then the games rated on neither in the order the index holds them, so the ratings above decide which game a reader meets first. The opening <!-- tie-line -->`1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7 5.e3 O-O 6.Rc1 h6 7.Bh4 b6 8.cxd5 Nxd5 9.Nxd5 exd5 10.Bxe7 Qxe7`<!-- /tie-line --> ties <!-- tie-games -->7<!-- /tie-games --> stored games on every position it reaches. The figure follows every stored game through the order's two tests, each branch as thick as the games taking it and the games rated on both sides set out by the mean of their ratings in bins of 50 points, and a press on a place, a branch, or a bin reads out what it holds. The tables beneath it name each tied game in the order a match shows them, beside the move it plays once the tie ends, and count the games rated on both sides by that mean.
 
 <!-- order -->
 | **Place** | **Game** | **White Rated** | **Black Rated** | **Next** |
@@ -133,4 +133,22 @@ Where several stored games share the longest run with a submitted game, the matc
 | 5 | Chekhov, Valery A – Tjutiunnikov, I., 1996 | 2505 | – | 11.Bd3 |
 | 6 | Euwe, Max – Landau, Salo, 1939 | – | – | 11.Qc2 |
 | 7 | Portisch, Lajos – Ilievski, Borce, 1968 | – | – | 11.Be2 |
+
+| **Mean of Both Ratings** | **Games** | **Share** |
+|---|---:|---:|
+| Under 2200 | 7,380 | 0.7% |
+| 2200 to under 2250 | 7,570 | 0.7% |
+| 2250 to under 2300 | 16,412 | 1.6% |
+| 2300 to under 2350 | 34,618 | 3.3% |
+| 2350 to under 2400 | 73,063 | 6.9% |
+| 2400 to under 2450 | 137,630 | 13.0% |
+| 2450 to under 2500 | 217,314 | 20.5% |
+| 2500 to under 2550 | 207,303 | 19.6% |
+| 2550 to under 2600 | 142,987 | 13.5% |
+| 2600 to under 2650 | 97,023 | 9.2% |
+| 2650 to under 2700 | 57,771 | 5.5% |
+| 2700 to under 2750 | 35,535 | 3.4% |
+| 2750 to under 2800 | 18,225 | 1.7% |
+| 2800 to under 2850 | 2,834 | 0.3% |
+| 2850 or more | 2,929 | 0.3% |
 <!-- /order -->

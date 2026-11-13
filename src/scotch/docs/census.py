@@ -13,6 +13,7 @@ from chess.pgn       import TAG_ROSTER
 from collections.abc import Iterator, Sequence
 from dataclasses     import dataclass, field
 from functools       import cached_property
+from itertools       import pairwise
 from math            import ceil
 from polars          import (
     DataFrame, Expr, Series, UInt16, col, concat, concat_str, element, int_ranges, lit, max_horizontal,
@@ -22,7 +23,7 @@ from random          import Random
 
 from scotch.docs.omitted    import Floor, Ledger, Omissions
 from scotch.docs.shared     import Crowd, Line, Parting, Shared
-from scotch.docs.tags       import Gap, Tagged, Tags
+from scotch.docs.tags       import Bin, Gap, Tagged, Tags
 from scotch.docs.tallies    import Archive, Era, Rules, Tally
 from scotch.docs.ties       import Tie, Tied
 from scotch.games           import readers
@@ -79,6 +80,13 @@ class Census:
     )
     """
     The opening line whose tie the Tags page draws.
+    """
+
+    means: range = range(2200, 2851, 50)
+    """
+    The edges of the bins the Tags page counts the games carrying both
+    ratings in by the mean of the two, a bin under the first edge and a bin
+    at or past the last holding every mean beyond them.
     """
 
     sample: int = 1000
@@ -435,8 +443,9 @@ class Census:
         Returns:
             One row per stored game under `named`, the tags it carries with
             a value, `dates`, one of `day`, `month`, `year`, or `none`,
-            `rated`, the count of its two ratings it carries, and `rating`,
-            the higher of the two or 0.
+            `rated`, the count of its two ratings it carries, `rating`, the
+            higher of the two or 0, and `mean`, the mean of the two where it
+            carries both and null otherwise.
         """
         value = lambda name: (
             col("tags").list.filter(element().struct.field("name") == name)
@@ -467,7 +476,10 @@ class Census:
             rated = (elo("WhiteElo") > 0).cast(UInt16) + (elo("BlackElo") > 0).cast(
                 UInt16
             ),
-            rating = max_horizontal(elo("WhiteElo"), elo("BlackElo"))
+            rating = max_horizontal(elo("WhiteElo"), elo("BlackElo")),
+            mean   = when(elo("WhiteElo") > 0, elo("BlackElo") > 0).then(
+                (elo("WhiteElo") + elo("BlackElo")) / 2
+            )
         ).collect()
 
     @cached_property
@@ -476,9 +488,18 @@ class Census:
         Counts the stored games carrying each tag of the Seven Tag Roster,
         the two ratings, and the opening's code with a value, for every
         stored game and for each decade, beside the files holding the most
-        games of each decade missing each tag.
+        games of each decade missing each tag and the games carrying both
+        ratings in each bin of `means`.
         """
-        names = [*TAG_ROSTER, "WhiteElo", "BlackElo", "ECO"]
+        names  = [*TAG_ROSTER, "WhiteElo", "BlackElo", "ECO"]
+        binned = dict(
+            self.tagged.select(
+                col("mean").drop_nulls().bin_intervals(self.means, labels=False)
+            )
+            .to_series()
+            .value_counts()
+            .iter_rows()
+        )
         games = self.games.select("address", "era").hstack(self.tagged)
         held  = games.with_columns(
             file = col("address").replace_strict(
@@ -513,6 +534,10 @@ class Census:
                 for tag in names
                 for era in self.eras
                 if not (rows := held.filter(col("era") == era, ~col(tag))).is_empty()
+            ],
+            means = [
+                Bin(games=binned.get(at, 0), high=high, low=low)
+                for at, (low, high) in enumerate(pairwise((None, *self.means, None)))
             ],
             names = names
         )

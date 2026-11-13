@@ -56,7 +56,7 @@ export function moverLine(height: number, x: number, top = 0): VNode {
  * The plate every Data widget sits on: a figure in the display face beside the
  * sentence it reads as, the controls and the chart in its slots, and beneath
  * them either a row of readings, each a label over its value with an optional
- * count in a smaller type, or one line of reading.
+ * count in a smaller type, or one line of reading where it is given one.
  */
 export const Plate = defineComponent({
   name: 'ScotchDataPlate',
@@ -79,6 +79,6 @@ export const Plate = defineComponent({
     slots.default?.(),
     props.readings.length > 0
       ? h('dl', { 'aria-live': 'polite', class: 'sc-data-read' }, props.readings.map(reading))
-      : h('p', { 'aria-live': 'polite', class: 'sc-data-line' }, props.line)
+      : props.line ? h('p', { 'aria-live': 'polite', class: 'sc-data-line' }, props.line) : null
   ])
 })
