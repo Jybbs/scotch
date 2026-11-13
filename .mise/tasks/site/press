@@ -1,6 +1,6 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "press"
-#MISE depends     = ["site:install"]
+#MISE depends     = ["rs:wasm", "site:install"]
 #MISE description = "Build the site and a card per page into `docs/.vitepress/dist`, failing on a link between pages that leads nowhere, and passing any further arguments to VitePress"
 #MISE dir         = "docs"
 

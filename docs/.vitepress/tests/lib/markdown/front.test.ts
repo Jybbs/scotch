@@ -58,7 +58,7 @@ describe('frontPage', () => {
     const entry   = entries[index]![2]!
     const asked   = section.question
     expect(entry).toContain(`<span aria-hidden="true" class="sc-entry-numeral">${numeral}</span>`)
-    expect(entry).toContain(`<a class="sc-entry-kicker" href="/${section.slug}/">${label}</a>`)
+    expect(entry).toContain(`<a class="sc-entry-kicker" href="/${section.slug}/"><span>${label}</span></a>`)
     expect(entry).toMatch(new RegExp(`<h2[^>]*>${RegExp.escape(asked)}`, 'u'))
   })
 

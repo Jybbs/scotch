@@ -1,0 +1,55 @@
+.sc-front-count {
+  --sc-front-line : 36px;
+
+  display              : inline-block;
+  font                 : 400 2.25rem/var(--sc-front-line) var(--sc-face-display);
+  font-variant-numeric : lining-nums tabular-nums;
+  white-space          : nowrap;
+}
+
+.sc-front-reels { display: inline-flex; }
+
+.sc-front-place {
+  display   : inline-block;
+  height    : var(--sc-front-line);
+  clip-path : inset(0);
+}
+
+.sc-front-reel {
+  display        : flex;
+  flex-direction : column;
+  translate      : 0 calc(var(--sc-front-digit) * var(--sc-front-line) * -1);
+  transition     : translate var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+@starting-style {
+  .sc-front-reel { translate: 0 0; }
+}
+
+.sc-front-reel > span { text-align: center; }
+
+.sc-front-spoken {
+  position    : absolute;
+  width       : 1px;
+  height      : 1px;
+  overflow    : hidden;
+  clip-path   : inset(50%);
+  white-space : nowrap;
+}
+
+.sc-front-wait {
+  display        : inline-block;
+  width          : 0.9em;
+  height         : 3px;
+  border-radius  : 2px;
+  background     : var(--sc-entry);
+  vertical-align : 0.32em;
+  animation      : sc-front-wait 1.2s var(--sc-curve-sway) infinite alternate;
+}
+
+:root:not([data-motion='playing']) .sc-front-wait { animation: none; }
+
+@keyframes sc-front-wait {
+  from { opacity: 0.35; }
+  to   { opacity: 1; }
+}

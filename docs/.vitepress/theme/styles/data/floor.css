@@ -1,0 +1,42 @@
+.sc-data-floor {
+  --sc-data-ramp : linear-gradient(90deg, var(--sc-data-tint), var(--sc-data-ink));
+  display        : grid;
+  gap            : 8px;
+}
+
+.sc-data-floor .sc-data-svg {
+  cursor       : ns-resize;
+  touch-action : none;
+}
+
+.sc-data-floor-cell {
+  fill       : color-mix(in oklab, var(--sc-data-ink) calc(var(--sc-data-level) * 80% + 8%), var(--sc-data-page));
+  transition : fill var(--sc-duration-fade) var(--sc-curve-glide),
+               opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-floor-cell[data-k='up'] {
+  fill: color-mix(in oklab, var(--sc-data-link) calc(var(--sc-data-level) * 82% + 10%), var(--sc-data-page));
+}
+
+.sc-data-floor-cell[data-k='none'] {
+  fill: color-mix(in oklab, var(--sc-data-ink) calc(var(--sc-data-level) * 30% + 6%), var(--sc-data-page));
+}
+
+.sc-data-floor-track { fill: color-mix(in oklab, var(--sc-data-rule) 30%, var(--sc-data-page)); }
+
+.sc-data-floor-kept {
+  fill       : var(--sc-data-link);
+  transition : height var(--sc-duration-fade) var(--sc-curve-glide),
+               y var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-data-floor-rule rect { fill: var(--sc-data-ink); }
+
+.sc-data-floor-rule .sc-data-floor-pill { fill: var(--sc-data-ink); }
+
+.sc-data-floor-rule text {
+  fill                 : var(--sc-data-page);
+  font                 : 600 0.62rem var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+}

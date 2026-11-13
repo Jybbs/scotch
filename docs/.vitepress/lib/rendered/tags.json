@@ -1,0 +1,2044 @@
+{
+  "decades": [
+    {
+      "dates": {
+        "day": 8,
+        "month": 6,
+        "year": 7215,
+        "none": 0
+      },
+      "games": 7229,
+      "name": "Before 1900",
+      "ratings": {
+        "both": 0,
+        "one": 0,
+        "neither": 7229
+      },
+      "tags": {
+        "Event": 7229,
+        "Site": 7222,
+        "Date": 7229,
+        "Round": 4410,
+        "White": 7229,
+        "Black": 7229,
+        "Result": 7224,
+        "WhiteElo": 0,
+        "BlackElo": 0,
+        "ECO": 7229
+      }
+    },
+    {
+      "dates": {
+        "day": 0,
+        "month": 0,
+        "year": 4648,
+        "none": 0
+      },
+      "games": 4648,
+      "name": "1900s",
+      "ratings": {
+        "both": 0,
+        "one": 0,
+        "neither": 4648
+      },
+      "tags": {
+        "Event": 4648,
+        "Site": 4605,
+        "Date": 4648,
+        "Round": 3284,
+        "White": 4648,
+        "Black": 4648,
+        "Result": 4647,
+        "WhiteElo": 0,
+        "BlackElo": 0,
+        "ECO": 4648
+      }
+    },
+    {
+      "dates": {
+        "day": 119,
+        "month": 0,
+        "year": 2600,
+        "none": 0
+      },
+      "games": 2719,
+      "name": "1910s",
+      "ratings": {
+        "both": 0,
+        "one": 0,
+        "neither": 2719
+      },
+      "tags": {
+        "Event": 2719,
+        "Site": 2719,
+        "Date": 2719,
+        "Round": 1653,
+        "White": 2719,
+        "Black": 2719,
+        "Result": 2715,
+        "WhiteElo": 0,
+        "BlackElo": 0,
+        "ECO": 2719
+      }
+    },
+    {
+      "dates": {
+        "day": 331,
+        "month": 16,
+        "year": 6388,
+        "none": 0
+      },
+      "games": 6735,
+      "name": "1920s",
+      "ratings": {
+        "both": 0,
+        "one": 0,
+        "neither": 6735
+      },
+      "tags": {
+        "Event": 6696,
+        "Site": 6712,
+        "Date": 6735,
+        "Round": 4020,
+        "White": 6735,
+        "Black": 6735,
+        "Result": 6724,
+        "WhiteElo": 0,
+        "BlackElo": 0,
+        "ECO": 6735
+      }
+    },
+    {
+      "dates": {
+        "day": 164,
+        "month": 13,
+        "year": 7947,
+        "none": 0
+      },
+      "games": 8124,
+      "name": "1930s",
+      "ratings": {
+        "both": 0,
+        "one": 0,
+        "neither": 8124
+      },
+      "tags": {
+        "Event": 8124,
+        "Site": 8102,
+        "Date": 8124,
+        "Round": 5039,
+        "White": 8124,
+        "Black": 8124,
+        "Result": 8120,
+        "WhiteElo": 0,
+        "BlackElo": 0,
+        "ECO": 8124
+      }
+    },
+    {
+      "dates": {
+        "day": 4,
+        "month": 0,
+        "year": 6953,
+        "none": 0
+      },
+      "games": 6957,
+      "name": "1940s",
+      "ratings": {
+        "both": 0,
+        "one": 0,
+        "neither": 6957
+      },
+      "tags": {
+        "Event": 6957,
+        "Site": 6939,
+        "Date": 6957,
+        "Round": 5300,
+        "White": 6957,
+        "Black": 6957,
+        "Result": 6954,
+        "WhiteElo": 0,
+        "BlackElo": 0,
+        "ECO": 6957
+      }
+    },
+    {
+      "dates": {
+        "day": 54,
+        "month": 0,
+        "year": 12013,
+        "none": 0
+      },
+      "games": 12067,
+      "name": "1950s",
+      "ratings": {
+        "both": 1,
+        "one": 0,
+        "neither": 12066
+      },
+      "tags": {
+        "Event": 12067,
+        "Site": 11874,
+        "Date": 12067,
+        "Round": 8255,
+        "White": 12067,
+        "Black": 12067,
+        "Result": 12066,
+        "WhiteElo": 1,
+        "BlackElo": 1,
+        "ECO": 12067
+      }
+    },
+    {
+      "dates": {
+        "day": 116,
+        "month": 7,
+        "year": 17630,
+        "none": 0
+      },
+      "games": 17753,
+      "name": "1960s",
+      "ratings": {
+        "both": 1,
+        "one": 0,
+        "neither": 17752
+      },
+      "tags": {
+        "Event": 17753,
+        "Site": 17658,
+        "Date": 17753,
+        "Round": 12897,
+        "White": 17753,
+        "Black": 17753,
+        "Result": 17752,
+        "WhiteElo": 1,
+        "BlackElo": 1,
+        "ECO": 17753
+      }
+    },
+    {
+      "dates": {
+        "day": 475,
+        "month": 1,
+        "year": 25369,
+        "none": 0
+      },
+      "games": 25845,
+      "name": "1970s",
+      "ratings": {
+        "both": 19352,
+        "one": 1183,
+        "neither": 5310
+      },
+      "tags": {
+        "Event": 25845,
+        "Site": 25569,
+        "Date": 25845,
+        "Round": 18655,
+        "White": 25845,
+        "Black": 25845,
+        "Result": 25844,
+        "WhiteElo": 19932,
+        "BlackElo": 19955,
+        "ECO": 25845
+      }
+    },
+    {
+      "dates": {
+        "day": 75,
+        "month": 20,
+        "year": 48427,
+        "none": 0
+      },
+      "games": 48522,
+      "name": "1980s",
+      "ratings": {
+        "both": 45624,
+        "one": 2616,
+        "neither": 282
+      },
+      "tags": {
+        "Event": 48522,
+        "Site": 47422,
+        "Date": 48522,
+        "Round": 21230,
+        "White": 48522,
+        "Black": 48522,
+        "Result": 48504,
+        "WhiteElo": 47029,
+        "BlackElo": 46835,
+        "ECO": 48522
+      }
+    },
+    {
+      "dates": {
+        "day": 27748,
+        "month": 109,
+        "year": 109179,
+        "none": 0
+      },
+      "games": 137036,
+      "name": "1990s",
+      "ratings": {
+        "both": 126992,
+        "one": 8917,
+        "neither": 1127
+      },
+      "tags": {
+        "Event": 137036,
+        "Site": 134346,
+        "Date": 137036,
+        "Round": 110587,
+        "White": 137036,
+        "Black": 137036,
+        "Result": 137002,
+        "WhiteElo": 131774,
+        "BlackElo": 131127,
+        "ECO": 137007
+      }
+    },
+    {
+      "dates": {
+        "day": 191295,
+        "month": 78,
+        "year": 12,
+        "none": 0
+      },
+      "games": 191385,
+      "name": "2000s",
+      "ratings": {
+        "both": 188111,
+        "one": 3224,
+        "neither": 50
+      },
+      "tags": {
+        "Event": 191385,
+        "Site": 191385,
+        "Date": 191385,
+        "Round": 190923,
+        "White": 191385,
+        "Black": 191385,
+        "Result": 191357,
+        "WhiteElo": 189879,
+        "BlackElo": 189567,
+        "ECO": 191020
+      }
+    },
+    {
+      "dates": {
+        "day": 300701,
+        "month": 0,
+        "year": 1,
+        "none": 0
+      },
+      "games": 300702,
+      "name": "2010s",
+      "ratings": {
+        "both": 299144,
+        "one": 1531,
+        "neither": 27
+      },
+      "tags": {
+        "Event": 300701,
+        "Site": 300702,
+        "Date": 300702,
+        "Round": 300530,
+        "White": 300702,
+        "Black": 300702,
+        "Result": 300688,
+        "WhiteElo": 299966,
+        "BlackElo": 299855,
+        "ECO": 300598
+      }
+    },
+    {
+      "dates": {
+        "day": 380422,
+        "month": 11,
+        "year": 0,
+        "none": 0
+      },
+      "games": 380433,
+      "name": "2020s",
+      "ratings": {
+        "both": 379368,
+        "one": 1058,
+        "neither": 7
+      },
+      "tags": {
+        "Event": 380433,
+        "Site": 380433,
+        "Date": 380433,
+        "Round": 376663,
+        "White": 380433,
+        "Black": 380433,
+        "Result": 380432,
+        "WhiteElo": 379896,
+        "BlackElo": 379898,
+        "ECO": 380238
+      }
+    }
+  ],
+  "every": {
+    "dates": {
+      "day": 901512,
+      "month": 261,
+      "year": 248382,
+      "none": 1
+    },
+    "games": 1150156,
+    "name": "Every game",
+    "ratings": {
+      "both": 1058594,
+      "one": 18529,
+      "neither": 73033
+    },
+    "tags": {
+      "Event": 1150115,
+      "Site": 1145688,
+      "Date": 1150155,
+      "Round": 1063446,
+      "White": 1150155,
+      "Black": 1150155,
+      "Result": 1150029,
+      "WhiteElo": 1068479,
+      "BlackElo": 1067240,
+      "ECO": 1149463
+    }
+  },
+  "gaps": [
+    {
+      "decade": "1920s",
+      "files": [
+        {
+          "count": 39,
+          "path": "players/TorreRepetto.zip"
+        }
+      ],
+      "missing": 39,
+      "tag": "Event"
+    },
+    {
+      "decade": "2010s",
+      "files": [
+        {
+          "count": 1,
+          "path": "openings/KIDOther7.zip"
+        }
+      ],
+      "missing": 1,
+      "tag": "Event"
+    },
+    {
+      "decade": "Before 1900",
+      "files": [
+        {
+          "count": 3,
+          "path": "players/Chigorin.zip"
+        },
+        {
+          "count": 2,
+          "path": "players/Steinitz.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Bird.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Philidor.zip"
+        }
+      ],
+      "missing": 7,
+      "tag": "Site"
+    },
+    {
+      "decade": "1900s",
+      "files": [
+        {
+          "count": 17,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 13,
+          "path": "players/Marshall.zip"
+        },
+        {
+          "count": 10,
+          "path": "players/Rubinstein.zip"
+        },
+        {
+          "count": 3,
+          "path": "players/Blackburne.zip"
+        }
+      ],
+      "missing": 43,
+      "tag": "Site"
+    },
+    {
+      "decade": "1920s",
+      "files": [
+        {
+          "count": 18,
+          "path": "players/Marshall.zip"
+        },
+        {
+          "count": 4,
+          "path": "players/TorreRepetto.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Euwe.zip"
+        }
+      ],
+      "missing": 23,
+      "tag": "Site"
+    },
+    {
+      "decade": "1930s",
+      "files": [
+        {
+          "count": 14,
+          "path": "players/Maroczy.zip"
+        },
+        {
+          "count": 6,
+          "path": "players/Rubinstein.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Euwe.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/SultanKhan.zip"
+        }
+      ],
+      "missing": 22,
+      "tag": "Site"
+    },
+    {
+      "decade": "1940s",
+      "files": [
+        {
+          "count": 2,
+          "path": "players/Boleslavsky.zip"
+        },
+        {
+          "count": 2,
+          "path": "players/Botvinnik.zip"
+        },
+        {
+          "count": 2,
+          "path": "players/Bronstein.zip"
+        },
+        {
+          "count": 2,
+          "path": "players/Flohr.zip"
+        }
+      ],
+      "missing": 18,
+      "tag": "Site"
+    },
+    {
+      "decade": "1950s",
+      "files": [
+        {
+          "count": 57,
+          "path": "players/Benko.zip"
+        },
+        {
+          "count": 53,
+          "path": "players/Szabo.zip"
+        },
+        {
+          "count": 37,
+          "path": "players/Fischer.zip"
+        },
+        {
+          "count": 18,
+          "path": "players/Portisch.zip"
+        }
+      ],
+      "missing": 193,
+      "tag": "Site"
+    },
+    {
+      "decade": "1960s",
+      "files": [
+        {
+          "count": 40,
+          "path": "players/Portisch.zip"
+        },
+        {
+          "count": 38,
+          "path": "players/Szabo.zip"
+        },
+        {
+          "count": 17,
+          "path": "players/Andersson.zip"
+        }
+      ],
+      "missing": 95,
+      "tag": "Site"
+    },
+    {
+      "decade": "1970s",
+      "files": [
+        {
+          "count": 60,
+          "path": "players/Ribli.zip"
+        },
+        {
+          "count": 17,
+          "path": "players/Portisch.zip"
+        },
+        {
+          "count": 16,
+          "path": "players/Larsen.zip"
+        },
+        {
+          "count": 13,
+          "path": "players/Browne.zip"
+        }
+      ],
+      "missing": 276,
+      "tag": "Site"
+    },
+    {
+      "decade": "1980s",
+      "files": [
+        {
+          "count": 59,
+          "path": "players/Browne.zip"
+        },
+        {
+          "count": 58,
+          "path": "players/Alburt.zip"
+        },
+        {
+          "count": 52,
+          "path": "players/Benjamin.zip"
+        },
+        {
+          "count": 48,
+          "path": "players/DeFirmian.zip"
+        }
+      ],
+      "missing": 1100,
+      "tag": "Site"
+    },
+    {
+      "decade": "1990s",
+      "files": [
+        {
+          "count": 81,
+          "path": "players/VanWely.zip"
+        },
+        {
+          "count": 53,
+          "path": "players/Movsesian.zip"
+        },
+        {
+          "count": 45,
+          "path": "openings/KIDOther7.zip"
+        },
+        {
+          "count": 44,
+          "path": "players/Blatny.zip"
+        }
+      ],
+      "missing": 2690,
+      "tag": "Site"
+    },
+    {
+      "decade": "Before 1900",
+      "files": [
+        {
+          "count": 467,
+          "path": "players/Anderssen.zip"
+        },
+        {
+          "count": 266,
+          "path": "players/Blackburne.zip"
+        },
+        {
+          "count": 197,
+          "path": "players/Steinitz.zip"
+        },
+        {
+          "count": 168,
+          "path": "players/Lasker.zip"
+        }
+      ],
+      "missing": 2819,
+      "tag": "Round"
+    },
+    {
+      "decade": "1900s",
+      "files": [
+        {
+          "count": 204,
+          "path": "players/Lasker.zip"
+        },
+        {
+          "count": 97,
+          "path": "events/StPetersburg1905.pgn"
+        },
+        {
+          "count": 87,
+          "path": "players/Chigorin.zip"
+        },
+        {
+          "count": 82,
+          "path": "players/Marshall.zip"
+        }
+      ],
+      "missing": 1364,
+      "tag": "Round"
+    },
+    {
+      "decade": "1910s",
+      "files": [
+        {
+          "count": 136,
+          "path": "events/Karlsbad1911.pgn"
+        },
+        {
+          "count": 109,
+          "path": "players/Reti.zip"
+        },
+        {
+          "count": 104,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 76,
+          "path": "players/Capablanca.zip"
+        }
+      ],
+      "missing": 1066,
+      "tag": "Round"
+    },
+    {
+      "decade": "1920s",
+      "files": [
+        {
+          "count": 441,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 174,
+          "path": "players/Euwe.zip"
+        },
+        {
+          "count": 170,
+          "path": "events/Hague1928.pgn"
+        },
+        {
+          "count": 149,
+          "path": "players/Bogoljubow.zip"
+        }
+      ],
+      "missing": 2715,
+      "tag": "Round"
+    },
+    {
+      "decade": "1930s",
+      "files": [
+        {
+          "count": 351,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 182,
+          "path": "players/Flohr.zip"
+        },
+        {
+          "count": 171,
+          "path": "events/SovietChamp1934.pgn"
+        },
+        {
+          "count": 153,
+          "path": "events/SovietChamp1937.pgn"
+        }
+      ],
+      "missing": 3085,
+      "tag": "Round"
+    },
+    {
+      "decade": "1940s",
+      "files": [
+        {
+          "count": 120,
+          "path": "players/Boleslavsky.zip"
+        },
+        {
+          "count": 101,
+          "path": "players/Kotov.zip"
+        },
+        {
+          "count": 96,
+          "path": "players/Lilienthal.zip"
+        },
+        {
+          "count": 93,
+          "path": "players/Bronstein.zip"
+        }
+      ],
+      "missing": 1657,
+      "tag": "Round"
+    },
+    {
+      "decade": "1950s",
+      "files": [
+        {
+          "count": 232,
+          "path": "players/Korchnoi.zip"
+        },
+        {
+          "count": 168,
+          "path": "players/Tal.zip"
+        },
+        {
+          "count": 164,
+          "path": "players/Keres.zip"
+        },
+        {
+          "count": 163,
+          "path": "players/Geller.zip"
+        }
+      ],
+      "missing": 3812,
+      "tag": "Round"
+    },
+    {
+      "decade": "1960s",
+      "files": [
+        {
+          "count": 216,
+          "path": "players/Bronstein.zip"
+        },
+        {
+          "count": 214,
+          "path": "players/Korchnoi.zip"
+        },
+        {
+          "count": 199,
+          "path": "players/Kholmov.zip"
+        },
+        {
+          "count": 190,
+          "path": "players/Portisch.zip"
+        }
+      ],
+      "missing": 4856,
+      "tag": "Round"
+    },
+    {
+      "decade": "1970s",
+      "files": [
+        {
+          "count": 215,
+          "path": "players/Tal.zip"
+        },
+        {
+          "count": 212,
+          "path": "players/Polugaevsky.zip"
+        },
+        {
+          "count": 186,
+          "path": "players/Ribli.zip"
+        },
+        {
+          "count": 179,
+          "path": "players/Andersson.zip"
+        }
+      ],
+      "missing": 7190,
+      "tag": "Round"
+    },
+    {
+      "decade": "1980s",
+      "files": [
+        {
+          "count": 472,
+          "path": "players/Hort.zip"
+        },
+        {
+          "count": 434,
+          "path": "players/Andersson.zip"
+        },
+        {
+          "count": 431,
+          "path": "players/Psakhis.zip"
+        },
+        {
+          "count": 409,
+          "path": "players/Korchnoi.zip"
+        }
+      ],
+      "missing": 27292,
+      "tag": "Round"
+    },
+    {
+      "decade": "1990s",
+      "files": [
+        {
+          "count": 324,
+          "path": "openings/BenkoGambit.zip"
+        },
+        {
+          "count": 313,
+          "path": "openings/KIDOther7.zip"
+        },
+        {
+          "count": 246,
+          "path": "openings/SicilianRichter-Rauzer.zip"
+        },
+        {
+          "count": 231,
+          "path": "openings/SicilianRossolimo.zip"
+        }
+      ],
+      "missing": 26449,
+      "tag": "Round"
+    },
+    {
+      "decade": "2000s",
+      "files": [
+        {
+          "count": 51,
+          "path": "players/Kasparov.zip"
+        },
+        {
+          "count": 33,
+          "path": "players/Short.zip"
+        },
+        {
+          "count": 22,
+          "path": "openings/SicilianNajdorf6Be3.zip"
+        },
+        {
+          "count": 14,
+          "path": "players/Karjakin.zip"
+        }
+      ],
+      "missing": 462,
+      "tag": "Round"
+    },
+    {
+      "decade": "2010s",
+      "files": [
+        {
+          "count": 18,
+          "path": "openings/PetroffMain.zip"
+        },
+        {
+          "count": 13,
+          "path": "openings/RuyLopezBerlin.zip"
+        },
+        {
+          "count": 12,
+          "path": "openings/SemiSlavBotvinnik.zip"
+        },
+        {
+          "count": 11,
+          "path": "openings/SicilianNajdorf6Be3.zip"
+        }
+      ],
+      "missing": 172,
+      "tag": "Round"
+    },
+    {
+      "decade": "2020s",
+      "files": [
+        {
+          "count": 136,
+          "path": "players/Mamedyarov.zip"
+        },
+        {
+          "count": 117,
+          "path": "openings/RetiKIA.zip"
+        },
+        {
+          "count": 117,
+          "path": "players/Andreikin.zip"
+        },
+        {
+          "count": 97,
+          "path": "players/Praggnanandhaa.zip"
+        }
+      ],
+      "missing": 3770,
+      "tag": "Round"
+    },
+    {
+      "decade": "Before 1900",
+      "files": [
+        {
+          "count": 2,
+          "path": "players/Lasker.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Anderssen.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Bird.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Paulsen.zip"
+        }
+      ],
+      "missing": 5,
+      "tag": "Result"
+    },
+    {
+      "decade": "1900s",
+      "files": [
+        {
+          "count": 1,
+          "path": "players/Lasker.zip"
+        }
+      ],
+      "missing": 1,
+      "tag": "Result"
+    },
+    {
+      "decade": "1910s",
+      "files": [
+        {
+          "count": 2,
+          "path": "events/Budapest1913.pgn"
+        },
+        {
+          "count": 1,
+          "path": "players/Capablanca.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Spielmann.zip"
+        }
+      ],
+      "missing": 4,
+      "tag": "Result"
+    },
+    {
+      "decade": "1920s",
+      "files": [
+        {
+          "count": 5,
+          "path": "events/Hague1928.pgn"
+        },
+        {
+          "count": 2,
+          "path": "players/Tartakower.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Euwe.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Janowski.zip"
+        }
+      ],
+      "missing": 11,
+      "tag": "Result"
+    },
+    {
+      "decade": "1930s",
+      "files": [
+        {
+          "count": 1,
+          "path": "events/Hastings1931.pgn"
+        },
+        {
+          "count": 1,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Fine.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/SultanKhan.zip"
+        }
+      ],
+      "missing": 4,
+      "tag": "Result"
+    },
+    {
+      "decade": "1940s",
+      "files": [
+        {
+          "count": 1,
+          "path": "events/Krakow1940.pgn"
+        },
+        {
+          "count": 1,
+          "path": "players/Bogoljubow.zip"
+        },
+        {
+          "count": 1,
+          "path": "players/Stahlberg.zip"
+        }
+      ],
+      "missing": 3,
+      "tag": "Result"
+    },
+    {
+      "decade": "1950s",
+      "files": [
+        {
+          "count": 1,
+          "path": "players/Boleslavsky.zip"
+        }
+      ],
+      "missing": 1,
+      "tag": "Result"
+    },
+    {
+      "decade": "1960s",
+      "files": [
+        {
+          "count": 1,
+          "path": "players/Polugaevsky.zip"
+        }
+      ],
+      "missing": 1,
+      "tag": "Result"
+    },
+    {
+      "decade": "1970s",
+      "files": [
+        {
+          "count": 1,
+          "path": "players/Mecking.zip"
+        }
+      ],
+      "missing": 1,
+      "tag": "Result"
+    },
+    {
+      "decade": "1980s",
+      "files": [
+        {
+          "count": 2,
+          "path": "players/Browne.zip"
+        },
+        {
+          "count": 2,
+          "path": "players/Huebner.zip"
+        },
+        {
+          "count": 2,
+          "path": "players/Polugaevsky.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/FrTarrasch3c5.zip"
+        }
+      ],
+      "missing": 18,
+      "tag": "Result"
+    },
+    {
+      "decade": "1990s",
+      "files": [
+        {
+          "count": 11,
+          "path": "players/Karpov.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/Caro-Kann4Nf6.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/KIDAverbakh.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/KIDFianchetto.zip"
+        }
+      ],
+      "missing": 34,
+      "tag": "Result"
+    },
+    {
+      "decade": "2000s",
+      "files": [
+        {
+          "count": 1,
+          "path": "openings/Caro-KannAdv.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/KIDClassical.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/QGDExchange.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/Reti2c4.zip"
+        }
+      ],
+      "missing": 28,
+      "tag": "Result"
+    },
+    {
+      "decade": "2010s",
+      "files": [
+        {
+          "count": 2,
+          "path": "players/Inarkiev.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/GrunfeldOther.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/Modern.zip"
+        },
+        {
+          "count": 1,
+          "path": "openings/Philidor.zip"
+        }
+      ],
+      "missing": 14,
+      "tag": "Result"
+    },
+    {
+      "decade": "2020s",
+      "files": [
+        {
+          "count": 1,
+          "path": "openings/NimzoRubOther.zip"
+        }
+      ],
+      "missing": 1,
+      "tag": "Result"
+    },
+    {
+      "decade": "Before 1900",
+      "files": [
+        {
+          "count": 681,
+          "path": "players/Anderssen.zip"
+        },
+        {
+          "count": 597,
+          "path": "players/Blackburne.zip"
+        },
+        {
+          "count": 399,
+          "path": "players/Chigorin.zip"
+        },
+        {
+          "count": 344,
+          "path": "players/Bird.zip"
+        }
+      ],
+      "missing": 7229,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1900s",
+      "files": [
+        {
+          "count": 388,
+          "path": "players/Marshall.zip"
+        },
+        {
+          "count": 295,
+          "path": "players/Janowski.zip"
+        },
+        {
+          "count": 264,
+          "path": "players/Lasker.zip"
+        },
+        {
+          "count": 261,
+          "path": "players/Chigorin.zip"
+        }
+      ],
+      "missing": 4648,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1910s",
+      "files": [
+        {
+          "count": 183,
+          "path": "players/Marshall.zip"
+        },
+        {
+          "count": 176,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 172,
+          "path": "players/Janowski.zip"
+        },
+        {
+          "count": 168,
+          "path": "players/Spielmann.zip"
+        }
+      ],
+      "missing": 2719,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1920s",
+      "files": [
+        {
+          "count": 655,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 362,
+          "path": "players/Bogoljubow.zip"
+        },
+        {
+          "count": 358,
+          "path": "players/Reti.zip"
+        },
+        {
+          "count": 337,
+          "path": "players/Euwe.zip"
+        }
+      ],
+      "missing": 6735,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1930s",
+      "files": [
+        {
+          "count": 822,
+          "path": "events/BuenosAires1939b.pgn"
+        },
+        {
+          "count": 621,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 438,
+          "path": "players/Flohr.zip"
+        },
+        {
+          "count": 286,
+          "path": "players/Bogoljubow.zip"
+        }
+      ],
+      "missing": 8124,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1940s",
+      "files": [
+        {
+          "count": 275,
+          "path": "players/Najdorf.zip"
+        },
+        {
+          "count": 238,
+          "path": "players/Boleslavsky.zip"
+        },
+        {
+          "count": 209,
+          "path": "players/Bronstein.zip"
+        },
+        {
+          "count": 199,
+          "path": "players/Euwe.zip"
+        }
+      ],
+      "missing": 6957,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1950s",
+      "files": [
+        {
+          "count": 554,
+          "path": "players/Gligoric.zip"
+        },
+        {
+          "count": 406,
+          "path": "players/Geller.zip"
+        },
+        {
+          "count": 377,
+          "path": "players/Keres.zip"
+        },
+        {
+          "count": 376,
+          "path": "players/Najdorf.zip"
+        }
+      ],
+      "missing": 12066,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1960s",
+      "files": [
+        {
+          "count": 844,
+          "path": "players/Gligoric.zip"
+        },
+        {
+          "count": 753,
+          "path": "players/Ivkov.zip"
+        },
+        {
+          "count": 617,
+          "path": "players/Portisch.zip"
+        },
+        {
+          "count": 597,
+          "path": "players/Hort.zip"
+        }
+      ],
+      "missing": 17752,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1970s",
+      "files": [
+        {
+          "count": 222,
+          "path": "players/Ivkov.zip"
+        },
+        {
+          "count": 190,
+          "path": "players/Gligoric.zip"
+        },
+        {
+          "count": 175,
+          "path": "players/Andersson.zip"
+        },
+        {
+          "count": 173,
+          "path": "players/Benko.zip"
+        }
+      ],
+      "missing": 5913,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1980s",
+      "files": [
+        {
+          "count": 27,
+          "path": "players/IvanovA.zip"
+        },
+        {
+          "count": 26,
+          "path": "players/Speelman.zip"
+        },
+        {
+          "count": 25,
+          "path": "players/Krasenkow.zip"
+        },
+        {
+          "count": 25,
+          "path": "players/Miles.zip"
+        }
+      ],
+      "missing": 1493,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "1990s",
+      "files": [
+        {
+          "count": 297,
+          "path": "events/PCAQual1993.pgn"
+        },
+        {
+          "count": 133,
+          "path": "players/Paehtz.zip"
+        },
+        {
+          "count": 70,
+          "path": "players/VallejoPons.zip"
+        },
+        {
+          "count": 66,
+          "path": "players/Navara.zip"
+        }
+      ],
+      "missing": 5262,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "2000s",
+      "files": [
+        {
+          "count": 22,
+          "path": "players/Bisguier.zip"
+        },
+        {
+          "count": 21,
+          "path": "openings/BenkoGambit.zip"
+        },
+        {
+          "count": 21,
+          "path": "players/Benjamin.zip"
+        },
+        {
+          "count": 21,
+          "path": "players/Ushenina.zip"
+        }
+      ],
+      "missing": 1506,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "2010s",
+      "files": [
+        {
+          "count": 21,
+          "path": "players/Shirov.zip"
+        },
+        {
+          "count": 15,
+          "path": "openings/SicilianMisc2.zip"
+        },
+        {
+          "count": 14,
+          "path": "openings/RetiKIA.zip"
+        },
+        {
+          "count": 14,
+          "path": "players/Georgiev.zip"
+        }
+      ],
+      "missing": 736,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "2020s",
+      "files": [
+        {
+          "count": 12,
+          "path": "openings/Caro-KannAdv.zip"
+        },
+        {
+          "count": 11,
+          "path": "openings/Nimzowitsch-Larsen.zip"
+        },
+        {
+          "count": 11,
+          "path": "openings/SicilianSmith-Morra.zip"
+        },
+        {
+          "count": 10,
+          "path": "openings/Sicilian2Nf3Other2.zip"
+        }
+      ],
+      "missing": 537,
+      "tag": "WhiteElo"
+    },
+    {
+      "decade": "Before 1900",
+      "files": [
+        {
+          "count": 681,
+          "path": "players/Anderssen.zip"
+        },
+        {
+          "count": 597,
+          "path": "players/Blackburne.zip"
+        },
+        {
+          "count": 399,
+          "path": "players/Chigorin.zip"
+        },
+        {
+          "count": 344,
+          "path": "players/Bird.zip"
+        }
+      ],
+      "missing": 7229,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1900s",
+      "files": [
+        {
+          "count": 388,
+          "path": "players/Marshall.zip"
+        },
+        {
+          "count": 295,
+          "path": "players/Janowski.zip"
+        },
+        {
+          "count": 264,
+          "path": "players/Lasker.zip"
+        },
+        {
+          "count": 261,
+          "path": "players/Chigorin.zip"
+        }
+      ],
+      "missing": 4648,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1910s",
+      "files": [
+        {
+          "count": 183,
+          "path": "players/Marshall.zip"
+        },
+        {
+          "count": 176,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 172,
+          "path": "players/Janowski.zip"
+        },
+        {
+          "count": 168,
+          "path": "players/Spielmann.zip"
+        }
+      ],
+      "missing": 2719,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1920s",
+      "files": [
+        {
+          "count": 655,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 362,
+          "path": "players/Bogoljubow.zip"
+        },
+        {
+          "count": 358,
+          "path": "players/Reti.zip"
+        },
+        {
+          "count": 337,
+          "path": "players/Euwe.zip"
+        }
+      ],
+      "missing": 6735,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1930s",
+      "files": [
+        {
+          "count": 822,
+          "path": "events/BuenosAires1939b.pgn"
+        },
+        {
+          "count": 621,
+          "path": "players/Alekhine.zip"
+        },
+        {
+          "count": 438,
+          "path": "players/Flohr.zip"
+        },
+        {
+          "count": 286,
+          "path": "players/Bogoljubow.zip"
+        }
+      ],
+      "missing": 8124,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1940s",
+      "files": [
+        {
+          "count": 275,
+          "path": "players/Najdorf.zip"
+        },
+        {
+          "count": 238,
+          "path": "players/Boleslavsky.zip"
+        },
+        {
+          "count": 209,
+          "path": "players/Bronstein.zip"
+        },
+        {
+          "count": 199,
+          "path": "players/Euwe.zip"
+        }
+      ],
+      "missing": 6957,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1950s",
+      "files": [
+        {
+          "count": 554,
+          "path": "players/Gligoric.zip"
+        },
+        {
+          "count": 406,
+          "path": "players/Geller.zip"
+        },
+        {
+          "count": 377,
+          "path": "players/Keres.zip"
+        },
+        {
+          "count": 376,
+          "path": "players/Najdorf.zip"
+        }
+      ],
+      "missing": 12066,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1960s",
+      "files": [
+        {
+          "count": 844,
+          "path": "players/Gligoric.zip"
+        },
+        {
+          "count": 753,
+          "path": "players/Ivkov.zip"
+        },
+        {
+          "count": 617,
+          "path": "players/Portisch.zip"
+        },
+        {
+          "count": 597,
+          "path": "players/Hort.zip"
+        }
+      ],
+      "missing": 17752,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1970s",
+      "files": [
+        {
+          "count": 215,
+          "path": "players/Ivkov.zip"
+        },
+        {
+          "count": 190,
+          "path": "players/Gligoric.zip"
+        },
+        {
+          "count": 177,
+          "path": "players/Andersson.zip"
+        },
+        {
+          "count": 175,
+          "path": "players/Benko.zip"
+        }
+      ],
+      "missing": 5890,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1980s",
+      "files": [
+        {
+          "count": 33,
+          "path": "players/Kasparov.zip"
+        },
+        {
+          "count": 30,
+          "path": "players/Krasenkow.zip"
+        },
+        {
+          "count": 26,
+          "path": "players/IvanovA.zip"
+        },
+        {
+          "count": 26,
+          "path": "players/Smirin.zip"
+        }
+      ],
+      "missing": 1687,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1990s",
+      "files": [
+        {
+          "count": 297,
+          "path": "events/PCAQual1993.pgn"
+        },
+        {
+          "count": 136,
+          "path": "players/Kasparov.zip"
+        },
+        {
+          "count": 134,
+          "path": "players/Paehtz.zip"
+        },
+        {
+          "count": 86,
+          "path": "openings/BenkoGambit.zip"
+        }
+      ],
+      "missing": 5909,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "2000s",
+      "files": [
+        {
+          "count": 50,
+          "path": "players/Kramnik.zip"
+        },
+        {
+          "count": 46,
+          "path": "players/Kasparov.zip"
+        },
+        {
+          "count": 28,
+          "path": "players/Karpov.zip"
+        },
+        {
+          "count": 26,
+          "path": "players/Short.zip"
+        }
+      ],
+      "missing": 1818,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "2010s",
+      "files": [
+        {
+          "count": 35,
+          "path": "players/Kasparov.zip"
+        },
+        {
+          "count": 18,
+          "path": "players/Carlsen.zip"
+        },
+        {
+          "count": 15,
+          "path": "players/Shirov.zip"
+        },
+        {
+          "count": 15,
+          "path": "players/Short.zip"
+        }
+      ],
+      "missing": 847,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "2020s",
+      "files": [
+        {
+          "count": 16,
+          "path": "openings/Nimzowitsch-Larsen.zip"
+        },
+        {
+          "count": 12,
+          "path": "openings/Caro-KannAdv.zip"
+        },
+        {
+          "count": 12,
+          "path": "openings/SicilianRossolimo.zip"
+        },
+        {
+          "count": 10,
+          "path": "openings/Modern3Nc3-d6.zip"
+        }
+      ],
+      "missing": 535,
+      "tag": "BlackElo"
+    },
+    {
+      "decade": "1990s",
+      "files": [
+        {
+          "count": 29,
+          "path": "events/PCAQual1993.pgn"
+        }
+      ],
+      "missing": 29,
+      "tag": "ECO"
+    },
+    {
+      "decade": "2000s",
+      "files": [
+        {
+          "count": 14,
+          "path": "players/Adams.zip"
+        },
+        {
+          "count": 12,
+          "path": "players/Azmaiparashvili.zip"
+        },
+        {
+          "count": 11,
+          "path": "players/Ehlvest.zip"
+        },
+        {
+          "count": 11,
+          "path": "players/Gelfand.zip"
+        }
+      ],
+      "missing": 365,
+      "tag": "ECO"
+    },
+    {
+      "decade": "2010s",
+      "files": [
+        {
+          "count": 5,
+          "path": "events/WorldCup2011.pgn"
+        },
+        {
+          "count": 3,
+          "path": "events/Gibraltar2019.pgn"
+        },
+        {
+          "count": 3,
+          "path": "events/WorldCup2013.pgn"
+        },
+        {
+          "count": 3,
+          "path": "openings/RetiKIA.zip"
+        }
+      ],
+      "missing": 104,
+      "tag": "ECO"
+    },
+    {
+      "decade": "2020s",
+      "files": [
+        {
+          "count": 9,
+          "path": "openings/RetiKIA.zip"
+        },
+        {
+          "count": 9,
+          "path": "openings/RuyLopezBerlin.zip"
+        },
+        {
+          "count": 5,
+          "path": "openings/QGDOther34.zip"
+        },
+        {
+          "count": 4,
+          "path": "events/WijkaanZee2022.pgn"
+        }
+      ],
+      "missing": 195,
+      "tag": "ECO"
+    }
+  ],
+  "means": [
+    {
+      "games": 7380,
+      "high": 2200,
+      "low": null
+    },
+    {
+      "games": 7570,
+      "high": 2250,
+      "low": 2200
+    },
+    {
+      "games": 16412,
+      "high": 2300,
+      "low": 2250
+    },
+    {
+      "games": 34618,
+      "high": 2350,
+      "low": 2300
+    },
+    {
+      "games": 73063,
+      "high": 2400,
+      "low": 2350
+    },
+    {
+      "games": 137630,
+      "high": 2450,
+      "low": 2400
+    },
+    {
+      "games": 217314,
+      "high": 2500,
+      "low": 2450
+    },
+    {
+      "games": 207303,
+      "high": 2550,
+      "low": 2500
+    },
+    {
+      "games": 142987,
+      "high": 2600,
+      "low": 2550
+    },
+    {
+      "games": 97023,
+      "high": 2650,
+      "low": 2600
+    },
+    {
+      "games": 57771,
+      "high": 2700,
+      "low": 2650
+    },
+    {
+      "games": 35535,
+      "high": 2750,
+      "low": 2700
+    },
+    {
+      "games": 18225,
+      "high": 2800,
+      "low": 2750
+    },
+    {
+      "games": 2834,
+      "high": 2850,
+      "low": 2800
+    },
+    {
+      "games": 2929,
+      "high": null,
+      "low": 2850
+    }
+  ],
+  "names": [
+    "Event",
+    "Site",
+    "Date",
+    "Round",
+    "White",
+    "Black",
+    "Result",
+    "WhiteElo",
+    "BlackElo",
+    "ECO"
+  ]
+}

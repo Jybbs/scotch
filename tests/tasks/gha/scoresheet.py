@@ -139,6 +139,7 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
                     "result"  : "success",
                     "outputs" : {"url": "https://0a1b2c3d.scotch.pages.dev"}
                 },
+                "order"    : {"result": "success", "outputs": {"skip": "false"}},
                 "press"    : {"result": "success", "outputs": {}}
             },
             id = "deploy-published"
@@ -148,6 +149,7 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
             {
                 "coverage" : {"result": "success", "outputs": {}},
                 "deploy"   : {"result": "success", "outputs": {}},
+                "order"    : {"result": "success", "outputs": {"skip": "false"}},
                 "press"    : {"result": "success", "outputs": {}}
             },
             id = "deploy-published-without-an-address"
@@ -157,6 +159,7 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
             {
                 "coverage" : {"result": "success", "outputs": {}},
                 "deploy"   : {"result": "skipped", "outputs": {}},
+                "order"    : {"result": "success", "outputs": {"skip": "false"}},
                 "press"    : {"result": "success", "outputs": {}}
             },
             id = "deploy-skipped"
@@ -166,9 +169,41 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
             {
                 "coverage" : {"result": "success", "outputs": {}},
                 "deploy"   : {"result": "skipped", "outputs": {}},
+                "order"    : {"result": "success", "outputs": {"skip": "false"}},
                 "press"    : {"result": "failure", "outputs": {}}
             },
             id = "deploy-press-failed"
+        ),
+        param(
+            "deploy",
+            {
+                "coverage" : {"result": "skipped", "outputs": {}},
+                "deploy"   : {"result": "skipped", "outputs": {}},
+                "order"    : {"result": "success", "outputs": {"skip": "true"}},
+                "press"    : {"result": "skipped", "outputs": {}}
+            },
+            id = "deploy-left-to-the-store"
+        ),
+        *(
+            param(
+                "store",
+                {
+                    "build"   : {
+                        "outputs" : {
+                            "store": "474151645cdb4cc7.bin"
+                        } if built == "success" else {},
+                        "result"  : built
+                    },
+                    "deploy"  : {"result": published, "outputs": {}},
+                    "publish" : {"result": published, "outputs": {}}
+                },
+                id = f"store-{name}"
+            )
+            for name, built, published in (
+                ("published", "success", "success"),
+                ("skipped", "success", "skipped"),
+                ("build-failed", "failure", "skipped")
+            )
         ),
         *(
             param(

@@ -53,6 +53,12 @@ app.command(
     name = "match"
 )
 app.command(
+    "scotch.cli.publish:publish_group",
+    help = "Writes the store the site matches a game against.",
+    name = "publish",
+    show = False
+)
+app.command(
     "scotch.cli.render:render_group",
     help = "Writes the files the site and the Markdown restate from a declaration.",
     name = "render",

@@ -23,7 +23,7 @@ describe('Session', () => {
     clock.advanceTimersByTime(220)
     await flushPromises()
     expect(session.find('pre').text()).toBe('❯ scotch')
-    expect(session.find('.sc-data-big').text()).toBe('·')
+    expect(session.find('.sc-front-count .sc-front-wait').exists()).toBe(true)
   })
 
   test('prints what each command leaves, then a fresh prompt once the last is done', async () => {
@@ -35,8 +35,10 @@ describe('Session', () => {
     expect(lines.at(-2)).toMatch(/^Shares 6 positions, /u)
     expect(lines.at(-1)).toBe('❯')
     expect(session.findAll('.sc-front-cursor')).toHaveLength(1)
-    expect(session.find('.sc-data-say').text())
-      .toBe('positions shared, step III of III, from scotch match game docs/public/games/front.pgn')
+    expect(session.find('.sc-front-spoken').text()).toBe('6')
+    expect(session.find('.sc-front-unit').text()).toBe('positions shared')
+    expect(session.find('.sc-front-say').text())
+      .toBe('Step III of III, from scotch match game docs/public/games/front.pgn')
   })
 
   test('names each command figure once it has printed', async () => {

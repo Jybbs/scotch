@@ -4,6 +4,7 @@
 |---|---|
 | `coverage` | success |
 | `deploy` | success |
+| `order` | success |
 | `press` | success |
 
 The run checked `560c4d8` on `4/ci-gate`.

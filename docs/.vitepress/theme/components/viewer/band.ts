@@ -5,8 +5,10 @@ import * as games                        from '../../../lib/viewer/games.ts'
 import { readMatch }                     from '../../../lib/viewer/link.ts'
 import { COVERED, type Loaded, NOTHING } from '../../../lib/viewer/loaded.ts'
 import { pgnOf }                         from '../../../lib/viewer/pgn.ts'
+import type { Tied }                     from '../../../lib/viewer/ranks.ts'
 import { Intake }                        from './intake.ts'
 import { Seat }                          from './seat.ts'
+import { Tally }                         from './tally.ts'
 
 /**
  * Reads whether a drag carries files, as one carrying a match file does.
@@ -21,7 +23,7 @@ function carriesFiles(event: DragEvent): boolean {
  * where the games part, each move in its game's color, the stored game's move
  * covered while `covering` is set.
  */
-function details(covering: boolean, loaded: Loaded): VNode {
+function details(covering: boolean, loaded: Loaded, tallied: boolean): VNode {
   const stored = loaded.match.stored
   if (!stored || !loaded.shared) return h('p', { class: 'sc-viewer-details' }, NOTHING)
   const { last, meet } = loaded.shared
@@ -29,7 +31,7 @@ function details(covering: boolean, loaded: Loaded): VNode {
     games.whereOf(stored) || 'Unknown event',
     dot(),
     `plies ${meet} to ${last}`,
-    ...ties(loaded),
+    ...tallied ? [] : ties(loaded),
     loaded.leaving && loaded.parting
       ? h('span', [
           dot(),
@@ -60,8 +62,9 @@ function dot(): VNode {
 
 /**
  * Draws the match's half of the band: the count of positions the two games
- * share beside the stored game, the details under it, and the copies of the
- * link and of the PGN.
+ * share beside the stored game, the details under it, the tally of the stored
+ * games tied on the run where the match lists two or more, and the copies of
+ * the link and of the PGN.
  *
  * Args:
  *   covering : Whether the stored game's move where the games part is covered.
@@ -69,11 +72,23 @@ function dot(): VNode {
  *     draws it afresh.
  *   loaded   : The loaded match.
  *   link     : Makes the link to the match.
+ *   tied     : The stored games tied on the run, the place of the shown one
+ *     among them, and the call showing another.
  */
-function drawMatch(covering: boolean, key: number, loaded: Loaded, link: () => Promise<string>): VNode {
+function drawMatch(
+  covering : boolean,
+  key      : number,
+  loaded   : Loaded,
+  link     : () => Promise<string>,
+  tied     : { at: number, show: (at: number) => void, ties: readonly Tied[] }
+): VNode {
+  const tallied = tied.ties.length > 1 && !!loaded.shared
   return h('div', { class: 'sc-viewer-match', key }, [
     headline(loaded),
-    details(covering, loaded),
+    details(covering, loaded, tallied),
+    tallied
+      ? h(Tally, { at: tied.at, length: loaded.shared!.length, onShow: tied.show, ties: tied.ties })
+      : null,
     h('div', { class: 'sc-viewer-tags' }, [
       h(Seat, {
         done  : 'Link copied',
@@ -142,27 +157,33 @@ function ties(loaded: Loaded): (VNode | string)[] {
 
 /**
  * The band at the top of the stage: the count of positions the two games share
- * in the display face beside the stored game, the details under it, and the
- * copies of the link and of the PGN, with the intake at its right, meaning the
- * PGN entry, disabled and marked as arriving with in-browser matching, the two
- * examples, and a picker for a match file. The whole band takes a match file
- * dropped on it, and the line under the intake names the first thing a picked
- * or dropped file lacks.
+ * in the display face beside the stored game, the details under it, the tally
+ * of the stored games `ties` lists where it lists two or more, its presses
+ * reaching the tool through `show`, and the copies of the link and of the PGN,
+ * with the intake at its right, meaning the PGN entry, the two examples, and a
+ * picker for a match file or a game. The whole band takes either file dropped
+ * on it, a match file reaching the tool through `load` and a game in PGN
+ * through `pgn`, and the line under the intake names the first thing a picked
+ * or dropped file lacks or the problem a submitted game carries.
  */
 export const Band = defineComponent({
   name: 'ScotchBand',
 
   props: {
+    at       : { default: 0, type: Number },
     covering : { default: false, type: Boolean },
     link     : { required: true, type: Function as PropType<() => Promise<string>> },
     loaded   : { required: true, type: Object as PropType<Loaded> },
     problem  : { required: true, type: String },
-    sample   : { default: undefined, type: String as PropType<Sample> }
+    sample   : { default: undefined, type: String as PropType<Sample> },
+    ties     : { default: () => [], type: Array as PropType<readonly Tied[]> }
   },
 
   emits: {
     load    : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null,
-    problem : (text: string) => typeof text === 'string'
+    pgn     : (text: string, source: string) => !!text && !!source,
+    problem : (text: string) => typeof text === 'string',
+    show    : (at: number) => Number.isInteger(at)
   },
 
   setup: (props, { emit }) => {
@@ -170,7 +191,12 @@ export const Band = defineComponent({
     const drag  = shallowRef(0)
     const loads = new WeakMap<Loaded, number>()
     const read  = async (file: File): Promise<void> => {
-      const reading = readMatch(await file.text(), file.name)
+      const text = await file.text()
+      if (file.name.toLowerCase().endsWith('.pgn')) {
+        emit('pgn', text, file.name)
+        return
+      }
+      const reading = readMatch(text, file.name)
       if (reading.match) emit('load', reading.match, file.name)
       else emit('problem', reading.problem)
     }
@@ -189,13 +215,22 @@ export const Band = defineComponent({
       'data-drag'  : drag.value > 0 ? '' : undefined,
       ...on
     }, [
-      drawMatch(props.covering, keyOf(props.loaded), props.loaded, props.link),
+      drawMatch(props.covering, keyOf(props.loaded), props.loaded, props.link, {
+        at   : props.at,
+        show : (at: number) => emit('show', at),
+        ties : props.ties
+      }),
       h(Intake, {
         onFile  : take,
         problem : props.problem,
         sample  : props.sample,
-        onLoad  : (match: Match, source: string, sample?: Sample) => {
+
+        onLoad: (match: Match, source: string, sample?: Sample) => {
           emit('load', match, source, sample)
+        },
+
+        onPgn: (text: string) => {
+          emit('pgn', text, 'the pasted game')
         }
       })
     ])

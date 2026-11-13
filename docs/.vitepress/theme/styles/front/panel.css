@@ -13,7 +13,32 @@
   background : var(--sc-entry);
 }
 
-.sc-front-panel .sc-data-plate .sc-data-say { font-size: 1rem; line-height: 24px; }
+.sc-front-head {
+  display : grid;
+  gap     : 8px;
+}
+
+.sc-front-figure {
+  display     : flex;
+  align-items : baseline;
+  gap         : 10px;
+  min-height  : 36px;
+}
+
+.sc-front-unit {
+  color          : var(--sc-quiet);
+  font           : 600 0.62rem/1 var(--sc-face-code);
+  letter-spacing : 0.14em;
+  text-transform : uppercase;
+  white-space    : nowrap;
+}
+
+.sc-front-head .sc-front-say {
+  max-width  : 60ch;
+  min-height : 48px;
+  margin     : 0;
+  font       : 400 1rem/24px var(--sc-face-body);
+}
 
 .sc-front-draw {
   position  : relative;
@@ -77,4 +102,8 @@
   border-radius  : 4px;
   outline        : 2px solid var(--sc-entry);
   outline-offset : 4px;
+}
+
+@media (width < 40rem) {
+  .sc-front-head .sc-front-say { min-height: 72px; }
 }

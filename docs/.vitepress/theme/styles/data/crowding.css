@@ -1,0 +1,31 @@
+.sc-data-crowding {
+  display : grid;
+  gap     : 8px;
+}
+
+.sc-data-crowding .sc-data-svg { cursor: pointer; }
+
+.sc-data-crowding-block {
+  transition: opacity var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-crowding-block rect {
+  fill       : color-mix(in oklab, var(--sc-data-ink) calc(var(--sc-data-level) * 24% + 12%), var(--sc-data-page));
+  transition : fill var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-data-crowding-block[data-on='path'] rect {
+  fill: color-mix(in oklab, var(--sc-data-link) 45%, var(--sc-data-page));
+}
+
+.sc-data-crowding-block[data-on='picked'] rect { fill: var(--sc-data-link); }
+
+.sc-data-crowding-block text {
+  fill           : var(--sc-data-ink);
+  font           : 500 0.62rem var(--sc-face-code);
+  pointer-events : none;
+}
+
+.sc-data-crowding-block[data-on] text { font-weight: 700; }
+
+.sc-data-crowding-block[data-on='picked'] text { fill: var(--sc-data-page); }

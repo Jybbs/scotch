@@ -1,5 +1,8 @@
 description: Checks out the repository and installs the tools a job runs through the mise release `.mise/config.toml` sets as its floor, restoring the tool cache and, where a `shared-key` names one, the Cargo cache, and writing them back only where asked
 inputs:
+  ref:
+    default: ''
+    description: The commit the job checks out, an empty value checking out the one the event names
   save:
     default: 'false'
     description: Whether to write the tool cache back once the install finishes on a cache miss, and the Cargo cache once the job ends, which only ♟️ Warm does
@@ -16,6 +19,7 @@ runs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       with:
         persist-credentials: false
+        ref: ${{ inputs.ref }}
     - name: Install rustup's toolchains inside the tool cache
       shell: bash
       run: |

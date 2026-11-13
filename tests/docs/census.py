@@ -9,13 +9,16 @@ short lines a case indexes to pose one rule.
 
 from collections.abc import Callable, Iterable
 from common.games    import line
-from polars          import DataFrame
+from dataclasses     import replace
+from polars          import DataFrame, LazyFrame
 from pytest          import mark, param
 
-from scotch.docs.census   import Census
-from scotch.docs.tallies  import Archive, Era, Rules, Tally
-from scotch.games.schemas import Game, Origin
-from scotch.index.tables  import PositionIndex
+from scotch.docs.census     import Census
+from scotch.docs.tallies    import Archive, Era, Rules, Tally
+from scotch.games.schemas   import Game, Origin
+from scotch.index.schemas   import LEFT
+from scotch.index.tables    import PositionIndex
+from scotch.sources.schemas import Source, Sources
 
 
 def test_counted_reads_the_other_games_reaching_each_position(
@@ -39,77 +42,68 @@ def test_counts_fill_every_number_of_moves_up_to_the_longest():
     assert Census.counts(5, DataFrame({"moves": [2, 4, 4]})) == [0, 0, 1, 0, 2, 0]
 
 
+def test_eras_name_each_decade_folding_those_before_the_first(census: Census):
+    """
+    Asserts that the eras run from the earliest, the 1870s game falling in
+    the era of the decades before 1900, and leave out the undated game.
+    """
+    assert census.eras == ["Before 1900", "1980s", "1990s"]
+
+
 def test_games_read_each_games_file_year_decade_moves_and_result(census: Census):
     """
-    Asserts that a game's moves count a move of White's and Black's reply
-    as one, so five plies play three moves, and that a `Date` tag whose year
-    holds anything but digits reads as no year and no decade.
+    Asserts that a game's moves count a move of White's and Black's reply as
+    one, so five plies play three moves, that a `Date` tag whose year holds
+    anything but digits reads as no year, no decade, and no era, and that a
+    decade before 1900 falls in the era of the decades before it.
     """
     assert census.games.to_dicts() == [
         {
             "address" : "https://example.com/X.zip",
             "decade"  : 1980,
+            "era"     : "1980s",
             "moves"   : 3,
+            "plies"   : 5,
             "result"  : "1-0",
             "year"    : 1985
         },
         {
             "address" : "https://example.com/X.zip",
             "decade"  : 1980,
+            "era"     : "1980s",
             "moves"   : 3,
+            "plies"   : 5,
             "result"  : "1/2-1/2",
             "year"    : 1987
         },
         {
             "address" : "https://example.com/Y.zip",
             "decade"  : 1990,
+            "era"     : "1990s",
             "moves"   : 3,
+            "plies"   : 5,
             "result"  : "0-1",
             "year"    : 1992
         },
         {
             "address" : "https://example.com/Y.zip",
             "decade"  : None,
+            "era"     : None,
             "moves"   : 3,
+            "plies"   : 5,
             "result"  : "1-0",
             "year"    : None
         },
         {
             "address" : "https://example.com/Z.zip",
             "decade"  : 1870,
+            "era"     : "Before 1900",
             "moves"   : 1,
+            "plies"   : 1,
             "result"  : "1-0",
             "year"    : 1879
         }
     ]
-
-
-def test_rules_count_what_the_longest_run_leaves_out(
-    census  : Census,
-    counted : tuple[list[Game], PositionIndex]
-):
-    """
-    Asserts what the longest-run rule leaves out over all five games,
-    beside the count of their keys. The game from the kings alone shares no
-    position and goes unmatched, and each of the four others ties, the three
-    sharing an opening on their five-position runs and the third on the
-    starting position. Only the third game's run lies wholly in positions
-    more than two other games reach, and only the first game finds a shorter
-    run reaching, in another order, a position rarer than any of its longest
-    run's.
-    """
-    keys = {*game.keys for game in counted[0]}
-
-    assert census.rules == Rules(
-        accidents  = len(keys) * (len(keys) - 1) / 2**65,
-        crowd      = 2,
-        crowded    = 1,
-        keys       = len(keys),
-        matched    = 4,
-        sample     = 5,
-        tied       = 4,
-        transposed = 1
-    )
 
 
 @mark.parametrize(
@@ -140,26 +134,56 @@ def test_rules_count_no_copy_toward_the_crowd_of_a_position(
     ).rules.crowded == 1
 
 
-def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
-    scanned: Callable[[Iterable[Game]], PositionIndex]
+def test_omissions_count_each_section_and_file_by_reason(
+    counted: tuple[list[Game], PositionIndex]
 ):
     """
-    Asserts the measures over four games where 1. e4 e5 2. Nf3 Nc6 3. Bc4
-    meets two games reaching its last three positions from 1. Nf3 and one
-    sharing only its opening move. That first game alone ties and alone runs
-    through positions more than one other game reaches, and no game counts
-    as transposed, since a run opening on the first position in the same
-    order reaches nothing by another order of moves, however rare.
+    Asserts that each section counts the games its files keep and leave
+    out, that only a file leaving out a game is listed, that a file
+    `sources.toml` leaves undeclared falls in no section, and that the floor
+    grid counts each Openings game by decade and rating, a game carrying no
+    rating in the last count.
     """
-    games = [
-        line("e4", "e5", "Nf3", "Nc6", "Bc4"),
-        line("e4", "d5"),
-        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Nf6"),
-        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Bc5")
-    ]
-    rules = Census(crowd=1, index=scanned(games)).rules
+    index = replace(
+        counted[1],
+        left = LazyFrame(
+            {
+                "address" :
+                    ["https://example.com/X.zip", "https://example.com/Y.zip"] * 2,
+                "dated"   : [19850000, 0, 19990101, 19900000],
+                "place"   : [3, 3, 4, 4],
+                "rating"  : [2400, 0, 0, 2450],
+                "reason"  : ["repeat", "unread", "variant", "below"]
+            },
+            schema = LEFT
+        )
+    )
+    sources = Sources(
+        floors  = {"Openings": 2500},
+        sources = tuple(
+            Source(
+                address  = f"https://example.com/{name}.zip",
+                home     = "https://example.com/",
+                provider = "Example",
+                section  = section,
+                title    = name
+            )
+            for name, section in (("X", "Players"), ("Y", "Openings"))
+        )
+    )
+    omissions = Census(index=index, sources=sources).omissions
 
-    assert (rules.crowded, rules.matched, rules.tied, rules.transposed) == (1, 4, 1, 0)
+    assert [
+        (section.name, section.files, section.read, section.kept)
+        for section in omissions.sections
+    ] == [("Players", 1, 4, 2), ("Openings", 1, 4, 2)]
+    assert [
+        (file.name, file.repeat, file.variant, file.below, file.unread)
+        for file in omissions.files
+    ] == [("X.zip", 1, 1, 0, 0), ("Y.zip", 0, 0, 1, 1)]
+    assert omissions.floor.decades == ["1990s"]
+    assert omissions.floor.counts[0][-1] == 1
+    assert sum(omissions.floor.counts[0]) == 2
 
 
 @mark.parametrize(
@@ -222,6 +246,56 @@ def test_rules_count_a_transposition_only_through_a_strictly_rarer_position(
     assert Census(index=scanned(games)).rules.transposed == transposed
 
 
+def test_rules_count_what_the_longest_run_leaves_out(
+    census  : Census,
+    counted : tuple[list[Game], PositionIndex]
+):
+    """
+    Asserts what the longest-run rule leaves out over all five games,
+    beside the count of their keys. The game from the kings alone shares no
+    position and goes unmatched, and each of the four others ties, the three
+    sharing an opening on their five-position runs and the third on the
+    starting position. Only the third game's run lies wholly in positions
+    more than two other games reach, and only the first game finds a shorter
+    run reaching, in another order, a position rarer than any of its longest
+    run's.
+    """
+    keys = {*game.keys for game in counted[0]}
+
+    assert census.rules == Rules(
+        accidents  = len(keys) * (len(keys) - 1) / 2**65,
+        crowd      = 2,
+        crowded    = 1,
+        keys       = len(keys),
+        matched    = 4,
+        sample     = 5,
+        tied       = 4,
+        transposed = 1
+    )
+
+
+def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
+    scanned: Callable[[Iterable[Game]], PositionIndex]
+):
+    """
+    Asserts the measures over four games where 1. e4 e5 2. Nf3 Nc6 3. Bc4
+    meets two games reaching its last three positions from 1. Nf3 and one
+    sharing only its opening move. That first game alone ties and alone runs
+    through positions more than one other game reaches, and no game counts
+    as transposed, since a run opening on the first position in the same
+    order reaches nothing by another order of moves, however rare.
+    """
+    games = [
+        line("e4", "e5", "Nf3", "Nc6", "Bc4"),
+        line("e4", "d5"),
+        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Nf6"),
+        line("Nf3", "e5", "e4", "Nc6", "Bc4", "Bc5")
+    ]
+    rules = Census(crowd=1, index=scanned(games)).rules
+
+    assert (rules.crowded, rules.matched, rules.tied, rules.transposed) == (1, 4, 1, 0)
+
+
 def test_rules_sample_as_many_games_as_named_drawing_the_same_with_one_seed(
     scanned: Callable[[Iterable[Game]], PositionIndex]
 ):
@@ -255,6 +329,68 @@ def test_rules_sample_every_game_of_an_index_holding_fewer_than_the_sample(
     sample samples every one of them rather than failing.
     """
     assert Census(index=scanned([line("e4"), line("d4")])).rules.sample == 2
+
+
+def test_shared_counts_the_positions_by_the_games_reaching_each(census: Census):
+    """
+    Asserts that each range of the positions' reach counts its distinct
+    positions and the positions the games stand in, a position four games
+    reach counting four times, and that a range ends one past the crowd of
+    two, so a range stands past it only where more than two games besides
+    any one reach its positions.
+    """
+    assert [
+        (
+            crowd.low, crowd.high, crowd.keys, crowd.stood,
+            crowd.crowded(census.crowd)
+        ) for crowd in census.shared.reach
+    ] == [
+        (1, 1, 8, 8, False),
+        (2, 2, 1, 2, False),
+        (3, 3, 4, 12, False),
+        (4, 5, 1, 4, True)
+    ]
+
+
+def test_shared_counts_where_each_game_first_stands_alone(census: Census):
+    """
+    Asserts that the lone game from a set-up position stands alone at once,
+    that the game opening 1. d4 stands alone after its first move, that
+    the game ending where the third game ends by another order never stands
+    alone, and that the two games parting on their fifth ply stand alone at
+    move 3, read beside the games still playing and still sharing.
+    """
+    shared = replace(census, depth=3, horizon=3, least=0.4).shared
+
+    assert shared.every.model_dump() == {
+        "games"   : 5,
+        "half"    : 3,
+        "name"    : "Every game",
+        "alone"   : [1, 1, 0, 2],
+        "playing" : [5, 4, 4, 0],
+        "sharing" : [4, 3, 3, 0]
+    }
+    assert [(parting.name, parting.alone) for parting in shared.decades] == [
+        ("Before 1900", [1, 0, 0, 0]),
+        ("1980s", [0, 0, 0, 1]),
+        ("1990s", [0, 1, 0, 0])
+    ]
+
+
+def test_shared_lists_each_line_after_the_line_it_extends(census: Census):
+    """
+    Asserts that the opening lines at least two of the five games play run
+    to the depth named, each beside the games playing it and those reaching
+    its position by any order.
+    """
+    lines = replace(census, depth=3, least=0.4).shared.lines
+
+    assert [(line.sans, line.games, line.reach) for line in lines] == [
+        (["Nf3"], 3, 3),
+        (["Nf3", "d5"], 3, 3),
+        (["Nf3", "d5", "d4"], 3, 3)
+    ]
+    assert lines[-1].placement == "rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R"
 
 
 def test_store_counts_the_games_by_moves_result_decade_and_file(
@@ -350,3 +486,107 @@ def test_store_reads_the_year_the_most_of_each_file_s_games_were_played_in(
     in, the earliest where two tie, a game naming no year left out.
     """
     assert [archive.year for archive in census.store.files] == [1985, 1992, 1879]
+
+
+def test_tagged_reads_ratings_and_a_partial_date(
+    scanned: Callable[[Iterable[Game]], PositionIndex]
+):
+    """
+    Asserts that a rating reads as carried where it holds a number above
+    0, so a game rated on one side counts once, and that a date naming the
+    month alone reads at that precision.
+    """
+    index = scanned(
+        [
+            line("e4", BlackElo="0", Date="1990.05.??", WhiteElo="2600"),
+            line("d4", BlackElo="2400", Date="1990.??.??", WhiteElo="2501")
+        ]
+    )
+
+    assert Census(index=index).tagged.select(
+        "dates",
+        "rated",
+        "rating",
+        "mean"
+    ).rows() == [
+        ("month", 1, 2600, None),
+        ("year", 2, 2501, 2450.5)
+    ]
+
+
+def test_tags_bin_the_games_carrying_both_ratings_by_their_mean(
+    scanned: Callable[[Iterable[Game]], PositionIndex]
+):
+    """
+    Asserts that a mean falling on an edge counts in the bin it opens, that
+    a mean past the last edge counts in the last bin, that a bin no game
+    falls in counts 0, and that a game carrying one rating counts in no bin.
+    """
+    index = scanned(
+        [
+            line(
+                san,
+                origin = Origin(address="https://example.com/X.zip", place=place),
+                **ratings
+            )
+            for place, (san, ratings) in enumerate(
+                (
+                    ("e4", {"BlackElo": "2300", "WhiteElo": "2400"}),
+                    ("d4", {"BlackElo": "2199", "WhiteElo": "2200"}),
+                    ("c4", {"BlackElo": "3000", "WhiteElo": "3000"}),
+                    ("Nf3", {"WhiteElo": "2600"})
+                ),
+                start = 1
+            )
+        ]
+    )
+    means = Census(index=index, means=range(2200, 2401, 100)).tags.means
+
+    assert [(mean.low, mean.high, mean.games) for mean in means] == [
+        (None, 2200, 1),
+        (2200, 2300, 0),
+        (2300, 2400, 1),
+        (2400, None, 1)
+    ]
+
+
+def test_tags_count_each_tag_date_and_rating_carried(census: Census):
+    """
+    Asserts that a tag holding python-chess's placeholder counts as missing,
+    that a `Date` tag naming no year reads as undated, and that each decade
+    missing a tag lists the file holding its games.
+    """
+    tags = census.tags
+
+    assert tags.every.dates == {
+        "day"   : 3,
+        "month" : 0,
+        "none"  : 1,
+        "year"  : 1
+    }
+    assert tags.every.ratings == {"both": 0, "neither": 5, "one": 0}
+    assert tags.every.tags["Date"] == 4
+    assert tags.every.tags["Result"] == 5
+    assert tags.every.tags["Event"] == 0
+    assert tags.gaps[0].model_dump() == {
+        "decade"  : "Before 1900",
+        "missing" : 1,
+        "tag"     : "Event",
+        "files"   : [{"count": 1, "path": "Z.zip"}]
+    }
+
+
+def test_tie_lists_the_games_sharing_the_whole_line_in_match_order(census: Census):
+    """
+    Asserts that the tie holds each game playing every position of the line
+    in the order a match shows them, the game reaching its last position by
+    another order left out, each beside the move it plays next.
+    """
+    tie = replace(census, line="1. Nf3 d5 2. d4 Nf6").tie
+
+    assert tie.line == ["Nf3", "d5", "d4", "Nf6"]
+    assert [(tied.game, tied.next) for tied in tie.games] == [
+        (0, ["c4"]),
+        (1, ["Bf4"]),
+        (3, ["g3"])
+    ]

@@ -1,0 +1,53 @@
+.sc-data-corner {
+  display     : flex;
+  flex-wrap   : wrap;
+  align-items : center;
+  gap         : 6px;
+  min-height  : 22px;
+}
+
+.sc-data-corner-column {
+  flex-direction : column;
+  align-items    : flex-start;
+}
+
+.sc-data-mark {
+  display        : inline-flex;
+  align-items    : center;
+  gap            : 6px;
+  height         : 22px;
+  padding        : 0 4px 0 0;
+  border         : 0;
+  border-radius  : 3px;
+  background     : none;
+  color          : var(--sc-data-quiet);
+  font           : 500 0.6rem/22px var(--sc-face-code);
+  letter-spacing : 0.1em;
+  cursor         : default;
+}
+
+.sc-data-mark i {
+  display       : inline-grid;
+  place-items   : center;
+  flex          : none;
+  width         : 12px;
+  height        : 12px;
+  border-radius : 2px;
+  background    : var(--sc-data-mark);
+  color         : var(--sc-data-ink);
+  font-style    : normal;
+}
+
+.sc-data-mark span {
+  overflow       : hidden;
+  max-width      : 0;
+  text-transform : uppercase;
+  white-space    : nowrap;
+  transition     : max-width var(--sc-duration-settle) var(--sc-curve-glide);
+}
+
+.sc-data-mark:is(:hover, :focus-visible, .sc-data-on) span { max-width: 32ch; }
+
+.sc-data-mark:focus-visible { outline: 2px solid var(--sc-data-link); }
+
+.sc-data-off { opacity: 0.22; }

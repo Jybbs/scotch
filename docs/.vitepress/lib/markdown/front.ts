@@ -25,7 +25,7 @@ const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'] as const
 function headOf(numeral: string, section: Entered): string {
   return '<header class="sc-entry-head">\n'
        + `<span aria-hidden="true" class="sc-entry-numeral">${numeral}</span>\n`
-       + `<a class="sc-entry-kicker" href="/${section.slug}/">${section.label}</a>\n`
+       + `<a class="sc-entry-kicker" href="/${section.slug}/"><span>${section.label}</span></a>\n`
 }
 
 /**

@@ -106,8 +106,12 @@ class Outputs(RootModel[list[Output]]):
         demo    = cache(lambda: examples["demo"].exported(root, index))
         figures = cache(
             lambda: {
+                **census.omissions.figures,
                 **census.rules.figures,
+                **census.shared.figures,
                 **census.store.figures,
+                **census.tags.figures,
+                **census.tie.figures,
                 **{
                     f"{name}-{part}": value
                     for name, showing in drawn().items()
@@ -175,9 +179,14 @@ class Outputs(RootModel[list[Output]]):
                     for listed in census.store.listed(Sources.read().sources)
                 ]
             ),
-            Document.from_value(
-                path  = Outputs.rendered / "store.json",
-                value = lambda: census.store.model_dump(mode="json")
+            *(
+                Document.from_value(
+                    path  = Outputs.rendered / f"{name}.json",
+                    value = lambda name=name: getattr(census, name).model_dump(
+                        mode = "json"
+                    )
+                )
+                for name in ("omissions", "shared", "store", "tags", "tie")
             ),
             Document.from_value(
                 path  = Outputs.rendered / "viewer.json",
@@ -201,15 +210,30 @@ class Outputs(RootModel[list[Output]]):
                 Region(
                     name   = name,
                     path   = Path(page),
-                    render = lambda name=name: getattr(census.store, name)
+                    render = lambda measure=measure, name=name: getattr(
+                        getattr(census, measure),
+                        name
+                    )
                 )
-                for page, name in (
-                    ("docs/pages/data/index.md", "decades"),
-                    ("docs/pages/data/lengths.md", "lengths"),
-                    ("docs/pages/data/lengths.md", "outcomes"),
-                    ("docs/pages/guide/store.md", "archives"),
-                    ("docs/pages/reference/identity.md", "series")
+                for page, measure, name in (
+                    ("docs/pages/data/index.md", "store", "decades"),
+                    ("docs/pages/data/lengths.md", "store", "lengths"),
+                    ("docs/pages/data/lengths.md", "store", "outcomes"),
+                    ("docs/pages/data/omitted.md", "omissions", "floors"),
+                    ("docs/pages/data/omitted.md", "omissions", "ledger"),
+                    ("docs/pages/data/shared.md", "shared", "crowding"),
+                    ("docs/pages/data/shared.md", "shared", "parting"),
+                    ("docs/pages/data/shared.md", "shared", "partings"),
+                    ("docs/pages/data/tags.md", "tags", "carried"),
+                    ("docs/pages/data/tags.md", "tags", "dated"),
+                    ("docs/pages/guide/store.md", "store", "archives"),
+                    ("docs/pages/reference/identity.md", "store", "series")
                 )
+            ),
+            Region(
+                name   = "order",
+                path   = Path("docs/pages/data/tags.md"),
+                render = lambda: f"{census.tie.order}\n\n{census.tags.rated}"
             ),
             Region(
                 name   = "run-index-games",

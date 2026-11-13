@@ -11,6 +11,9 @@ python-chess reads and keys, the store's own reader before the crate:
 - Where one game opens for each set of tags as python-chess's reader does
   not, and whether a text holds more past its first game
 - The positions `keys` reads no key for, and the move it stops at
+- The names `STANDARD` reads as standard chess, python-chess's own aliases
+- The moves `scored` writes in SAN and the placements beside them, against
+  python-chess's `Board.san` and `Board.board_fen`
 - The key of a position whose en passant capture no legal move plays, which
   leaves out what `zobrist_hash` reads, so two positions FIDE's Laws of Chess
   count as the same share a key
@@ -26,7 +29,7 @@ from io                import StringIO
 from pathlib           import Path
 from pytest            import mark, param
 
-from scotch.games.readers import keys, read, trails
+from scotch.games.readers import STANDARD, keys, read, scored, trails
 
 
 class Mainline(GameBuilder):
@@ -96,20 +99,6 @@ def test_any_legal_game_reads_and_keys_as_python_chess_reads_and_keys_it(board: 
     assert keyed == keys(uci) == hashed(exported)
 
 
-@mark.parametrize("name", ["demo", "stored", "viewer"])
-def test_each_known_answer_game_keys_as_python_chess_keys_it(known: Path, name: str):
-    """
-    Asserts that each game of a known-answer file takes, position by
-    position, the key python-chess's `zobrist_hash` gives the board its own
-    reader reaches.
-    """
-    text   = (known / f"{name}.pgn").read_text(encoding="utf-8")
-    handle = StringIO(text)
-
-    for _, _, keyed, _ in read(text):
-        assert keyed == hashed(read_game(handle))
-
-
 def test_an_en_passant_capture_no_legal_move_plays_leaves_the_key_as_without_it():
     """
     Asserts that a position whose pawn stands pinned along its rank beside
@@ -129,6 +118,81 @@ def test_an_en_passant_capture_no_legal_move_plays_leaves_the_key_as_without_it(
     assert zobrist_hash(Board(pinned)) != zobrist_hash(Board(passed))
     assert keys([], fen=legal) == [zobrist_hash(Board(legal))]
     assert keys([], fen=legal) != keys([], fen=closed)
+
+
+@given(board=played())
+def test_scored_writes_each_move_and_placement_as_python_chess_writes_it(board: Board):
+    """
+    Asserts that `scored` writes each move of any legal game in SAN and the
+    placement of each position it reaches as python-chess's `Board.san` and
+    `Board.board_fen` write them.
+    """
+    mainline   = list(PgnGame.from_board(board).mainline())
+    sans       = [node.san() for node in mainline]
+    placements = [Board().board_fen(), *(node.board().board_fen() for node in mainline)]
+
+    assert scored([move.uci() for move in board.move_stack]) == (sans, placements)
+
+
+@mark.parametrize(
+    ("moves", "setup", "expected"),
+    [
+        param(
+            ["0000", "e7e5"],
+            {},
+            (
+                ["--", "e5"],
+                [
+                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+                    "rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPPPPPP/RNBQKBNR"
+                ]
+            ),
+            id = "null-move"
+        ),
+        param(
+            ["e1g1", "e8e6"],
+            {"fen": "4k3/8/8/8/8/8/8/4K2R w K - 0 1"},
+            (["O-O"], ["4k3/8/8/8/8/8/8/4K2R", "4k3/8/8/8/8/8/8/5RK1"]),
+            id = "stops-at-an-illegal-move"
+        ),
+        param(["e2e4"], {"variant": "Atomic"}, ([], []), id="own-rules")
+    ]
+)
+def test_scored_writes_a_null_move_and_stops_where_keys_stops(
+    expected : tuple[list[str], list[str]],
+    moves    : list[str],
+    setup    : dict[str, str]
+):
+    """
+    Asserts that `scored` writes a null move as python-chess's `Board.san`
+    writes one, stops at the first move illegal where it is played, and
+    writes nothing where the tags set up no position it reads.
+    """
+    assert scored(moves, **setup) == expected
+
+
+@mark.parametrize("name", ["demo", "stored", "viewer"])
+def test_each_known_answer_game_keys_as_python_chess_keys_it(known: Path, name: str):
+    """
+    Asserts that each game of a known-answer file takes, position by
+    position, the key python-chess's `zobrist_hash` gives the board its own
+    reader reaches.
+    """
+    text   = (known / f"{name}.pgn").read_text(encoding="utf-8")
+    handle = StringIO(text)
+
+    for _, _, keyed, _ in read(text):
+        assert keyed == hashed(read_game(handle))
+
+
+def test_the_standard_names_are_the_aliases_python_chess_gives_standard_chess():
+    """
+    Asserts that `STANDARD`, the names the site reads a `Variant` tag
+    against before matching, are the aliases python-chess's `Board` gives
+    standard chess, which `Game.problems` reads.
+    """
+    assert list(STANDARD) == Board.aliases
 
 
 @mark.parametrize(

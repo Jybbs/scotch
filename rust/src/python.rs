@@ -8,9 +8,14 @@ use std::{
 };
 
 use itertools::{Itertools, izip};
-use pyo3::{exceptions::PyValueError, prelude::*, pybacked::PyBackedBytes, types::PyString};
+use pyo3::{
+    exceptions::PyValueError,
+    prelude::*,
+    pybacked::PyBackedBytes,
+    types::{PyBytes, PyString},
+};
 
-use crate::{Outcomes, Stored, Tally};
+use crate::{Outcomes, Part, Sharing, Stored, Tally};
 
 /// The tags, the moves, the keys, and the errors of one game, in the order
 /// `Game` declares them.
@@ -87,6 +92,19 @@ fn encoded(moves: Vec<String>, fen: Option<&str>, variant: Option<&str>) -> PyRe
     crate::encoded(fen, variant, moves).map_err(raised)
 }
 
+/// Writes each move of the mainline `moves` names in UCI notation in SAN,
+/// beside the piece placement of each position from the start, from the
+/// position `fen` sets up under the variant `variant` names.
+#[pyfunction]
+#[pyo3(signature = (moves, fen=None, variant=None))]
+fn scored(
+    moves: Vec<String>,
+    fen: Option<&str>,
+    variant: Option<&str>,
+) -> (Vec<String>, Vec<String>) {
+    crate::scored(fen, variant, moves)
+}
+
 /// Ranks a game among those tied on their longest run from its `WhiteElo` and
 /// `BlackElo` tags.
 #[pyfunction]
@@ -119,6 +137,10 @@ fn columns(runs: &[crate::Run]) -> Columns {
 /// What a tally returns: each move beside its outcomes, the outcomes of the
 /// games ending at the position, and the games listed.
 type Tallied = (Vec<(String, Outcomes)>, Outcomes, Vec<u32>);
+
+/// What a count of sharing returns: each game's first ply alone, each group's
+/// games sharing at each ply, and each count of games beside the keys it reaches.
+type Shared = (Vec<Option<u16>>, Vec<Vec<u32>>, Vec<(u32, u64)>);
 
 /// The stored games, every position they reach, and their moves.
 #[pyclass(frozen, name = "Positions")]
@@ -185,8 +207,39 @@ impl Held {
 
     /// Counts the distinct keys the stored games reach.
     #[getter]
-    fn keys(&self) -> usize {
+    fn keys(&self) -> u64 {
         self.0.keys()
+    }
+
+    /// Counts the key pieces and the game pieces past the head.
+    #[getter]
+    fn pieces(&self) -> (usize, usize) {
+        self.0.pieces()
+    }
+
+    /// Returns the bytes of the key piece numbered `at` where `keys` is set,
+    /// and otherwise of the game piece numbered `at`.
+    fn part<'py>(&self, py: Python<'py>, keys: bool, at: u32) -> PyResult<Bound<'py, PyBytes>> {
+        let part = if keys {
+            Part::Keys(at)
+        } else {
+            Part::Games(at)
+        };
+
+        Ok(PyBytes::new(py, &self.0.part(part).map_err(raised)?))
+    }
+
+    /// Reads the number of each stored game the game piece numbered `at`
+    /// holds, in the order of their slots.
+    fn numbers(&self, at: u32) -> Vec<u32> {
+        self.0.numbers(at)
+    }
+
+    /// Writes the head of a file holding these key pieces and game pieces
+    /// of the bytes `sizes` lists in order.
+    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
+    fn rehead<'py>(&self, py: Python<'py>, sizes: Vec<u64>) -> PyResult<Bound<'py, PyBytes>> {
+        Ok(PyBytes::new(py, &self.0.rehead(&sizes).map_err(raised)?))
     }
 
     /// Reads the moves of `game` in UCI notation.
@@ -217,6 +270,29 @@ impl Held {
         self.0.reach(&keys)
     }
 
+    /// Counts how far each stored game shares its positions with the rest,
+    /// as each game's first ply standing alone, the games of each group
+    /// `groups` names standing at each ply in a position another stored game
+    /// reaches, and each count of games reaching a key beside its keys, per
+    /// `Positions::sharing`.
+    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
+    fn sharing(&self, groups: Vec<u16>) -> Shared {
+        let Sharing {
+            alone,
+            shared,
+            reach,
+        } = self.0.sharing(&groups);
+
+        (alone, shared, reach)
+    }
+
+    /// Counts the stored games playing each line of at most `depth` moves
+    /// from the standard starting position that at least `least` of them
+    /// play, per `Positions::lines`.
+    fn lines(&self, depth: u16, least: u32) -> Vec<(Vec<String>, u32)> {
+        self.0.lines(depth, least)
+    }
+
     /// Counts what the stored games played from the position `moves` reach in
     /// UCI notation from the position `fen` names or the standard starting
     /// position, as each move beside its outcomes, the outcomes of the games
@@ -237,10 +313,13 @@ impl Held {
 #[pymodule]
 mod readers {
     #[pymodule_export]
-    use super::{Held, encoded, keys, read, skipped, standing, trails};
+    use super::{Held, encoded, keys, read, scored, skipped, standing, trails};
 
     /// Each section of `positions.bin`, by its name, beside how it is held and
     /// what it holds, in the order the file holds them.
     #[pymodule_export]
-    const SECTIONS: [(&str, &str, &str); 18] = crate::SECTIONS;
+    const STANDARD: [&str; 6] = crate::STANDARD;
+
+    #[pymodule_export]
+    const SECTIONS: [(&str, &str, &str); 22] = crate::SECTIONS;
 }

@@ -94,6 +94,17 @@ def test_an_index_adds_the_files_written_from_it(
         "data/lengths.md": "<!-- lengths -->\n<!-- /lengths -->\n\n"
                            "<!-- outcomes -->\n<!-- /outcomes -->\n",
 
+        "data/omitted.md": "<!-- floors -->\n<!-- /floors -->\n\n"
+                           "<!-- ledger -->\n<!-- /ledger -->\n",
+
+        "data/shared.md": "<!-- crowding -->\n<!-- /crowding -->\n\n"
+                          "<!-- parting -->\n<!-- /parting -->\n\n"
+                          "<!-- partings -->\n<!-- /partings -->\n",
+
+        "data/tags.md": "<!-- carried -->\n<!-- /carried -->\n\n"
+                        "<!-- dated -->\n<!-- /dated -->\n\n"
+                        "<!-- order -->\n<!-- /order -->\n",
+
         "guide/index.md": (
             "<!-- example -->\n<!-- /example -->\n\n"
             "Holds <!-- games -->0<!-- /games --> games and"
@@ -125,15 +136,21 @@ def test_an_index_adds_the_files_written_from_it(
         (Document, "docs/.vitepress/lib/rendered/examples.json"),
         (Document, "docs/public/matches/demo.json"),
         (Document, "docs/.vitepress/lib/rendered/files.json"),
-        (Document, "docs/.vitepress/lib/rendered/store.json"),
+        *(
+            (Document, f"docs/.vitepress/lib/rendered/{name}.json")
+            for name in ("omissions", "shared", "store", "tags", "tie")
+        ),
         (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
         (Region, "docs/pages/guide/index.md"),
         (Region, "docs/pages/data/index.md"),
-        (Region, "docs/pages/data/lengths.md"),
-        (Region, "docs/pages/data/lengths.md"),
+        *[(Region, "docs/pages/data/lengths.md")] * 2,
+        *[(Region, "docs/pages/data/omitted.md")] * 2,
+        *[(Region, "docs/pages/data/shared.md")] * 3,
+        *[(Region, "docs/pages/data/tags.md")] * 2,
         (Region, "docs/pages/guide/store.md"),
         (Region, "docs/pages/reference/identity.md"),
+        (Region, "docs/pages/data/tags.md"),
         *[(Region, "docs/pages/reference/commands.md")] * len(RUNS),
         (Region, "docs/pages/guide/matching.md"),
         *[(Region, "docs/pages/guide/studying.md")] * len(STUDIED),
@@ -390,6 +407,17 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
 
             "data/lengths.md": "<!-- lengths -->\n<!-- /lengths -->\n\n"
                                "<!-- outcomes -->\n<!-- /outcomes -->\n",
+
+            "data/omitted.md": "<!-- floors -->\n<!-- /floors -->\n\n"
+                               "<!-- ledger -->\n<!-- /ledger -->\n",
+
+            "data/shared.md": "<!-- crowding -->\n<!-- /crowding -->\n\n"
+                              "<!-- parting -->\n<!-- /parting -->\n\n"
+                              "<!-- partings -->\n<!-- /partings -->\n",
+
+            "data/tags.md": "<!-- carried -->\n<!-- /carried -->\n\n"
+                            "<!-- dated -->\n<!-- /dated -->\n\n"
+                            "<!-- order -->\n<!-- /order -->\n",
 
             "guide/index.md"        : "<!-- example -->\n<!-- /example -->\n",
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",

@@ -1,0 +1,9 @@
+## 🖋️ Scoresheet
+
+| **Job** | **Result** |
+|---|---|
+| `build` | failure |
+| `deploy` | skipped |
+| `publish` | skipped |
+
+The run checked `560c4d8` on `4/ci-gate`.

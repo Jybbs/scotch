@@ -4,6 +4,7 @@
 |---|---|
 | `coverage` | success |
 | `deploy` | skipped |
+| `order` | success |
 | `press` | success |
 
 The run built and checked the site without publishing it, since only `main` publishes.

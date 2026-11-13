@@ -3,12 +3,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   press:
+    if: needs.order.outputs.skip != 'true'
     name: 📰 Press
+    needs: order
     runs-on: ubuntu-26.04
     steps:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
+          ref: ${{ inputs.ref }}
+          shared-key: scotch-wasm
           tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
       - name: Build the site and check its links
         run: mise run site:links
@@ -21,7 +25,9 @@ jobs:
           retention-days: 1
     timeout-minutes: 15
   coverage:
+    if: needs.order.outputs.skip != 'true'
     name: ☂️ Coverage
+    needs: order
     permissions:
       actions: read
       contents: read
@@ -32,6 +38,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          ref: ${{ inputs.ref }}
       - name: Read the total the merged pull request attached
         id: reuse
         env:
@@ -42,6 +49,7 @@ jobs:
         if: ${{ steps.reuse.outputs.found != 'true' }}
         uses: $/.github/actions/provision
         with:
+          ref: ${{ inputs.ref }}
           shared-key: scotch-python
           tools: python rust uv
       - name: Run the suite under coverage
@@ -83,12 +91,35 @@ jobs:
           command: pages deploy --branch=main --project-name=scotch docs/.vitepress/dist
           wranglerVersion: 4.160.0
     timeout-minutes: 10
+  order:
+    name: ⏳ Order
+    outputs:
+      skip: ${{ steps.store.outputs.skip }}
+    permissions:
+      actions: read
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Leave the publish to the store's run where one follows
+        env:
+          EVENT: ${{ github.event_name }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        id: store
+        run: |
+          skip=false
+          if [[ "$EVENT" == push ]]; then
+            [[ "$(gh run list --commit "$SHA" --event push --json databaseId --jq length --workflow store.yml)" == 0 ]] || skip=true
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+    timeout-minutes: 5
   scoresheet:
     if: always()
     name: 🖋️ Scoresheet
     needs:
       - coverage
       - deploy
+      - order
       - press
     runs-on: ubuntu-26.04
     steps:
@@ -107,21 +138,24 @@ on:
     branches:
       - main
     paths:
-      - .github/actions/provision/action.yml
       - .github/workflows/deploy.yml
-      - .mise/bin/**
-      - .mise/config.toml
-      - .mise/mise.lock
       - .mise/tasks/gha/reuse.py
       - .mise/tasks/gha/total
       - .mise/tasks/py/coverage
       - .mise/tasks/site/**
       - docs/**
-      - pyproject.toml
-      - rust/**
       - src/**
+      - '!src/scotch/cli/fetch.py'
+      - '!src/scotch/cli/index.py'
+      - '!src/scotch/cli/publish.py'
+      - '!src/scotch/games/**'
+      - '!src/scotch/index/**'
+      - '!src/scotch/sources/**'
       - tests/**
-      - uv.lock
   workflow_dispatch:
+    inputs:
+      ref:
+        default: ''
+        description: The commit the run builds and publishes, an empty value building the one the branch names
 permissions:
   contents: read

@@ -174,6 +174,35 @@ impl Board {
         self.position.play_unchecked(m);
     }
 
+    /// Plays `moves`, each named in UCI notation, from this position, writing
+    /// each in Standard Algebraic Notation (SAN) as python-chess's `Board.san`
+    /// writes it, beside the piece placement of this position and of each
+    /// one they reach, and stops at the first move not legal where it is
+    /// played.
+    pub fn scored(
+        mut self,
+        moves: impl IntoIterator<Item = impl AsRef<str>>,
+    ) -> (Vec<String>, Vec<String>) {
+        let mut placements = vec![self.position.board().to_string()];
+        let sans = moves
+            .into_iter()
+            .map_while(|uci| {
+                let san = match self.named(uci.as_ref())? {
+                    Turn::Move(m) => {
+                        SanPlus::from_move_and_play_unchecked(&mut self.position, m).to_string()
+                    }
+                    Turn::Null => self.pass().then(|| "--".to_owned())?,
+                };
+
+                placements.push(self.position.board().to_string());
+
+                Some(san)
+            })
+            .collect();
+
+        (sans, placements)
+    }
+
     /// Plays a null move as python-chess pushes one, passing the turn,
     /// clearing the en passant square, and counting the ply, or returns
     /// `false` where the side passing the turn is in check, since no

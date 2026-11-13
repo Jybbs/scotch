@@ -69,6 +69,14 @@ class Settings(
         return self.data / "index"
 
     @property
+    def store(self) -> Path:
+        """
+        Names the directory `scotch publish store` writes the file the site
+        matches against into.
+        """
+        return self.data / "store"
+
+    @property
     def stale(self) -> bool:
         """
         Checks whether a fetch since the index was built recorded other
