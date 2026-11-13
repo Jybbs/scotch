@@ -5,8 +5,8 @@ import rendered from '../rendered/marks.json' with { type: 'json' }
 import { smooth } from '../motion/timing.ts'
 
 /**
- * The drawings the identity page sets and each place they stand, as `scotch
- * render docs` measures them from the tracked SVGs.
+ * The drawings the Marks page sets and each place they stand, as `scotch render
+ * docs` measures them from the tracked SVGs.
  */
 export const MARKS = rendered
 

@@ -76,18 +76,18 @@ class Outputs(RootModel[list[Output]]):
     ) -> list[Output]:
         """
         Lists the files written from `index`, meaning the store the Data
-        pages, the Guide's store page, the identity page, and the Viewer
-        read, the examples the front page, the Methods page, and the link
-        cards draw, the match the Viewer opens on beside the demo game
-        alone, the demo's match file, the file list the Data page draws,
-        each file `sources.toml` declares beside the games the store holds
-        from it, the figures each Markdown file of `pages` sets inside
+        pages, the Guide's store page, the Palette and Roles page, and the
+        Viewer read, the examples the front page, the Methods page, and the
+        link cards draw, the match the Viewer opens on beside the demo game
+        alone, the demo's match file, the file list the Source Files page
+        draws, each file `sources.toml` declares beside the games the store
+        holds from it, the figures each Markdown file of `pages` sets inside
         its sentences, the example run the README and the Guide carry, the
-        example runs the commands page and the Guide's walkthroughs set, the
-        lines of the demo's match the Guide glosses, and the tables the Data
-        pages, the Guide's store page, and the identity page set beneath
-        their widgets, the disk the store takes under the data directory
-        `settings` names among the figures.
+        example runs the commands page and the Guide's walkthroughs set,
+        the lines of the demo's match the Guide glosses, and the tables the
+        Data pages, the Guide's store page, and the Palette and Roles page
+        set beneath their widgets, the disk the store takes under the data
+        directory `settings` names among the figures.
         """
         census   = Census(index=index)
         viewer   = Example(path=Outputs.games / "viewer.pgn", shown=0)

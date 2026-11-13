@@ -1,6 +1,6 @@
 # The Commands
 
-Each command the help of `scotch` lists takes a section below, which `mise run docs:render` writes from what the command line declares, meaning the command's docstring, its usage, and the type, the bound, the default, and the help of each parameter. The messages a command exits nonzero on come from `src/scotch/docs/stops.toml`, which `mise run repo:audit` holds to the messages the code prints. Beneath each section sits an example run, its output written from the index wherever the index alone sets it. The example runs write the data directory as `.cache/data`, where a real run prints its full path under the project's root. [The Guide](../guide/index.md) walks through a first match.
+Each command the help of `scotch` lists takes a section below, save `scotch cite source`, which [Citing and Writing a Page](../develop/citing.md) sets out, and each section `mise run docs:render` writes from what the command line declares, meaning the command's docstring, its usage, and the type, the bound, the default, and the help of each parameter. The messages a command exits nonzero on come from `src/scotch/docs/stops.toml`, which `mise run repo:audit` holds to the messages the code prints. Beneath each section sits an example run, its output written from the index wherever the index alone sets it. The example runs write the data directory as `.cache/data`, where a real run prints its full path under the project's root. [The Guide](../guide/index.md) walks through a first match.
 
 <!-- command-fetch-games -->
 ## `scotch fetch games`

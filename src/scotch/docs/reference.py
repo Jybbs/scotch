@@ -1,11 +1,12 @@
 """
-Holds `Reference`, the tables the Reference section's pages set beneath
-their drawings, each written from what declares it, meaning `Settings`, what
-`mise tasks` reports, the `Identity`, `Marks`, `Terms`, what python-chess
-ships, the hosts `sources.toml` names, the records of the manifest and the
-match file, the `COLUMNS` of the games table, the crate's `SECTIONS` of
-`positions.bin`, and the checks `.mise/config.toml` declares, so a change to
-any of them reaches its page through the next `scotch render docs`.
+Holds `Reference`, the tables the Identity, Data, Reference, and Develop
+pages set beneath their drawings, each written from what declares it,
+meaning `Settings`, what `mise tasks` reports, the `Identity`, `Marks`,
+`Terms`, what python-chess ships, the hosts `sources.toml` names,
+the records of the manifest and the match file, the `COLUMNS` of the
+games table, the crate's `SECTIONS` of `positions.bin`, and the checks
+`.mise/config.toml` declares, so a change to any of them reaches its page
+through the next `scotch render docs`.
 """
 
 from chess     import Board, COLOR_NAMES, Piece, parse_square, piece_name
@@ -38,7 +39,8 @@ from scotch.sources.schemas  import Download, Manifest, Sources
 
 class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The declarations under `root` the Reference section's pages describe.
+    The declarations under `root` the Identity, Data, Reference, and Develop
+    pages describe.
     """
 
     homes: ClassVar[dict[str, str]] = {
@@ -66,7 +68,7 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
 
     identity: Identity = Identity()
     """
-    The identity the section's identity page draws.
+    The identity the Identity section's pages draw.
     """
 
     @property

@@ -20,7 +20,7 @@
 
 ## 🪺 The Games
 
-The store holds <!-- games -->1,150,156<!-- /games --> games read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players is rated <!-- openings-floor -->2500<!-- /openings-floor --> or above, each file declared once in `src/scotch/sources/sources.toml`, which **[Data](https://scotch.fyi/data/)** lists file by file. A source joins the store as a row added there, then fetched and indexed again, as **[The Store](https://scotch.fyi/guide/store)** shows.
+The store holds <!-- games -->1,150,156<!-- /games --> games read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players is rated <!-- openings-floor -->2500<!-- /openings-floor --> or above, each file declared once in `src/scotch/sources/sources.toml`, which **[The Source Files](https://scotch.fyi/data/sources)** lists file by file. A source joins the store as a row added there, then fetched and indexed again, as **[The Store](https://scotch.fyi/guide/store)** shows.
 
 ## 🗜️ Install
 
