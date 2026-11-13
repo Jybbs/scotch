@@ -84,7 +84,8 @@ function readoutOf(front: Front, ply: number): Readout {
       ['Stored', reading.moves.stored],
       ['Keys', same(front, ply) ? 'Equal' : 'Differ']
     ],
-    say: `${reading.unit}. ${reading.say}`
+    say      : reading.say,
+    unit     : reading.unit
   }
 }
 

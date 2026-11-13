@@ -41,10 +41,11 @@ function lines(beat: session.Beat, commands: readonly session.Command[]): VNode[
 function readoutOf(beat: session.Beat, commands: readonly session.Command[]): Readout {
   const each = commands[beat.step]!
   return {
-    big      : beat.done ? each.figure : '·',
+    big      : beat.done ? each.figure : '',
     readings : commands.map((command, step) =>
       [command.verb, step < beat.step || step === beat.step && beat.done ? command.figure : '·']),
-    say      : `${each.unit}, step ${NUMERALS[beat.step]} of ${NUMERALS.at(-1)}, from ${each.command}`
+    say      : `Step ${NUMERALS[beat.step]} of ${NUMERALS.at(-1)}, from ${each.command}`,
+    unit     : each.unit
   }
 }
 

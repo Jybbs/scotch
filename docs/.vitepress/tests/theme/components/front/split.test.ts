@@ -50,8 +50,9 @@ describe('Split', () => {
     expect(split.find('.sc-front-split').attributes('data-apart')).toBeUndefined()
     expect(split.findAll('.sc-front-board').map(board => board.attributes('data-game')))
       .toEqual(['submitted', 'stored'])
-    expect(split.find('.sc-data-say').text())
-      .toBe('position shared. Two orders of moves reach one position, a transposition.')
+    expect(split.find('.sc-front-unit').text()).toBe('position shared')
+    expect(split.find('.sc-front-say').text())
+      .toBe('Two orders of moves reach one position, a transposition.')
     expect(split.findAll('.sc-data-read dd').map(value => value.text())).toEqual(['4. d4', 'Its own order'])
   })
 
@@ -61,8 +62,9 @@ describe('Split', () => {
     await flushPromises()
     expect(split.find('.sc-front-split').attributes('data-apart')).toBe('')
     expect(split.find('.sc-front-cover span').text()).toBe('White to move')
-    expect(split.find('.sc-data-say').text())
-      .toBe('positions shared. Your game parted at 7. O-O. '
+    expect(split.find('.sc-front-unit').text()).toBe('positions shared')
+    expect(split.find('.sc-front-say').text())
+      .toBe('Your game parted at 7. O-O. '
           + 'The link scotch match game --link prints opens both games in the Viewer.')
     expect(split.findAll('.sc-data-read dd').map(value => value.text())).toEqual(['9...e5', 'Hidden'])
   })
@@ -109,7 +111,7 @@ describe('Split past the run', () => {
     Object.assign(line.element, { setPointerCapture: vi.fn<(id: number) => void>() })
     await line.trigger('pointerdown', { clientX: step * 100, pointerId: 1 })
     expect(split.find('.sc-front-split').attributes('data-apart')).toBe(apart)
-    expect(split.find('.sc-data-say').text()).toContain(say)
+    expect(split.find('.sc-front-say').text()).toContain(say)
   })
 })
 

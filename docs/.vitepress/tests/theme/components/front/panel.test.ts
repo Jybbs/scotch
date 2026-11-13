@@ -16,7 +16,7 @@ function paneled(): { drive: Drive, panel: ReturnType<typeof mount> } {
     go   : vi.fn<(step: number) => void>(),
     hold : vi.fn<(held: boolean) => void>()
   }
-  const readout = { big: '42', readings: [['Label', 'Value']], say: 'games shared' }
+  const readout = { big: '42', readings: [['Label', 'Value']], say: 'Shared by both', unit: 'games' }
   const panel   = mount(Panel, {
     props : { drive, label: 'Steps', names: ['One', 'Two'], readout },
     slots : { default: () => h('svg', { class: 'drawn' }) }
@@ -27,8 +27,9 @@ function paneled(): { drive: Drive, panel: ReturnType<typeof mount> } {
 describe('Panel', () => {
   it("sets the drawing and the clock line on the Data widgets' plate", () => {
     const { panel } = paneled()
-    expect(panel.find('.sc-data-plate .sc-data-big').text()).toBe('42')
-    expect(panel.find('.sc-data-say').text()).toBe('games shared')
+    expect(panel.find('.sc-data-plate .sc-front-figure .sc-front-spoken').text()).toBe('42')
+    expect(panel.find('.sc-front-figure .sc-front-unit').text()).toBe('games')
+    expect(panel.find('.sc-front-say').text()).toBe('Shared by both')
     expect(panel.find('.sc-front-draw svg.drawn').exists()).toBe(true)
     expect(panel.find('[role=slider]').attributes('aria-valuetext')).toBe('Two')
     expect(panel.find('.sc-data-read dd').text()).toContain('Value')
