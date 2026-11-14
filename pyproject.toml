@@ -45,7 +45,6 @@ Repository = "https://github.com/Jybbs/scotch"
 
 [dependency-groups]
 dev = [
-    "hypothesis",
     "minijinja",
     "prose-formatter",
     "pytest",
