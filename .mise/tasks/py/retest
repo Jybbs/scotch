@@ -8,7 +8,7 @@ fingerprint() {
   git ls-files --cached --deduplicate --exclude-standard --others \
     | awk '!/\.py$/ || /fixtures\// || /^src\/scotch\/cli\//' \
     | while IFS= read -r path; do [[ ! -f $path ]] || printf '%s\0' "$path"; done \
-    | xargs -0 shasum -a 256
+    | xargs -0 -r shasum -a 256
 }
 
 mkdir -p "$cache"
