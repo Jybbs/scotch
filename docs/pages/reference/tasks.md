@@ -22,6 +22,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
 | `gha:cut` |  | Cut the draft release a version bump on `main` calls for |
+| `gha:order` |  | Decide which commit a `♟️ Deploy` run builds, if any |
 | `gha:prune` |  | Delete each tool cache and Cargo cache a newer one replaced |
 | `gha:retire` |  | Delete each store file R2 holds past the newest earlier ones |
 | `gha:reuse` |  | Copy the coverage total `♟️ CI` attached for the tree on `main` |
