@@ -3,10 +3,8 @@
 {%- with url = run.needs.deploy.outputs.url %}
 {%- if url %}
 The deploy published the site at <{{ url }}>.
-{% elif run.passed and run.needs.order.outputs.head %}
-The run published nothing, since `main` points at `{{ run.needs.order.outputs.head[:7] }}` rather than the commit the run was dispatched to build.
 {% elif run.passed and run.needs.order.outputs.skip == "true" %}
-The run published nothing, since the `♟️ Store` run this push started publishes the site once the store it reads is live.
+The run published nothing, since the `♟️ Store` push run on `{{ run.commit[:7] }}` publishes the site once the store it reads is live.
 {% elif run.passed and run.needs.deploy.result == "skipped" %}
 The run built and checked the site without publishing it, since only `main` publishes.
 {% endif %}

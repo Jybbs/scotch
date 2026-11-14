@@ -67,7 +67,8 @@ class Run:
     """
     The commit the run checked, which each pull-request workflow sets to the
     head of the pull request's branch rather than the merge commit the
-    runner checks out.
+    runner checks out, and `♟️ Deploy` sets to the commit its `⏳ Order` job
+    chose to build.
     """
 
     needs: Mapping[str, Need]
@@ -105,9 +106,9 @@ class Run:
     def from_environ(cls, variables: Mapping[str, str]) -> Self:
         """
         Reads the run out of the variables the runner sets and the ones the
-        gate's step passes, `NEEDS` and, on a pull request, `COMMIT`, where
-        `GITHUB_HEAD_REF` names a pull request's head branch and is empty on
-        any other event.
+        gate's step passes, `NEEDS` and, on a pull request or a `♟️ Deploy`
+        run, `COMMIT`, where `GITHUB_HEAD_REF` names a pull request's head
+        branch and is empty on any other event.
         """
         return cls(
             branch = variables.get("GITHUB_HEAD_REF") or variables["GITHUB_REF_NAME"],

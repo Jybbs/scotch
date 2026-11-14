@@ -11,7 +11,7 @@ jobs:
       - name: Install the tools
         uses: $/.github/actions/provision
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.order.outputs.commit }}
           shared-key: scotch-wasm
           tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
       - name: Build the site and check its links
@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.order.outputs.commit }}
       - name: Read the total the merged pull request attached
         id: reuse
         env:
@@ -49,7 +49,7 @@ jobs:
         if: ${{ steps.reuse.outputs.found != 'true' }}
         uses: $/.github/actions/provision
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ needs.order.outputs.commit }}
           shared-key: scotch-python
           tools: python rust uv
       - name: Run the suite under coverage
@@ -94,7 +94,7 @@ jobs:
   order:
     name: ⏳ Order
     outputs:
-      head: ${{ steps.order.outputs.head }}
+      commit: ${{ steps.order.outputs.commit }}
       skip: ${{ steps.order.outputs.skip }}
     permissions:
       actions: read
@@ -105,7 +105,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Decide whether the run publishes the commit it builds
+      - name: Decide which commit the run builds and whether it builds one
         env:
           COMMIT: ${{ inputs.ref || github.sha }}
           EVENT: ${{ github.event_name }}
@@ -131,6 +131,7 @@ jobs:
           tools: python uv
       - name: Write the summary
         env:
+          COMMIT: ${{ needs.order.outputs.commit || inputs.ref || github.sha }}
           NEEDS: ${{ toJSON(needs) }}
         run: mise run gha:scoresheet
     timeout-minutes: 5
