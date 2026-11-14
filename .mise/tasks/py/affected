@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE alias       = "retest"
+#MISE alias       = "affected"
 #MISE description = "Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace, or a file under `src/scotch/cli/` whose docstrings the help snapshots read, changed since the last full run, and passing any further arguments to pytest"
 
 cache="$MISE_PROJECT_ROOT/.cache/testmon"

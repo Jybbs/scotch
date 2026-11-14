@@ -1,28 +1,28 @@
 """
-Pins what the `retest` tasks hand the test runners they wrap:
+Pins what the `affected` tasks hand the test runners they wrap:
 
-- The pytest-testmon flag `py:retest` hands pytest, selecting where every
+- The pytest-testmon flag `py:affected` hands pytest, selecting where every
   file testmon cannot trace matches the last full run and running the whole
   suite otherwise, and the runs after which it records those files
-- The reference `site:retest` hands Vitest's `--changed`
+- The reference `site:affected` hands Vitest's `--changed`
 
 Each case runs a task through its own shebang inside a scratch checkout,
 with stand-in executables first on `PATH` that log each call they receive.
 """
 
 from collections.abc  import Callable
-from common.stand_ins import Retest, StandIn
+from common.stand_ins import Affected, StandIn
 from pytest           import Config, mark, param
 
 
-def test_a_full_run_with_failures_records_the_files(retest: Retest):
+def test_a_full_run_with_failures_records_the_files(affected: Affected):
     """
     Asserts that a full run whose tests fail exits one and still records the
     files, since pytest-testmon reruns each failed test on the next run.
     """
-    assert retest.run(status=1).returncode == 1
-    assert retest.run().returncode == 0
-    assert retest.flags == ["--testmon-forceselect"]
+    assert affected.run(status=1).returncode == 1
+    assert affected.run().returncode == 0
+    assert affected.flags == ["--testmon-forceselect"]
 
 
 @mark.parametrize(
@@ -36,18 +36,18 @@ def test_a_full_run_with_failures_records_the_files(retest: Retest):
         )
     ]
 )
-def test_a_change_testmon_traces_selects(files: dict[str, str], retest: Retest):
+def test_a_change_testmon_traces_selects(files: dict[str, str], affected: Affected):
     """
     Asserts that a run after a full one selects under
     `--testmon-forceselect`, which keeps the `-m` the suite's `addopts`
     passes, wherever every file outside the Python matches what the full
     run recorded.
     """
-    retest.run()
-    retest.write(**files)
+    affected.run()
+    affected.write(**files)
 
-    assert retest.run("-x").returncode == 0
-    assert retest.flags == ["--testmon-forceselect", "-x"]
+    assert affected.run("-x").returncode == 0
+    assert affected.flags == ["--testmon-forceselect", "-x"]
 
 
 @mark.parametrize(
@@ -73,9 +73,9 @@ def test_a_change_testmon_traces_selects(files: dict[str, str], retest: Retest):
     ]
 )
 def test_a_change_testmon_cannot_trace_runs_every_test(
-    changed : str,
-    files   : dict[str, str | None],
-    retest  : Retest
+    changed  : str,
+    files    : dict[str, str | None],
+    affected : Affected
 ):
     """
     Asserts that a run after a full one runs the whole suite under
@@ -85,15 +85,15 @@ def test_a_change_testmon_cannot_trace_runs_every_test(
     the help snapshots read, changed, was added, or was deleted, and that
     the run after it selects again.
     """
-    retest.run()
-    retest.write(**files)
-    result = retest.run()
+    affected.run()
+    affected.write(**files)
+    result = affected.run()
 
     assert result.returncode == 0
     assert result.stderr.splitlines()[1:] == [changed]
-    assert retest.flags == ["--testmon-noselect"]
-    assert retest.run().returncode == 0
-    assert retest.flags == ["--testmon-forceselect"]
+    assert affected.flags == ["--testmon-noselect"]
+    assert affected.run().returncode == 0
+    assert affected.flags == ["--testmon-forceselect"]
 
 
 @mark.parametrize(
@@ -105,7 +105,7 @@ def test_a_change_testmon_cannot_trace_runs_every_test(
 )
 def test_a_partial_full_run_records_nothing(
     arguments : tuple[str, ...],
-    retest    : Retest,
+    affected  : Affected,
     status    : int
 ):
     """
@@ -113,26 +113,26 @@ def test_a_partial_full_run_records_nothing(
     above one, the status pytest gives an interrupted run, exits with
     pytest's status and records nothing, so the next run is full again.
     """
-    assert retest.run(*arguments, status=status).returncode == status
-    assert not retest.recorded.exists()
-    assert retest.run().returncode == 0
-    assert retest.flags == ["--testmon-noselect"]
+    assert affected.run(*arguments, status=status).returncode == status
+    assert not affected.recorded.exists()
+    assert affected.run().returncode == 0
+    assert affected.flags == ["--testmon-noselect"]
 
 
-def test_the_first_run_runs_every_test_and_records_the_files(retest: Retest):
+def test_the_first_run_runs_every_test_and_records_the_files(affected: Affected):
     """
     Asserts that a run finding no recorded files runs the whole suite under
     `--testmon-noselect`, saying no full run has recorded them, keeps the
     data file under the checkout's `.cache/testmon`, and records the files
     so the next run selects.
     """
-    result = retest.run()
+    result = affected.run()
 
     assert result.returncode == 0
     assert "no full run has recorded" in result.stderr
-    assert retest.calls == [f"{retest.root}/.cache/testmon/data --testmon-noselect"]
-    assert "fixture.txt" in retest.recorded.read_text()
-    assert "module.py" not in retest.recorded.read_text()
+    assert affected.calls == [f"{affected.root}/.cache/testmon/data --testmon-noselect"]
+    assert "fixture.txt" in affected.recorded.read_text()
+    assert "module.py" not in affected.recorded.read_text()
 
 
 def test_the_site_selects_against_main(
@@ -140,15 +140,15 @@ def test_the_site_selects_against_main(
     stand_in     : Callable[[str], StandIn]
 ):
     """
-    Asserts that `site:retest` runs Vitest under `--changed origin/main` and
-    the suite's config, passing every further argument through.
+    Asserts that `site:affected` runs Vitest under `--changed origin/main`
+    and the suite's config, passing every further argument through.
     """
     vitest = stand_in("vitest")
     folder = vitest.root / "node_modules" / ".bin"
     folder.mkdir(parents=True)
     (vitest.root / "vitest").rename(folder / "vitest")
     result = vitest.start(
-        [pytestconfig.rootpath / ".mise" / "tasks" / "site" / "retest", "--bail=1"],
+        [pytestconfig.rootpath / ".mise" / "tasks" / "site" / "affected", "--bail=1"],
         vitest.root
     )
 
