@@ -131,14 +131,6 @@ function kindSentence(kind: RatingKind): string {
 }
 
 /**
- * Reads a rating tag as a number, or `null` where it holds no number above 0,
- * as the index reads it.
- */
-function rating(text: string): number | null {
-  return /^\d+$/u.test(text) && Number(text) > 0 ? Number(text) : null
-}
-
-/**
  * Writes the sentence naming the rule that set a tied game's place, from how
  * many ratings it carries and where its value ranks among the tied games of
  * its kind.
@@ -271,6 +263,15 @@ export function panelOf({ at, by }: Focus): Panel {
  */
 export function places(games: readonly TiedGame[]): string {
   return games.length === 1 ? `game ${games[0]!.place}` : `games ${games[0]!.place} to ${games.at(-1)!.place}`
+}
+
+/**
+ * Reads a rating tag as a number, or `null` where it holds anything but digits
+ * naming a whole number from 1 to the tie's ceiling, as the index reads it.
+ */
+export function rating(text: string): number | null {
+  const value = Number(text)
+  return /^\d+$/u.test(text) && value > 0 && value <= rendered.ceiling ? value : null
 }
 
 /**

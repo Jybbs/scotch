@@ -275,5 +275,6 @@
     "Bxe7",
     "Qxe7"
   ],
-  "plies": 8
+  "plies": 8,
+  "ceiling": 2900
 }

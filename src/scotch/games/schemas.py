@@ -262,14 +262,13 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     def rating(self) -> int:
         """
         Reads the higher of the `WhiteElo` and `BlackElo` tags, the PGN
-        standard's tags for each player's rating, section 9.1.2, each read
-        where it holds digits alone, or 0 where neither does.
+        standard's tags for each player's rating, section 9.1.2, each as
+        `readers.rating` reads it, or 0 where neither carries a rating.
         """
         return max(
-            (
-                int(rating)
-                for tag in ("WhiteElo", "BlackElo")
-                if (rating := self.tags.get(tag, "")).isascii() and rating.isdecimal()
+            filter(
+                None,
+                map(readers.rating, map(self.tags.get, ("WhiteElo", "BlackElo")))
             ),
             default = 0
         )

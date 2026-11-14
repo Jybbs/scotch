@@ -105,6 +105,15 @@ fn scored(
     crate::scored(fen, variant, moves)
 }
 
+/// Reads a `WhiteElo` or `BlackElo` tag as a rating where it holds ASCII
+/// digits alone naming a whole number from 1 to `CEILING`, and as `None`
+/// otherwise.
+#[pyfunction]
+#[pyo3(signature = (tag=None))]
+fn rating(tag: Option<&str>) -> Option<u16> {
+    crate::rating(tag)
+}
+
 /// Ranks a game among those tied on their longest run from its `WhiteElo` and
 /// `BlackElo` tags.
 #[pyfunction]
@@ -313,7 +322,11 @@ impl Held {
 #[pymodule]
 mod readers {
     #[pymodule_export]
-    use super::{Held, encoded, keys, read, scored, skipped, standing, trails};
+    use super::{Held, encoded, keys, rating, read, scored, skipped, standing, trails};
+
+    /// The highest rating `rating` reads a tag as.
+    #[pymodule_export]
+    const CEILING: u16 = crate::CEILING;
 
     /// Each section of `positions.bin`, by its name, beside how it is held and
     /// what it holds, in the order the file holds them.
