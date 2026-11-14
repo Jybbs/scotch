@@ -37,15 +37,6 @@ class Eager:
 
 
 EAGER = frozendict(
-    hypothesis = Eager(
-        defect = (
-            "`hypothesis.strategies` asserts at import time that every strategy "
-            "it exports has registered itself, which a strategy does only when "
-            "the module defining it runs, so the assertion fails while those "
-            "modules' imports stay lazy"
-        ),
-        reproduction = "import hypothesis.strategies; hypothesis.strategies.integers"
-    ),
     _pytest = Eager(
         defect = (
             "pytest's assertion-rewriting import hook resolves the lazy import "
