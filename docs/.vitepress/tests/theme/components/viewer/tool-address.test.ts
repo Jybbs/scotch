@@ -110,11 +110,13 @@ describe('Tool copying the match', () => {
     const { wrapper } = mountedTool()
     await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
     await wrapper.find('.sc-viewer-seat button').trigger('click')
-    await flushPromises()
     const encoded = await encodedOf(EXAMPLES.alone)
-    expect(written).toHaveBeenCalledWith(`${location.origin}${location.pathname}#match=${encoded}&ply=0`)
+    await vi.waitFor(() => {
+      expect(written).toHaveBeenCalledWith(`${location.origin}${location.pathname}#match=${encoded}&ply=0`)
+    })
     clock.advanceTimersByTime(5000)
-    await flushPromises()
-    expect(location.hash).toBe(`#match=${await encodedOf(EXAMPLES.alone)}&ply=0`)
+    await vi.waitFor(() => {
+      expect(location.hash).toBe(`#match=${encoded}&ply=0`)
+    })
   })
 })
