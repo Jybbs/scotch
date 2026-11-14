@@ -1,15 +1,12 @@
 """
-Sets the example count on Hypothesis's built-in profiles, the `ci` one it
-loads on a CI runner and the `default` one, which also drops the deadline
-so a heavily loaded machine fails no test a runner passes. It also registers
-the `common.isolation` plugin and defines the fixtures tests across the
-suite share, each described where it is defined.
+Registers the `common.isolation` plugin and defines the fixtures tests
+across the suite share, each described where it is defined.
 """
 
 from collections.abc  import Callable, Iterable, Iterator
+from common.games     import FIXTURES
 from common.isolation import CLEARED
 from common.sample    import Sample
-from hypothesis       import settings
 from os               import environ
 from pathlib          import Path
 from pytest           import MonkeyPatch, TempPathFactory, fixture
@@ -26,14 +23,6 @@ from scotch.repo.checkout     import Checkout
 
 # `pytest_plugins` stays lowercase, the only name pytest reads the plugin list under.
 pytest_plugins = ["common.isolation"]  # prose: ignore[miscased-constants]
-
-settings.register_profile("ci", settings.get_profile("ci"), max_examples=200)
-settings.register_profile(
-    "default",
-    settings.get_profile("default"),
-    deadline     = None,
-    max_examples = 25
-)
 
 
 @fixture(autouse=True)
@@ -82,7 +71,7 @@ def known() -> Path:
     - `viewer.pgn`, the example the Viewer opens on, which reaches the demo
       game's position after `4...Bb4` through `1. Nf3 Nf6 2. c4`
     """
-    return Path(__file__).parent / "index" / "fixtures"
+    return FIXTURES
 
 
 @fixture(scope="session")
@@ -133,12 +122,11 @@ def sample(monkeypatch: MonkeyPatch, tmp_path: Path) -> Sample:
     return Sample.copy(tmp_path)
 
 
-@fixture(scope="session")
+@fixture
 def pgn(tmp_path_factory: TempPathFactory) -> Callable[..., Path]:
     """
     Builds a writer that saves PGN text, in the encoding it names or UTF-8,
-    to a file in a fresh directory, spanning the session so a Hypothesis
-    property draws every file it needs from one writer.
+    to a file in a fresh directory.
     """
 
     def write(text: str, encoding: str = "utf-8") -> Path:

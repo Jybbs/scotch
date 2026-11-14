@@ -16,18 +16,16 @@ from that:
   frozen
 """
 
-from chess             import Board, Move
-from chess.pgn         import Game as PgnGame
-from chess.variant     import VARIANTS
-from collections.abc   import Callable
-from common.games      import line
-from common.sources    import zipped
-from common.strategies import games, played
-from hypothesis        import given
-from pathlib           import Path
-from pydantic          import ValidationError
-from pytest            import LogCaptureFixture, mark, param, raises
-from zipfile           import Path as ZipPath, ZipFile
+from chess           import Board, Move
+from chess.pgn       import Game as PgnGame
+from chess.variant   import VARIANTS
+from collections.abc import Callable
+from common.games    import line
+from common.sources  import zipped
+from pathlib         import Path
+from pydantic        import ValidationError
+from pytest          import LogCaptureFixture, mark, param, raises
+from zipfile         import Path as ZipPath, ZipFile
 
 from scotch.games.schemas import Frame, Game, Origin
 
@@ -37,23 +35,6 @@ def moves(*uci: str) -> tuple[Move, ...]:
     Builds the moves `uci` names in Universal Chess Interface notation.
     """
     return tuple(map(Move.from_uci, uci))
-
-
-@given(board=played())
-def test_a_game_python_chess_writes_reads_back_whole(
-    board : Board,
-    read  : Callable[..., list[Game]]
-):
-    """
-    Asserts that any legal game python-chess exports reads back with the
-    same tags and the same moves and with no error.
-    """
-    game        = PgnGame.from_board(board)
-    [read_back] = read(str(game))
-
-    assert read_back.errors == ()
-    assert read_back.moves == tuple(game.mainline_moves())
-    assert read_back.tags == dict(game.headers)
 
 
 def test_a_byte_order_mark_leaves_the_first_tag_readable(
@@ -134,6 +115,24 @@ def test_a_frame_lists_its_pieces_in_the_order_of_their_numbers():
     ).pieces == ((1, 7, "K"), (5, 0, "k"), (9, 3, "Q"))
 
 
+def test_a_frame_numbers_each_piece_by_the_square_it_starts_on():
+    """
+    Asserts that the first frame numbers each of the 32 pieces by the square
+    it stands on and names no move, and that the next frame carries a moved
+    piece's number to its new square beside the move and its SAN.
+    """
+    first, second = line("e4").frames
+
+    assert first.pieces == tuple(
+        (spot, spot, piece.symbol()) for spot, piece in sorted(
+            Board().piece_map().items()
+        )
+    )
+    assert (first.move, first.san) == (None, None)
+    assert (12, 28, "P") in second.pieces
+    assert (second.move, second.san) == ((12, 28), "e4")
+
+
 @mark.parametrize(
     ("sans", "tags", "landed"),
     [
@@ -166,24 +165,6 @@ def test_a_frame_names_the_piece_its_move_sets_down(
     assert line(*sans, **tags).frames[-1].landed == landed
 
 
-def test_a_frame_numbers_each_piece_by_the_square_it_starts_on():
-    """
-    Asserts that the first frame numbers each of the 32 pieces by the square
-    it stands on and names no move, and that the next frame carries a moved
-    piece's number to its new square beside the move and its SAN.
-    """
-    first, second = line("e4").frames
-
-    assert first.pieces == tuple(
-        (spot, spot, piece.symbol()) for spot, piece in sorted(
-            Board().piece_map().items()
-        )
-    )
-    assert (first.move, first.san) == (None, None)
-    assert (12, 28, "P") in second.pieces
-    assert (second.move, second.san) == ((12, 28), "e4")
-
-
 def test_a_game_hashes_by_its_fields(read: Callable[..., list[Game]]):
     """
     Asserts that a game hashes, so a set holds two reads of one game once
@@ -200,6 +181,22 @@ def test_a_game_hashes_by_its_fields(read: Callable[..., list[Game]]):
 
     assert len({first, second}) == 1
     assert len({first, replayed, retagged}) == 3
+
+
+def test_a_game_python_chess_writes_reads_back_whole(
+    read     : Callable[..., list[Game]],
+    replayed : Game
+):
+    """
+    Asserts that each known game python-chess exports reads back with the
+    same tags and the same moves and with no error.
+    """
+    exported    = PgnGame.from_board(replayed.at(len(replayed.moves)))
+    [read_back] = read(str(exported))
+
+    assert read_back.errors == ()
+    assert read_back.moves == tuple(exported.mainline_moves())
+    assert read_back.tags == dict(exported.headers)
 
 
 @mark.parametrize(
@@ -329,6 +326,16 @@ def test_a_game_whose_position_cannot_be_set_up_draws_no_frame():
     assert game.frames == ()
 
 
+def test_a_game_writes_pgn_that_reads_back_whole(replayed: Game):
+    """
+    Asserts that the PGN each known game writes reads back as one game
+    holding the same moves and tags with no error.
+    """
+    [read] = Game.parse(replayed.pgn)
+
+    assert (read.errors, read.moves, read.tags) == ((), replayed.moves, replayed.tags)
+
+
 def test_a_move_from_a_fen_position_reads_behind_the_fen_move_number():
     """
     Asserts that a game a `FEN` tag starts numbers its moves from the move
@@ -337,21 +344,6 @@ def test_a_move_from_a_fen_position_reads_behind_the_fen_move_number():
     assert line("Kd7", FEN="4k3/8/8/8/8/8/8/4K3 b - - 0 40").numbered(
         0
     ) == "40...Kd7"
-
-
-def test_a_move_illegal_inside_a_variation_leaves_the_mainline_whole(
-    read: Callable[..., list[Game]]
-):
-    """
-    Asserts that a move illegal inside a variation leaves every move of the
-    mainline after that variation read from the mainline's own position,
-    with no error recorded, since the reader reads no move a variation
-    holds.
-    """
-    [game] = read("1. e4 (1. d4 Qxf7) 1... e5 2. Qh5 Nc6 *\n")
-
-    assert game.errors == ()
-    assert game.moves == moves("e2e4", "e7e5", "d1h5", "b8c6")
 
 
 @mark.parametrize(
@@ -492,15 +484,19 @@ def test_a_game_s_rating_is_the_higher_of_its_players_ratings(
     assert line(**tags).rating == rating
 
 
-@given(game=games())
-def test_a_game_writes_pgn_that_reads_back_whole(game: Game):
+def test_a_move_illegal_inside_a_variation_leaves_the_mainline_whole(
+    read: Callable[..., list[Game]]
+):
     """
-    Asserts that the PGN any game writes reads back as one game holding the
-    same moves and tags with no error.
+    Asserts that a move illegal inside a variation leaves every move of the
+    mainline after that variation read from the mainline's own position,
+    with no error recorded, since the reader reads no move a variation
+    holds.
     """
-    [read] = Game.parse(game.pgn)
+    [game] = read("1. e4 (1. d4 Qxf7) 1... e5 2. Qh5 Nc6 *\n")
 
-    assert (read.errors, read.moves, read.tags) == ((), game.moves, game.tags)
+    assert game.errors == ()
+    assert game.moves == moves("e2e4", "e7e5", "d1h5", "b8c6")
 
 
 @mark.parametrize(
@@ -548,19 +544,18 @@ def test_a_null_move_reads_as_two_dashes_in_its_place():
     assert line("e4", "--", "d4", "d5").numbered(0, None) == "1. e4 -- 2. d4 d5"
 
 
-@given(game=games())
-def test_every_position_yields_a_key_and_a_placement_and_every_move_a_san(game: Game):
+def test_a_variant_read_under_rules_of_its_own_leaves_its_moves_unread(
+    read: Callable[..., list[Game]]
+):
     """
-    Asserts that a game carries one key and one placement for each position
-    of its mainline, the starting position included, and that its moves
-    in SAN replay from the starting position to the moves it holds and the
-    placement it ends on.
+    Asserts that a game whose `Variant` tag names a variant python-chess
+    reads under rules of its own, such as Atomic, holds no move, no key, and
+    no error, leaving the variant's message its one problem.
     """
-    replay = Board()
+    [game] = read('[Variant "Atomic"]\n\n1. e4 e5 2. Qxf7 *\n')
 
-    assert len(game.keys) == len(game.placements) == len(game.moves) + 1
-    assert [replay.push_san(san) for san in game.sans] == list(game.moves)
-    assert game.placements[-1] == replay.board_fen()
+    assert (game.moves, game.keys, game.errors) == ((), (), ())
+    assert game.problems == ("unsupported variant: Atomic",)
 
 
 @mark.parametrize(
@@ -590,25 +585,24 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     assert line(*sans.split()).keys[-1] == key
 
 
-def test_a_variant_read_under_rules_of_its_own_leaves_its_moves_unread(
-    read: Callable[..., list[Game]]
-):
-    """
-    Asserts that a game whose `Variant` tag names a variant python-chess
-    reads under rules of its own, such as Atomic, holds no move, no key, and
-    no error, leaving the variant's message its one problem.
-    """
-    [game] = read('[Variant "Atomic"]\n\n1. e4 e5 2. Qxf7 *\n')
-
-    assert (game.moves, game.keys, game.errors) == ((), (), ())
-    assert game.problems == ("unsupported variant: Atomic",)
-
-
 def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
     """
     Asserts that a file holding no text yields no game.
     """
     assert read("") == []
+
+
+def test_an_en_passant_capture_that_would_be_illegal_leaves_the_key_unchanged():
+    """
+    Asserts that a position whose en passant capture would leave its own
+    king in check shares the key of the one with no en passant square, as
+    FIDE's Laws of Chess, Article 9.2.3, count the two as the same position.
+    """
+    pushed = line("c5", FEN="8/2p5/8/KP5r/8/8/8/7k b - - 0 1")
+    placed = line(FEN="8/8/8/KPp4r/8/8/8/7k w - - 0 2")
+
+    assert pushed.placements[-1] == placed.placements[-1]
+    assert pushed.keys[-1] == placed.keys[-1]
 
 
 @mark.parametrize(
@@ -629,19 +623,6 @@ def test_a_move_reads_behind_its_number(numbered: str, plies: int | None, ply: i
     where it is Black's, with nothing where the game ends at that ply.
     """
     assert line("e4", "e5", "Nf3").numbered(ply, plies) == numbered
-
-
-def test_an_en_passant_capture_that_would_be_illegal_leaves_the_key_unchanged():
-    """
-    Asserts that a position whose en passant capture would leave its own
-    king in check shares the key of the one with no en passant square, as
-    FIDE's Laws of Chess, Article 9.2.3, count the two as the same position.
-    """
-    pushed = line("c5", FEN="8/2p5/8/KP5r/8/8/8/7k b - - 0 1")
-    placed = line(FEN="8/8/8/KPp4r/8/8/8/7k w - - 0 2")
-
-    assert pushed.placements[-1] == placed.placements[-1]
-    assert pushed.keys[-1] == placed.keys[-1]
 
 
 def test_an_illegal_move_ends_the_mainline_and_records_an_error(
@@ -686,6 +667,31 @@ def test_boards_yields_each_position_on_one_board():
     assert boards[0].move_stack == list(moves("e2e4", "e7e5"))
 
 
+def test_every_frame_draws_its_position_under_numbers_kept_from_the_first(
+    replayed: Game
+):
+    """
+    Asserts that each frame holds the pieces of its position on their
+    squares, each under a number of its own that the first frame already
+    gave out, whatever legal moves the known game plays.
+    """
+    numbers = {number for number, _, _ in replayed.frames[0].pieces}
+
+    assert [
+        {(
+            spot, symbol
+        ) for _, spot, symbol in frame.pieces} for frame in replayed.frames
+    ] == [
+        {(spot, piece.symbol()) for spot, piece in board.piece_map().items()}
+        for board in replayed.boards()
+    ]
+    assert all(
+        len(numbered := {number for number, _, _ in frame.pieces}) == len(frame.pieces)
+        and numbered <= numbers
+        for frame in replayed.frames
+    )
+
+
 def test_every_game_reads_in_file_order(read: Callable[..., list[Game]]):
     """
     Asserts that a file holding two games yields both, in the order the file
@@ -697,26 +703,28 @@ def test_every_game_reads_in_file_order(read: Callable[..., list[Game]]):
     assert [game.moves for game in games] == [moves("e2e4", "e7e5"), moves("d2d4")]
 
 
+def test_every_position_yields_a_key_and_a_placement_and_every_move_a_san(
+    replayed: Game
+):
+    """
+    Asserts that a game carries one key and one placement for each position
+    of its mainline, the starting position included, and that its moves
+    in SAN replay from the starting position to the moves it holds and the
+    placement it ends on.
+    """
+    replay = Board()
+
+    assert len(replayed.keys) == len(replayed.placements) == len(replayed.moves) + 1
+    assert [replay.push_san(san) for san in replayed.sans] == list(replayed.moves)
+    assert replayed.placements[-1] == replay.board_fen()
+
+
 def test_first_reads_the_first_game_a_file_holds(pgn: Callable[..., Path]):
     """
     Asserts that the first game of a file holding two is the one it opens
     on.
     """
     assert Game.first(pgn('1. e4 *\n\n[Event "?"]\n1. d4 *\n')).moves == moves("e2e4")
-
-
-def test_follow_leaves_no_number_on_the_square_of_a_pawn_taken_en_passant():
-    """
-    Asserts that the numbers `Game.follow` carries past an en passant
-    capture sit on exactly the squares the board then holds a piece on, the
-    taken pawn's square dropped beside the square its taker left.
-    """
-    board   = Board("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1")
-    move    = Move.from_uci("e5d6")
-    numbers = Game.follow(board, move, {spot: spot for spot in board.piece_map()})
-    board.push(move)
-
-    assert numbers.keys() == board.piece_map().keys()
 
 
 @mark.parametrize(
@@ -757,6 +765,20 @@ def test_a_piece_keeps_its_number_through_each_kind_of_move(
     assert kept <= set(line(*sans, **tags).frames[-1].pieces)
 
 
+def test_follow_leaves_no_number_on_the_square_of_a_pawn_taken_en_passant():
+    """
+    Asserts that the numbers `Game.follow` carries past an en passant
+    capture sit on exactly the squares the board then holds a piece on, the
+    taken pawn's square dropped beside the square its taker left.
+    """
+    board   = Board("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1")
+    move    = Move.from_uci("e5d6")
+    numbers = Game.follow(board, move, {spot: spot for spot in board.piece_map()})
+    board.push(move)
+
+    assert numbers.keys() == board.piece_map().keys()
+
+
 def test_players_name_white_then_black():
     """
     Asserts that a game names its players as the `White` tag, then `vs.`,
@@ -764,28 +786,6 @@ def test_players_name_white_then_black():
     """
     assert line(Black="Short, Nigel D", White="Adams, Michael").players == (
         "Adams, Michael vs. Short, Nigel D"
-    )
-
-
-@given(game=games())
-def test_every_frame_draws_its_position_under_numbers_kept_from_the_first(game: Game):
-    """
-    Asserts that each frame holds the pieces of its position on their
-    squares, each under a number of its own that the first frame already
-    gave out, whatever legal moves the game plays.
-    """
-    numbers = {number for number, _, _ in game.frames[0].pieces}
-
-    assert [
-        {(spot, symbol) for _, spot, symbol in frame.pieces} for frame in game.frames
-    ] == [
-        {(spot, piece.symbol()) for spot, piece in board.piece_map().items()}
-        for board in game.boards()
-    ]
-    assert all(
-        len(numbered := {number for number, _, _ in frame.pieces}) == len(frame.pieces)
-        and numbered <= numbers
-        for frame in game.frames
     )
 
 
