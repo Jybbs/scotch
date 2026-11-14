@@ -23,6 +23,7 @@ const animate = vi.fn<Element['animate']>()
 
 beforeEach(() => {
   animate.mockReset()
+  animate.mockReturnValue({ playState: 'finished' } as Animation)
   vi.spyOn(Element.prototype, 'animate').mockImplementation(animate)
 })
 
@@ -48,15 +49,6 @@ describe('Rails', () => {
     expect(tones.slice(0, 2)).toEqual(['dark', 'light'])
   })
 
-  it('replays the run and the parting as the pointer enters, still under reduced motion', async () => {
-    await mount(Rails).find('svg.sc-rails-drawing').trigger('pointerenter')
-    expect(animate).toHaveBeenCalledTimes(rails.squaresOf(rails.example).length)
-    animate.mockClear()
-    reduceMotion()
-    await mount(Rails).find('svg.sc-rails-drawing').trigger('pointerenter')
-    expect(animate).not.toHaveBeenCalled()
-  })
-
   it('reads the position under the pointer into the key, the start mark at the first', async () => {
     const wrapper = mount(Rails)
     await point(wrapper, 'pointermove', 0)
@@ -67,5 +59,38 @@ describe('Rails', () => {
     await wrapper.find('svg.sc-rails-drawing').trigger('pointerleave')
     expect(wrapper.find('.sc-rails-key').text()).toContain('positions shared')
     expect(wrapper.find('rect.is-lit').exists()).toBe(false)
+  })
+})
+
+describe('Rails’ replay', () => {
+  it('replays the run and the parting as the pointer enters, still under reduced motion', async () => {
+    await mount(Rails).find('svg.sc-rails-drawing').trigger('pointerenter')
+    expect(animate).toHaveBeenCalledTimes(rails.squaresOf(rails.example).length + 1)
+    animate.mockClear()
+    reduceMotion()
+    await mount(Rails).find('svg.sc-rails-drawing').trigger('pointerenter')
+    expect(animate).not.toHaveBeenCalled()
+  })
+
+  it('fades the parting line in after the run, still under reduced motion', async () => {
+    const { delay, duration, keys } = rails.cutReplayOf(rails.example)
+    const wrapper                   = mount(Rails)
+    const cut                       = wrapper.find('line.sc-rails-cut').element
+    await wrapper.find('svg.sc-rails-drawing').trigger('pointerenter')
+    const at = animate.mock.contexts.indexOf(cut)
+    expect(animate.mock.calls[at]).toEqual([keys, { delay, duration, fill: 'backwards' }])
+    animate.mockClear()
+    reduceMotion()
+    const still = mount(Rails)
+    await still.find('svg.sc-rails-drawing').trigger('pointerenter')
+    expect(animate.mock.contexts).not.toContain(still.find('line.sc-rails-cut').element)
+  })
+
+  it('leaves a replay still running to finish as the pointer enters again', async () => {
+    const drawing = mount(Rails).find('svg.sc-rails-drawing')
+    animate.mockReturnValue({ playState: 'running' } as Animation)
+    await drawing.trigger('pointerenter')
+    await drawing.trigger('pointerenter')
+    expect(animate).toHaveBeenCalledTimes(rails.squaresOf(rails.example).length + 1)
   })
 })

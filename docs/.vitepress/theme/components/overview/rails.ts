@@ -19,6 +19,22 @@ function entry({ game, label, move, start }: rails.Entry): VNode {
 }
 
 /**
+ * Replays the run and the parting over the drawn squares, fading the parting
+ * line in once the run has passed.
+ *
+ * Returns:
+ *   The animations the replay started.
+ */
+function replayRails(loaded: Loaded, nodes: Map<rails.Square, Element>, cut?: Element): Animation[] {
+  const moves = [
+    ...[...nodes].map(([it, node]) => [node, rails.replayOf(loaded, it)] as const),
+    ...cut ? [[cut, rails.cutReplayOf(loaded)] as const] : []
+  ]
+  return moves.map(([node, { delay, duration, keys }]) =>
+    node.animate(keys, { delay, duration, fill: 'backwards' }))
+}
+
+/**
  * Draws a square of the rails, a shared square in the board's light or dark
  * as its column alternates and a parted square in its game's color, lit while
  * the pointer reads its position.
@@ -42,8 +58,9 @@ function square(it: rails.Square, lit: number | undefined, register: (node: unkn
  * set on one line of board squares while the games share a position and
  * lifted apart where they differ, under a key naming the run and each game's
  * move where the two part. Pointing at the rails replays the run and the
- * parting, unless the site's drawings hold still, and then reads the position
- * under the pointer into the key.
+ * parting, fading the parting line in after the run, unless the site's
+ * drawings hold still or a replay is still running, and then reads the
+ * position under the pointer into the key.
  */
 export const Rails = defineComponent({
   name: 'ScotchRails',
@@ -55,16 +72,16 @@ export const Rails = defineComponent({
   setup: props => {
     const { moving } = useMotion()
     const cursor     = shallowRef<number>()
+    const cut        = shallowRef<Element>()
     const nodes      = new Map<rails.Square, Element>()
     const squares    = computed(() => rails.squaresOf(props.loaded))
     const key        = computed(() =>
       cursor.value === undefined ? rails.restingKey(props.loaded) : rails.keyAt(props.loaded, cursor.value))
+    let running: Animation[] = []
 
     const replay = (): void => {
-      if (!moving.value) return
-      for (const [it, node] of nodes) {
-        const { delay, duration, keys } = rails.replayOf(props.loaded, it)
-        node.animate(keys, { delay, duration, fill: 'backwards' })
+      if (moving.value && !running.some(animation => animation.playState === 'running')) {
+        running = replayRails(props.loaded, nodes, cut.value)
       }
     }
     const read = (event: PointerEvent): void => {
@@ -92,6 +109,7 @@ export const Rails = defineComponent({
         })),
         h('line', {
           class : 'sc-rails-cut',
+          ref   : cut,
           x1    : rails.cutOf(props.loaded),
           x2    : rails.cutOf(props.loaded),
           y1    : 0,

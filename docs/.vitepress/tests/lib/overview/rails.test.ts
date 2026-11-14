@@ -87,6 +87,14 @@ describe('keyAt', () => {
   })
 })
 
+describe('cutReplayOf', () => {
+  it('fades the parting line in once the run has passed', () => {
+    const replay = rails.cutReplayOf(example, { rise: 2, stagger: 10, step: 5 })
+    expect(replay.delay).toBe(shared.length * 5)
+    expect(replay.keys).toEqual([{ opacity: 0 }, { opacity: 1 }])
+  })
+})
+
 describe('replayOf', () => {
   it('rises each shared square in the order the run reaches it', () => {
     const square = { away: 0, cursor: shared.meet + 3, game: 'both' as const, lift: 0, x: 0 }

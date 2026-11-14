@@ -117,6 +117,18 @@ export function cutOf(loaded: Loaded): number {
 }
 
 /**
+ * Writes how the dashed line marking the parting moves in a replay, fading in
+ * once the run has passed, as the parted squares start to lift back in.
+ */
+export function cutReplayOf(loaded: Loaded, replay: Record<keyof typeof REPLAY, number> = REPLAY): Replay {
+  return {
+    delay    : loaded.shared!.length * replay.step,
+    duration : DURATIONS.enter,
+    keys     : [{ opacity: 0 }, { opacity: 1 }]
+  }
+}
+
+/**
  * Writes the key for the position under the pointer: the start mark at the
  * starting position, the position's place in the run and the move reaching it
  * while the two share it, and otherwise each game's move there beside how far

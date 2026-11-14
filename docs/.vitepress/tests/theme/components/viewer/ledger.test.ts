@@ -181,6 +181,13 @@ describe('Ledger’s threads', () => {
     expect(wrapper.find('.sc-viewer-bar').attributes('opacity')).toBe('1')
   })
 
+  it('draws the run’s band from the row the run meets in, beneath the start row', () => {
+    const { painted, wrapper } = mounted()
+    painted.load()
+    const y = Number(wrapper.find('.sc-viewer-bar').attributes('y'))
+    expect(Math.floor((y + 3.5) / 24)).toBe(rowAt(meet, 0) + 1)
+  })
+
   it('moves each game’s ring along its thread, hiding the ring of a game holding no position', () => {
     const { painted, wrapper } = mounted()
     painted.load()
