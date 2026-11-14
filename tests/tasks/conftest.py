@@ -4,7 +4,7 @@ defined.
 """
 
 from collections.abc  import Callable
-from common.stand_ins import Retest, Scratch, StandIn
+from common.stand_ins import Affected, Scratch, StandIn
 from os               import pathsep
 from pathlib          import Path
 from pytest           import Config, MonkeyPatch, fixture
@@ -35,13 +35,17 @@ def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> Callable[..., StandIn]
 
 
 @fixture
-def retest(monkeypatch: MonkeyPatch, pytestconfig: Config, tmp_path: Path) -> Retest:
+def affected(
+    monkeypatch  : MonkeyPatch,
+    pytestconfig : Config,
+    tmp_path     : Path
+) -> Affected:
     """
-    Builds a `Retest` checkout in `tmp_path` listing `fixture.txt` and
+    Builds an `Affected` checkout in `tmp_path` listing `fixture.txt` and
     `module.py`, with a stand-in `git` first on `PATH` that prints the names
-    the checkout lists when called with the arguments `py:retest` passes and
-    exits one otherwise. It names the checkout in `MISE_PROJECT_ROOT` and
-    its data file in `TESTMON_DATAFILE`, as `mise run` sets each.
+    the checkout lists when called with the arguments `py:affected` passes
+    and exits one otherwise. It names the checkout in `MISE_PROJECT_ROOT`
+    and its data file in `TESTMON_DATAFILE`, as `mise run` sets each.
     """
     stand_ins = tmp_path / ".bin"
     stand_ins.mkdir()
@@ -60,10 +64,10 @@ def retest(monkeypatch: MonkeyPatch, pytestconfig: Config, tmp_path: Path) -> Re
     )
     monkeypatch.setenv("PATH", str(stand_ins), prepend=pathsep)
 
-    retest = Retest(project=pytestconfig.rootpath, root=tmp_path)
-    retest.write(**{"fixture.txt": "one", "module.py": "one"})
+    affected = Affected(project=pytestconfig.rootpath, root=tmp_path)
+    affected.write(**{"fixture.txt": "one", "module.py": "one"})
 
-    return retest
+    return affected
 
 
 @fixture
