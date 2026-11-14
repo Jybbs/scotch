@@ -14,6 +14,7 @@ JITI_FS_CACHE                = "false"
 NODE_COMPILE_CACHE           = "{{config_root}}/.cache/node"
 PROSE_CACHE_DIR              = "{{config_root}}/.cache/prose"
 PYTHONPYCACHEPREFIX          = "{{config_root}}/.cache/pycache"
+TESTMON_DATAFILE             = "{{config_root}}/.cache/testmon/data"
 UV_LOCKED                    = "1"
 
 [settings]

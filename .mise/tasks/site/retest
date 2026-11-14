@@ -1,0 +1,6 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE depends     = ["rs:wasm", "site:install"]
+#MISE description = "Run the site's tests a change since the branch left `origin/main` reaches, or the whole suite where the Vitest config or `package.json` changed, passing any further arguments to Vitest"
+#MISE dir         = "docs"
+
+node_modules/.bin/vitest run --changed origin/main --config .vitepress/vitest.config.ts "$@"

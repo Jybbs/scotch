@@ -4,7 +4,7 @@ defined.
 """
 
 from collections.abc  import Callable
-from common.stand_ins import Scratch, StandIn
+from common.stand_ins import Retest, Scratch, StandIn
 from os               import pathsep
 from pathlib          import Path
 from pytest           import Config, MonkeyPatch, fixture
@@ -32,6 +32,38 @@ def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> Callable[..., StandIn]
         return StandIn(program=program, root=tmp_path)
 
     return write
+
+
+@fixture
+def retest(monkeypatch: MonkeyPatch, pytestconfig: Config, tmp_path: Path) -> Retest:
+    """
+    Builds a `Retest` checkout in `tmp_path` listing `fixture.txt` and
+    `module.py`, with a stand-in `git` first on `PATH` that prints the names
+    the checkout lists when called with the arguments `py:retest` passes and
+    exits one otherwise. It names the checkout in `MISE_PROJECT_ROOT` and
+    its data file in `TESTMON_DATAFILE`, as `mise run` sets each.
+    """
+    stand_ins = tmp_path / ".bin"
+    stand_ins.mkdir()
+    git = stand_ins / "git"
+    git.write_text(
+        "#!/bin/sh\n"
+        '[ "$*" = "ls-files --cached --deduplicate --exclude-standard --others" ]'
+        " || exit 1\n"
+        f'cat "{tmp_path / ".listed"}"\n'
+    )
+    git.chmod(0o755)
+    monkeypatch.setenv("MISE_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv(
+        "TESTMON_DATAFILE",
+        str(tmp_path / ".cache" / "testmon" / "data")
+    )
+    monkeypatch.setenv("PATH", str(stand_ins), prepend=pathsep)
+
+    retest = Retest(project=pytestconfig.rootpath, root=tmp_path)
+    retest.write(**{"fixture.txt": "one", "module.py": "one"})
+
+    return retest
 
 
 @fixture

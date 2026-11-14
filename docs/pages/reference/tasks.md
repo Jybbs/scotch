@@ -45,6 +45,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `py:check` | `check` | Report every formatting rewrite and lint finding, as annotations under GitHub Actions, passing any further arguments to the formatter |
 | `py:coverage` | `coverage` | Run the test suite under coverage, failing below `fail_under`, writing the HTML report, and passing any further arguments to pytest |
 | `py:format` | `format` | Rewrite the Python source to the house style, passing any further arguments to the formatter |
+| `py:retest` | `retest` | Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace, or a file under `src/scotch/cli/` whose docstrings the help snapshots read, changed since the last full run, and passing any further arguments to pytest |
 | `py:test` | `test` | Run the test suite, passing any further arguments to pytest |
 
 ## `repo`
@@ -76,6 +77,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `site:links` | `links` | Check every link, asset, and heading fragment in the site `site:press` built, the README, and the contributor guide with no network, passing any further arguments to lychee |
 | `site:lint` | `lint` | Lint the site's TypeScript with Oxlint, as annotations under GitHub Actions, passing any further arguments to Oxlint |
 | `site:press` | `press` | Build the site and a card per page into `docs/.vitepress/dist`, failing on a link between pages that leads nowhere, and passing any further arguments to VitePress |
+| `site:retest` |  | Run the site's tests a change since the branch left `origin/main` reaches, or the whole suite where the Vitest config or `package.json` changed, passing any further arguments to Vitest |
 | `site:serve` | `serve` | Serve the site locally, reloading a page as it is edited, and passing any further arguments to VitePress |
 | `site:test` |  | Run the site's suite, passing any further arguments to Vitest |
 | `site:typecheck` | `typecheck` | Type-check the site's TypeScript, failing on a single-file component `tsc` cannot read, and passing any further arguments to `tsc` |
