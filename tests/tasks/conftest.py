@@ -4,7 +4,7 @@ defined.
 """
 
 from collections.abc  import Callable
-from common.stand_ins import Scratch, StandIn
+from common.stand_ins import Retest, Scratch, StandIn
 from os               import pathsep
 from pathlib          import Path
 from pytest           import Config, MonkeyPatch, fixture
@@ -32,6 +32,28 @@ def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> Callable[..., StandIn]
         return StandIn(program=program, root=tmp_path)
 
     return write
+
+
+@fixture
+def retest(monkeypatch: MonkeyPatch, pytestconfig: Config, tmp_path: Path) -> Retest:
+    """
+    Builds a `Retest` checkout in `tmp_path` listing `fixture.txt` and
+    `module.py`, with a stand-in `git` that prints the names the checkout
+    lists first on `PATH`, and names the checkout in `MISE_PROJECT_ROOT`, as
+    `mise run` sets it.
+    """
+    stand_ins = tmp_path / ".bin"
+    stand_ins.mkdir()
+    git = stand_ins / "git"
+    git.write_text(f'#!/bin/sh\ncat "{tmp_path / ".listed"}"\n')
+    git.chmod(0o755)
+    monkeypatch.setenv("MISE_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("PATH", str(stand_ins), prepend=pathsep)
+
+    retest = Retest(project=pytestconfig.rootpath, root=tmp_path)
+    retest.write(**{"fixture.txt": "one", "module.py": "one"})
+
+    return retest
 
 
 @fixture

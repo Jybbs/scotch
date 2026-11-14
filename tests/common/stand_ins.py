@@ -1,8 +1,9 @@
 """
 Holds the records the task tests build around stand-in executables, meaning
 `Wrapper`, the `StandIn` a task test puts first on `PATH` for the program
-a wrapper or a task runs, and the `Scratch` checkout `tests/tasks/lock.py`
-runs each `lock` task in.
+a wrapper or a task runs, the `Scratch` checkout `tests/tasks/lock.py` runs
+each `lock` task in, and the `Retest` checkout `tests/tasks/retest.py` runs
+`py:retest` in.
 """
 
 from collections.abc import Sequence
@@ -10,6 +11,80 @@ from pathlib         import Path
 from pydantic        import BaseModel
 from stat            import S_IMODE
 from subprocess      import CompletedProcess, run
+
+
+class Retest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    A scratch checkout whose stand-in `git` lists the files `write` writes,
+    beside a stand-in `pytest` logging the data file pytest-testmon reads
+    and the arguments of each call it receives.
+    """
+
+    project: Path
+    """
+    The worktree root, whose `.mise/tasks/py/` holds the task.
+    """
+
+    root: Path
+    """
+    The checkout's root, holding its files, its stand-ins, and its log.
+    """
+
+    @property
+    def calls(self) -> list[str]:
+        """
+        Reads each call the stand-in `pytest` logged, in the order the task
+        made them, the data file opening each line.
+        """
+        return (self.root / ".calls").read_text().splitlines()
+
+    @property
+    def flags(self) -> list[str]:
+        """
+        Reads the arguments of the last call the stand-in `pytest` logged.
+        """
+        return self.calls[-1].split()[1:]
+
+    @property
+    def recorded(self) -> Path:
+        """
+        Locates the fingerprint `py:retest` records after a full run.
+        """
+        return self.root / ".cache" / "testmon" / "files"
+
+    def run(self, *arguments: str, status: int = 0) -> CompletedProcess[str]:
+        """
+        Runs `py:retest` from the checkout with `arguments`, against a
+        stand-in `pytest` exiting with `status`.
+        """
+        pytest = self.root / ".bin" / "pytest"
+        pytest.write_text(
+            f'#!/bin/sh\necho "$TESTMON_DATAFILE $*" >> "{self.root / ".calls"}"\n'
+            f"exit {status}\n"
+        )
+        pytest.chmod(0o755)
+
+        return run(
+            [self.project / ".mise" / "tasks" / "py" / "retest", *arguments],
+            capture_output = True,
+            check          = False,
+            cwd            = self.root,
+            text           = True
+        )
+
+    def write(self, **files: str | None):
+        """
+        Writes each file `files` maps a name to, holding the text given or
+        removed where the text is `None`, and has the stand-in `git` list
+        every name, as it lists a tracked file deleted from the checkout.
+        """
+        for name, text in files.items():
+            if text is None:
+                (self.root / name).unlink(missing_ok=True)
+            else:
+                (self.root / name).write_text(text)
+
+        (self.root / ".listed").write_text("".join(f"{name}\n" for name in files))
 
 
 class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):

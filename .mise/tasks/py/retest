@@ -1,0 +1,36 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "retest"
+#MISE description = "Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace changed since the last full run, and passing any further arguments to pytest"
+
+cache="$MISE_PROJECT_ROOT/.cache/testmon"
+export TESTMON_DATAFILE="$cache/data"
+
+fingerprint() {
+  git ls-files --cached --deduplicate --exclude-standard --others \
+    | grep -v '\.py$' \
+    | while IFS= read -r path; do [[ ! -f $path ]] || printf '%s\0' "$path"; done \
+    | xargs -0 shasum -a 256
+}
+
+mkdir -p "$cache"
+fingerprint | sort > "$cache/files.next"
+
+if cmp -s "$cache/files" "$cache/files.next"; then
+  exec pytest --testmon-forceselect "$@"
+fi
+
+if [[ -f "$cache/files" ]]; then
+  echo "Rerunning every test, since testmon traces none of these changed files:" >&2
+  comm -3 "$cache/files" "$cache/files.next" | cut -d ' ' -f 3- | sort -u >&2
+else
+  echo "Rerunning every test, since no full run has recorded the untraced files" >&2
+fi
+
+status=0
+pytest --testmon-noselect "$@" || status=$?
+
+if (( status <= 1 && $# == 0 )); then
+  mv "$cache/files.next" "$cache/files"
+fi
+
+exit "$status"
