@@ -6,10 +6,11 @@ sharing a run of one length.
 """
 
 from chess.pgn import TAG_ROSTER
-from pydantic  import BaseModel, NonNegativeInt
+from pydantic  import BaseModel, NonNegativeInt, computed_field
 from typing    import Self
 
 from scotch.docs.tallies  import markdown, notated
+from scotch.games         import readers
 from scotch.index.schemas import Match
 
 
@@ -136,3 +137,13 @@ class Tie(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True)
                 for place, tied in enumerate(self.games, start=1)
             )
         )
+
+    @computed_field
+    @property
+    def ceiling(self) -> int:
+        """
+        Reads the highest rating a `WhiteElo` or `BlackElo` tag reads as,
+        which the Tags page reads each tied game's ratings under, as the
+        index does.
+        """
+        return readers.CEILING

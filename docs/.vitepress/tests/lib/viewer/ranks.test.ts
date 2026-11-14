@@ -22,6 +22,10 @@ describe('rankOf', () => {
     ['2650', undefined, 'R'],
     [undefined, '2450', 'N'],
     ['0', '2500', 'B'],
+    ['2900', '2900', 'Q'],
+    ['3000', '3000', 'P'],
+    ['3000', '2650', 'R'],
+    ['2901', undefined, 'P'],
     ['?', '-', 'P'],
     [undefined, undefined, 'P']
   ])('sets White at %j and Black at %j in the rank of the %s', (white, black, piece) => {

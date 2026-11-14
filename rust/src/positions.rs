@@ -167,8 +167,9 @@ const PREFIX_BITS: u32 = 6;
 const BOTH_RATED: u16 = 0x8000;
 
 /// The highest rating `rating` reads a tag as, the next hundred above 2882,
-/// the highest standard rating FIDE has published, which Magnus Carlsen's
-/// rating history at <https://ratings.fide.com/profile/1503014> records.
+/// the highest standard rating FIDE has published, which the Progress tab of
+/// Magnus Carlsen's profile at <https://ratings.fide.com/profile/1503014>
+/// records.
 pub const CEILING: u16 = 2900;
 
 /// A position a game reaches, which sorts by its key, then its ply, then its

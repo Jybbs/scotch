@@ -25,6 +25,7 @@ from scotch.docs.reference    import Reference
 from scotch.docs.stops        import Stops
 from scotch.docs.tallies      import markdown, numbered
 from scotch.docs.terms        import Terms
+from scotch.games             import readers
 from scotch.games.schemas     import Game
 from scotch.identity.schemas  import Identity
 from scotch.index.schemas     import Holding, Pairing
@@ -303,9 +304,12 @@ class Outputs(RootModel[list[Output]]):
             settings : The settings naming the data directory `index` was
                        read from, its defaults where none are given.
         """
-        identity   = Identity()
-        sources    = Sources.read()
-        declared   = sources.figures | {"tagline": identity.tagline}
+        identity = Identity()
+        sources  = Sources.read()
+        declared = sources.figures | {
+            "rating-ceiling" : str(readers.CEILING),
+            "tagline"        : identity.tagline
+        }
         pages      = tracked(root)
         project    = Project.installed()
         references = cache(partial(References.shipped, root))
@@ -338,6 +342,10 @@ class Outputs(RootModel[list[Output]]):
                 Document.from_value(
                     path  = cls.rendered / "pieces.json",
                     value = lambda: dict(sorted(PIECES.items()))
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "ratings.json",
+                    value = lambda: {"ceiling": readers.CEILING}
                 ),
                 Document.from_value(
                     path  = cls.rendered / "terms.json",
