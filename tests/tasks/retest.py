@@ -59,7 +59,17 @@ def test_a_change_testmon_traces_selects(files: dict[str, str], retest: Retest):
             "added.toml",
             id = "added"
         ),
-        param({"fixture.txt": None, "module.py": "one"}, "fixture.txt", id="deleted")
+        param({"fixture.txt": None, "module.py": "one"}, "fixture.txt", id="deleted"),
+        param(
+            {"fixture.txt": "one", "fixtures/run.py": "", "module.py": "one"},
+            "fixtures/run.py",
+            id = "fixture-python-added"
+        ),
+        param(
+            {"fixture.txt": "one", "module.py": "one", "src/scotch/cli/run.py": ""},
+            "src/scotch/cli/run.py",
+            id = "cli-python-added"
+        )
     ]
 )
 def test_a_change_testmon_cannot_trace_runs_every_test(
@@ -70,8 +80,10 @@ def test_a_change_testmon_cannot_trace_runs_every_test(
     """
     Asserts that a run after a full one runs the whole suite under
     `--testmon-noselect` and names the file wherever a file outside the
-    Python changed, was added, or was deleted, and that the run after it
-    selects again.
+    Python, a Python file under a `fixtures` folder that a test reads
+    without importing, or a file under `src/scotch/cli/` whose docstrings
+    the help snapshots read, changed, was added, or was deleted, and that
+    the run after it selects again.
     """
     retest.run()
     retest.write(**files)

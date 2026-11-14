@@ -1,13 +1,12 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "retest"
-#MISE description = "Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace changed since the last full run, and passing any further arguments to pytest"
+#MISE description = "Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace, or a file under `src/scotch/cli/` whose docstrings the help snapshots read, changed since the last full run, and passing any further arguments to pytest"
 
 cache="$MISE_PROJECT_ROOT/.cache/testmon"
-export TESTMON_DATAFILE="$cache/data"
 
 fingerprint() {
   git ls-files --cached --deduplicate --exclude-standard --others \
-    | grep -v '\.py$' \
+    | awk '!/\.py$/ || /fixtures\// || /^src\/scotch\/cli\//' \
     | while IFS= read -r path; do [[ ! -f $path ]] || printf '%s\0' "$path"; done \
     | xargs -0 shasum -a 256
 }

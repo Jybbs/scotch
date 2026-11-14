@@ -44,7 +44,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `py:check` | `check` | Report every formatting rewrite and lint finding, as annotations under GitHub Actions, passing any further arguments to the formatter |
 | `py:coverage` | `coverage` | Run the test suite under coverage, failing below `fail_under`, writing the HTML report, and passing any further arguments to pytest |
 | `py:format` | `format` | Rewrite the Python source to the house style, passing any further arguments to the formatter |
-| `py:retest` | `retest` | Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace changed since the last full run, and passing any further arguments to pytest |
+| `py:retest` | `retest` | Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace, or a file under `src/scotch/cli/` whose docstrings the help snapshots read, changed since the last full run, and passing any further arguments to pytest |
 | `py:test` | `test` | Run the test suite, passing any further arguments to pytest |
 
 ## `repo`

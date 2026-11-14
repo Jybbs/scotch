@@ -82,6 +82,7 @@ class Retest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
             if text is None:
                 (self.root / name).unlink(missing_ok=True)
             else:
+                (self.root / name).parent.mkdir(exist_ok=True, parents=True)
                 (self.root / name).write_text(text)
 
         (self.root / ".listed").write_text("".join(f"{name}\n" for name in files))
