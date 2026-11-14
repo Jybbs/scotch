@@ -1,0 +1,71 @@
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+
+@theme inline {
+  --color-*      : initial;
+  --font-*       : initial;
+  --breakpoint-* : initial;
+  --ease-*       : initial;
+
+  --color-critical : var(--sc-critical);
+  --color-dark     : var(--sc-dark);
+  --color-ground   : var(--sc-ground);
+  --color-light    : var(--sc-light);
+  --color-primary  : var(--sc-primary);
+  --color-series-1 : var(--sc-series-1);
+  --color-series-2 : var(--sc-series-2);
+  --color-series-3 : var(--sc-series-3);
+  --color-series-4 : var(--sc-series-4);
+  --color-series-5 : var(--sc-series-5);
+  --color-series-6 : var(--sc-series-6);
+  --color-warning  : var(--sc-warning);
+
+  --color-alert       : var(--sc-alert);
+  --color-data-black  : var(--sc-data-black);
+  --color-data-edge   : var(--sc-data-edge);
+  --color-glyph-dark  : var(--sc-glyph-dark);
+  --color-glyph-light : var(--sc-glyph-light);
+  --color-ink         : var(--sc-ink);
+  --color-page        : var(--sc-page);
+  --color-quiet       : var(--sc-quiet);
+  --color-raised      : var(--sc-raised);
+  --color-rule        : var(--sc-rule);
+  --color-run         : var(--sc-run);
+  --color-side        : var(--sc-side);
+  --color-stored      : var(--sc-stored);
+  --color-submitted   : var(--sc-submitted);
+  --color-tint        : var(--sc-tint);
+
+  --font-body    : var(--sc-face-body);
+  --font-code    : var(--sc-face-code);
+  --font-display : var(--sc-face-display);
+
+  --ease-glide : var(--sc-curve-glide);
+  --ease-sway  : var(--sc-curve-sway);
+
+  --transition-duration-enter  : var(--sc-duration-enter);
+  --transition-duration-fade   : var(--sc-duration-fade);
+  --transition-duration-glide  : var(--sc-duration-glide);
+  --transition-duration-lag    : var(--sc-duration-lag);
+  --transition-duration-lift   : var(--sc-duration-lift);
+  --transition-duration-move   : var(--sc-duration-move);
+  --transition-duration-part   : var(--sc-duration-part);
+  --transition-duration-pour   : var(--sc-duration-pour);
+  --transition-duration-settle : var(--sc-duration-settle);
+
+  --transition-delay-enter  : var(--sc-duration-enter);
+  --transition-delay-fade   : var(--sc-duration-fade);
+  --transition-delay-glide  : var(--sc-duration-glide);
+  --transition-delay-lag    : var(--sc-duration-lag);
+  --transition-delay-lift   : var(--sc-duration-lift);
+  --transition-delay-move   : var(--sc-duration-move);
+  --transition-delay-part   : var(--sc-duration-part);
+  --transition-delay-pour   : var(--sc-duration-pour);
+  --transition-delay-settle : var(--sc-duration-settle);
+
+  --breakpoint-sm : 40rem;
+  --breakpoint-md : 48rem;
+  --breakpoint-lg : 60rem;
+}
