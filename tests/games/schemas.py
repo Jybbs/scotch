@@ -475,6 +475,8 @@ def test_an_origin_names_its_file_and_its_place(address: str, reference: str):
         param({"WhiteElo": "2500"}, 2500, id="one-side"),
         param({"BlackElo": "?", "WhiteElo": "2499"}, 2499, id="unknown-side"),
         param({"WhiteElo": "２５００"}, 0, id="digits-outside-ascii"),
+        param({"BlackElo": "2400", "WhiteElo": "204269"}, 2400, id="past-the-ceiling"),
+        param({"WhiteElo": "2900"}, 2900, id="at-the-ceiling"),
         param({}, 0, id="no-rating")
     ]
 )
@@ -484,8 +486,8 @@ def test_a_game_s_rating_is_the_higher_of_its_players_ratings(
 ):
     """
     Asserts that a game's rating is the higher of its `WhiteElo` and
-    `BlackElo` tags, each read where it holds ASCII digits alone, or 0 where
-    neither does.
+    `BlackElo` tags, each read where it holds ASCII digits alone naming a
+    number from 1 to `readers.CEILING`, or 0 where neither does.
     """
     assert line(**tags).rating == rating
 

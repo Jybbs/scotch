@@ -443,16 +443,27 @@ class Census:
         Returns:
             One row per stored game under `named`, the tags it carries with
             a value, `dates`, one of `day`, `month`, `year`, or `none`,
-            `rated`, the count of its two ratings it carries, `rating`, the
-            higher of the two or 0, and `mean`, the mean of the two where it
-            carries both and null otherwise.
+            `rated`, the count of its two ratings it carries, each read as
+            `readers.rating` reads it, `rating`, the higher of the two or 0,
+            and `mean`, the mean of the two where it carries both and null
+            otherwise.
         """
         value = lambda name: (
             col("tags").list.filter(element().struct.field("name") == name)
                        .list.first()
                        .struct.field("value")
         )
-        elo = lambda name: value(name).cast(ROWS["rating"], strict=False).fill_null(0)
+        white, black = (
+            when(
+                (rating := value(name).str.extract(r"^([0-9]+)$").cast(
+                    ROWS["rating"],
+                    strict = False
+                )).is_between(1, readers.CEILING)
+            )
+            .then(rating)
+            .otherwise(0)
+            for name in ("WhiteElo", "BlackElo")
+        )
 
         return self.index.games.select(
             named = col("tags").list.filter(
@@ -473,13 +484,9 @@ class Census:
                 .then(lit("year"))
                 .otherwise(lit("none"))
             ),
-            rated = (elo("WhiteElo") > 0).cast(UInt16) + (elo("BlackElo") > 0).cast(
-                UInt16
-            ),
-            rating = max_horizontal(elo("WhiteElo"), elo("BlackElo")),
-            mean   = when(elo("WhiteElo") > 0, elo("BlackElo") > 0).then(
-                (elo("WhiteElo") + elo("BlackElo")) / 2
-            )
+            rated  = (white > 0).cast(UInt16) + (black > 0).cast(UInt16),
+            rating = max_horizontal(white, black),
+            mean   = when(white > 0, black > 0).then((white + black) / 2)
         ).collect()
 
     @cached_property
