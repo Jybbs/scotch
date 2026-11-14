@@ -7,6 +7,6 @@
 | `order` | success |
 | `press` | skipped |
 
-The run published nothing, since the `♟️ Store` run this push started publishes the site once the store it reads is live.
+The run published nothing, since the `♟️ Store` push run on `560c4d8` publishes the site once the store it reads is live.
 
 The run checked `560c4d8` on `4/ci-gate`.
