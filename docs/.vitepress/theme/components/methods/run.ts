@@ -4,6 +4,7 @@ import * as example                   from '../../../lib/methods/example.ts'
 import * as motion                    from '../../../lib/methods/motion.ts'
 import { type Stepping, useStepping } from '../../../lib/methods/stepping.ts'
 import { useMotion }                  from '../../../lib/motion/control.ts'
+import { startMark }                  from '../start.ts'
 import { RunBoard }                   from './board.ts'
 
 interface Drawn {
@@ -77,8 +78,8 @@ function controls({ last, stepping }: Drawn): VNode {
 }
 
 function option(drawn: Drawn, ply: number): VNode {
-  const submitted = drawn.example.submitted[ply]!.san ?? 'Start'
-  const stored    = drawn.example.stored[ply]!.san ?? 'Start'
+  const submitted = drawn.example.submitted[ply]!.san ?? startMark()
+  const stored    = drawn.example.stored[ply]!.san ?? startMark()
   const mark      = { [drawn.example.run.start]: 'meets', [example.partOf(drawn.example)]: 'parts' }[ply]
   const at        = ply === drawn.stepping.ply.value
   const label     = ply

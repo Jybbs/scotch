@@ -61,6 +61,15 @@ describe('Tool as a reader steps it', () => {
     clock.advanceTimersByTime(5000)
   })
 
+  test('captions each board with the start mark at the starting position and with a move after it', async () => {
+    const { root, wrapper } = mountedTool()
+    const captions          = (): string[] => wrapper.findAll('.sc-viewer-caption-move').map(move => move.text())
+    expect(captions().every(move => /^\d+\./u.test(move))).toBe(true)
+    await pressed(root, 'Home')
+    expect(captions()).toEqual(['Start', 'Start'])
+    expect(wrapper.findAll('.sc-viewer-caption-move .sc-start-glyph')).toHaveLength(2)
+  })
+
   test('turns both boards on F, pressing the flip', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
     await pressed(root, 'f')

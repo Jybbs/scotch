@@ -1,0 +1,57 @@
+.sc-rails {
+  margin : 24px 0;
+  cursor : crosshair;
+}
+
+.sc-rails-key {
+  display              : flex;
+  flex-wrap            : wrap;
+  gap                  : 4px 18px;
+  min-height           : 22px;
+  margin               : 0 0 8px;
+  color                : var(--sc-ink);
+  font                 : 500 0.8rem/22px var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+}
+
+.sc-rails-entry {
+  display     : inline-flex;
+  align-items : center;
+  gap         : 0.5em;
+}
+
+.sc-rails-entry[data-game='submitted'] { color: var(--sc-submitted); }
+.sc-rails-entry[data-game='stored'] { color: var(--sc-stored); }
+
+.sc-rails-label {
+  color          : var(--sc-quiet);
+  font-size      : 0.62rem;
+  font-style     : normal;
+  font-weight    : 600;
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+}
+
+.sc-rails-drawing {
+  display  : block;
+  width    : 100%;
+  height   : auto;
+  overflow : visible;
+}
+
+.sc-rails-square {
+  transition : opacity var(--sc-duration-move) var(--sc-curve-glide);
+}
+
+.sc-rails-square[data-tone='light'] { fill: var(--sc-light); }
+.sc-rails-square[data-tone='dark'] { fill: var(--sc-primary); }
+.sc-rails-square[data-game='submitted'] { fill: var(--sc-submitted); }
+.sc-rails-square[data-game='stored'] { fill: var(--sc-stored); }
+
+.sc-rails-drawing:has(.is-lit) .sc-rails-square:not(.is-lit) { opacity: 0.45; }
+
+.sc-rails-cut {
+  stroke           : var(--sc-ink);
+  stroke-width     : 1;
+  stroke-dasharray : 2 2;
+}

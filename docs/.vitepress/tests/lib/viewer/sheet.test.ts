@@ -30,6 +30,10 @@ describe('sheetOf', () => {
       .toEqual(Array.from({ length: Math.ceil(plies / 2) }, (_, at) => at))
   })
 
+  it('sets the start row above the first move, in the row the starting position falls in', () => {
+    expect([sheet.start, rowAt(0, sheet.first)]).toEqual([sheet.rows[0]!.index - 1, sheet.start])
+  })
+
   it('sets each game’s moves in its half of the row the cursor reaches them in', () => {
     expect(sheet.rows[0]).toMatchObject({
       stored    : {

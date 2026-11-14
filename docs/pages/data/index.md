@@ -1,18 +1,20 @@
 # Data
 
-*Scotch* matches a game against the <!-- games -->1,150,156<!-- /games --> games the store holds, read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes across three sections of its site. The <!-- players-files -->250<!-- /players-files --> Players archives each hold every game PGN Mentor collects for one player, and the store keeps all of them, as it keeps every game of the <!-- events-files -->982<!-- /events-files --> Events files, each a tournament or a match. The <!-- openings-files -->233<!-- /openings-files --> Openings archives each hold the games of one opening, and the store keeps a game of theirs only where the higher of the ratings its `WhiteElo` and `BlackElo` tags give reaches <!-- openings-floor -->2500<!-- /openings-floor -->,[^edwards1994b] the rating FIDE sets for the grandmaster title through norms,[^fide2024] a floor `sources.toml` declares once beside its files. A game two files both hold, such as one between two players who each have an archive, is kept once, under the file `sources.toml` declares first, which lists the Players ahead of the Events and the Events ahead of the Openings, two copies counting as one game where their Seven Tag Roster and their moves agree.[^edwards1994]
+How many games does the store hold, where does each one come from, and when were they played? *Scotch* matches a game against the <!-- games -->1,150,156<!-- /games --> games the store holds, read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes across three sections of its site.
 
 Each page of this section answers one question about the store:
 
 | **Page** | **Question It Answers** |
 |---|---|
-| [Data](index.md) | *How many games does the store hold, and when were they played?* |
+| [Data](index.md) | *How many games does the store hold, where does each one come from, and when were they played?* |
 | [The Source Files](sources.md) | *Which files does the store draw its games from, and when were each file's games played?* |
 | [The Data Files](files.md) | *Which files does a run write under the data directory, and what does each hold?* |
 | [Game Lengths](lengths.md) | *How long do the stored games run, by decade and by result?* |
 | [Shared Positions](shared.md) | *How long do the stored games stay in positions another stored game reaches, and how crowded are those positions?* |
 | [Tags](tags.md) | *Which tags do the stored games carry, how precisely are they dated, and which ratings do they carry?* |
 | [Games Left Out](omitted.md) | *Which games do the fetched files hold that the index leaves out, and why?* |
+
+The <!-- players-files -->250<!-- /players-files --> Players archives each hold every game PGN Mentor collects for one player, and the store keeps all of them, as it keeps every game of the <!-- events-files -->982<!-- /events-files --> Events files, each a tournament or a match. The <!-- openings-files -->233<!-- /openings-files --> Openings archives each hold the games of one opening, and the store keeps a game of theirs only where the higher of the ratings its `WhiteElo` and `BlackElo` tags give reaches <!-- openings-floor -->2500<!-- /openings-floor -->,[^edwards1994b] the rating FIDE sets for the grandmaster title through norms,[^fide2024] a floor `sources.toml` declares once beside its files. A game two files both hold, such as one between two players who each have an archive, is kept once, under the file `sources.toml` declares first, which lists the Players ahead of the Events and the Events ahead of the Openings, two copies counting as one game where their Seven Tag Roster and their moves agree.[^edwards1994] The drawing below sets out one match against the store, the example match the [Viewer](../viewer/index.md) opens on, and pointing at it replays the run the two games share and names the position under the pointer.
 
 ## The Decades Played
 
