@@ -1,12 +1,14 @@
 """
 Pins the figures and the table `Tie` writes for the Tags page, meaning the
 line in numbered moves, the games it ties, and the order a match shows them
-in, beside the number of the move played once the line ends.
+in, beside the number of the move played once the line ends and the ceiling
+its ratings are read under.
 """
 
 from pytest import mark, param
 
 from scotch.docs.ties import Tie, Tied
+from scotch.games     import readers
 
 
 def test_a_tie_writes_its_figures_and_order():
@@ -44,6 +46,16 @@ def test_a_tie_numbers_the_move_after_its_line(line: list[str], after: str):
     White and an ellipsis for Black.
     """
     assert Tie(games=[], line=line, plies=4).after == after
+
+
+def test_a_tie_writes_the_ceiling_the_index_reads_ratings_under():
+    """
+    Asserts that the tie's JSON carries the crate's ceiling, so the Tags
+    page reads a rating past it as none, as the index does.
+    """
+    assert Tie(games=[], line=[], plies=4).model_dump(mode="json")["ceiling"] == (
+        readers.CEILING
+    )
 
 
 def tied(next: list[str], rating: str, white: str) -> Tied:

@@ -24,6 +24,7 @@ from scotch.docs.inventory   import Outputs, tracked
 from scotch.docs.outputs     import Document, Figures, Footnotes, Region
 from scotch.docs.project     import Project
 from scotch.docs.tallies     import Tally
+from scotch.games            import readers
 from scotch.games.schemas    import Game, Origin
 from scotch.identity.schemas import Identity
 from scotch.index.tables     import PositionIndex
@@ -348,6 +349,9 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     assert list(
         loads((root / "docs/.vitepress/lib/rendered/pieces.json").read_text())
     ) == sorted(PIECES)
+    assert loads(
+        (root / "docs/.vitepress/lib/rendered/ratings.json").read_text()
+    ) == {"ceiling": readers.CEILING}
     assert (root / "docs/public/favicon.svg").read_text() == (
         '<svg viewBox="0 0 1 1"><style>path{fill:#764017}'
         "@media (prefers-color-scheme:dark){path{fill:#e3c3a3}}</style>"
@@ -541,6 +545,7 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/keys.json"),
         (Document, "docs/.vitepress/lib/rendered/marks.json"),
         (Document, "docs/.vitepress/lib/rendered/pieces.json"),
+        (Document, "docs/.vitepress/lib/rendered/ratings.json"),
         (Document, "docs/.vitepress/lib/rendered/terms.json"),
         (Document, "docs/public/favicon.svg"),
         (Document, "docs/assets/lockup-dark.svg"),

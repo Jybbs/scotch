@@ -337,6 +337,14 @@ def test_a_reference_names_the_stored_game_read_from_it():
             ({"WhiteElo": "unknown"}, {"WhiteElo": "1"}),
             1,
             id = "a-rating-holding-no-number-is-no-rating"
+        ),
+        param(
+            (
+                {"BlackElo": "204269", "WhiteElo": "2000"},
+                {"BlackElo": "1", "WhiteElo": "1"}
+            ),
+            1,
+            id = "a-rating-past-the-ceiling-is-no-rating"
         )
     ]
 )
@@ -905,7 +913,8 @@ def test_the_games_left_out_read_back_as_they_were_merged(tmp_path: Path):
     """
     Asserts that the games a merge records as left out, a game its reader
     could not read and a repeat among them, write to the index's folder and
-    read back under `LEFT`, a rating past what 16 bits hold among them.
+    read back under `LEFT`, a rating past `readers.CEILING` reading as 0
+    among them.
     """
     source = land(
         tmp_path,
@@ -931,7 +940,7 @@ def test_the_games_left_out_read_back_as_they_were_merged(tmp_path: Path):
             "address" : str(source.address),
             "dated"   : 0,
             "place"   : 2,
-            "rating"  : 204269,
+            "rating"  : 0,
             "reason"  : "repeat"
         }
     ]

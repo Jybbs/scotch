@@ -20,7 +20,7 @@ Stepping through a match sets the two games' positions on one board, each square
 
 ## Choosing Among Runs
 
-The longest run wins, and stored games sharing runs as long rank by the mean of the ratings their `WhiteElo` and `BlackElo` tags give, the highest first, then those carrying one rating by that rating, then the unrated in the order the index holds them, which is the archive `sources.toml` declares first and, within one archive, the order that archive holds them in.[^edwards1994b] A rating holding no positive number reads as no rating. The match names the first of them and counts the rest, and `scotch match game --top` lists the next, each a different stored game at its longest run in the same order. A game holding several runs as long takes the one starting earliest in the submitted game, then the one starting earliest in the stored game.
+The longest run wins, and stored games sharing runs as long rank by the mean of the ratings their `WhiteElo` and `BlackElo` tags give, the highest first, then those carrying one rating by that rating, then the unrated in the order the index holds them, which is the archive `sources.toml` declares first and, within one archive, the order that archive holds them in.[^edwards1994b] A rating tag reads as a rating only where it holds digits alone naming a whole number from 1 to <!-- rating-ceiling -->2900<!-- /rating-ceiling -->, the next hundred above 2882, the highest standard rating FIDE has published,[^fide2026] and any other tag reads as no rating, here and on the Data pages alike. The match names the first of them and counts the rest, and `scotch match game --top` lists the next, each a different stored game at its longest run in the same order. A game holding several runs as long takes the one starting earliest in the submitted game, then the one starting earliest in the stored game.
 
 [^gusfield1997]: Gusfield, Dan. 1997. "Algorithms on Strings, Trees, and Sequences: Computer Science and Computational Biology," Section 7.4. <https://doi.org/10.1017/CBO9780511574931>
 
@@ -29,3 +29,5 @@ The longest run wins, and stored games sharing runs as long rank by the mean of 
 [^hirschberg1975]: Hirschberg, D. S. 1975. "A Linear Space Algorithm for Computing Maximal Common Subsequences," Communications of the ACM, volume 18, number 6, pages 341 to 343. <https://doi.org/10.1145/360825.360861>
 
 [^edwards1994b]: Edwards, Steven J., coordinator. 1994. "Standard: Portable Game Notation Specification and Implementation Guide," Section 9.1.2, Tags: WhiteElo, BlackElo. <https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c9.1.2>
+
+[^fide2026]: International Chess Federation. 2026. "Carlsen, Magnus FIDE Profile," Progress, all years, standard rating. <https://ratings.fide.com/profile/1503014>

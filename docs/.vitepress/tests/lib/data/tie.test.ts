@@ -25,6 +25,19 @@ describe('the tied games', () => {
     expect(tie.meanPhrase(bin)).toBe(phrase)
   })
 
+  it.each([
+    ['2785', 2785],
+    ['1', 1],
+    ['2900', 2900],
+    ['2901', null],
+    ['3000', null],
+    ['0', null],
+    ['', null],
+    ['2700?', null]
+  ])('reads the rating tag %j as %j, as the index reads it', (text, value) => {
+    expect(tie.rating(text)).toBe(value)
+  })
+
   it('finds the bin a game carrying both ratings falls in, and none for any other', () => {
     const bins = tie.tiedGames.map(tie.binOf)
     expect(bins.slice(0, 3).map(at => tie.meanBins[at]!.low)).toEqual([2600, 2500, 2500])

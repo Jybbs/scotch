@@ -166,6 +166,12 @@ const PREFIX_BITS: u32 = 6;
 /// The `standing` of a game carrying both ratings, above every other.
 const BOTH_RATED: u16 = 0x8000;
 
+/// The highest rating `rating` reads a tag as, the next hundred above 2882,
+/// the highest standard rating FIDE has published, which the Progress tab of
+/// Magnus Carlsen's profile at <https://ratings.fide.com/profile/1503014>
+/// records.
+pub const CEILING: u16 = 2900;
+
 /// A position a game reaches, which sorts by its key, then its ply, then its
 /// slot.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -188,20 +194,25 @@ type Tag = Option<Vec<u8>>;
 /// Black, and any other result.
 pub type Outcomes = [u32; 4];
 
+/// Reads a `WhiteElo` or `BlackElo` tag as a rating where it holds ASCII
+/// digits alone naming a whole number from 1 to `CEILING`, and as no rating
+/// otherwise.
+#[must_use]
+pub fn rating(tag: Option<&str>) -> Option<u16> {
+    tag.filter(|text| text.bytes().all(|byte| byte.is_ascii_digit()))
+        .and_then(|text| text.parse().ok())
+        .filter(|rating| (1..=CEILING).contains(rating))
+}
+
 /// Ranks a game among those tied on their longest run from its two tags
-/// `WhiteElo` and `BlackElo`: the sum of both where it carries both, above any
-/// game carrying one, then that one rating, then 0 for no rating at all, a
-/// rating being a positive whole number.
+/// `WhiteElo` and `BlackElo` as `rating` reads them: the sum of both where it
+/// carries both, above any game carrying one, then that one rating, then 0
+/// for no rating at all.
 #[must_use]
 pub fn standing(white: Option<&str>, black: Option<&str>) -> u16 {
-    let rating = |tag: Option<&str>| {
-        tag.and_then(|text| text.parse::<u16>().ok())
-            .filter(|&rating| rating > 0)
-    };
-
     match (rating(white), rating(black)) {
-        (Some(white), Some(black)) => BOTH_RATED | white.saturating_add(black).min(BOTH_RATED - 1),
-        (Some(rating), None) | (None, Some(rating)) => rating.min(BOTH_RATED - 1),
+        (Some(white), Some(black)) => BOTH_RATED | (white + black),
+        (Some(rating), None) | (None, Some(rating)) => rating,
         (None, None) => 0,
     }
 }
@@ -1755,7 +1766,34 @@ mod tests {
         assert!(standing(None, Some("2000")) > standing(None, None));
         assert_eq!(standing(Some("0"), Some("?")), 0);
         assert_eq!(standing(Some("-"), Some("2000")), 2000);
-        assert_eq!(standing(Some("65535"), Some("65535")), u16::MAX);
+        assert_eq!(standing(Some("2900"), Some("2900")), BOTH_RATED + 5800);
+    }
+
+    #[test]
+    fn a_rating_is_a_whole_number_from_1_to_the_ceiling() {
+        assert_eq!(rating(Some("2900")), Some(2900));
+        assert_eq!(rating(Some("02500")), Some(2500));
+        assert_eq!(rating(Some("1")), Some(1));
+        for tag in [
+            "2901",
+            "204269",
+            "65536",
+            "0",
+            "",
+            "+2500",
+            " 2500",
+            "2500.0",
+            "２５００",
+        ] {
+            assert_eq!(rating(Some(tag)), None, "{tag:?}");
+        }
+        assert_eq!(rating(None), None);
+    }
+
+    #[test]
+    fn a_standing_reads_a_rating_past_the_ceiling_as_none() {
+        assert_eq!(standing(Some("204269"), Some("2400")), 2400);
+        assert_eq!(standing(Some("3000"), Some("3000")), 0);
     }
 
     #[test]

@@ -488,18 +488,44 @@ def test_store_reads_the_year_the_most_of_each_file_s_games_were_played_in(
     assert [archive.year for archive in census.store.files] == [1985, 1992, 1879]
 
 
+def test_tagged_reads_each_rating_as_a_game_reads_it(
+    scanned: Callable[[Iterable[Game]], PositionIndex]
+):
+    """
+    Asserts that the census reads the higher rating of each stored game as
+    `Game.rating` reads it, for a tag at, past, and under `readers.CEILING`
+    and a tag naming a sign, a space, a fraction, or digits outside ASCII.
+    """
+    games = [
+        line("e4", Round=str(place), WhiteElo=tag)
+        for place, tag in enumerate(
+            (
+                "2500", "02500", "2900", "2901", "204269", "0",
+                "", "+2500", " 2500", "2500.0", "２５００", "?"
+            )
+        )
+    ]
+
+    assert Census(index=scanned(games)).tagged.get_column("rating").to_list() == [
+        game.rating for game in games
+    ]
+
+
 def test_tagged_reads_ratings_and_a_partial_date(
     scanned: Callable[[Iterable[Game]], PositionIndex]
 ):
     """
-    Asserts that a rating reads as carried where it holds a number above
-    0, so a game rated on one side counts once, and that a date naming the
-    month alone reads at that precision.
+    Asserts that a rating reads as carried where it holds digits alone
+    naming a number from 1 to `readers.CEILING`, so a game rated on one
+    side counts once and a game whose tags name a sign or a rating past the
+    ceiling counts as rated on neither, and that a date naming the month
+    alone reads at that precision.
     """
     index = scanned(
         [
             line("e4", BlackElo="0", Date="1990.05.??", WhiteElo="2600"),
-            line("d4", BlackElo="2400", Date="1990.??.??", WhiteElo="2501")
+            line("d4", BlackElo="2400", Date="1990.??.??", WhiteElo="2501"),
+            line("c4", BlackElo="204269", Date="1990", WhiteElo="+2500")
         ]
     )
 
@@ -510,7 +536,8 @@ def test_tagged_reads_ratings_and_a_partial_date(
         "mean"
     ).rows() == [
         ("month", 1, 2600, None),
-        ("year", 2, 2501, 2450.5)
+        ("year", 2, 2501, 2450.5),
+        ("year", 0, 0, None)
     ]
 
 
@@ -520,7 +547,8 @@ def test_tags_bin_the_games_carrying_both_ratings_by_their_mean(
     """
     Asserts that a mean falling on an edge counts in the bin it opens, that
     a mean past the last edge counts in the last bin, that a bin no game
-    falls in counts 0, and that a game carrying one rating counts in no bin.
+    falls in counts 0, and that a game carrying one rating, or a rating past
+    `readers.CEILING` beside another, counts in no bin.
     """
     index = scanned(
         [
@@ -533,7 +561,8 @@ def test_tags_bin_the_games_carrying_both_ratings_by_their_mean(
                 (
                     ("e4", {"BlackElo": "2300", "WhiteElo": "2400"}),
                     ("d4", {"BlackElo": "2199", "WhiteElo": "2200"}),
-                    ("c4", {"BlackElo": "3000", "WhiteElo": "3000"}),
+                    ("c4", {"BlackElo": "2900", "WhiteElo": "2900"}),
+                    ("g3", {"BlackElo": "2901", "WhiteElo": "2900"}),
                     ("Nf3", {"WhiteElo": "2600"})
                 ),
                 start = 1
