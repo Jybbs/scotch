@@ -2,8 +2,8 @@
 Holds the records the task tests build around stand-in executables, meaning
 `Wrapper`, the `StandIn` a task test puts first on `PATH` for the program
 a wrapper or a task runs, the `Scratch` checkout `tests/tasks/lock.py` runs
-each `lock` task in, and the `Retest` checkout `tests/tasks/retest.py` runs
-`py:retest` in.
+each `lock` task in, and the `Affected` checkout `tests/tasks/affected.py`
+runs `py:affected` in.
 """
 
 from collections.abc import Sequence
@@ -13,7 +13,7 @@ from stat            import S_IMODE
 from subprocess      import CompletedProcess, run
 
 
-class Retest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+class Affected(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     A scratch checkout whose stand-in `git` lists the files `write` writes,
     beside a stand-in `pytest` logging the data file pytest-testmon reads
@@ -48,13 +48,13 @@ class Retest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     @property
     def recorded(self) -> Path:
         """
-        Locates the fingerprint `py:retest` records after a full run.
+        Locates the fingerprint `py:affected` records after a full run.
         """
         return self.root / ".cache" / "testmon" / "files"
 
     def run(self, *arguments: str, status: int = 0) -> CompletedProcess[str]:
         """
-        Runs `py:retest` from the checkout with `arguments`, against a
+        Runs `py:affected` from the checkout with `arguments`, against a
         stand-in `pytest` exiting with `status`.
         """
         pytest = self.root / ".bin" / "pytest"
@@ -65,7 +65,7 @@ class Retest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         pytest.chmod(0o755)
 
         return run(
-            [self.project / ".mise" / "tasks" / "py" / "retest", *arguments],
+            [self.project / ".mise" / "tasks" / "py" / "affected", *arguments],
             capture_output = True,
             check          = False,
             cwd            = self.root,
