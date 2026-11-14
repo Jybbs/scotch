@@ -94,24 +94,26 @@ jobs:
   order:
     name: ⏳ Order
     outputs:
-      skip: ${{ steps.store.outputs.skip }}
+      head: ${{ steps.order.outputs.head }}
+      skip: ${{ steps.order.outputs.skip }}
     permissions:
       actions: read
+      contents: read
     runs-on: ubuntu-26.04
     steps:
-      - name: Leave the publish to the store's run where one follows
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Decide whether the run publishes the commit it builds
         env:
+          COMMIT: ${{ inputs.ref || github.sha }}
           EVENT: ${{ github.event_name }}
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.sha }}
-        id: store
-        run: |
-          skip=false
-          if [[ "$EVENT" == push ]]; then
-            [[ "$(gh run list --commit "$SHA" --event push --json databaseId --jq length --workflow store.yml)" == 0 ]] || skip=true
-          fi
-          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+          REF: ${{ github.ref }}
+        id: order
+        run: .mise/tasks/gha/order.py
     timeout-minutes: 5
   scoresheet:
     if: always()
@@ -139,6 +141,7 @@ on:
       - main
     paths:
       - .github/workflows/deploy.yml
+      - .mise/tasks/gha/order.py
       - .mise/tasks/gha/reuse.py
       - .mise/tasks/gha/total
       - .mise/tasks/py/coverage

@@ -184,6 +184,22 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
             },
             id = "deploy-left-to-the-store"
         ),
+        param(
+            "deploy",
+            {
+                "coverage" : {"result": "skipped", "outputs": {}},
+                "deploy"   : {"result": "skipped", "outputs": {}},
+                "order"    : {
+                    "result"  : "success",
+                    "outputs" : {
+                        "head" : "9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c",
+                        "skip" : "true"
+                    }
+                },
+                "press"    : {"result": "skipped", "outputs": {}}
+            },
+            id = "deploy-behind-main"
+        ),
         *(
             param(
                 "store",
