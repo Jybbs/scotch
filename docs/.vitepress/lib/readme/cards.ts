@@ -1,10 +1,11 @@
 import satori from 'satori'
 
-import type { Tree }         from '../cards/draw.ts'
-import { ROLES, resolve }    from '../identity/roles.ts'
-import { hexOf }             from '../identity/tokens.ts'
+import type { Tree }              from '../cards/draw.ts'
+import { ROLES, resolve }         from '../identity/roles.ts'
+import { hexOf }                  from '../identity/tokens.ts'
+import { NUMERALS }               from '../markdown/front.ts'
 import { SECTIONS, type Section } from '../site/sections.ts'
-import type { Scheme }       from './preview.ts'
+import type { Scheme }            from './preview.ts'
 
 /**
  * One card of Where to Start: the section it opens and the numeral it is set
@@ -25,7 +26,7 @@ export const CARD = { height: 140, width: 260 } as const
  * numbers the commands of its session.
  */
 export const STARTS: readonly Start[] = (['Guide', 'Viewer', 'Methods'] as const).map((label, at) => ({
-  numeral : ['I', 'II', 'III'][at]!,
+  numeral : NUMERALS[at]!,
   section : SECTIONS.find(section => section.label === label)!
 }))
 

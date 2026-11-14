@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import * as gif               from '../../../lib/readme/gif.ts'
-import { decoded, unlzw }     from '../../common/gif.ts'
+import { decoded }            from '../../common/gif.ts'
 
 /**
  * Three colors a frame is drawn in, beside the palette that holds them.
@@ -20,17 +20,6 @@ function frameOf(width: number, height: number, color: (x: number, y: number) =>
       return rgb
     }, new Uint8Array(3 * width * height))
 }
-
-describe('lzw', () => {
-  it.each([
-    { indices: [7], name: 'one index' },
-    { indices: [0, 1, 2, 3, 4, 5], name: 'eight codes ending on a byte boundary' },
-    { indices: Array.from({ length: 600 }, (_, at) => at % 3), name: 'a repeating run' },
-    { indices: Array.from({ length: 40_000 }, (_, at) => (at * 7919) % 251), name: 'a run past a full table' }
-  ])('decodes back to the indices it was given for $name', ({ indices }) => {
-    expect(unlzw(gif.lzw(Uint8Array.from(indices)), 8)).toEqual(indices)
-  })
-})
 
 describe('paletteOf', () => {
   it('keeps every fixed color first and exact, once each', () => {
@@ -73,7 +62,7 @@ describe('Encoder', () => {
     const encoder = new gif.Encoder(20, 4, PALETTE, 6)
     for (const frame of [stripes, moved, moved, stripes]) encoder.add(frame)
     const read = decoded(encoder.bytes())
-    expect(read).toMatchObject({ delays: [20, 20, 20, 20], height: 4, loops: true, width: 6 })
+    expect(read).toMatchObject({ delays: [20, 20, 20, 20], disposals: [1, 1, 1, 1], height: 4, loops: 0, width: 6 })
     expect(read.frames).toEqual([stripes, moved, moved, stripes])
   })
 

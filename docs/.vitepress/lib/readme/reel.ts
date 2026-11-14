@@ -1,12 +1,12 @@
 import { renderAsync } from '@resvg/resvg-js'
 
-import { facesOf }                   from '../cards/faces.ts'
-import { hexOf }                     from '../identity/tokens.ts'
-import * as gif                      from './gif.ts'
-import { Outliner }                  from './outline.ts'
-import * as parts                    from './parts.ts'
-import * as preview                  from './preview.ts'
-import { type Frame, PACE, sceneOf } from './scene.ts'
+import { facesOf }                      from '../cards/faces.ts'
+import { hexOf }                        from '../identity/tokens.ts'
+import * as gif                         from './gif.ts'
+import { Outliner }                     from './outline.ts'
+import * as parts                       from './parts.ts'
+import * as preview                     from './preview.ts'
+import { type Frame, PACE, type Scene } from './scene.ts'
 
 /**
  * How the preview is shot: how many frames are drawn at once, and every how
@@ -55,7 +55,7 @@ async function shoot(
  *   metaUrl  : The `import.meta.url` of the module calling, which the faces are
  *     found from.
  *   scheme   : The color scheme the frames are drawn in.
- *   frames   : The frames encoded, every frame of the scene by default.
+ *   scene    : The scene whose frames are drawn and encoded.
  *   shooting : How the frames are drawn and sampled.
  *
  * Returns:
@@ -64,16 +64,14 @@ async function shoot(
 export async function encodePreview(
   metaUrl  : string,
   scheme   : preview.Scheme,
-  frames?  : readonly Frame[],
+  scene    : Scene,
   shooting : Readonly<Shooting> = SHOOTING
 ): Promise<Buffer> {
-  const scene    = sceneOf()
   const colors   = preview.colorsOf(scheme)
   const outliner = new Outliner(facesOf(metaUrl))
   const draw     = (frame: Frame): Promise<string> => preview.drawFrame(colors, frame, outliner, scene)
-  const shown    = frames ?? scene.frames
   const counts   = new Map<number, number>()
-  await shoot(draw, shown.filter((_, at) => at % shooting.sample === 0), shooting, pixels => {
+  await shoot(draw, scene.frames.filter((_, at) => at % shooting.sample === 0), shooting, pixels => {
     for (let at = 0; at < pixels.length; at += 3) {
       const color = gif.packed(pixels, at)
       counts.set(color, (counts.get(color) ?? 0) + 1)
@@ -82,6 +80,6 @@ export async function encodePreview(
   const fixed   = [...Object.values(colors), hexOf('light'), hexOf('primary')]
     .map(hex => Number.parseInt(hex.slice(1), 16))
   const encoder = new gif.Encoder(PACE.frame, parts.HEIGHT, gif.paletteOf(counts, fixed), parts.LAYOUT.width)
-  await shoot(draw, shown, shooting, pixels => encoder.add(pixels))
+  await shoot(draw, scene.frames, shooting, pixels => encoder.add(pixels))
   return encoder.bytes()
 }

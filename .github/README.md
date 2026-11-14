@@ -62,7 +62,7 @@ Continues 22. Bc2 Ba6+ 23. Ke1 Bc4 24. Nxc4 dxc4 25. Rd6 Re8 26. Bxe5 fxe5 27. Q
 
 With `--json` and a path, the same command writes the match to a file the **[Viewer](https://scotch.fyi/viewer/)** opens, setting the two games side by side and stepping through them together.
 
-## 🧭 Where to Start
+## 🕰️ Where to Start
 
 <p align="center">
 <a href="https://scotch.fyi/guide/"><picture><source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/guide-dark.svg"><img src="../docs/assets/readme/guide-light.svg" alt="Guide" width="260"></picture></a>

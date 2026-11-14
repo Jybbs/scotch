@@ -1,3 +1,11 @@
+import { createRequire } from 'node:module'
+
+/**
+ * gifenc's encoder, loaded through `require`, since Node reads the package's
+ * CommonJS build, whose named exports an `import` statement cannot see.
+ */
+const { GIFEncoder } = createRequire(import.meta.url)('gifenc') as typeof import('gifenc')
+
 /**
  * A color as one number, its red, green, and blue bytes from the high end.
  */
@@ -22,10 +30,16 @@ interface Patch {
  */
 const CLEAR = 255
 /**
- * The bits a GIF's LZW codes start at past its 8-bit indices, and the codes
- * its table holds before it clears, which a GIF caps at 12 bits.
+ * The disposal method each frame takes, leaving it in place for the next frame
+ * to draw over.
  */
-const LZW = { limit: 4096, start: 8 } as const
+const KEEP = 1
+/**
+ * Where a frame's left offset sits past the start of what gifenc writes for a
+ * frame after the first, behind the 8 bytes of its graphic control extension
+ * and its image descriptor's separator.
+ */
+const DESCRIPTOR = 9
 
 function channelsOf(color: Packed): [number, number, number] {
   return [color >> 16, (color >> 8) & 255, color & 255]
@@ -50,62 +64,11 @@ function meanOf(box: [Packed, number][]): Packed {
   return (mean[0]! << 16) | (mean[1]! << 8) | mean[2]!
 }
 
-/**
- * Writes a number as the two bytes a GIF stores it in, the low byte first.
- */
-function u16(value: number): number[] {
-  return [value & 255, value >> 8]
-}
-
 function widest(box: [Packed, number][]): { channel: number, span: number } {
   return [16, 8, 0].map(channel => {
     const values = box.map(([color]) => (color >> channel) & 255)
     return { channel, span: (Math.max(...values) - Math.min(...values)) * Math.log2(box.length + 1) }
   }).reduce((best, each) => each.span > best.span ? each : best)
-}
-
-/**
- * Compresses a frame's indices with the variant of LZW a GIF stores, its codes
- * starting at 9 bits past the clear and end codes, the table cleared once it
- * holds the 4,096 codes a GIF allows.
- */
-export function lzw(indices: Uint8Array): Uint8Array {
-  const clear = 1 << LZW.start
-  const out   = [] as number[]
-  const table = new Int32Array(LZW.limit << LZW.start).fill(-1)
-  let size = LZW.start + 1
-  let next = clear + 2
-  let held = 0
-  let bits = 0
-  const put = (code: number): void => {
-    held |= code << bits
-    bits += size
-    for (; bits >= 8; bits -= 8, held >>>= 8) out.push(held & 255)
-  }
-  put(clear)
-  let prefix = indices[0]!
-  for (const index of indices.subarray(1)) {
-    const slot = (prefix << LZW.start) | index
-    if (table[slot]! >= 0) {
-      prefix = table[slot]!
-      continue
-    }
-    put(prefix)
-    if (next < LZW.limit) {
-      table[slot] = next++
-      if (next > 1 << size && size < 12) size++
-    } else {
-      put(clear)
-      table.fill(-1)
-      size = LZW.start + 1
-      next = clear + 2
-    }
-    prefix = index
-  }
-  put(prefix)
-  put(clear + 1)
-  if (bits) out.push(held & 255)
-  return Uint8Array.from(out)
 }
 
 /**
@@ -219,31 +182,36 @@ export class Encoder {
   }
 
   /**
-   * Writes the GIF: its screen, the one palette with its last index left
-   * transparent, the loop that repeats forever, and each frame's patch.
+   * Writes the GIF through gifenc: its screen and the one palette with its
+   * last index left transparent ahead of the first frame, the loop that repeats
+   * forever, and each frame's patch, whose offset is written into the image
+   * descriptor gifenc places at the origin.
    */
   bytes(): Buffer {
-    const colors = Array.from({ length: 256 }, (_, at) => channelsOf(this.#palette[at] ?? 0)).flat()
-    const screen = [...u16(this.#width), ...u16(this.#height), 0xf7, 0, 0]
-    const head   = [...Buffer.from('GIF89a'), ...screen, ...colors]
-    const loop   = [0x21, 0xff, 11, ...Buffer.from('NETSCAPE2.0'), 3, 1, 0, 0, 0]
-    const frames = this.#patches.map(({ height, indices, left, top, width }) => {
-      const data   = lzw(indices)
-      const blocks = Array.from({ length: Math.ceil(data.length / 255) }, (_, at) => {
-        const part = data.subarray(255 * at, 255 * (at + 1))
-        return Buffer.concat([Uint8Array.of(part.length), part])
+    const encoder = GIFEncoder({ auto: false })
+    const palette = Array.from({ length: 256 }, (_, at) => channelsOf(this.#palette[at] ?? 0))
+    encoder.writeHeader()
+    for (const [at, { height, indices, left, top, width }] of this.#patches.entries()) {
+      const first = at === 0
+      const start = encoder.bytesView().length
+      encoder.writeFrame(indices, width, height, {
+        delay            : this.#delay,
+        dispose          : KEEP,
+        first,
+        palette          : first ? palette : undefined,
+        transparent      : true,
+        transparentIndex : CLEAR
       })
-      const control = [0x21, 0xf9, 4, 0b0000_0101, ...u16(this.#delay / 10), CLEAR, 0]
-      const image   = [0x2c, ...u16(left), ...u16(top), ...u16(width), ...u16(height), 0, LZW.start]
-      return Buffer.concat([Uint8Array.from([...control, ...image]), ...blocks, Uint8Array.of(0)])
-    })
-    return Buffer.concat([Uint8Array.from([...head, ...loop]), ...frames, Uint8Array.of(0x3b)])
+      if (!first) encoder.bytesView().set([left & 255, left >> 8, top & 255, top >> 8], start + DESCRIPTOR)
+    }
+    encoder.finish()
+    return Buffer.from(encoder.bytes())
   }
 
   /**
-   * Finds the palette's nearest color to a pixel, weighing green over blue
-   * over red as the eye does, keeping each answer for the next pixel of that
-   * color.
+   * Finds the palette's nearest color to a pixel, weighing the red, green,
+   * and blue differences 2, 4, and 3, as the low-cost color metric does for a
+   * color of low red, keeping each answer for the next pixel of that color.
    */
   #indexOf(color: Packed): number {
     let found = this.#nearest.get(color)

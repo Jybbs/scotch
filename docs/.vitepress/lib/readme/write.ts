@@ -6,6 +6,7 @@ import { docsDir }          from '../site/paths.ts'
 import { STARTS, drawCard } from './cards.ts'
 import { SCHEMES }          from './preview.ts'
 import { encodePreview }    from './reel.ts'
+import { sceneOf }          from './scene.ts'
 
 /**
  * Names the folder under `docs/assets/` the README's images are written to.
@@ -32,10 +33,11 @@ export async function writeReadme(
 ): Promise<string[]> {
   const folder = readmeDir(metaUrl)
   const fonts  = facesOf(metaUrl)
+  const scene  = sceneOf()
   const cards  = SCHEMES.flatMap(scheme => STARTS.map(async start =>
     [`${start.section.slug}-${scheme}.svg`, await drawCard(fonts, scheme, start)] as const))
   const films  = SCHEMES.map(async scheme =>
-    [`preview-${scheme}.gif`, await encode(metaUrl, scheme)] as const)
+    [`preview-${scheme}.gif`, await encode(metaUrl, scheme, scene)] as const)
   const files  = await Promise.all([...cards, ...films])
   fs.mkdirSync(folder, { recursive: true })
   for (const [name, data] of files) fs.writeFileSync(path.join(folder, name), data)

@@ -1,15 +1,17 @@
 /**
- * A GIF read back frame by frame: its screen's size, whether it loops, and
- * each frame as the RGB bytes the screen shows once it is drawn, beside the
- * delay it holds for in milliseconds and the size of the rectangle it stores.
+ * A GIF read back frame by frame: its screen's size, the loop count its
+ * NETSCAPE2.0 block stores, and each frame as the RGB bytes the screen shows
+ * once it is drawn, beside the delay it holds for in milliseconds, its disposal
+ * method, and the size of the rectangle it stores.
  */
 interface Decoded {
-  delays : number[]
-  frames : Uint8Array[]
-  height : number
-  loops  : boolean
-  sizes  : [number, number][]
-  width  : number
+  delays    : number[]
+  disposals : number[]
+  frames    : Uint8Array[]
+  height    : number
+  loops     : number | undefined
+  sizes     : [number, number][]
+  width     : number
 }
 
 /**
@@ -27,7 +29,7 @@ function blocksAt(bytes: Buffer, at: number): [Buffer, number] {
  * Decodes a GIF's LZW codes back into palette indices, growing the code size
  * once the table reaches the next power of two, as a browser's decoder does.
  */
-export function unlzw(data: Uint8Array, start: number): number[] {
+function unlzw(data: Uint8Array, start: number): number[] {
   const clear = 1 << start
   const out   = [] as number[]
   let table    = [] as number[][]
@@ -65,15 +67,16 @@ export function decoded(gif: Uint8Array): Decoded {
   const height  = bytes.readUInt16LE(8)
   const palette = bytes.subarray(13, 13 + 3 * 2 ** ((bytes[10]! & 7) + 1))
   const screen  = new Uint8Array(3 * width * height)
-  const result: Decoded = { delays: [], frames: [], height, loops: false, sizes: [], width }
-  let [at, delay, clear] = [13 + palette.length, 0, -1]
+  const result: Decoded = { delays: [], disposals: [], frames: [], height, loops: undefined, sizes: [], width }
+  let [at, delay, disposal, clear] = [13 + palette.length, 0, 0, -1]
   while (bytes[at] !== 0x3b) {
     if (bytes[at] === 0x21) {
       if (bytes[at + 1] === 0xf9) {
-        delay = 10 * bytes.readUInt16LE(at + 4)
+        delay    = 10 * bytes.readUInt16LE(at + 4)
+        disposal = (bytes[at + 3]! >> 2) & 7
         clear = bytes[at + 3]! & 1 ? bytes[at + 6]! : -1
       }
-      if (bytes.toString('ascii', at + 3, at + 14) === 'NETSCAPE2.0') result.loops = true
+      if (bytes.toString('ascii', at + 3, at + 14) === 'NETSCAPE2.0') result.loops = bytes.readUInt16LE(at + 16)
       at = blocksAt(bytes, at + 2)[1]
       continue
     }
@@ -87,6 +90,7 @@ export function decoded(gif: Uint8Array): Decoded {
     result.frames.push(screen.slice())
     result.sizes.push([w, h])
     result.delays.push(delay)
+    result.disposals.push(disposal)
     at = next
   }
   return result
