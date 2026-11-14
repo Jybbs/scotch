@@ -44,14 +44,17 @@ const compiled = (): ReturnType<typeof compile> => compile(source, {
 })
 
 it('maps every token, role, face, curve, and duration the identity serves, and nothing else', () => {
-  const mapped = [...source.matchAll(/^ {2}(--[a-z-]+-[a-z0-9]+) +: var\((--sc-[a-z0-9-]+)\);$/gmu)]
-    .map(([, theme, property]) => `${theme!} ${property!}`)
+  const mapped = [...source.matchAll(/^ {2}(--[a-z0-9-]+) +: ([^;]+);$/gmu)]
+    .filter(([, theme]) => !theme!.startsWith('--breakpoint-'))
+    .map(([, theme, value]) => `${theme!} ${value!}`)
   expect(mapped.toSorted()).toStrictEqual([
-    ...colors.map(name => `--color-${name} --sc-${name}`),
-    ...faces.map(face => `--font-${face} --sc-face-${face}`),
-    ...curves.map(curve => `--ease-${curve} --sc-curve-${curve}`),
-    ...durations.map(name => `--transition-duration-${name} --sc-duration-${name}`),
-    ...durations.map(name => `--transition-delay-${name} --sc-duration-${name}`)
+    ...colors.map(name => `--color-${name} var(--sc-${name})`),
+    ...faces.map(face => `--font-${face} var(--sc-face-${face})`),
+    ...curves.map(curve => `--ease-${curve} var(--sc-curve-${curve})`),
+    ...durations.map(name => `--transition-duration-${name} var(--sc-duration-${name})`),
+    ...durations.map(name => `--transition-delay-${name} var(--sc-duration-${name})`),
+    '--default-transition-duration var(--sc-duration-fade)',
+    '--default-transition-timing-function var(--sc-curve-glide)'
   ].toSorted())
 })
 
@@ -72,10 +75,16 @@ describe('the identity’s utilities', () => {
     expect(await built(`duration-${name}`)).toContain(`transition-duration: var(--sc-duration-${name});`)
     expect(await built(`delay-${name}`)).toContain(`transition-delay: var(--sc-duration-${name});`)
   })
+
+  it('times and eases a bare transition by the fade duration and the glide curve, so it too stops under reduced motion', async () => {
+    const css = await built('transition-colors')
+    expect(css).toContain('transition-duration: var(--tw-duration, var(--sc-duration-fade));')
+    expect(css).toContain('transition-timing-function: var(--tw-ease, var(--sc-curve-glide));')
+  })
 })
 
 describe('Tailwind’s defaults', () => {
-  it.each(['bg-red-500', 'text-white', 'font-sans', 'font-mono', 'ease-in-out', 'xl:block', '2xl:block'])(
+  it.each(['bg-red-500', 'text-white', 'font-sans', 'font-mono', 'ease-in-out', 'animate-spin', 'xl:block', '2xl:block'])(
     'builds nothing for %s, which no identity token names',
     async candidate => {
       expect(await built(candidate)).toBe(await built())

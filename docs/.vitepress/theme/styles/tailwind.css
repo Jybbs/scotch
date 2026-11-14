@@ -8,6 +8,7 @@
   --font-*       : initial;
   --breakpoint-* : initial;
   --ease-*       : initial;
+  --animate-*    : initial;
 
   --color-critical : var(--sc-critical);
   --color-dark     : var(--sc-dark);
@@ -64,6 +65,9 @@
   --transition-delay-part   : var(--sc-duration-part);
   --transition-delay-pour   : var(--sc-duration-pour);
   --transition-delay-settle : var(--sc-duration-settle);
+
+  --default-transition-duration        : var(--sc-duration-fade);
+  --default-transition-timing-function : var(--sc-curve-glide);
 
   --breakpoint-sm : 40rem;
   --breakpoint-md : 48rem;
