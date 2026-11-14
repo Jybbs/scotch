@@ -5,13 +5,11 @@ the `docs:render` task. `render_group` registers them as the group the app
 imports by its path.
 """
 
-from cyclopts          import App
-from polars.exceptions import SchemaError
+from cyclopts import App
 
 from scotch.cli            import app
 from scotch.cli.settings   import Settings, root
 from scotch.docs.inventory import Outputs
-from scotch.index.tables   import PositionIndex
 from scotch.repo.schemas   import Pyproject
 
 
@@ -38,16 +36,11 @@ def docs():
     """
     settings = Settings()
 
-    try:
-        index = PositionIndex.read(settings.index)
-    except FileNotFoundError:
-        index = None
+    if (index := settings.built()) is None:
         print(
             f"Left the files the index renders into as they stand, since no index"
             f" has been built under {settings.index}"
         )
-    except SchemaError:
-        raise SystemExit(f"The index under {settings.index} holds another layout")
 
     repository = root()
     readme     = Pyproject.read(repository / "pyproject.toml").readme
