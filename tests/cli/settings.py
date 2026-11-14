@@ -93,8 +93,8 @@ def test_an_absolute_data_directory_stands_as_given(project: Path, tmp_path: Pat
 def test_an_index_holding_another_layout_exits_in_one_form(relaid: Path):
     """
     Asserts that `built` exits nonzero naming the folder where the index
-    built there holds another layout, the one form every command reading the
-    index reports it in.
+    built there holds another layout, the form `scotch render docs` and
+    every command calling `opened` exit with.
     """
     with raises(SystemExit) as exited:
         Settings().built()
