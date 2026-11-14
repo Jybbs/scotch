@@ -52,12 +52,13 @@ def line(*sans: str, origin: Origin | None = None, **tags: str) -> Game:
 
 KNOWN = frozendict(
     fixtured() | {
-        "en-passant"         : line("e4", "a6", "e5", "d5", "exd6"),
-        "no-moves"           : line(),
-        "queenside-castling" : line(
+        "en-passant"          : line("e4", "a6", "e5", "d5", "exd6"),
+        "no-moves"            : line(),
+        "queenside-castling"  : line(
             *"d4 d5 Nc3 Nc6 Bf4 Bf5 Qd2 Qd7 O-O-O O-O-O".split()
         ),
-        "underpromotion"     : line(*"a4 b5 axb5 a6 bxa6 Bb7 axb7 Nc6 bxa8=N".split())
+        "rank-disambiguation" : line(*"Nf3 h6 Nd4 h5 Nb5 h4 N1c3".split()),
+        "underpromotion"      : line(*"a4 b5 axb5 a6 bxa6 Bb7 axb7 Nc6 bxa8=N".split())
     }
 )
 """
@@ -65,7 +66,7 @@ Every game a parametrized case replays, keyed by the id the case runs
 under:
 
 - `stored-1` to `stored-3`, `demo-1`, and `viewer-1`, read from `FIXTURES`
-- `en-passant`, `queenside-castling`, and `underpromotion`, each playing a
-  move none of those games plays
+- `en-passant`, `queenside-castling`, `rank-disambiguation`, and
+  `underpromotion`, each playing a move none of those games plays
 - `no-moves`, a game holding the starting position alone
 """
