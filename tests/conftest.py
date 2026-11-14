@@ -24,8 +24,7 @@ from scotch.games.schemas     import Game
 from scotch.index.tables      import PositionIndex
 from scotch.repo.checkout     import Checkout
 
-# `pytest_plugins` stays lowercase, the only name pytest reads the plugin list under.
-pytest_plugins = ["common.isolation"]  # prose: ignore[miscased-constants]
+pytest_plugins = ["common.isolation"]
 
 settings.register_profile("ci", settings.get_profile("ci"), max_examples=200)
 settings.register_profile(

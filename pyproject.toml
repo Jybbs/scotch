@@ -92,6 +92,9 @@ target-version = "3.15"
 [tool.prose.imports]
 first-party = ["scotch"]
 
+[tool.prose.rules.miscased-constants]
+allow-pattern = "pytest_plugins"
+
 [tool.pytest]
 addopts                  = [
     "--allow-unix-socket",
