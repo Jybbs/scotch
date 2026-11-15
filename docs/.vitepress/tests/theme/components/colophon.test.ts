@@ -29,7 +29,7 @@ describe('Colophon', () => {
     const wells = mounted().findAll('.sc-colophon-well')
     expect(wells.map(well => well.find('button').attributes('aria-label'))).toEqual([
       'King, built from, 0123456', 'Queen, code, Owner/game', 'Rook, games, PGN Mentor',
-      'Knight, faces, SIL OFL 1.1', 'Pawn, pieces, Cburnett, BSD'
+      'Bishop, crate, shakmaty, GPL', 'Knight, faces, SIL OFL 1.1', 'Pawn, pieces, Cburnett, BSD'
     ])
     expect(wells[1]!.find('.sc-colophon-short').html()).toContain('Owner/<wbr>game')
     expect(wells[1]!.find('svg').attributes('aria-hidden')).toBe('true')
@@ -68,8 +68,9 @@ describe('Colophon under the keyboard', () => {
     expect(lineOf(wrapper)).toBe(textOf(COLOPHON.credits[4]!.full))
   })
 
+  const last = COLOPHON.credits.length - 1
   const KEYS = [
-    ['ArrowRight', 1], ['ArrowDown', 1], ['ArrowLeft', 4], ['ArrowUp', 4], ['End', 4], ['Home', 0]
+    ['ArrowRight', 1], ['ArrowDown', 1], ['ArrowLeft', last], ['ArrowUp', last], ['End', last], ['Home', 0]
   ] as const
 
   it.each(KEYS)('moves the focus from the first piece on %s to piece %i', async (key, to) => {

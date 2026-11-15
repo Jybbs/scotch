@@ -149,24 +149,70 @@ describe('useUnfold', () => {
   })
 })
 
+function observed(): (seen: boolean) => void {
+  const reports = new Set<IntersectionObserverCallback>()
+  vi.stubGlobal('IntersectionObserver', class {
+    public disconnect = vi.fn<() => void>()
+    public observe    = vi.fn<() => void>()
+
+    public constructor(callback: IntersectionObserverCallback) {
+      reports.add(callback)
+    }
+  })
+  return seen => {
+    reports.forEach(report => {
+      report([{ isIntersecting: seen, time: 0 } as IntersectionObserverEntry], {} as IntersectionObserver)
+    })
+  }
+}
+
 describe('useUnfold with no scroll', () => {
   test('stays whole where the drawing comes on screen with no scroll, as a capture does', async () => {
-    const observed = new Set<IntersectionObserverCallback>()
-    vi.stubGlobal('IntersectionObserver', class {
-      public disconnect = vi.fn<() => void>()
-      public observe    = vi.fn<() => void>()
-
-      public constructor(callback: IntersectionObserverCallback) {
-        observed.add(callback)
-      }
-    })
-    const told = story()
+    const report = observed()
+    const told   = story()
     drawn(told)
     await flushPromises()
-    observed.forEach(report => {
-      report([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
-    })
+    report(true)
     expect(told.prime).not.toHaveBeenCalled()
+    expect(told.play).not.toHaveBeenCalled()
+  })
+})
+
+describe('useUnfold, around the first scroll', () => {
+  test('primes a drawing off screen on the first scroll, before it comes on screen', async () => {
+    const report = observed()
+    const told   = story()
+    drawn(told)
+    await flushPromises()
+    report(false)
+    window.dispatchEvent(new Event('scroll'))
+    expect(told.prime).toHaveBeenCalledTimes(1)
+    expect(told.play).not.toHaveBeenCalled()
+    report(true)
+    expect(told.play).toHaveBeenCalledTimes(1)
+  })
+
+  test('leaves a drawing on screen before the first scroll whole', async () => {
+    const report = observed()
+    const told   = story()
+    drawn(told)
+    await flushPromises()
+    report(true)
+    window.dispatchEvent(new Event('scroll'))
+    report(true)
+    expect(told.prime).not.toHaveBeenCalled()
+    expect(told.play).not.toHaveBeenCalled()
+  })
+
+  test('settles a primed drawing for a print and plays it no more', async () => {
+    const report = observed()
+    const told   = story()
+    drawn(told)
+    await flushPromises()
+    window.dispatchEvent(new Event('scroll'))
+    window.dispatchEvent(new Event('beforeprint'))
+    expect(told.settle).toHaveBeenCalledTimes(2)
+    report(true)
     expect(told.play).not.toHaveBeenCalled()
   })
 })

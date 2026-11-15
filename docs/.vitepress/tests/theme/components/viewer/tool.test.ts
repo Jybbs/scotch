@@ -59,6 +59,11 @@ describe('Tool, its legend', () => {
     await marks[1]!.trigger('pointerenter')
     expect(wrapper.find('.sc-viewer-legend .sc-data-legend-caption').text()).toBe('The stored game')
   })
+
+  it('opens the line beneath the boards', () => {
+    const { wrapper } = mountedTool()
+    expect(wrapper.find('.sc-viewer-under').element.firstElementChild?.classList).toContain('sc-viewer-legend')
+  })
 })
 
 describe('Tool as a reader steps it', () => {

@@ -45,6 +45,12 @@ describe('linkTerms', () => {
     expect(md.render('Key the board, then run the task.\n', PAGE)).not.toContain('sc-term')
   })
 
+  it("links the format's name and leaves the provider's as it stands", () => {
+    const page = md.render('The files PGN Mentor publishes, then a Portable Game Notation (PGN) file.\n', PAGE)
+    expect(page).toContain('files PGN Mentor publishes')
+    expect(page).toContain('(<a href="/reference/terms#pgn" class="sc-term" data-term="pgn">PGN</a>) file')
+  })
+
   it('finds a key where an article opens it', () => {
     expect(md.render('The key holds.\n', PAGE)).toContain('data-term="key"')
   })

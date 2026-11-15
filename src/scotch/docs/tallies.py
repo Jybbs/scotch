@@ -390,10 +390,10 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         the index holds, the earliest decade one was played in, the median
         of the moves the games of each decade, every game, the drawn games,
         and White's wins play, the most and the fewest games one file holds,
-        the count of the files holding a stored game, the share of the
-        games played from 1980 on beside that year, and the count of undated
-        games, a median being the fewest moves at least half the games it
-        counts end by. The earliest decade is empty where no game is dated.
+        the share of the games played from 1980 on beside that year, and
+        the count of undated games, a median being the fewest moves at least
+        half the games it counts end by. The earliest decade is empty where
+        no game is dated.
         """
         sizes  = [file.games for file in self.files]
         since  = 1980
@@ -403,7 +403,6 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
             **{f"median-{era.decade}": str(era.ended(0.5)) for era in self.eras},
             "draw-median"  : str(ended(self.endings["1/2-1/2"], 0.5)),
             "earliest"     : self.eras[0].name if self.eras else "",
-            "files-held"   : f"{len(self.files):,}",
             "games"        : f"{self.games:,}",
             "largest"      : f"{max(sizes):,}",
             "median"       : str(ended([sum(counts) for counts in self.moves], 0.5)),

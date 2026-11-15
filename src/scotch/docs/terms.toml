@@ -37,7 +37,7 @@ sentence = "A game's moves outside every variation its PGN records, the one line
 address  = "https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm"
 label    = "The PGN standard"
 name     = "PGN"
-pattern  = '(?<![./])\bPGN\b'
+pattern  = '(?<![./])\bPGN\b(?! Mentor)'
 sentence = "Portable Game Notation, the plain-text format chess programs and playing sites export a game in, its tag pairs above its moves."
 
 [[terms]]

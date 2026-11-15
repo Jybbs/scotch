@@ -492,6 +492,20 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "name"        : "data:fetch",
                     "aliases"     : [],
                     "depends"     : []
+                },
+                {
+                    "description" : "Publishes.",
+                    "file"        : None,
+                    "name"        : "data:publish",
+                    "aliases"     : [],
+                    "depends"     : []
+                },
+                {
+                    "description" : "Indexes.",
+                    "file"        : None,
+                    "name"        : "data:index",
+                    "aliases"     : [],
+                    "depends"     : []
                 }
             ]
         )
@@ -500,11 +514,17 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
     assert reference.tasks == "\n".join(
         (
             "## Tasks a User Runs", "", "| **Task** | **Alias** | **Description** |",
-            "|---|---|---|", "| `data:fetch` |  | Fetches. |", "",
-            "## Tasks a Contributor Runs", "", "### `py`",
-            "", "| **Task** | **Alias** | **Description** |", "|---|---|---|",
-            "| `py:check` | `a`, `b` | Checks. |", "| `py:test` |  | Tests. |", "",
-            "### `repo`", "", "| **Task** | **Alias** | **Description** |",
+            "|---|---|---|", "| `data:fetch` |  | Fetches. |",
+            "| `data:index` |  | Indexes. |", "",
+            "## Tasks a Contributor Runs", "",
+            "### `data`", "",
+            "| **Task** | **Alias** | **Description** |", "|---|---|---|",
+            "| `data:publish` |  | Publishes. |", "",
+            "### `py`", "",
+            "| **Task** | **Alias** | **Description** |", "|---|---|---|",
+            "| `py:check` | `a`, `b` | Checks. |", "| `py:test` |  | Tests. |",
+            "", "### `repo`",
+            "", "| **Task** | **Alias** | **Description** |",
             "|---|---|---|", r"| `repo:ci` | `ci` | A \| B. |"
         )
     )

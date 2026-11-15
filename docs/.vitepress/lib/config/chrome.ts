@@ -43,6 +43,15 @@ export interface SiteTheme extends DefaultTheme.Config {
 }
 
 /**
+ * The crate under `rust/` computes each position's key through, beside the
+ * license its manifest declares and the page its documentation is published at.
+ */
+const CRATE = {
+  href    : 'https://docs.rs/shakmaty',
+  license : 'GPL-3.0-or-later',
+  name    : 'shakmaty'
+}
+/**
  * The page each license the site names is published at, beside the short name
  * the colophon's well sets where it differs from the name, keyed by the name
  * the manifest or the identity gives it.
@@ -116,9 +125,9 @@ function listed(runs: readonly Run[]): Run[] {
 /**
  * Lays out the colophon closing every page: the commit the site was built from
  * where the build knows one, the repository and the license its code carries,
- * the providers the store's games come from, the faces and their license, and
- * the pieces by their author, over a line naming the version and the license
- * until a piece is chosen.
+ * the providers the store's games come from, the crate computing each key and
+ * its license, the faces and their license, and the pieces by their author,
+ * over a line naming the version and the license until a piece is chosen.
  *
  * Args:
  *   commit    : The commit the site was built from, or `undefined` where the
@@ -132,6 +141,7 @@ export function colophonOf(
   providers : readonly Provider[]
 ): Colophon {
   const code   = licenseOf(facts.license)
+  const crate  = licenseOf(CRATE.license)
   const repo   = { href: facts.repository, text: new URL(facts.repository).pathname.slice(1) }
   const faces  = Object.values(IDENTITY.faces)
   const fonts  = [...new Set(faces.map(face => face.license))].map(name => licenseOf(name))
@@ -152,6 +162,12 @@ export function colophonOf(
       part  : 'Games',
       piece : 'R',
       short : conjunction.format(providers.map(provider => provider.name))
+    }, {
+      full  : ['Each key computed through the ', { href: CRATE.href, text: CRATE.name }, ' crate, under the ', crate.link, '.'],
+      name  : 'Bishop',
+      part  : 'Crate',
+      piece : 'B',
+      short : `${CRATE.name}, GPL`
     }, {
       full  : [...family, ', under the ', ...listed(fonts.map(font => font.link)), '.'],
       name  : 'Knight',

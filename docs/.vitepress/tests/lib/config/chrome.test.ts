@@ -1,6 +1,11 @@
+import fs   from 'node:fs'
+import path from 'node:path'
+
+import { parse }                from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 
 import * as chrome       from '../../../lib/config/chrome.ts'
+import { repoRoot }      from '../../../lib/site/paths.ts'
 import { textOf }        from '../../common/colophon.ts'
 import { pageAt }        from '../../common/pages.ts'
 import { FACTS, MENTOR } from '../../common/repo.ts'
@@ -14,11 +19,12 @@ function linksOf(colophon: chrome.Colophon): string[] {
 describe('colophonOf', () => {
   const colophon = chrome.colophonOf('0123456', FACTS, [MENTOR])
 
-  it('sets a white piece over each fact, from the King over the commit to the Pawn over the pieces', () => {
+  it('sets a white piece over each fact, from the King over the commit through the Bishop over the crate to the Pawn over the pieces', () => {
     expect(colophon.credits.map(credit => [credit.piece, credit.part, credit.short])).toEqual([
       ['K', 'Built from', '0123456'],
       ['Q', 'Code', 'Owner/game'],
       ['R', 'Games', 'PGN Mentor'],
+      ['B', 'Crate', 'shakmaty, GPL'],
       ['N', 'Faces', 'SIL OFL 1.1'],
       ['P', 'Pieces', 'Cburnett, BSD']
     ])
@@ -29,6 +35,7 @@ describe('colophonOf', () => {
       'Built from 0123456 of Owner/game.',
       'The code at Owner/game, under the GPL-3.0-or-later.',
       'Every game from the grandmaster files of PGN Mentor.',
+      'Each key computed through the shakmaty crate, under the GPL-3.0-or-later.',
       'Petrona, JetBrains Mono, and Hedvig Letters Serif, under the SIL Open Font License 1.1.',
       'Pieces drawn by Cburnett, under the 3-clause BSD license.'
     ])
@@ -47,6 +54,7 @@ describe('colophonOf, its links and its edges', () => {
     'https://github.com/Owner/game',
     'https://www.gnu.org/licenses/gpl-3.0.html',
     'https://www.pgnmentor.com/',
+    'https://docs.rs/shakmaty',
     'https://openfontlicense.org',
     'https://commons.wikimedia.org/wiki/File:Chess_klt45.svg'
   ])('links %s', address => {
@@ -59,7 +67,7 @@ describe('colophonOf, its links and its edges', () => {
 
   it('leaves the King out where the build knows no commit', () => {
     const pieces = chrome.colophonOf(undefined, FACTS, [MENTOR]).credits.map(credit => credit.piece)
-    expect(pieces).toEqual(['Q', 'R', 'N', 'P'])
+    expect(pieces).toEqual(['Q', 'R', 'B', 'N', 'P'])
   })
 
   const b = { home: 'https://b.org/', name: 'B' }
@@ -82,6 +90,15 @@ describe('colophonOf, its links and its edges', () => {
 
   it.each(lines.map(line => textOf(line)))('reads %s as prose', line => {
     expect(line).toReadAsProse()
+  })
+})
+
+describe('colophonOf, its crate', () => {
+  it('credits a crate the manifest under rust/ depends on', () => {
+    const file     = path.join(repoRoot(import.meta.url), 'rust', 'Cargo.toml')
+    const manifest = parse(fs.readFileSync(file, 'utf8')) as { dependencies: Record<string, unknown> }
+    const crate    = chrome.colophonOf(undefined, FACTS, [MENTOR]).credits.find(credit => credit.piece === 'B')!
+    expect(Object.keys(manifest.dependencies)).toContain(crate.short.split(',')[0])
   })
 })
 
