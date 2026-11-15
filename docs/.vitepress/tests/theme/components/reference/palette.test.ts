@@ -62,12 +62,12 @@ describe('Palette', () => {
 })
 
 describe('Palette, as it unfolds', () => {
-  test('hides the rank and the card until the drawing comes on screen', async () => {
+  test('shows the rank and the card whole until a scroll brings the drawing on screen', async () => {
     onScreen()
     const drawn = mount(Palette)
     await flushPromises()
-    expect(drawn.find('.sc-ref-picked').attributes('data-off')).toBe('')
-    expect(drawn.find('.sc-ref-rank').attributes('data-off')).toBe('')
+    expect(drawn.find('.sc-ref-picked').attributes('data-off')).toBeUndefined()
+    expect(drawn.find('.sc-ref-rank').attributes('data-off')).toBeUndefined()
   })
 
   test('unfolds through its colors and settles on the first', async ({ clock }) => {

@@ -66,8 +66,11 @@ describe('restingKey', () => {
 })
 
 describe('keyAt', () => {
-  it('sets the start mark at the starting position', () => {
-    expect(rails.keyAt(example, example.first)).toEqual([{ game: 'both', label: 'both games', start: true }])
+  it('sets the start mark of each game in its color at the starting position', () => {
+    expect(rails.keyAt(example, example.first)).toEqual([
+      { game: 'submitted', label: 'Yours', start: true },
+      { game: 'stored', label: STORED, start: true }
+    ])
   })
 
   it('names a shared position by its place in the run and the move both played to reach it', () => {

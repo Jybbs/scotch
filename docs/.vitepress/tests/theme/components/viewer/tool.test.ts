@@ -48,6 +48,19 @@ describe('Tool as the build renders it', () => {
   })
 })
 
+describe('Tool, its legend', () => {
+  it('names each game in its color in the corner, the submitted game first', async () => {
+    const { wrapper } = mountedTool()
+    const marks       = wrapper.findAll('.sc-viewer-legend .sc-data-legend-mark')
+    expect(marks.map(mark => [mark.attributes('aria-label'), mark.attributes('style')])).toEqual([
+      ['Your game', '--sc-data-tone: var(--sc-submitted);'],
+      ['The stored game', '--sc-data-tone: var(--sc-stored);']
+    ])
+    await marks[1]!.trigger('pointerenter')
+    expect(wrapper.find('.sc-viewer-legend .sc-data-legend-caption').text()).toBe('The stored game')
+  })
+})
+
 describe('Tool as a reader steps it', () => {
   test('steps on the controls’ keys, marking whether the boards share a position', async ({ clock }) => {
     const { root, wrapper } = mountedTool()

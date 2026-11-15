@@ -176,10 +176,14 @@ export function useBeats(): Beats {
 }
 
 /**
- * Runs a drawing's unfold once it first comes on screen, starting from `prime`,
- * and ends on `settle` once the unfold finishes, a reader touches the drawing,
- * or the unfold reaches its length. While the site's drawings hold still, the
- * drawing gets `settle` alone, whenever they come to hold still.
+ * Runs a drawing's unfold once a reader's scroll first brings it on screen,
+ * starting from `prime`, and ends on `settle` once the unfold finishes, a
+ * reader touches the drawing, or the unfold reaches its length. The drawing
+ * stands whole from its first paint until then, so a printed page and a
+ * full-page capture, neither of which scrolls the page, show it whole, as does
+ * a drawing already on screen when the page opens. While the site's drawings
+ * hold still, the drawing gets `settle` alone, whenever they come to hold
+ * still.
  *
  * Args:
  *   node  : The drawing's element.
@@ -198,8 +202,12 @@ export function useUnfold(node: NodeRef, beats: Beats, story: Story): void {
   const touch = (): void => {
     if (running) end()
   }
+  let scrolled     = false
+  core.useEventListener('scroll', () => {
+    scrolled = true
+  }, { once: true, passive: true })
   const { stop } = core.useIntersectionObserver(node, ([entry]) => {
-    if (!entry?.isIntersecting) return
+    if (!entry?.isIntersecting || !scrolled) return
     stop()
     if (!moving.value) return
     running = true
@@ -208,7 +216,7 @@ export function useUnfold(node: NodeRef, beats: Beats, story: Story): void {
     beats.at(story.length, touch)
   }, { threshold: SEEN })
 
-  onMounted(moving.value ? story.prime : story.settle)
+  onMounted(story.settle)
   watch(moving, now => {
     if (!now) end()
   })

@@ -7,11 +7,12 @@ import type { Offer }             from '../../../lib/viewer/guesses.ts'
 import { type Viewer, useViewer } from '../../../lib/viewer/state.ts'
 import { useSubmission }          from '../../../lib/viewer/submission.ts'
 import { Band }                   from './band.ts'
+import { gameLegend }             from './legend.ts'
 import { Stage }                  from './stage.ts'
 
 /**
  * Draws the stage at the Viewer's cursor, each part binding the ref the drive
- * reaches it through.
+ * reaches it through, with the legend of the two games over its track.
  */
 function drawStage(drive: drives.Drive, viewer: Viewer): VNode {
   return h(Stage, {
@@ -31,7 +32,7 @@ function drawStage(drive: drives.Drive, viewer: Viewer): VNode {
     onOffer : (offer: Offer) => {
       drive.parts.guess.value?.settle(viewer.offer(offer))
     }
-  })
+  }, gameLegend)
 }
 
 /**

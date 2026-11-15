@@ -43,7 +43,7 @@ Matched through `scotch match game docs/public/games/demo.pgn`, the demo game pr
 5. `0 other stored games share a run as long` counts the other stored games sharing a run as long as the match's
 <!-- /gloss -->
 
-The [run](../reference/terms.md#run) counts each position the two games share, the first as well as the last, so it spans one [ply](../reference/terms.md#ply) fewer than it holds positions, and [the parting move](../reference/terms.md#the-parting-move) is the stored game's move from the run's last position, where the two games go separate ways.
+The [run](../reference/terms.md#run) counts each position the two games share, the first as well as the last, so it spans one [ply](../reference/terms.md#ply) fewer than it holds positions, and [the parting move](../reference/terms.md#the-parting-move) is the stored game's move from the run's last position, where the two games go separate ways. Where several stored games share a run as long, the report names the one whose players' mean rating is highest, then a game carrying one rating by that rating, then an unrated game in the order the index holds it, and its last line counts the rest, in the order [Choosing Among Runs](../methods/runs.md#choosing-among-runs) sets out.
 
 ## Opening the Match in the Viewer
 

@@ -108,7 +108,7 @@ export const Colophon = defineComponent({
     return (): VNode => {
       const { credits, rest } = theme.value.colophon
       const line              = credits[shown.value ?? -1]?.full ?? rest
-      return h('footer', { class: 'sc-colophon', onFocusout: left }, [
+      return h('footer', { class: 'sc-colophon', id: 'colophon', onFocusout: left }, [
         h('div', {
           'aria-label' : 'The set, each piece over one fact',
           'class'      : 'sc-colophon-tray',

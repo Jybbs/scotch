@@ -46,7 +46,7 @@
   outline-offset : 1px;
 }
 
-.vp-doc .sc-data-legend-caption {
+.sc-data .sc-data-legend-caption {
   min-height     : 18px;
   margin         : 0;
   color          : var(--sc-data-ink);

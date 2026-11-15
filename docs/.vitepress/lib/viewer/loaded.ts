@@ -1,5 +1,6 @@
 import { clamp } from '@vueuse/core'
 
+import type { CornerMark }              from '../data/corner.ts'
 import type { Match, Side }             from './examples.ts'
 import * as games                       from './games.ts'
 import { type Hop, moveTo, standingOf } from './placements.ts'
@@ -57,6 +58,17 @@ export const NOTHING = 'No stored game shares a position with this game'
  * game first.
  */
 export const PARTIES = ['submitted', 'stored'] as const
+
+/**
+ * The marks of the Viewer's corner legend, one per game in the order the
+ * boards stand, each naming the game beside the color its board, its sheet,
+ * and its moves take.
+ */
+export const GAME_MARKS: readonly CornerMark[] = PARTIES.map(party => ({
+  key   : null,
+  label : { stored: 'The stored game', submitted: 'Your game' }[party],
+  tone  : `var(--sc-${party})`
+}))
 
 /**
  * Reads each move a game plays before ply `plies`, as the piece standing where

@@ -456,9 +456,10 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
     reference : Reference
 ):
     """
-    Asserts that the tasks `mise tasks` lists sort under a heading for each
-    group, each row holding the task's aliases and its description, a pipe
-    in which is escaped so it stays inside its cell.
+    Asserts that the tasks a user runs sit under a heading of their own
+    and every other task under a subheading for its group beneath the
+    contributor's heading, each row holding the task's aliases and its
+    description, a pipe in which is escaped so it stays inside its cell.
     """
     fp.register(
         ["mise", "tasks", "ls", "--json", "--local"],
@@ -484,6 +485,13 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "name"        : "py:check",
                     "aliases"     : ["a", "b"],
                     "depends"     : []
+                },
+                {
+                    "description" : "Fetches.",
+                    "file"        : None,
+                    "name"        : "data:fetch",
+                    "aliases"     : [],
+                    "depends"     : []
                 }
             ]
         )
@@ -491,11 +499,12 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
 
     assert reference.tasks == "\n".join(
         (
-            "## `py`", "",
-            "| **Task** | **Alias** | **Description** |", "|---|---|---|",
-            "| `py:check` | `a`, `b` | Checks. |", "| `py:test` |  | Tests. |",
-            "", "## `repo`",
-            "", "| **Task** | **Alias** | **Description** |",
+            "## Tasks a User Runs", "", "| **Task** | **Alias** | **Description** |",
+            "|---|---|---|", "| `data:fetch` |  | Fetches. |", "",
+            "## Tasks a Contributor Runs", "", "### `py`",
+            "", "| **Task** | **Alias** | **Description** |", "|---|---|---|",
+            "| `py:check` | `a`, `b` | Checks. |", "| `py:test` |  | Tests. |", "",
+            "### `repo`", "", "| **Task** | **Alias** | **Description** |",
             "|---|---|---|", r"| `repo:ci` | `ci` | A \| B. |"
         )
     )

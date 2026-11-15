@@ -108,7 +108,6 @@ def test_an_index_adds_the_files_written_from_it(
                         "<!-- order -->\n<!-- /order -->\n",
 
         "guide/index.md": (
-            "<!-- example -->\n<!-- /example -->\n\n"
             "Holds <!-- games -->0<!-- /games --> games and"
             " <!-- undated -->?<!-- /undated --> undated.\n\n"
             "Shares <!-- demo-run -->0<!-- /demo-run --> positions.\n"
@@ -146,7 +145,6 @@ def test_an_index_adds_the_files_written_from_it(
         (Document, "docs/.vitepress/lib/rendered/disk.json"),
         (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
-        (Region, "docs/pages/guide/index.md"),
         (Region, "docs/pages/data/index.md"),
         *[(Region, "docs/pages/data/lengths.md")] * 2,
         *[(Region, "docs/pages/data/omitted.md")] * 2,
@@ -184,12 +182,6 @@ def test_an_index_adds_the_files_written_from_it(
     assert [viewer[name]["submitted"]["moves"][0] for name in ("alone", "match")] == [
         "d4", "Nf3"
     ]
-    assert text["guide/index.md"].startswith(
-        "<!-- example -->\n```bash\nscotch match game"
-        " docs/public/games/demo.pgn\n```\n\n```text\n"
-        "players/Kasparov.zip:1  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg,"
-        " 1981.??.??\n"
-    )
     assert "Holds <!-- games -->10<!-- /games --> games and" in text["guide/index.md"]
     assert "<!-- undated -->0<!-- /undated --> undated." in text["guide/index.md"]
     assert "<!-- demo-run -->43<!-- /demo-run -->" in text["guide/index.md"]
@@ -264,20 +256,17 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
                 "warning"
             ),
 
-            "data/index.md"     : "Holds <!-- files -->0<!-- /files --> files.\n",
-            "data/sources.md"   : "<!-- sources -->\n<!-- /sources -->\n",
-            "develop/tasks.md"  : "<!-- tasks -->\n<!-- /tasks -->\n",
-            "guide/index.md"    : "<!-- install -->\n<!-- /install -->\n",
-            "guide/matching.md" : marked("refused"),
-            "guide/setup.md"    : marked("steps", "checks", "stops"),
-            "guide/store.md"    : "<!-- source -->\n<!-- /source -->\n",
-            "identity/faces.md" : marked("faces", "pieces"),
-            "identity/marks.md" : marked("marks", "construction"),
-            "index.md"          : "<!-- tagline --><!-- /tagline -->\n",
-
-            "develop/citing.md": marked("command-cite-source", "run-cite-source"),
-
-            "identity/palette.md": marked("palette", "roles"),
+            "data/index.md"       : "Holds <!-- files -->0<!-- /files --> files.\n",
+            "data/sources.md"     : "<!-- sources -->\n<!-- /sources -->\n",
+            "develop/tasks.md"    : "<!-- tasks -->\n<!-- /tasks -->\n",
+            "guide/matching.md"   : marked("refused"),
+            "guide/setup.md"      : marked("install", "steps", "checks"),
+            "guide/store.md"      : "<!-- source -->\n<!-- /source -->\n",
+            "identity/faces.md"   : marked("faces", "pieces"),
+            "identity/marks.md"   : marked("marks", "construction"),
+            "index.md"            : "<!-- tagline --><!-- /tagline -->\n",
+            "develop/citing.md"   : marked("command-cite-source", "run-cite-source"),
+            "identity/palette.md" : marked("palette", "roles"),
 
             "reference/commands.md": marked(
                 *(
@@ -418,7 +407,6 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
                             "<!-- dated -->\n<!-- /dated -->\n\n"
                             "<!-- order -->\n<!-- /order -->\n",
 
-            "guide/index.md"        : "<!-- example -->\n<!-- /example -->\n",
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
             "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
             "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
@@ -519,11 +507,10 @@ def test_shipped_declares_the_files_written_from_declarations(
       keys of each game the site serves, the marks' JSON, the pieces' JSON,
       and the terms' JSON
     - The favicon and each lockup
-    - The README's badges, then the install steps of the README and the
-      Guide
-    - The Guide's setup walkthrough, its install steps each beside what it
-      does, the checks `mise doctor project` runs, and the ways fetching and
-      indexing stop, then the games matching refuses
+    - The README's badges, then the install steps of the README and of the
+      Guide's setup walkthrough
+    - The setup walkthrough's install steps each beside what it does and the
+      checks `mise doctor project` runs, then the games matching refuses
     - The table of sources, then the row of sources the store page copies
     - The Reference section's settings with their read order and root,
       tasks, identity tables, terms, data files, and match file
@@ -550,7 +537,6 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/assets/lockup-light.svg"),
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
-        (Region, "docs/pages/guide/index.md"),
         *[(Region, "docs/pages/guide/setup.md")] * 3,
         (Region, "docs/pages/guide/matching.md"),
         (Region, "docs/pages/data/sources.md"),

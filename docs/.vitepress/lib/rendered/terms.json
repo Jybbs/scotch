@@ -1,5 +1,29 @@
 [
   {
+    "address": "https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c16.1",
+    "label": "The PGN standard on FEN",
+    "name": "FEN",
+    "pattern": "\\bFEN\\b",
+    "sentence": "Forsyth–Edwards Notation, one line of text setting out a position's pieces, the side to move, the castling rights, the en passant square, and the move counts.",
+    "anchor": "fen"
+  },
+  {
+    "address": "../data/index.md",
+    "label": "Data",
+    "name": "Floor",
+    "pattern": "\\b(?:rating )?floors?\\b",
+    "sentence": "The rating one of an Openings game's players must reach for the store to keep the game.",
+    "anchor": "floor"
+  },
+  {
+    "address": "../guide/store.md#building-the-index",
+    "label": "Building the Index",
+    "name": "Index",
+    "pattern": "(?<=\\b(?:the|an|its)\\s)index\\b",
+    "sentence": "The table of stored games and the file of every position they reach, each position under its key, which a match reads.",
+    "anchor": "index"
+  },
+  {
     "address": "../methods/keys.md",
     "label": "Position Keys",
     "name": "Key",
@@ -14,6 +38,14 @@
     "pattern": "\\bmainlines?\\b",
     "sentence": "A game's moves outside every variation its PGN records, the one line the index reads and stores.",
     "anchor": "mainline"
+  },
+  {
+    "address": "https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm",
+    "label": "The PGN standard",
+    "name": "PGN",
+    "pattern": "(?<![./])\\bPGN\\b",
+    "sentence": "Portable Game Notation, the plain-text format chess programs and playing sites export a game in, its tag pairs above its moves.",
+    "anchor": "pgn"
   },
   {
     "address": "https://chessprogramming.org/Ply",
@@ -32,12 +64,36 @@
     "anchor": "run"
   },
   {
+    "address": "../data/index.md",
+    "label": "Data",
+    "name": "Store",
+    "pattern": "(?<=\\b(?:the|a)\\s)store\\b",
+    "sentence": "The games a match is found among, read from the files PGN Mentor publishes, each game kept once and an Openings game only where it clears the floor.",
+    "anchor": "store"
+  },
+  {
+    "address": "../data/index.md",
+    "label": "Data",
+    "name": "Stored Game",
+    "pattern": "\\bstored games?\\b",
+    "sentence": "A game the store holds, which a submitted game is matched against.",
+    "anchor": "stored-game"
+  },
+  {
     "address": "../methods/runs.md",
     "label": "The Longest Run",
     "name": "The Parting Move",
     "pattern": "\\b(?:the )?(?:move|position) where (?:the )?two games part\\b",
     "sentence": "The first move after a run, where the stored game and the submitted one stop reaching the same positions.",
     "anchor": "the-parting-move"
+  },
+  {
+    "address": "../methods/runs.md#choosing-among-runs",
+    "label": "Choosing Among Runs",
+    "name": "Tie",
+    "pattern": "\\bti(?:es?|ed)\\b",
+    "sentence": "Two or more stored games sharing runs as long with a submitted game, ranked by the mean of their players' ratings.",
+    "anchor": "tie"
   },
   {
     "address": "https://chessprogramming.org/Transposition",

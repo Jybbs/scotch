@@ -1,7 +1,8 @@
 import { clamp } from '@vueuse/core'
 
-import * as numbers from './numbers.ts'
-import { STORE }    from './store.ts'
+import type { CornerMark } from './corner.ts'
+import * as numbers        from './numbers.ts'
+import { STORE }           from './store.ts'
 
 /**
  * The tuning the two charts of game lengths share: the move past which every
@@ -18,8 +19,6 @@ export interface Chart {
   short     : number
   smoothing : number
 }
-
-export type Outcome = (typeof OUTCOMES)[number]['key']
 
 /**
  * Where the bands, the bars beneath them, and the axis sit at a width.
@@ -47,6 +46,17 @@ export const OUTCOMES = [
   { key: 'd', labeled: 14, name: 'Drawn',     result: '1/2-1/2' },
   { key: 'b', labeled: 70, name: 'Black won', result: '0-1' }
 ] as const
+
+/**
+ * The marks of the chart's corner, one per result in the order the bands
+ * stack, each lighting its band and filled in the tone its band is drawn in.
+ */
+export const RESULT_MARKS: readonly CornerMark[] = OUTCOMES.map(({ key, name }) => ({
+  key   : key,
+  label : name,
+  tone  : `var(--sc-data-band-${key})`
+}))
+
 /**
  * The moves the axes of both charts name.
  */
@@ -75,7 +85,7 @@ export function bandMiddle(
  * Finds the place a result's band takes among the bands, in the order
  * `OUTCOMES` names the results.
  */
-export function bandOf(outcome: Outcome): number {
+export function bandOf(outcome: string): number {
   return OUTCOMES.findIndex(entry => entry.key === outcome)
 }
 

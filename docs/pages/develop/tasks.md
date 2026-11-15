@@ -1,23 +1,30 @@
 # Tasks
 
-Every task the repository declares sits below under its group, beside its alias and its description, written from what `mise tasks` reports, so a task added under `.mise/tasks/` reaches this page through the next `mise run docs:render`.
+Every task the repository declares sits below beside its alias and its description, written from what `mise tasks` reports, so a task added under `.mise/tasks/` reaches this page through the next `mise run docs:render`. The tasks a user runs to build the store come first, and every other task, each one a contributor runs to check, build, or publish *Scotch*, follows under its group.
 
 <!-- tasks -->
-## `data`
+## Tasks a User Runs
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
 | `data:fetch` |  | Download each file sources.toml declares into its provider's folder under .cache/data/downloads |
 | `data:index` |  | Build the index under .cache/data/index from the files data:fetch downloaded |
+
+## Tasks a Contributor Runs
+
+### `data`
+
+| **Task** | **Alias** | **Description** |
+|---|---|---|
 | `data:publish` |  | Write the store the site matches against under .cache/data/store from the index data:index built |
 
-## `docs`
+### `docs`
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
 | `docs:render` |  | Write each file a declaration in the repository renders into, and each one the index renders into where one has been built |
 
-## `gha`
+### `gha`
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
@@ -28,7 +35,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `gha:scoresheet` |  | Write the workflow run's summary and exit with its verdict |
 | `gha:total` |  | Write the total the package's suite covered as a whole number into `coverage.json` in the folder given, creating the folder where missing, which the published site serves |
 
-## `lock`
+### `lock`
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
@@ -37,7 +44,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `lock:lift` | `lift` | List every pin lagging its newest release, try the lift in a scratch clone under `--try`, and write it as one diff under `--write` |
 | `lock:sync` | `relock` | Re-resolve every lockfile against its manifest |
 
-## `py`
+### `py`
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
@@ -46,7 +53,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `py:format` | `format` | Rewrite the Python source to the house style, passing any further arguments to the formatter |
 | `py:test` | `test` | Run the test suite, passing any further arguments to pytest |
 
-## `repo`
+### `repo`
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
@@ -56,7 +63,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `repo:lint` |  | Audit every workflow and action manifest through zizmor, online wherever a GitHub token is set, as annotations under GitHub Actions |
 | `repo:rulesets` | `rulesets` | Apply the rulesets under `.github/rulesets/` and send every setting `.github/settings.toml` declares, listing each live ruleset no file names |
 
-## `rs`
+### `rs`
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
@@ -65,7 +72,7 @@ Every task the repository declares sits below under its group, beside its alias 
 | `rs:test` |  | Run the crate's tests, passing any further arguments to `cargo test` |
 | `rs:wasm` |  | Build the crate to WebAssembly and write its wasm-bindgen module into `docs/.vitepress/lib/games/crate` for the site |
 
-## `site`
+### `site`
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|

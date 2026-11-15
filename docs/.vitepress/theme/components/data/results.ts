@@ -2,10 +2,12 @@ import { clamp } from '@vueuse/core'
 import { type ShallowRef, type VNode, defineComponent, h, shallowRef } from 'vue'
 
 import { pointerAt, useChart }         from '../../../lib/data/chart.ts'
+import { dimmed }                      from '../../../lib/data/corner.ts'
 import { stepped }                     from '../../../lib/data/keys.ts'
 import * as lengths                    from '../../../lib/data/lengths.ts'
 import { useGlide, useMove }           from '../../../lib/data/move.ts'
 import * as numbers                    from '../../../lib/data/numbers.ts'
+import { Corner }                      from './corner.ts'
 import { Plate, moveTicks, moverLine } from './plate.ts'
 
 /**
@@ -40,16 +42,16 @@ function bandNames(layout: lengths.SharesLayout, shares: readonly number[][]): V
 }
 
 /**
- * Draws one band per result, every band but the one shown alone dimmed where
- * one is.
+ * Draws one band per result, every band but the one its corner mark lights
+ * dimmed while one is lit.
  */
 function bands(
   layout : lengths.SharesLayout,
-  only   : lengths.Outcome | null,
+  lit    : string | null,
   shares : readonly number[][]
 ): VNode[] {
   return lengths.OUTCOMES.map(({ key }, kind) => h('g', {
-    class: ['sc-data-band-group', { 'sc-data-off': only !== null && only !== key }]
+    class: ['sc-data-band-group', dimmed(key, lit)]
   }, [h('path', { class: `sc-data-band sc-data-band-${key}`, d: lengths.bandPath(shares, kind, layout) })]))
 }
 
@@ -104,16 +106,16 @@ function gridlines(layout: lengths.SharesLayout): VNode[] {
 
 /**
  * Draws the line at the move the chart follows and the thumb on it at the
- * middle of the drawn band, or of the band shown alone.
+ * middle of the drawn band, or of the band a corner mark lights.
  */
 function markers(
   layout : lengths.SharesLayout,
-  only   : lengths.Outcome | null,
+  lit    : string | null,
   shares : readonly number[][],
   shown  : number
 ): VNode[] {
   const share = shares[clamp(Math.round(shown), 1, lengths.CHART.plotted) - 1]!
-  const kind  = lengths.bandOf(only ?? 'd')
+  const kind  = lengths.bandOf(lit ?? 'd')
   const x     = lengths.moveX(layout, shown)
   const y     = lengths.bandMiddle(kind, layout, share)
 
@@ -128,20 +130,20 @@ function markers(
 
 /**
  * Draws the chart at its layout: the bands, their gridlines and names, the bars
- * beneath them, and the axis of moves, every band but the one shown alone
- * dimmed where one is.
+ * beneath them, and the axis of moves, every band but the one a corner mark
+ * lights dimmed while one is lit.
  */
-function sharesSvg(counts: Counts, layout: lengths.SharesLayout, only: lengths.Outcome | null): VNode {
+function sharesSvg(counts: Counts, layout: lengths.SharesLayout, lit: string | null): VNode {
   const { bars, height, left, plot, width } = layout
 
   return h('svg', {
     'aria-hidden' : 'true',
-    class         : ['sc-data-svg', { 'sc-data-isolated': only !== null }],
+    class         : ['sc-data-svg', { 'sc-data-isolated': lit !== null }],
     height        : height,
     viewBox       : `0 0 ${width} ${height}`,
     width         : width
   }, [
-    ...bands(layout, only, counts.shares),
+    ...bands(layout, lit, counts.shares),
     ...gridlines(layout),
     bandNames(layout, counts.shares),
     h('text', { class: 'sc-data-axis sc-data-caption', x: left, y: bars.top - 5 }, CAPTION),
@@ -149,6 +151,17 @@ function sharesSvg(counts: Counts, layout: lengths.SharesLayout, only: lengths.O
     h('rect', { class: 'sc-data-base', height: 1, width: plot, x: left, y: bars.top + bars.height }),
     ...moveTicks(layout, height - 6)
   ])
+}
+
+/**
+ * Draws the chart's corner legend, a mark per result lighting its band.
+ */
+function legend(lit: ShallowRef<string | null>): VNode {
+  return h(Corner, {
+    'items'        : lengths.RESULT_MARKS,
+    'lit'          : lit.value,
+    'onUpdate:lit' : (key: string | null) => { lit.value = key }
+  })
 }
 
 /**
@@ -166,34 +179,19 @@ function slider(move: number, totals: readonly number[]): Record<string, number 
 }
 
 /**
- * Draws the buttons that show one result's band alone, each pressed while its
- * band is the one shown and pressed again to show every band.
- */
-function toggles(only: ShallowRef<lengths.Outcome | null>): VNode[] {
-  return [
-    h('span', { class: 'sc-data-tools-caption' }, 'Show one'),
-    ...lengths.OUTCOMES.map(({ key, name }) => h('button', {
-      'aria-pressed' : only.value === key,
-      class          : 'sc-data-toggle',
-      onClick        : () => { only.value = only.value === key ? null : key },
-      type           : 'button'
-    }, [h('i', { 'aria-hidden': 'true', class: `sc-data-swatch sc-data-swatch-${key}` }), h('span', name)]))
-  ]
-}
-
-/**
  * The result's share at each length: three bands sharing the games ending at
  * each move among White's wins, draws, and Black's wins, always filling the
  * plot, over a count of the games ending at each move. A reader moves along the
  * moves with a pointer, a finger, or the arrow keys, the move shared with the
- * ridges of the decades, and shows one result alone through its button.
+ * ridges of the decades, and lights one result's band through its mark in the
+ * chart's corner.
  */
 export const Results = defineComponent({
   name  : 'ScotchResults',
   setup : () => {
     const counts   = countsOf(lengths.endingsOf())
     const move     = useMove()
-    const only     = shallowRef<lengths.Outcome | null>(null)
+    const lit      = shallowRef<string | null>(null)
     const dragging = shallowRef(false)
     const glide    = useGlide(move)
 
@@ -218,9 +216,9 @@ export const Results = defineComponent({
       big      : numbers.percent(lengths.drawnShares(counts.endings).short),
       readings : lengths.sharesReading(counts.endings, move.value),
       say      : lengths.sharesSummary(counts.endings)
-    }, {
-      tools   : () => toggles(only),
-      default : () => h('div', {
+    }, () => h('div', { class: 'sc-data-shares' }, [
+      legend(lit),
+      h('div', {
         ...slider(move.value, counts.totals),
         class           : 'sc-data-chart sc-data-results',
         onKeydown       : keyed,
@@ -233,9 +231,9 @@ export const Results = defineComponent({
         style           : style.value,
         tabindex        : 0
       }, sized.value ? [
-        sharesSvg(counts, layout.value, only.value),
-        ...markers(layout.value, only.value, counts.shares, glide.shown.value)
+        sharesSvg(counts, layout.value, lit.value),
+        ...markers(layout.value, lit.value, counts.shares, glide.shown.value)
       ] : [])
-    })
+    ]))
   }
 })

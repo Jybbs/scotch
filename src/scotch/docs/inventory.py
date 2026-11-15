@@ -216,16 +216,13 @@ class Outputs(RootModel[list[Output]]):
                     "match" : viewer.exported(root, index).model_dump(mode="json")
                 }
             ),
-            *(
-                Region(
-                    name   = "example",
-                    path   = page,
-                    render = lambda: (
-                        f"```bash\nscotch match game {examples['demo'].path}\n```\n\n"
-                        f"```text\n{drawn()['demo'].summary}\n```"
-                    )
+            Region(
+                name   = "example",
+                path   = readme,
+                render = lambda: (
+                    f"```bash\nscotch match game {examples['demo'].path}\n```\n\n"
+                    f"```text\n{drawn()['demo'].summary}\n```"
                 )
-                for page in (readme, Outputs.guide / "index.md")
             ),
             *(
                 Region(
@@ -404,7 +401,7 @@ class Outputs(RootModel[list[Output]]):
                 ),
                 *(
                     Region(name="install", path=page, render=lambda: project.install)
-                    for page in (readme, cls.guide / "index.md")
+                    for page in (readme, cls.guide / "setup.md")
                 ),
                 Region(
                     name   = "steps",
@@ -415,17 +412,6 @@ class Outputs(RootModel[list[Output]]):
                     name   = "checks",
                     path   = cls.guide / "setup.md",
                     render = lambda: reference.checks
-                ),
-                Region(
-                    name   = "stops",
-                    path   = cls.guide / "setup.md",
-                    render = lambda: stops.steps(
-                        (
-                            ("fetch games", None),
-                            ("index games", None),
-                            ("match game", "<index>")
-                        )
-                    )
                 ),
                 Region(
                     name   = "refused",

@@ -4,9 +4,9 @@ import { describe, expect, vi }  from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 
 import { useBeats, useUnfold, type Beats, type Story } from '../../../lib/reference/timeline.ts'
-import { test }         from '../../common/clock.ts'
-import { reduceMotion } from '../../common/motion.ts'
-import { onScreen }     from '../../common/unfold.ts'
+import { test }                      from '../../common/clock.ts'
+import { pauseMotion, reduceMotion } from '../../common/motion.ts'
+import { onScreen }                  from '../../common/unfold.ts'
 
 function story(play: Story['play'] = vi.fn<Story['play']>()): Story {
   return { length: 1000, play, prime: vi.fn<() => void>(), settle: vi.fn<() => void>() }
@@ -115,11 +115,12 @@ describe('useBeats, canceling', () => {
 })
 
 describe('useUnfold', () => {
-  test('waits in the primed state until the drawing comes on screen', () => {
+  test('stands whole from the first paint until a scroll brings the drawing on screen', () => {
     onScreen()
     const told = story()
     drawn(told)
-    expect(told.prime).toHaveBeenCalledTimes(1)
+    expect(told.settle).toHaveBeenCalledTimes(1)
+    expect(told.prime).not.toHaveBeenCalled()
     expect(told.play).not.toHaveBeenCalled()
   })
 
@@ -139,12 +140,34 @@ describe('useUnfold', () => {
     })
     drawn(early)
     await show()
-    expect(early.settle).toHaveBeenCalledTimes(1)
+    expect(early.settle).toHaveBeenCalledTimes(2)
     const told = story()
     drawn(told)
     await show()
     clock.advanceTimersByTime(1000)
-    expect(told.settle).toHaveBeenCalledTimes(1)
+    expect(told.settle).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('useUnfold with no scroll', () => {
+  test('stays whole where the drawing comes on screen with no scroll, as a capture does', async () => {
+    const observed = new Set<IntersectionObserverCallback>()
+    vi.stubGlobal('IntersectionObserver', class {
+      public disconnect = vi.fn<() => void>()
+      public observe    = vi.fn<() => void>()
+
+      public constructor(callback: IntersectionObserverCallback) {
+        observed.add(callback)
+      }
+    })
+    const told = story()
+    drawn(told)
+    await flushPromises()
+    observed.forEach(report => {
+      report([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
+    })
+    expect(told.prime).not.toHaveBeenCalled()
+    expect(told.play).not.toHaveBeenCalled()
   })
 })
 
@@ -154,15 +177,15 @@ describe('useUnfold, as a reader touches it', () => {
     const told  = story()
     const drawing = drawn(told)
     await drawing.trigger('pointerdown')
-    expect(told.settle).not.toHaveBeenCalled()
+    expect(told.settle).toHaveBeenCalledTimes(1)
     await show()
     await drawing.trigger('keydown', { key: 'Tab' })
     await drawing.trigger('keydown', { key: 'Shift' })
-    expect(told.settle).not.toHaveBeenCalled()
+    expect(told.settle).toHaveBeenCalledTimes(1)
     await drawing.trigger('keydown', { key: 'a' })
-    expect(told.settle).toHaveBeenCalledTimes(1)
+    expect(told.settle).toHaveBeenCalledTimes(2)
     await drawing.trigger('pointerdown')
-    expect(told.settle).toHaveBeenCalledTimes(1)
+    expect(told.settle).toHaveBeenCalledTimes(2)
   })
 
   test('goes straight to the end under reduced motion and plays nothing', async () => {
@@ -174,5 +197,15 @@ describe('useUnfold, as a reader touches it', () => {
     await show()
     expect(told.settle).toHaveBeenCalled()
     expect(told.play).not.toHaveBeenCalled()
+  })
+
+  test('settles mid-unfold once the drawings come to hold still', async () => {
+    const show = onScreen()
+    const told = story()
+    drawn(told)
+    await show()
+    expect(told.play).toHaveBeenCalledTimes(1)
+    await pauseMotion()
+    expect(told.settle).toHaveBeenCalledTimes(2)
   })
 })

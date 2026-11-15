@@ -9,13 +9,15 @@ games table, the crate's `SECTIONS` of `positions.bin`, and the checks
 through the next `scotch render docs`.
 """
 
-from chess     import Board, COLOR_NAMES, Piece, parse_square, piece_name
-from inspect   import getdoc
-from itertools import groupby
-from json      import loads
-from operator  import attrgetter
-from pathlib   import Path
-from pydantic  import BaseModel
+from chess           import Board, COLOR_NAMES, Piece, parse_square, piece_name
+from collections.abc import Iterable
+from inspect         import getdoc
+from itertools       import groupby
+from json            import loads
+from more_itertools  import partition
+from operator        import attrgetter
+from pathlib         import Path
+from pydantic        import BaseModel
 from pydantic_settings import (
     DotEnvSettingsSource,
     EnvSettingsSource,
@@ -59,6 +61,12 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     }
     """
     The square the pieces drawing first stands each piece on, by its symbol.
+    """
+
+    user_tasks: ClassVar[tuple[str, ...]] = ("data:fetch", "data:index")
+    """
+    The tasks a user runs to build the store a match reads, which the Tasks
+    page sets apart from the ones a contributor runs.
     """
 
     root: Path
@@ -255,9 +263,11 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         on the default every setting falls back to.
         """
         said = {
-            EnvSettingsSource  : lambda source: f"The `{source.env_prefix}` variable",
-            InitSettingsSource : lambda _:
+            EnvSettingsSource: lambda source: f"The `{source.env_prefix}` variable",
+
+            InitSettingsSource: lambda _:
                 f"A keyword argument passed to `{Settings.__name__}`",
+
             PyprojectTomlConfigSettingsSource: lambda source: (
                 f"The `[{'.'.join(source.toml_table_header)}]` table of the "
                 f"project's `{source.toml_file_path.name}`"
@@ -478,25 +488,29 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     @property
     def tasks(self) -> str:
         """
-        Writes a heading and a table for each group of tasks `mise tasks`
-        lists, each row holding the task, its alias, and its description.
+        Writes the table of the tasks a user runs under a heading of
+        its own, then a heading over the tasks a contributor runs and
+        a subheading and a table for each of their groups, from what
+        `mise tasks` lists, each row holding the task, its alias, and its
+        description.
         """
+        contributed, used = partition(
+            lambda task: task.name in self.user_tasks,
+            sorted(Task.listed(self.root), key=attrgetter("name"))
+        )
+
         return "\n\n".join(
-            f"## `{group}`\n\n" + markdown(
-                headers = ("Task", "Alias", "Description"),
-                right   = False,
-                rows    = (
-                    (
-                        f"`{task.name}`",
-                        ", ".join(f"`{alias}`" for alias in task.aliases),
-                        task.description.replace("|", r"\|")
+            (
+                "## Tasks a User Runs",
+                tabled(used),
+                "## Tasks a Contributor Runs",
+                *(
+                    f"### `{group}`\n\n{tabled(tasks)}"
+                    for group, tasks in groupby(
+                        contributed,
+                        key = lambda task: task.name.partition(":")[0]
                     )
-                    for task in tasks
                 )
-            )
-            for group, tasks in groupby(
-                sorted(Task.listed(self.root), key=attrgetter("name")),
-                key = lambda task: task.name.partition(":")[0]
             )
         )
 
@@ -585,6 +599,26 @@ def reach(piece: Piece, square: str) -> int:
     board.turn = piece.color
 
     return board.pseudo_legal_moves.count()
+
+
+def tabled(tasks: Iterable[Task]) -> str:
+    """
+    Writes the table of `tasks`, each row holding the task, its aliases, and
+    its description, escaping each pipe in a description so the text stays
+    inside its cell.
+    """
+    return markdown(
+        headers = ("Task", "Alias", "Description"),
+        right   = False,
+        rows    = (
+            (
+                f"`{task.name}`",
+                ", ".join(f"`{alias}`" for alias in task.aliases),
+                task.description.replace("|", r"\|")
+            )
+            for task in tasks
+        )
+    )
 
 
 def typed(field: dict[str, object]) -> str:

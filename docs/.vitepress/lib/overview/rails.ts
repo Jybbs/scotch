@@ -137,14 +137,14 @@ export function cutReplayOf(loaded: Loaded, replay: Record<keyof typeof REPLAY, 
 }
 
 /**
- * Writes the key for the position under the pointer: the start mark at the
- * starting position, the position's place in the run and the move reaching it
- * while the two share it, and otherwise each game's move there beside how far
- * the position stands from the run.
+ * Writes the key for the position under the pointer: each game's start mark in
+ * its color at the starting position, the position's place in the run and the
+ * move reaching it while the two share it, and otherwise each game's move there
+ * beside how far the position stands from the run.
  */
 export function keyAt(loaded: Loaded, cursor: number): Entry[] {
   const { last, length, meet } = loaded.shared!
-  if (cursor === loaded.first) return [{ game: 'both', label: 'both games', start: true }]
+  if (cursor === loaded.first) return PARTIES.map(party => ({ game: party, label: labelOf(loaded, party), start: true }))
   if (loaded.sharing(cursor)) {
     const moves = gamesAt(loaded, cursor)
     const place = `Position ${cursor - meet + 1} of ${length}`
