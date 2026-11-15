@@ -1,0 +1,19 @@
+.sc-start {
+  display     : inline-flex;
+  align-items : center;
+  gap         : 0.3em;
+  white-space : nowrap;
+}
+
+.sc-start-glyph {
+  flex   : none;
+  width  : 1.15em;
+  height : 1.15em;
+  fill   : currentColor;
+}
+
+.sc-start-label {
+  font           : 600 0.82em/1 var(--sc-face-code);
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+}

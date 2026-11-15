@@ -7,8 +7,8 @@ import { vi }            from 'vitest'
  * here finishes at once.
  *
  * Returns:
- *   The call that waits for each drawing mounted so far to start observing and
- *   reports each element still observed as on screen.
+ *   The call that waits for each drawing mounted so far to start observing,
+ *   scrolls the page, and reports each element still observed as on screen.
  */
 export function onScreen(): () => Promise<void> {
   const observers = new Set<IntersectionObserverCallback>()
@@ -26,6 +26,7 @@ export function onScreen(): () => Promise<void> {
   )
   return async () => {
     await flushPromises()
+    window.dispatchEvent(new Event('scroll'))
     observers.forEach(report => {
       report([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
     })

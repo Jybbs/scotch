@@ -5,7 +5,7 @@ import { afterEach, describe, expect, vi } from 'vitest'
 import { counted }                     from '../../../../lib/data/numbers.ts'
 import { SQUARES, decadesOf, fillsOf } from '../../../../lib/front/census.ts'
 import { Store }                       from '../../../../theme/components/front/store.ts'
-import { test }                        from '../../../common/clock.ts'
+import { homed, test }                 from '../../../common/clock.ts'
 import { reduceMotion }                from '../../../common/motion.ts'
 
 const decades = decadesOf()
@@ -40,9 +40,10 @@ describe('Store', () => {
     expect(store.findAll('.sc-front-eras > div')).toHaveLength(decades.length)
   })
 
-  test('opens on the earliest decade, its games drawn full on the board', async () => {
+  test('starts over on the earliest decade, its games drawn full on the board', async () => {
     const store = mount(Store)
     await flushPromises()
+    await homed(store)
     expect(store.find('.sc-front-spoken').text()).toBe(counted(decades[0]!.games))
     expect(store.findAll('.sc-front-store i[data-on]').length).toBeGreaterThan(0)
     expect(store.find('.sc-front-unit').text()).toBe('games')
@@ -52,6 +53,7 @@ describe('Store', () => {
   test('plays the decades on the clock', async ({ clock }) => {
     const store = mount(Store)
     await flushPromises()
+    await homed(store)
     clock.advanceTimersByTime(1300)
     await flushPromises()
     expect(store.find('.sc-front-eras > div[data-on]').text()).toContain(decades[1]!.short)

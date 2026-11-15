@@ -45,5 +45,6 @@ def test_the_page_sets_each_terms_heading_above_its_sentence_and_link():
         f"{first.sentence} [{first.label}]({first.address})."
     ]
     assert [term.name for term in terms.terms] == [
-        "Key", "Mainline", "Ply", "Run", "The Parting Move", "Transposition"
+        "FEN", "Floor", "Index", "Key", "Mainline", "PGN", "Ply",
+        "Run", "Store", "Stored Game", "The Parting Move", "Tie", "Transposition"
     ]

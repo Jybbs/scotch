@@ -4,7 +4,20 @@ This walkthrough takes a fresh clone of the repository to a built store, the poi
 
 ## The Install Steps
 
-The install steps on the [Guide](index.md) run the commands below from the folder the clone lands in, after [installing mise](https://mise.jdx.dev/installing-mise.html), each written from the package's own metadata by `mise run docs:render`:
+*Scotch* runs from a clone of its repository, with [mise](https://mise.jdx.dev) installing the tools `.mise/config.toml` pins, the Python interpreter and [uv](https://docs.astral.sh/uv/) among them. After [installing mise](https://mise.jdx.dev/installing-mise.html), the commands below clone the repository, print the help of the `scotch` command, and report anything the clone still needs:
+
+<!-- install -->
+```bash
+git clone --filter=blob:none https://github.com/Jybbs/scotch.git
+mise trust scotch
+mise -C scotch install
+cd scotch
+scotch --help
+mise doctor project
+```
+<!-- /install -->
+
+Each line does what the list below sets out, written from the package's own metadata by `mise run docs:render`:
 
 <!-- steps -->
 1. `git clone --filter=blob:none https://github.com/Jybbs/scotch.git` clones the repository, leaving out every earlier layout of the game store the history keeps, which git downloads only where a checkout reaches it
@@ -15,7 +28,7 @@ The install steps on the [Guide](index.md) run the commands below from the folde
 6. `mise doctor project` runs each check `.mise/config.toml` declares and prints the step that clears any that fails
 <!-- /steps -->
 
-## What the Clone Needs
+## Checking the Clone
 
 `mise doctor project` runs each check the `[doctor.checks]` tables of `.mise/config.toml` declare, printing `PASS` or `FAIL` beside the check's name and condition, and beneath a failing check the step that clears it, then exits with status 1 where any check fails, as [mise's project diagnostics](https://mise.jdx.dev/configuration/project-diagnostics.html) set out. The table below is written from those tables by `mise run docs:render`.
 
@@ -29,18 +42,8 @@ The install steps on the [Guide](index.md) run the commands below from the folde
 
 A fresh clone holds no games, so two tasks build the store under `.cache/data`, which git leaves untracked. `mise run data:fetch` runs `scotch fetch games`, downloading each file `src/scotch/sources/sources.toml` declares, and `mise run data:index` runs `scotch index games`, reading every game of those files into the index a match reads. The downloads take <!-- downloads-size -->1.1 GB<!-- /downloads-size --> on disk and the index <!-- index-size -->462.0 MB<!-- /index-size -->, each measured under the data directory by `mise run docs:render`, and [The Store](store.md) sets out what each task writes there.
 
-## Where a Step Stops
+## A Step That Stops
 
-Each command below prints the message beside it to stderr and exits nonzero under the condition the table names. The table is written by `mise run docs:render` from `src/scotch/docs/stops.toml`, and each command links its section of [The Commands](../reference/commands.md).
-
-<!-- stops -->
-| **Command** | **Message** | **When** | **Clears It** |
-|---|---|---|---|
-| [`scotch fetch games`](../reference/commands.md#scotch-fetch-games) | `Could not fetch <address>: <error>` | The server answers with an error status, a request fails once every retry has, or the connection breaks while the file downloads | Run the command again once the host answers, or raise `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S` |
-| [`scotch index games`](../reference/commands.md#scotch-index-games) | `No file has been fetched under <downloads>` | The manifest records no file `sources.toml` declares | Run `scotch fetch games` |
-| [`scotch index games`](../reference/commands.md#scotch-index-games) | `` These files changed on disk since their fetch, which `scotch fetch games` downloads again: `` | A fetched file no longer holds the bytes the manifest records | Run `scotch fetch games`, which downloads each file named below the line again |
-| [`scotch match game`](../reference/commands.md#scotch-match-game) | `No index has been built under <index>` | The data directory holds no index | Run `scotch index games` |
-| [`scotch match game`](../reference/commands.md#scotch-match-game) | `The index under <index> holds another layout` | The index was built in a layout other than the one this version reads | Run `scotch index games`, which rebuilds the index in this layout |
-<!-- /stops -->
+Each command stops with a message on stderr and a nonzero exit where the clone or the store is not ready for it, such as `scotch index games` before any file is fetched or `scotch match game` before the index is built. [The Commands](../reference/commands.md) sets out every message each command exits on and the step that clears it, under [`scotch fetch games`](../reference/commands.md#scotch-fetch-games), [`scotch index games`](../reference/commands.md#scotch-index-games), and [`scotch match game`](../reference/commands.md#scotch-match-game).
 
 With the index built, [Matching a Game](matching.md) matches a game of your own against it.

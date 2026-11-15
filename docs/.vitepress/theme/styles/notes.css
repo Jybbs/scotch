@@ -1,0 +1,174 @@
+:root {
+  --sc-cite-lit  : oklch(from var(--sc-series-3) calc(l + 0.1) c h);
+  --sc-cite-glow : light-dark(var(--sc-series-3), var(--sc-cite-lit));
+  --sc-cite-edge : light-dark(color-mix(in oklab, var(--sc-primary) 40%, transparent), color-mix(in oklab, var(--sc-light) 30%, transparent));
+  --sc-cite-wash : light-dark(color-mix(in oklab, var(--sc-series-3) 14%, transparent), color-mix(in oklab, var(--sc-cite-lit) 18%, transparent));
+}
+
+.vp-doc :is(.sc-cite, .footnote-item)[data-shade='light'] {
+  --sc-cite-on  : var(--sc-light);
+  --sc-cite-off : var(--sc-primary);
+}
+
+.vp-doc :is(.sc-cite, .footnote-item)[data-shade='dark'] {
+  --sc-cite-on  : var(--sc-primary);
+  --sc-cite-off : var(--sc-light);
+}
+
+.vp-doc sup.footnote-ref {
+  position             : relative;
+  display              : inline-flex;
+  margin-left          : 2px;
+  border-radius        : 2px;
+  overflow             : clip;
+  box-shadow           : 0 0 0 1px var(--sc-cite-edge);
+  font                 : 600 0.64em/1 var(--sc-face-code);
+  font-variant-numeric : tabular-nums;
+  vertical-align       : 0.5em;
+  white-space          : nowrap;
+}
+
+.vp-doc .sc-cite {
+  position                    : relative;
+  display                     : inline-grid;
+  place-items                 : center;
+  min-width                   : 1.55em;
+  height                      : 1.55em;
+  background                  : var(--sc-cite-on);
+  color                       : var(--sc-cite-off);
+  font-weight                 : inherit;
+  text-decoration             : none;
+  -webkit-tap-highlight-color : transparent;
+  transition                  : box-shadow var(--sc-duration-fade) var(--sc-curve-glide);
+
+  &::after {
+    content  : '';
+    position : absolute;
+    inset    : -11px -1px -7px;
+  }
+
+  &:first-child::after { left: -5px; }
+
+  &:last-child::after { right: -5px; }
+
+  &:hover,
+  &[data-picked] { box-shadow: inset 0 0 0 2px var(--sc-cite-lit); }
+
+  &:focus-visible {
+    outline        : 2px solid var(--vp-c-brand-1);
+    outline-offset : -2px;
+  }
+}
+
+::highlight(sc-cited) { background-color: color-mix(in oklab, var(--sc-cite-glow) 20%, transparent); }
+
+.vp-doc .footnotes {
+  margin-top  : 3rem;
+  color       : var(--sc-quiet);
+  font-size   : 0.86rem;
+  line-height : 1.6;
+}
+
+.vp-doc .footnotes h2 {
+  margin         : 0 0 12px;
+  padding        : 0 0 8px;
+  border-top     : 0;
+  border-bottom  : 1px solid var(--sc-rule);
+  color          : var(--sc-ink);
+  font-size      : 1.05rem;
+  line-height    : 1.3;
+  letter-spacing : normal;
+}
+
+.vp-doc .footnotes-list {
+  margin        : 0;
+  padding       : 0;
+  list-style    : none;
+  counter-reset : sc-source;
+}
+
+.vp-doc .footnote-item {
+  position          : relative;
+  margin            : 0;
+  padding           : 2px 0 12px calc(1.2rem + 16px);
+  outline           : none;
+  counter-increment : sc-source;
+  transition        : color var(--sc-duration-fade) var(--sc-curve-glide);
+
+  &::before {
+    content              : counter(sc-source);
+    position             : absolute;
+    top                  : 3px;
+    left                 : 0;
+    width                : 1.2rem;
+    padding-right        : 9px;
+    box-sizing           : border-box;
+    font                 : 500 0.76rem/1.6 var(--sc-face-code);
+    font-variant-numeric : tabular-nums;
+    text-align           : right;
+  }
+
+  &::after {
+    content    : '';
+    position   : absolute;
+    inset      : 0 auto 0 1.2rem;
+    width      : 4px;
+    background : var(--sc-cite-on);
+    box-shadow : inset 1px 0 var(--sc-cite-edge), inset -1px 0 var(--sc-cite-edge);
+    transition : box-shadow var(--sc-duration-fade) var(--sc-curve-glide);
+  }
+
+  &:first-child::after {
+    border-radius : 2px 2px 0 0;
+    box-shadow    : inset 1px 0 var(--sc-cite-edge), inset -1px 0 var(--sc-cite-edge), inset 0 1px var(--sc-cite-edge);
+  }
+
+  &:last-child::after {
+    border-radius : 0 0 2px 2px;
+    box-shadow    : inset 1px 0 var(--sc-cite-edge), inset -1px 0 var(--sc-cite-edge), inset 0 -1px var(--sc-cite-edge);
+  }
+
+  &:only-child::after {
+    border-radius : 2px;
+    box-shadow    : inset 0 0 0 1px var(--sc-cite-edge);
+  }
+
+  &[data-picked] { color: var(--sc-ink); }
+
+  &[data-picked]::after { box-shadow: 0 0 0 2px var(--sc-cite-lit); }
+}
+
+.vp-doc .footnote-item p {
+  margin      : 0;
+  line-height : inherit;
+}
+
+.vp-doc .footnote-item a:not(.footnote-backref) {
+  font          : 400 0.72rem/1.5 var(--sc-face-code);
+  overflow-wrap : anywhere;
+}
+
+.vp-doc .footnote-backref {
+  display         : inline-block;
+  min-width       : 24px;
+  min-height      : 24px;
+  margin-left     : 2px;
+  padding         : 0 3px;
+  box-sizing      : border-box;
+  border-radius   : 3px;
+  font            : 500 0.76rem/24px var(--sc-face-code);
+  text-align      : center;
+  text-decoration : none;
+  vertical-align  : middle;
+  transition      : background-color var(--sc-duration-fade) var(--sc-curve-glide), color var(--sc-duration-fade) var(--sc-curve-glide);
+
+  sup {
+    font-size   : 0.8em;
+    line-height : 0;
+  }
+
+  &[aria-current] {
+    background : var(--sc-cite-wash);
+    color      : var(--sc-ink);
+  }
+}

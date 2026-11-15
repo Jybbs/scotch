@@ -15,11 +15,27 @@ export const FIGURE = 'ScotchFigure'
  * renaming a section or a region moves its widget or fails the suite.
  */
 export const PLACED: Readonly<Record<string, readonly Placement[]>> = {
-  'data/index.md'   : [{ draw: 'decades', region: 'decades' }, { draw: 'files', region: 'sources' }],
-  'data/lengths.md' : [{ draw: 'eras', region: 'lengths' }, { draw: 'results', region: 'outcomes' }],
-  'data/omitted.md' : [{ draw: 'ledger', region: 'ledger' }, { draw: 'floor', region: 'floors' }],
-  'guide/store.md'  : [{ draw: 'archives', region: 'archives' }],
-  'methods/runs.md' : [{ after: 'Stepping Through a Match', draw: 'run' }],
+  'data/files.md'         : [{ draw: 'commands', region: 'layout' }],
+  'data/lengths.md'       : [{ draw: 'eras', region: 'lengths' }, { draw: 'results', region: 'outcomes' }],
+  'data/omitted.md'       : [{ draw: 'ledger', region: 'ledger' }, { draw: 'floor', region: 'floors' }],
+  'data/sources.md'       : [{ draw: 'files', region: 'sources' }],
+  'develop/index.md'      : [{ after: 'Develop', draw: 'rails' }],
+  'guide/index.md'        : [{ after: 'A First Match', draw: 'rails' }],
+  'guide/matching.md'     : [{ draw: 'refused', region: 'refused' }],
+  'guide/studying.md'     : [{ after: 'Studying a Match', draw: 'menu' }],
+  'identity/faces.md'     : [{ draw: 'faces', region: 'faces' }, { draw: 'pieces', region: 'pieces' }],
+  'identity/index.md'     : [{ after: 'Identity', draw: 'rails' }],
+  'methods/index.md'      : [{ after: 'Methods', draw: 'rails' }],
+  'methods/runs.md'       : [{ after: 'Stepping Through a Match', draw: 'run' }],
+  'reference/commands.md' : [{ after: 'The Commands', draw: 'commands' }],
+  'reference/index.md'    : [{ after: 'Reference', draw: 'rails' }],
+  'reference/match.md'    : [{ draw: 'exported', region: 'export' }],
+
+  'data/index.md': [
+    { after: 'Data', draw: 'rails' },
+    { after: 'Data', draw: 'sieve' },
+    { draw: 'decades', region: 'decades' }
+  ],
 
   'data/shared.md': [
     { draw: 'parting', region: 'parting' },
@@ -33,20 +49,27 @@ export const PLACED: Readonly<Record<string, readonly Placement[]>> = {
     { draw: 'tie', region: 'order' }
   ],
 
+  'guide/store.md': [
+    { after: 'Fetching the Files', draw: 'handoff' },
+    { draw: 'archives', region: 'archives' }
+  ],
+
+  'identity/marks.md': [
+    { draw: 'marks', region: 'marks' },
+    { draw: 'construction', region: 'construction' }
+  ],
+
+  'identity/palette.md': [
+    { draw: 'palette', region: 'palette' },
+    { draw: 'roles', region: 'roles' },
+    { draw: 'series', region: 'series' }
+  ],
+
   'index.md': [
+    { after: 'Scotch', draw: 'opening' },
     { after: 'Data', draw: 'store' },
     { after: 'Guide', draw: 'session' },
     { after: 'Methods', draw: 'prints' },
     { after: 'Viewer', draw: 'split' }
-  ],
-
-  'reference/identity.md': [
-    { draw: 'palette', region: 'palette' },
-    { draw: 'roles', region: 'roles' },
-    { draw: 'series', region: 'series' },
-    { draw: 'faces', region: 'faces' },
-    { draw: 'pieces', region: 'pieces' },
-    { draw: 'marks', region: 'marks' },
-    { draw: 'construction', region: 'construction' }
   ]
 }

@@ -10,6 +10,23 @@ Each `scotch` command reads the settings below from what `Settings` declares, so
 | `SCOTCH_TIMEOUT_S` | `timeout_s` | A number above 0 | `30` | The seconds a request waits to connect, and then for each read of the response, before it fails. |
 <!-- /settings -->
 
+## Moving the Data
+
+`SCOTCH_DATA` moves the store's data to another directory, such as a drive with more room, for the one command it prefixes or, once exported, for every command the shell runs after it:
+
+```bash
+SCOTCH_DATA=/data/scotch scotch fetch games
+export SCOTCH_DATA=/data/scotch
+scotch index games
+```
+
+The `data` key under `[tool.scotch]` moves it for every command run inside the clone:
+
+```toml
+[tool.scotch]
+data = "/data/scotch"
+```
+
 ## The Read Order
 
 A command takes each setting from the first of these that names it:

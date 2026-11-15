@@ -25,12 +25,14 @@ export interface Half {
 
 /**
  * The sheets bound row by row: the rows, each holding the plies the cursor
- * reaches together in either game, and whether the submitted game's first move
- * is Black's, which shifts every row by one ply.
+ * reaches together in either game, whether the submitted game's first move is
+ * Black's, which shifts every row by one ply, and the index of the row naming
+ * the starting position above the first move.
  */
 export interface Sheet {
   first : number
   rows  : readonly SheetRow[]
+  start : number
 }
 
 /**
@@ -84,7 +86,8 @@ export function rowAt(cursor: number, first: number): number {
 
 /**
  * Binds the two games' moves row by row, the stored game's shifted by the run's
- * offset, so each row holds the plies the cursor reaches together.
+ * offset, so each row holds the plies the cursor reaches together, beneath the
+ * row naming the starting position.
  */
 export function sheetOf(loaded: Loaded): Sheet {
   const first = games.numberingOf(loaded.match.submitted)(0).white ? 0 : 1
@@ -94,5 +97,6 @@ export function sheetOf(loaded: Loaded): Sheet {
     return rows.get(index)!
   }
   for (const party of PARTIES) place(loaded, first, party, rowOf)
-  return { first, rows: [...rows.values()].toSorted((a, b) => a.index - b.index) }
+  const sorted = [...rows.values()].toSorted((a, b) => a.index - b.index)
+  return { first, rows: sorted, start: (sorted[0]?.index ?? 0) - 1 }
 }

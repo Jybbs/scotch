@@ -131,14 +131,20 @@ describe('Results, from the keyboard and the pointer', () => {
 })
 
 describe('Results, one result at a time', () => {
-  it('shows one result alone through its button, and every result again on a second press', async () => {
+  it('lights one result through its corner mark, and every result again once the pointer leaves', async () => {
     const { results } = mounted()
-    const drawn       = results.findAll('.sc-data-toggle')[1]!
-    await drawn.trigger('click')
-    expect([drawn.attributes('aria-pressed'), results.findAll('.sc-data-off').length]).toEqual(['true', 2])
+    const drawn       = results.findAll('.sc-data-legend-mark')[1]!
+    await drawn.trigger('pointerenter')
+    expect([drawn.classes('is-on'), results.findAll('.sc-data-off').length]).toEqual([true, 2])
     expect(results.find('svg').classes()).toContain('sc-data-isolated')
-    await drawn.trigger('click')
-    expect([drawn.attributes('aria-pressed'), results.findAll('.sc-data-off').length]).toEqual(['false', 0])
+    expect(results.find('.sc-data-legend-caption').text()).toBe('Drawn')
+    await drawn.trigger('pointerleave')
+    expect([drawn.classes('is-on'), results.findAll('.sc-data-off').length]).toEqual([false, 0])
+  })
+
+  it('names each result in its corner in the tone its band takes, in the order the bands stack', () => {
+    expect(mounted().results.findAll('.sc-data-legend-mark').map(mark => [mark.attributes('aria-label'), mark.attributes('style')]))
+      .toEqual(lengths.OUTCOMES.map(({ key, name }) => [name, `--sc-data-tone: var(--sc-data-band-${key});`]))
   })
 })
 
@@ -158,10 +164,10 @@ describe('Results, sized', () => {
 })
 
 describe('Results, its markers', () => {
-  it('stands the thumb at the middle of the drawn band, and of the band shown alone', async () => {
+  it('stands the thumb at the middle of the drawn band, and of the band a corner mark lights', async () => {
     const { results } = mounted()
     expect(standing(results, '.sc-data-thumb')).toBe(thumbAt(lengths.bandOf('d')))
-    await results.findAll('.sc-data-toggle')[0]!.trigger('click')
+    await results.findAll('.sc-data-legend-mark')[0]!.trigger('pointerenter')
     expect(standing(results, '.sc-data-thumb')).toBe(thumbAt(lengths.bandOf('w')))
   })
 

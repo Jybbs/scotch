@@ -4,6 +4,7 @@ import { computed, defineComponent, h, onBeforeUnmount, onMounted, shallowRef } 
 import { type Loaded, NOTHING, PARTIES, type Pair, type Party } from '../../../lib/viewer/loaded.ts'
 import { SheetMarker } from '../../../lib/viewer/marker.ts'
 import * as sheets     from '../../../lib/viewer/sheet.ts'
+import { startMark }   from '../start.ts'
 
 /**
  * What the sheets are drawn at: the cursor they open on, the call moving the
@@ -39,7 +40,33 @@ function cell(opening: Opening, party: Party, move?: sheets.Cell): VNode {
   ])] : [])
 }
 
-function half(opening: Opening, party: Party, { black, no, white }: sheets.Half): VNode[] {
+/**
+ * Draws the grid of rows, the row holding the starting position first, lit
+ * where the cursor the sheets open on stands.
+ */
+function grid(
+  loaded  : Loaded,
+  opening : Opening,
+  rows    : ShallowRef<HTMLElement | null>,
+  sheet   : sheets.Sheet
+): VNode {
+  const lit    = sheets.rowAt(opening.at, sheet.first)
+  const starts = { stored: start(loaded, 'stored'), submitted: start(loaded, 'submitted') }
+  return h('div', {
+    'aria-label' : 'Both games’ moves, row by row',
+    'class'      : 'sc-viewer-rows',
+    'ref'        : rows,
+    'role'       : 'grid'
+  }, [
+    row(sheet.start === lit, false, starts),
+    ...sheet.rows.map(each => row(each.index === lit, each.run, {
+      stored    : moves(opening, 'stored', each.stored),
+      submitted : moves(opening, 'submitted', each.submitted)
+    }))
+  ])
+}
+
+function moves(opening: Opening, party: Party, { black, no, white }: sheets.Half): VNode[] {
   return [
     h('span', { class: 'sc-viewer-no', role: 'rowheader' }, no ?? ''),
     cell(opening, party, white),
@@ -47,16 +74,16 @@ function half(opening: Opening, party: Party, { black, no, white }: sheets.Half)
   ]
 }
 
-function row(lit: boolean, opening: Opening, sheetRow: sheets.SheetRow): VNode {
+function row(lit: boolean, run: boolean, halves: Record<Party, VNode[]>): VNode {
   return h('div', {
     'class'    : 'sc-viewer-row',
     'data-at'  : lit ? '' : undefined,
-    'data-run' : sheetRow.run ? '' : undefined,
+    'data-run' : run ? '' : undefined,
     'role'     : 'row'
   }, [
-    ...half(opening, 'submitted', sheetRow.submitted),
+    ...halves.submitted,
     h('span', { 'aria-hidden': 'true', 'class': 'sc-viewer-gutter' }),
-    ...half(opening, 'stored', sheetRow.stored)
+    ...halves.stored
   ])
 }
 
@@ -71,6 +98,19 @@ function sign(): VNode {
       h('path', { class: 'sc-viewer-differ', d: 'M17.5 6.5l-7 15' })
     ])
   ])
+}
+
+/**
+ * Sets the start mark across one game's two columns of the row holding the
+ * starting position, in the game's color, or leaves them empty where no game
+ * stands on that side.
+ */
+function start(loaded: Loaded, party: Party): VNode[] {
+  return [
+    h('span', { class: 'sc-viewer-no', role: 'rowheader' }),
+    h('span', { 'class': 'sc-viewer-cell sc-viewer-start', 'data-game': party, 'role': 'gridcell' },
+      loaded.sideOf(party) ? [startMark()] : [])
+  ]
 }
 
 /**
@@ -137,15 +177,9 @@ export const Ledger = defineComponent({
     return () => {
       const at      = props.loaded.shared?.meet ?? 0
       const opening = { at, go, twin: sheets.pairAt(props.loaded, at) }
-      const lit     = sheets.rowAt(at, sheet.value.first)
       return h('div', { class: 'sc-viewer-ledger' }, [
         h('div', { class: 'sc-viewer-ledger-box', ref: box }, [
-          h('div', {
-            'aria-label' : 'Both games’ moves, row by row',
-            'class'      : 'sc-viewer-rows',
-            'ref'        : rows,
-            'role'       : 'grid'
-          }, sheet.value.rows.map(each => row(each.index === lit, opening, each))),
+          grid(props.loaded, opening, rows, sheet.value),
           props.loaded.match.stored
             ? null
             : h('p', { class: 'sc-viewer-none' }, `${NOTHING}.`),

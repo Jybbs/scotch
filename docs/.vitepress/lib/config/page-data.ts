@@ -6,7 +6,7 @@ import type { PageData } from 'vitepress'
 import { STORE }                  from '../data/store.ts'
 import { FRONT }                  from '../markdown/front.ts'
 import { commitOf, projectFacts } from '../site/manifest.ts'
-import { statsOf }                from '../viewer/colophon.ts'
+import { statsOf }                from '../viewer/stats.ts'
 import { VIEWER }                 from '../viewer/page.ts'
 
 type TransformedPage = Pick<PageData, 'frontmatter' | 'relativePath'>

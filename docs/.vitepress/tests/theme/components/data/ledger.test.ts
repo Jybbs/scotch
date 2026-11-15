@@ -47,11 +47,11 @@ describe('GameLedger', () => {
 
   it('dims every segment but the kind a corner mark lights', async () => {
     const drawn = mount(GameLedger)
-    await drawn.find('.sc-data-mark').trigger('pointerenter')
+    await drawn.find('.sc-data-legend-mark').trigger('pointerenter')
     const off = drawn.findAll('.sc-data-ledger-segment').filter(segment => segment.classes('sc-data-off'))
     expect(off.every(segment => segment.attributes('data-k') !== 'kept')).toBe(true)
     expect(off.length).toBe(omitted.segments.filter(({ kind }) => kind !== 'kept').length)
-    await drawn.find('.sc-data-mark').trigger('pointerleave')
+    await drawn.find('.sc-data-legend-mark').trigger('pointerleave')
     expect(drawn.findAll('.sc-data-off').length).toBe(0)
   })
 })

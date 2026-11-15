@@ -1,0 +1,58 @@
+{
+  "export": [
+    {
+      "meaning": "The submitted game.",
+      "name": "submitted",
+      "type": "An object, as `Side` holds it"
+    },
+    {
+      "meaning": "The run of positions the two games share, left empty where no stored game shares a position with the submitted game.",
+      "name": "span",
+      "type": "An object, as `Span` holds it, or `null`"
+    },
+    {
+      "meaning": "The stored game, left empty where no stored game shares a position with the submitted game.",
+      "name": "stored",
+      "type": "An object, as `Side` holds it, or `null`"
+    },
+    {
+      "meaning": "The count of other stored games sharing a run as long as the stored game's, 0 where none does or where no stored game shares a position.",
+      "name": "ties",
+      "type": "An integer from 0"
+    }
+  ],
+  "side": [
+    {
+      "meaning": "The value of each tag pair keyed by its name.",
+      "name": "headers",
+      "type": "An object of strings"
+    },
+    {
+      "meaning": "The moves of the mainline in Standard Algebraic Notation (SAN).",
+      "name": "moves",
+      "type": "An array of strings"
+    },
+    {
+      "meaning": "The piece placement of each position from the start, one more than the moves.",
+      "name": "placements",
+      "type": "An array of strings"
+    }
+  ],
+  "span": [
+    {
+      "meaning": "The number of positions the run holds.",
+      "name": "length",
+      "type": "An integer from 1"
+    },
+    {
+      "meaning": "The stored game's ply minus the submitted game's ply, the same at every position of the run.",
+      "name": "offset",
+      "type": "An integer"
+    },
+    {
+      "meaning": "The submitted game's ply at the first position of the run.",
+      "name": "start",
+      "type": "An integer from 0"
+    }
+  ]
+}

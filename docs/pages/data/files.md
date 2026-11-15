@@ -1,6 +1,6 @@
 # The Data Files
 
-A run writes its files under the data directory [Settings](settings.md) names, which is `.cache/data` under the project's root unless a setting moves it, and git tracks none of them. The table below names each file, written by `mise run docs:render` from the code that names it, and [The Store](../guide/store.md) sets out when a fetch downloads a file again and when the index is built again.
+A run writes its files under the data directory [Settings](../reference/settings.md) names, which is `.cache/data` under the project's root unless a setting moves it, and git tracks none of them. The table below names each file, written by `mise run docs:render` from the code that names it, and [The Store](../guide/store.md) sets out when a fetch downloads a file again and when the index is built again.
 
 <!-- layout -->
 | **Path** | **Written By** | **Holds** |

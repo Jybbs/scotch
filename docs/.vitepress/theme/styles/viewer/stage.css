@@ -43,6 +43,8 @@
   border-top  : 1px solid var(--sc-rule);
 }
 
+.sc-viewer-legend { margin-bottom: 6px; }
+
 .sc-viewer-status {
   max-width      : none;
   margin         : 0;

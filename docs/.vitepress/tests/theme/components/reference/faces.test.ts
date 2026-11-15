@@ -2,12 +2,12 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, vi } from 'vitest'
 
-import { IDENTITY } from '../../../../lib/identity/tokens.ts'
-import { Faces }    from '../../../../theme/components/reference/faces.ts'
-import { test }     from '../../../common/clock.ts'
+import { IDENTITY }     from '../../../../lib/identity/tokens.ts'
+import { Faces }        from '../../../../theme/components/reference/faces.ts'
+import { test }         from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
-import { resized }  from '../../../common/size.ts'
-import { onScreen } from '../../../common/unfold.ts'
+import { resized }      from '../../../common/size.ts'
+import { onScreen }     from '../../../common/unfold.ts'
 
 vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),
@@ -26,7 +26,8 @@ describe('Faces', () => {
   test('sets the score sheet in the three faces, its move numbers set apart', ({ clock }) => {
     const drawn = settled(clock)
     expect(drawn.find('h5').text()).toBe('The Longest Run')
-    expect(drawn.findAll('.sc-ref-part').map(part => part.attributes('data-face'))).toEqual(['display', 'body', 'code'])
+    expect(drawn.findAll('.sc-ref-part').map(part => part.attributes('data-face')))
+      .toEqual(['display', 'body', 'code'])
     expect(drawn.findAll('.sc-ref-number').length).toBe(7)
     expect(drawn.findAll('.sc-ref-moves span').length).toBe(21)
   })
@@ -35,7 +36,8 @@ describe('Faces', () => {
     const facts = settled(clock).findAll('.sc-ref-fact')
     expect(facts.map(fact => fact.find('b').text())).toEqual(['display', 'body', 'code'].map(face =>
       IDENTITY.faces[face as 'body'].family))
-    expect(facts[1]!.find('code').text()).toBe(`${IDENTITY.faces.body.package} · ${IDENTITY.faces.body.license}`)
+    const { license, package: named } = IDENTITY.faces.body
+    expect(facts[1]!.find('code').text()).toBe(`${named} · ${license}`)
     expect(facts[1]!.find('span').text()).toBe(IDENTITY.meanings.faces.body)
   })
 
@@ -72,6 +74,8 @@ describe('Faces, the tint behind a pick', () => {
     vi.spyOn(fact.element as HTMLElement, 'offsetHeight', 'get').mockReturnValue(70)
     resized(342)
     await flushPromises()
+    clock.advanceTimersToNextFrame()
+    await flushPromises()
     expect(drawn.find('.sc-ref-block').attributes('style')).toContain('height: 70px')
   })
 
@@ -93,6 +97,7 @@ describe('Faces, the tint behind a pick', () => {
     expect(drawn.findAll('.sc-ref-fact')[2]!.attributes('aria-pressed')).toBe('true')
     clock.advanceTimersByTime(800)
     await flushPromises()
-    expect(drawn.findAll('.sc-ref-fact').every(fact => fact.attributes('aria-pressed') === 'false')).toBe(true)
+    const pressed = drawn.findAll('.sc-ref-fact').map(fact => fact.attributes('aria-pressed'))
+    expect(pressed.every(each => each === 'false')).toBe(true)
   })
 })

@@ -16,6 +16,7 @@ vi.mock('../../../theme/components/front/index.ts', () => ({
 vi.mock('../../../theme/components/methods/index.ts', () => ({
   METHODS_WIDGETS: { other: defineComponent({ setup: () => () => h('svg', { class: 'other' }) }) }
 }))
+vi.mock('../../../theme/components/overview/index.ts', () => ({ OVERVIEW_WIDGETS: {} }))
 vi.mock('../../../theme/components/reference/index.ts', () => ({ REFERENCE_WIDGETS: {} }))
 
 /**

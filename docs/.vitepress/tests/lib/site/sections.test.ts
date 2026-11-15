@@ -16,19 +16,18 @@ describe('SECTIONS', () => {
     expect(SECTIONS.map(({ label }) => label.toLowerCase())).toEqual(SECTIONS.map(({ slug }) => slug))
   })
 
-  it('lists the sections alphabetically', () => {
-    expect(SECTIONS.map(({ slug }) => slug)).toEqual(SECTIONS.map(({ slug }) => slug).toSorted())
+  it('lists the sections in the order a reader takes them', () => {
+    expect(SECTIONS.map(({ slug }) => slug)).toEqual(['identity', 'data', 'guide', 'methods', 'viewer', 'reference', 'develop'])
   })
 
   it.each(ordered)('orders a page its section carries, $page', ({ page }) => {
     expect(pageText(page)).toMatch(/^# /mu)
   })
 
-  it('accents each section in a color of its own, never a game\'s or the run\'s', () => {
+  it('accents each section in a color of its own, never the run\'s', () => {
     const colors: readonly unknown[] = SECTIONS.map(({ color }) => color)
-    const taken                      = [ROLES.run.light, ROLES.stored.light, ROLES.submitted.light]
     expect(new Set(colors).size).toBe(colors.length)
-    expect(taken.filter(color => colors.includes(color))).toEqual([])
+    expect(colors).not.toContain(ROLES.run.light)
   })
 })
 

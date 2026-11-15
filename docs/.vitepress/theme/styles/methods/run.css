@@ -322,6 +322,8 @@
 
 .sc-run-option:not([data-cell='start']) .sc-run-move { box-shadow: inset 3px 0 0 var(--sc-run-game); }
 
+.sc-run-move .sc-start { color: var(--sc-run-game); }
+
 .sc-run-option[data-cell='run'] .sc-run-move { --sc-run-game: var(--sc-run); }
 
 .sc-run-mark {

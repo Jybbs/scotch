@@ -1,59 +1,29 @@
+.sc-data-shares {
+  --sc-data-band-b : color-mix(in oklab, var(--sc-data-black) 78%, var(--sc-data-page));
+  --sc-data-band-d : var(--sc-data-draw);
+  --sc-data-band-w : color-mix(in oklab, var(--sc-data-ink) 6%, var(--sc-data-page));
+  display          : grid;
+  gap              : 8px;
+}
+
 .sc-data-results {
   cursor       : crosshair;
   touch-action : pan-y;
 }
-
-.sc-data-toggle {
-  display       : inline-flex;
-  align-items   : center;
-  gap           : 7px;
-  height        : 30px;
-  padding       : 0 12px;
-  border        : 0;
-  border-radius : 15px;
-  background    : var(--sc-raised);
-  box-shadow    : inset 0 0 0 1px var(--sc-data-rule);
-  color         : var(--sc-data-ink);
-  font          : 600 0.78rem/30px var(--sc-face-body);
-  cursor        : pointer;
-  transition    : box-shadow var(--sc-duration-fade) var(--sc-curve-glide);
-}
-
-.sc-data-toggle:hover { box-shadow: inset 0 0 0 1px var(--sc-data-link); }
-
-.sc-data-toggle[aria-pressed='true'] {
-  background : var(--sc-data-tint);
-  box-shadow : inset 0 0 0 1.5px var(--sc-data-link);
-}
-
-.sc-data-swatch {
-  display       : inline-block;
-  flex          : none;
-  width         : 10px;
-  height        : 10px;
-  border-radius : 2px;
-  box-shadow    : inset 0 0 0 1px var(--sc-data-edge);
-}
-
-.sc-data-swatch-w { background: var(--sc-ground); }
-
-.sc-data-swatch-d { background: var(--sc-data-draw); }
-
-.sc-data-swatch-b { background: var(--sc-data-black); }
 
 .sc-data-band-group { transition: opacity var(--sc-duration-settle) var(--sc-curve-glide); }
 
 .sc-data-band-group.sc-data-off { opacity: 0.16; }
 
 .sc-data-band-w {
-  fill         : color-mix(in oklab, var(--sc-data-ink) 6%, var(--sc-data-page));
+  fill         : var(--sc-data-band-w);
   stroke       : var(--sc-data-edge);
   stroke-width : 0.6;
 }
 
-.sc-data-band-d { fill: var(--sc-data-draw); }
+.sc-data-band-d { fill: var(--sc-data-band-d); }
 
-.sc-data-band-b { fill: color-mix(in oklab, var(--sc-data-black) 78%, var(--sc-data-page)); }
+.sc-data-band-b { fill: var(--sc-data-band-b); }
 
 .sc-data-band-name { font: 600 0.7rem var(--sc-face-body); }
 

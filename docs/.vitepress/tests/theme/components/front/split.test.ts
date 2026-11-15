@@ -6,7 +6,7 @@ import { frontOf }      from '../../../../lib/front/example.ts'
 import { lastOf }       from '../../../../lib/front/plies.ts'
 import { squareAt }     from '../../../../lib/methods/squares.ts'
 import { Split }        from '../../../../theme/components/front/split.ts'
-import { test }         from '../../../common/clock.ts'
+import { homed, test }  from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 
 const front     = frontOf()
@@ -44,9 +44,10 @@ describe('Split', () => {
     expect(line.attributes('aria-valuetext')).toBe('The parting')
   })
 
-  test('opens on one board, both games at the position they meet at by two orders', async () => {
+  test('starts over on one board, both games at the position they meet at by two orders', async () => {
     const split = mount(Split)
     await flushPromises()
+    await homed(split)
     expect(split.find('.sc-front-split').attributes('data-apart')).toBeUndefined()
     expect(split.findAll('.sc-front-board').map(board => board.attributes('data-game')))
       .toEqual(['submitted', 'stored'])
@@ -119,6 +120,7 @@ describe('Split on the clock', () => {
   test('glides a ply at a time on the clock', async ({ clock }) => {
     const split = mount(Split)
     await flushPromises()
+    await homed(split)
     clock.advanceTimersByTime(700)
     await flushPromises()
     expect(Element.prototype.animate).toHaveBeenCalled()

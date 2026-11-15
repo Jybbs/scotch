@@ -1,21 +1,16 @@
 import { type VNode, defineComponent, h, shallowRef } from 'vue'
 
-import { percent }                              from '../../../lib/data/numbers.ts'
-import { useDrive }                             from '../../../lib/front/drive.ts'
-import { type Front, type Game, frontOf, same } from '../../../lib/front/example.ts'
-import { lastOf, readingAt }                    from '../../../lib/front/plies.ts'
-import { type Readout, Panel }                  from './panel.ts'
+import { percent }                                     from '../../../lib/data/numbers.ts'
+import { useDrive }                                    from '../../../lib/front/drive.ts'
+import { type Front, type Game, SHADE, frontOf, same } from '../../../lib/front/example.ts'
+import { lastOf, readingAt }                           from '../../../lib/front/plies.ts'
+import { type Readout, Panel }                         from './panel.ts'
 
 /**
  * How the fingerprints play their plies: the milliseconds between two, and the
  * beats they rest on the last.
  */
 const PACE = { interval: 650, rest: 4 } as const
-/**
- * The opacity of a fingerprint's lightest digit and the opacity each step of a
- * digit adds, so the digit `f` draws at 0.9.
- */
-const SHADE = { least: 0.08, step: 0.82 / 15 } as const
 /**
  * The name each game's track goes by.
  */

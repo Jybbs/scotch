@@ -3,16 +3,10 @@ import { describe, expect, it } from 'vitest'
 
 import { CARD }               from '../../../lib/cards/draw.ts'
 import { pageHead, siteHead } from '../../../lib/config/head.ts'
-import type { ProjectFacts }  from '../../../lib/site/manifest.ts'
 import { builtPages }         from '../../common/pages.ts'
+import { FACTS as COMMON }    from '../../common/repo.ts'
 
-const FACTS: ProjectFacts = {
-  description : 'Finds the closest game.',
-  gate        : 95,
-  homepage    : 'https://scotch.fyi',
-  host        : 'scotch.fyi',
-  version     : '0.1.0'
-}
+const FACTS = { ...COMMON, homepage: 'https://scotch.fyi', host: 'scotch.fyi' }
 
 const headOf = (relativePath: string, description = 'Keys.', title = 'Position Keys'): HeadConfig[] =>
   pageHead(FACTS, { description, relativePath, title }, 'Scotch')

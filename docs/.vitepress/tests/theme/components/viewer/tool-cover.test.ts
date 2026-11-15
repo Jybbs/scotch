@@ -68,7 +68,7 @@ async function typed(wrapper: VueWrapper, text: string): Promise<void> {
  * moves offered that match.
  */
 function said(wrapper: VueWrapper): string[] {
-  return ['.sc-viewer-status', 'p[aria-live]', '.sc-viewer-guess-note'].map(name => wrapper.get(name).text())
+  return ['.sc-viewer-status', 'p[role=status]', '.sc-viewer-guess-note'].map(name => wrapper.get(name).text())
 }
 
 describe('Tool covering the stored game', () => {

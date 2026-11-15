@@ -1,19 +1,21 @@
 import { defineConfig } from 'vitepress'
 
 import { writeCards }             from './lib/cards/write.ts'
-import { FOOTER, NOT_FOUND }      from './lib/config/chrome.ts'
+import * as chrome                from './lib/config/chrome.ts'
 import * as head                  from './lib/config/head.ts'
 import { buildNav, buildSidebar } from './lib/config/navigation.ts'
 import { pageData }               from './lib/config/page-data.ts'
 import { identityPlugin }         from './lib/identity/sheet.ts'
 import { markdownRules }          from './lib/markdown/rules.ts'
-import { projectFacts }           from './lib/site/manifest.ts'
+import * as manifest              from './lib/site/manifest.ts'
 import * as paths                 from './lib/site/paths.ts'
 
-const TITLE = 'Scotch'
-const facts = projectFacts(import.meta.url)
+const TITLE     = 'Scotch'
+const commit    = manifest.commitOf(import.meta.url)
+const facts     = manifest.projectFacts(import.meta.url)
+const providers = manifest.providersOf(import.meta.url)
 
-export default defineConfig({
+export default defineConfig<chrome.SiteTheme>({
   buildEnd          : async built => { await writeCards(built, import.meta.url) },
   cacheDir          : paths.cacheDir(import.meta.url, 'vitepress'),
   cleanUrls         : true,
@@ -28,9 +30,9 @@ export default defineConfig({
   transformPageData : (page, context) => pageData(page, context, import.meta.url),
 
   themeConfig: {
-    footer    : FOOTER,
+    colophon  : chrome.colophonOf(commit, facts, providers),
     nav       : buildNav(),
-    notFound  : NOT_FOUND,
+    notFound  : chrome.NOT_FOUND,
     outline   : { label: 'On This Page', level: [2, 3] },
     search    : { provider: 'local' },
     sidebar   : buildSidebar(paths.pagesDir(import.meta.url)),

@@ -1,17 +1,18 @@
 import { useData }                        from 'vitepress'
 import { type VNode, defineComponent, h } from 'vue'
 
-import type { Stat }              from '../../../lib/viewer/colophon.ts'
+import type { Stat }              from '../../../lib/viewer/stats.ts'
 import * as drives                from '../../../lib/viewer/drive.ts'
 import type { Offer }             from '../../../lib/viewer/guesses.ts'
 import { type Viewer, useViewer } from '../../../lib/viewer/state.ts'
 import { useSubmission }          from '../../../lib/viewer/submission.ts'
 import { Band }                   from './band.ts'
+import { gameLegend }             from './legend.ts'
 import { Stage }                  from './stage.ts'
 
 /**
  * Draws the stage at the Viewer's cursor, each part binding the ref the drive
- * reaches it through.
+ * reaches it through, with the legend of the two games over its track.
  */
 function drawStage(drive: drives.Drive, viewer: Viewer): VNode {
   return h(Stage, {
@@ -31,7 +32,7 @@ function drawStage(drive: drives.Drive, viewer: Viewer): VNode {
     onOffer : (offer: Offer) => {
       drive.parts.guess.value?.settle(viewer.offer(offer))
     }
-  })
+  }, gameLegend)
 }
 
 /**
@@ -92,7 +93,7 @@ export const Tool = defineComponent({
         'class'     : 'sc-viewer-hidden',
         'role'      : 'status'
       }, [viewer.verdict.value?.say, viewer.status.value.say].filter(Boolean).join(' ')),
-      h('dl', { class: 'sc-viewer-colophon' }, stats().map(({ label, value }) =>
+      h('dl', { class: 'sc-viewer-stats' }, stats().map(({ label, value }) =>
         h('div', { class: 'sc-viewer-stat' }, [h('dt', label), h('dd', value)])))
     ])
   }
