@@ -11,6 +11,7 @@ describe('studying', () => {
       'match game --plies 4', 'match game --top 3', 'match games', 'show game', 'show position', 'show store'
     ])
     expect(studying.RUNS.map(({ answer, lines }) => lines[answer])).not.toContain(undefined)
+    expect(studying.RUNS.map(({ answer }) => answer)).toEqual([3, 5, 0, 11, 0, 1])
     expect(studying.RUNS[4]!.columns).toBe(true)
   })
 

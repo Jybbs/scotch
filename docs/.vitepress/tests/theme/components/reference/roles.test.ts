@@ -114,6 +114,7 @@ describe('Roles, as the column or the unfold changes it', () => {
     clock.runAllTimers()
     resized(342)
     await flushPromises()
+    expect(drawn.find('.sc-ref').attributes('data-narrow')).toBeUndefined()
     clock.advanceTimersToNextFrame()
     await flushPromises()
     expect(drawn.find('.sc-ref').attributes('data-narrow')).toBe('')

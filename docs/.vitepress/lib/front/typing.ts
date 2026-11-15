@@ -1,5 +1,5 @@
-import { useIntersectionObserver } from '@vueuse/core'
-import { type ComputedRef, type ShallowRef, onBeforeUnmount, shallowRef, watch } from 'vue'
+import { useIntersectionObserver, useTimeoutFn } from '@vueuse/core'
+import { type ComputedRef, type ShallowRef, shallowRef, watch } from 'vue'
 
 import { useMotion } from '../motion/control.ts'
 import { beatsOf }   from './session.ts'
@@ -86,18 +86,18 @@ export function useTyping(commands: readonly Typed[], pace: Pace = PACE): Typing
   const at         = shallowRef(last)
   const playing    = shallowRef(false)
   const { moving } = useMotion()
-  let timer: ReturnType<typeof setTimeout> | undefined
+  const timer      = useTimeoutFn(() => {
+    at.value += 1
+    tick()
+  }, () => holdOf(commands, frames[at.value]!, pace), { immediate: false })
 
   const stop = (): void => {
-    clearTimeout(timer)
+    timer.stop()
     playing.value = false
   }
   const tick = (): void => {
     if (at.value >= last) return stop()
-    timer = setTimeout(() => {
-      at.value += 1
-      tick()
-    }, holdOf(commands, frames[at.value]!, pace))
+    timer.start()
   }
   const play = (): void => {
     stop()
@@ -117,7 +117,6 @@ export function useTyping(commands: readonly Typed[], pace: Pace = PACE): Typing
     stop()
     at.value = last
   })
-  onBeforeUnmount(stop)
 
   return { at, frames, moving, play, playing, root }
 }

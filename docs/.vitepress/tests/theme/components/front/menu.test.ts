@@ -23,11 +23,12 @@ describe('Menu', () => {
     const screen = drawn.find('.sc-menu-run').element
     const scroll = vi.fn<(options?: ScrollToOptions) => void>()
     screen.scrollTo = scroll as typeof screen.scrollTo
+    Object.defineProperty(screen, 'scrollHeight', { value: 480 })
     await drawn.findAll('.sc-menu-choice')[4]!.trigger('click')
     await vi.runAllTimersAsync()
     expect(drawn.find('.sc-menu-run').attributes('aria-label')).toBe(studying.RUNS[4]!.heading)
     expect(drawn.find('.sc-menu-lines').classes()).toContain('is-columns')
-    expect(scroll).toHaveBeenCalledWith({ top: screen.scrollHeight })
+    expect(scroll).toHaveBeenLastCalledWith({ top: 480 })
     vi.useRealTimers()
     drawn.unmount()
   })
