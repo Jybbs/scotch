@@ -10,6 +10,7 @@ from common.sources  import declare, land
 from cyclopts        import App
 from datetime        import date
 from pathlib         import Path
+from polars          import read_parquet
 from pytest          import MonkeyPatch, fixture
 from shutil          import copyfile
 from subprocess      import run
@@ -119,6 +120,19 @@ def project(monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
     monkeypatch.setattr("scotch.cli.settings.root", lambda: tmp_path)
 
     return tmp_path
+
+
+@fixture
+def relaid(data: Path, indexed: Game) -> Path:
+    """
+    Rewrites the games table of the index `indexed` builds without its
+    `errors` column, a layout this version does not read, and returns the
+    index's folder.
+    """
+    games = PositionIndex.table(data / "index")
+    read_parquet(games).drop("errors").write_parquet(games)
+
+    return data / "index"
 
 
 @fixture

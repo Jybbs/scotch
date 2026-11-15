@@ -7,7 +7,6 @@ error it exits on where the index or a page cannot be read.
 
 from common.app import invoke
 from pathlib    import Path
-from polars     import read_parquet
 from pytest     import CaptureFixture, MonkeyPatch, mark
 
 from scotch.docs.inventory import Outputs
@@ -35,21 +34,16 @@ def test_render_with_an_index_writes_its_files_and_then_changes_nothing(
     assert capsys.readouterr().out == ""
 
 
-@mark.usefixtures("indexed", "shipped")
+@mark.usefixtures("shipped")
 def test_render_against_an_index_of_another_layout_exits_naming_it(
-    data     : Path,
+    relaid   : Path,
     tmp_path : Path
 ):
     """
     Asserts that a render against an index whose games table lacks a column
     exits nonzero naming the directory it read, writing nothing.
     """
-    games = PositionIndex.table(data / "index")
-    read_parquet(games).drop("errors").write_parquet(games)
-
-    assert invoke("render", "docs") == (
-        f"The index under {data / 'index'} holds another layout"
-    )
+    assert invoke("render", "docs") == f"The index under {relaid} holds another layout"
     assert not (tmp_path / "root" / "declared.txt").exists()
 
 

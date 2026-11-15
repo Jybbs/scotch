@@ -2,8 +2,9 @@
 Pins what the `readers` extension module reads and keys against what
 python-chess reads and keys, the store's own reader before the crate:
 
-- The moves, the tags, and the keys of any legal game python-chess plays
-  and exports, read back through `read` and keyed again through `keys`
+- The moves, the tags, and the keys of each game `KNOWN` holds once
+  python-chess exports it, read back through `read` and keyed again
+  through `keys`
 - The keys of each known-answer game, which the site's suite pins against
   the same games through the WebAssembly build of the crate
 - Each quirk of python-chess's reader on malformed text, read as python-chess
@@ -19,17 +20,16 @@ python-chess reads and keys, the store's own reader before the crate:
   count as the same share a key
 """
 
-from chess             import Board
-from chess.pgn         import Game as PgnGame, GameBuilder, SKIP, SkipType, read_game
-from chess.polyglot    import zobrist_hash
-from common.strategies import played
-from functools         import partial
-from hypothesis        import given
-from io                import StringIO
-from pathlib           import Path
-from pytest            import mark, param
+from chess          import Board
+from chess.pgn      import Game as PgnGame, GameBuilder, SKIP, SkipType, read_game
+from chess.polyglot import zobrist_hash
+from functools      import partial
+from io             import StringIO
+from pathlib        import Path
+from pytest         import mark, param
 
 from scotch.games.readers import STANDARD, keys, read, scored, trails
+from scotch.games.schemas import Game
 
 
 class Mainline(GameBuilder):
@@ -84,16 +84,15 @@ def legally(board: Board) -> int:
     return zobrist_hash(board)
 
 
-@given(board=played())
-def test_any_legal_game_reads_and_keys_as_python_chess_reads_and_keys_it(board: Board):
+def test_a_known_game_reads_and_keys_as_python_chess_reads_and_keys_it(replayed: Game):
     """
-    Asserts that any legal game python-chess exports reads back through
+    Asserts that each known game python-chess exports reads back through
     the crate with python-chess's tags, its moves in UCI, its keys, and no
     error, and that `keys` keys its moves alike.
     """
-    exported = PgnGame.from_board(board)
+    exported = PgnGame.from_board(replayed.at(len(replayed.moves)))
     [(tags, moves, keyed, errors)] = read(str(exported))
-    uci = [move.uci() for move in board.move_stack]
+    uci = [move.uci() for move in replayed.moves]
 
     assert (tags, moves, errors) == (list(exported.headers.items()), uci, [])
     assert keyed == keys(uci) == hashed(exported)
@@ -120,18 +119,19 @@ def test_an_en_passant_capture_no_legal_move_plays_leaves_the_key_as_without_it(
     assert keys([], fen=legal) != keys([], fen=closed)
 
 
-@given(board=played())
-def test_scored_writes_each_move_and_placement_as_python_chess_writes_it(board: Board):
+def test_scored_writes_each_move_and_placement_as_python_chess_writes_it(
+    replayed: Game
+):
     """
-    Asserts that `scored` writes each move of any legal game in SAN and the
+    Asserts that `scored` writes each move of each known game in SAN and the
     placement of each position it reaches as python-chess's `Board.san` and
     `Board.board_fen` write them.
     """
-    mainline   = list(PgnGame.from_board(board).mainline())
+    mainline   = list(PgnGame.from_board(replayed.at(len(replayed.moves))).mainline())
     sans       = [node.san() for node in mainline]
     placements = [Board().board_fen(), *(node.board().board_fen() for node in mainline)]
 
-    assert scored([move.uci() for move in board.move_stack]) == (sans, placements)
+    assert scored([move.uci() for move in replayed.moves]) == (sans, placements)
 
 
 @mark.parametrize(

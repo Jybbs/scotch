@@ -157,6 +157,25 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(
     assert invoke("show", *argv) == f"No index has been built under {data / 'index'}"
 
 
+@mark.parametrize(
+    "argv",
+    [
+        param(("game", "players/White.zip:1"), id="game"),
+        param(("position",), id="position")
+    ]
+)
+def test_an_index_holding_another_layout_exits_naming_where_it_was_read(
+    argv   : tuple[str, ...],
+    relaid : Path
+):
+    """
+    Asserts that `scotch show game` and `scotch show position` against an
+    index whose games table lacks a column exit nonzero naming the directory
+    they read.
+    """
+    assert invoke("show", *argv) == f"The index under {relaid} holds another layout"
+
+
 @mark.usefixtures("indexed")
 @mark.parametrize(
     "position",

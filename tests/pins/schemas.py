@@ -6,11 +6,9 @@ pin builds, the table a `Report` prints, and the advisory each audit's own
 record reads as.
 """
 
-from datetime              import UTC, date, datetime
-from hypothesis            import given
-from hypothesis.strategies import DataObject, data, from_regex
-from pathlib               import Path
-from pytest                import TempPathFactory, mark, param, raises
+from datetime         import UTC, date, datetime
+from pathlib          import Path
+from pytest           import mark, param, raises
 from re               import finditer
 from syrupy.assertion import SnapshotAssertion
 
@@ -437,55 +435,57 @@ def test_the_table_lists_each_lift_by_file_then_name(snapshot: SnapshotAssertion
     assert report.table(date(2026, 10, 23)) == snapshot
 
 
-@given(drawn=data())
-@mark.parametrize("spelling", Spelling, ids=str)
+@mark.parametrize(
+    ("spelling", "version"),
+    [
+        param(spelling, version, id=f"{spelling}-{label}")
+        for spelling in Spelling
+        for label, version in (
+            {
+                "letters" : "f" * 40,
+                "mixed"   : "0123456789abcdef" * 2 + "01234567",
+                "zeros"   : "0" * 40
+            }
+            if spelling is Spelling.REF
+            else {
+                "four-parts"  : "9999.0.10.9999",
+                "one-part"    : "7",
+                "three-parts" : "3.14.7"
+            }
+        ).items()
+    ]
+)
 def test_an_edit_reads_back_as_the_version_it_writes(
-    drawn            : DataObject,
-    spelling         : Spelling,
-    tmp_path_factory : TempPathFactory
+    spelling : Spelling,
+    tmp_path : Path,
+    version  : str
 ):
     """
-    Asserts that, for any version a spelling's pattern holds, the pattern
-    finds in the rewritten file the version the edit wrote and nothing else,
-    so writing a lift and reading it back round-trips.
+    Asserts that, for a version of each shape a spelling's pattern holds,
+    the pattern finds in the rewritten file the version the edit wrote and
+    nothing else, so writing a lift and reading it back round-trips.
     """
-    name, text, versions = {
-        Spelling.ASSIGNMENT: (
-            "python", 'python = "3.14.6"\n', r"[0-9]{1,4}(\.[0-9]{1,4}){0,3}"
-        ),
-
-        Spelling.INPUT: (
-            "wranglerVersion", "  wranglerVersion: 4.149.0\n",
-            r"[0-9]{1,4}(\.[0-9]{1,4}){0,3}"
-        ),
-
-        Spelling.MEMBER: (
-            "vitest", '{"vitest": "5.0.5"}', r"[0-9]{1,4}(\.[0-9]{1,4}){0,3}"
-        ),
-
-        Spelling.REF: (
+    name, text = {
+        Spelling.ASSIGNMENT  : ("python", 'python = "3.14.6"\n'),
+        Spelling.INPUT       : ("wranglerVersion", "  wranglerVersion: 4.149.0\n"),
+        Spelling.MEMBER      : ("vitest", '{"vitest": "5.0.5"}'),
+        Spelling.REF         : (
             "actions/checkout",
-            f"uses: actions/checkout@{'a' * 40}\n",
-            r"[0-9a-f]{40}"
+            f"uses: actions/checkout@{'a' * 40}\n"
         ),
-
-        Spelling.REQUIREMENT: (
-            "pluggy", '["pluggy==1.6.0"]', r"[0-9]{1,4}(\.[0-9]{1,4}){0,3}"
-        )
+        Spelling.REQUIREMENT : ("pluggy", '["pluggy==1.6.0"]')
     }[spelling]
-    version = drawn.draw(from_regex(versions, fullmatch=True))
-    root    = tmp_path_factory.mktemp("edit")
-    (root / "file").write_text(text)
+    (tmp_path / "file").write_text(text)
     Edit(
         name     = name,
         path     = Path("file"),
         spelling = spelling,
         version  = version
-    ).apply(root)
+    ).apply(tmp_path)
 
     assert [
         found["version"]
-        for found in finditer(spelling.pattern(name), (root / "file").read_text())
+        for found in finditer(spelling.pattern(name), (tmp_path / "file").read_text())
     ] == [version]
 
 

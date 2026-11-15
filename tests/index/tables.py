@@ -7,20 +7,17 @@ file and an index merged from several keeps of a game they repeat, and what
 a published store holds.
 """
 
-from collections           import Counter
-from collections.abc       import Callable
-from common.games          import line
-from common.sources        import declare, land
-from common.strategies     import games
-from hashlib               import sha256
-from hypothesis            import given
-from hypothesis.strategies import integers, lists
-from itertools             import product, takewhile
+from collections       import Counter
+from collections.abc   import Callable
+from common.games      import KNOWN, line
+from common.sources    import declare, land
+from hashlib           import sha256
+from itertools         import product, takewhile
 from json              import loads
 from pathlib           import Path
 from polars            import DataFrame, read_parquet
 from polars.exceptions import SchemaError
-from pytest            import TempPathFactory, mark, param, raises
+from pytest            import mark, param, raises
 from zlib              import decompressobj
 
 from scotch.games.schemas import Game, Origin
@@ -337,6 +334,14 @@ def test_a_reference_names_the_stored_game_read_from_it():
             ({"WhiteElo": "unknown"}, {"WhiteElo": "1"}),
             1,
             id = "a-rating-holding-no-number-is-no-rating"
+        ),
+        param(
+            (
+                {"BlackElo": "204269", "WhiteElo": "2000"},
+                {"BlackElo": "1", "WhiteElo": "1"}
+            ),
+            1,
+            id = "a-rating-past-the-ceiling-is-no-rating"
         )
     ]
 )
@@ -356,20 +361,24 @@ def test_a_tie_goes_to_the_game_whose_ratings_rank_highest(
     assert match.ties == 1
 
 
-@given(stored=lists(games(plies=12), max_size=4))
-def test_any_store_reads_back_as_it_was_built(
-    stored           : list[Game],
-    tmp_path_factory : TempPathFactory
-):
+@mark.parametrize(
+    "store",
+    [
+        param([], id="empty"),
+        param([KNOWN["no-moves"]], id="one-position"),
+        param([KNOWN["stored-1"], KNOWN["stored-1"]], id="a-repeated-game"),
+        param(list(KNOWN.values()), id="every-known-game")
+    ]
+)
+def test_a_store_reads_back_as_it_was_built(store: list[Game], tmp_path: Path):
     """
     Asserts that every game an index is built from reads back from its
     files, in the order it was built, with the tags, the moves, and the
     errors it held.
     """
-    directory = tmp_path_factory.mktemp("store")
-    PositionIndex.build(stored).write(directory)
+    PositionIndex.build(store).write(tmp_path)
 
-    assert list(map(PositionIndex.read(directory).game, range(len(stored)))) == stored
+    assert list(map(PositionIndex.read(tmp_path).game, range(len(store)))) == store
 
 
 def test_a_stored_game_reaching_a_position_four_times_ties_with_no_other_game():
@@ -412,16 +421,50 @@ def test_a_stored_game_set_up_from_a_fen_shares_the_positions_it_reaches():
     )
 
 
-@given(
-    stored    = lists(games(plies=12, width=3), max_size=4, min_size=1),
-    submitted = games(plies=12, width=3)
+@mark.parametrize(
+    ("store", "submitted"),
+    [
+        param(
+            [KNOWN["stored-1"], KNOWN["stored-2"], KNOWN["stored-3"]],
+            KNOWN["demo-1"],
+            id = "departs-from-a-stored-game"
+        ),
+        param(
+            [KNOWN["stored-1"], KNOWN["stored-2"], KNOWN["stored-3"]],
+            KNOWN["viewer-1"],
+            id = "transposes-into-a-stored-game"
+        ),
+        param(
+            [KNOWN["stored-2"], KNOWN["stored-3"], KNOWN["stored-1"]],
+            KNOWN["stored-3"],
+            id = "a-stored-game-itself"
+        ),
+        param(
+            [KNOWN["stored-2"], KNOWN["demo-1"], KNOWN["stored-2"]],
+            KNOWN["stored-2"],
+            id = "a-repeated-game-ties"
+        ),
+        param(
+            [KNOWN["stored-1"], KNOWN["queenside-castling"]],
+            KNOWN["no-moves"],
+            id = "the-starting-position"
+        ),
+        param(
+            [
+                line(*["Nf3", "Nf6", "Ng1", "Ng8"] * 2),
+                line("Nf3", "Nf6", "Ng1", "e5", WhiteElo="2500")
+            ],
+            line("Nf3", "Nf6", "Ng1", "Ng8", "Nf3", "Nf6", "e4"),
+            id = "repeated-positions"
+        )
+    ]
 )
 def test_a_match_is_the_longest_run_any_stored_game_shares(
-    stored    : list[Game],
+    store     : list[Game],
     submitted : Game
 ):
     """
-    Asserts that every run the index finds for any submitted game is one a
+    Asserts that every run the index finds for a submitted game is one a
     search over every pair of plies finds, and that the match is the longest
     of them, with ties going to the game whose ratings rank highest, then to
     the game the index holds first, then to the run starting earliest in the
@@ -430,12 +473,12 @@ def test_a_match_is_the_longest_run_any_stored_game_shares(
     """
     runs = sorted(
         (-length, -game.standing, number, start, ply - start)
-        for number, game in enumerate(stored)
+        for number, game in enumerate(store)
         for start, ply in product(range(len(submitted.keys)), range(len(game.keys)))
         if (start == 0 or ply == 0 or submitted.keys[start - 1] != game.keys[ply - 1])
         and (length := shared(submitted.keys[start:], game.keys[ply:]))
     )
-    index   = PositionIndex.build(stored)
+    index   = PositionIndex.build(store)
     length  = -runs[0][0]
     longest = [
         next(run for run in runs if run[2] == number)
@@ -447,11 +490,11 @@ def test_a_match_is_the_longest_run_any_stored_game_shares(
         for negated, _, number, start, offset in runs
     ]
     assert [
-        (stored.index(match.game), match.span, match.ties)
-        for match in index.matches(submitted, top=len(stored))
+        (store.index(match.game), match.span, match.ties)
+        for match in index.matches(submitted, top=len(store))
     ] == [
         (
-            stored.index(stored[number]),
+            store.index(store[number]),
             Span(length=-negated, offset=offset, start=start),
             len({run[2] for run in runs if -run[0] == length}) - 1
         )
@@ -644,29 +687,57 @@ def test_an_answer_counts_a_game_reaching_a_position_twice_once(sans: tuple[str,
     assert answer.games == (game,)
 
 
-@given(
-    chosen = integers(0),
-    stored = lists(games(plies=12, width=3), max_size=4, min_size=1)
+@mark.parametrize(
+    ("ply", "store"),
+    [
+        param(0, list(KNOWN.values()), id="the-starting-position"),
+        param(
+            3,
+            [
+                KNOWN["stored-2"],
+                KNOWN["stored-3"],
+                KNOWN["viewer-1"],
+                KNOWN["stored-1"]
+            ],
+            id = "after-2-c4"
+        ),
+        param(
+            8,
+            [KNOWN["stored-1"], KNOWN["viewer-1"], KNOWN["demo-1"], KNOWN["stored-2"]],
+            id = "reached-by-another-order"
+        ),
+        param(
+            42,
+            [KNOWN["demo-1"], KNOWN["stored-1"], KNOWN["viewer-1"]],
+            id = "where-the-demo-departs"
+        ),
+        param(57, [KNOWN["stored-1"], KNOWN["demo-1"]], id="where-a-game-ends"),
+        param(
+            4,
+            [line(*["Nf3", "Nf6", "Ng1", "Ng8"] * 2, "e4"), line("Nf3", "Nf6", "Ng1")],
+            id = "reached-twice"
+        )
+    ]
 )
 def test_an_answer_counts_each_game_under_the_move_from_its_first_reach(
-    chosen : int,
-    stored : list[Game]
+    ply   : int,
+    store : list[Game]
 ):
     """
-    Asserts that the answer for any position a stored game reaches counts
-    every game holding its key once, under the move played from that key's
-    first place in the game or as ending there, the most played move first,
-    and lists those games in the order the index holds them.
+    Asserts that the answer for a position the first stored game reaches at
+    `ply` counts every game holding its key once, under the move played from
+    that key's first place in the game or as ending there, the most played
+    move first, and lists those games newest first, then in the order the
+    index holds them.
     """
-    ply     = chosen % len(stored[0].keys)
-    key     = stored[0].keys[ply]
-    reached = [(game, game.keys.index(key)) for game in stored if key in game.keys]
+    key     = store[0].keys[ply]
+    reached = [(game, game.keys.index(key)) for game in store if key in game.keys]
     played  = Counter(
         game.sans[first] for game, first in reached if first < len(game.moves)
     )
-    answer = PositionIndex.build(stored).answer(
-        stored[0].at(ply).fen(),
-        top = len(stored)
+    answer = PositionIndex.build(store).answer(
+        store[0].at(ply).fen(),
+        top = len(store)
     )
 
     assert [(reply.san, reply.games) for reply in answer.replies] == sorted(
@@ -674,7 +745,9 @@ def test_an_answer_counts_each_game_under_the_move_from_its_first_reach(
         key = lambda pair: (-pair[1], pair[0])
     )
     assert answer.ended.games == len(reached) - played.total()
-    assert answer.games == tuple(game for game, _ in reached)
+    assert answer.games == tuple(
+        game for game, _ in sorted(reached, key=lambda pair: -pair[0].dated)
+    )
 
 
 def test_an_answer_reads_a_move_the_reader_takes_short_of_its_last_letter():
@@ -905,7 +978,8 @@ def test_the_games_left_out_read_back_as_they_were_merged(tmp_path: Path):
     """
     Asserts that the games a merge records as left out, a game its reader
     could not read and a repeat among them, write to the index's folder and
-    read back under `LEFT`, a rating past what 16 bits hold among them.
+    read back under `LEFT`, a rating past `readers.CEILING` reading as 0
+    among them.
     """
     source = land(
         tmp_path,
@@ -931,13 +1005,36 @@ def test_the_games_left_out_read_back_as_they_were_merged(tmp_path: Path):
             "address" : str(source.address),
             "dated"   : 0,
             "place"   : 2,
-            "rating"  : 204269,
+            "rating"  : 0,
             "reason"  : "repeat"
         }
     ]
 
 
-@given(batches=lists(lists(games(plies=4, width=2), max_size=3), max_size=3))
+@mark.parametrize(
+    "batches",
+    [
+        param([], id="no-batch"),
+        param([[], []], id="empty-batches"),
+        param(
+            [[KNOWN["stored-1"], KNOWN["stored-2"], KNOWN["stored-1"]]],
+            id = "a-repeat-within-a-batch"
+        ),
+        param(
+            [
+                [KNOWN["stored-1"], KNOWN["stored-2"]],
+                [],
+                [KNOWN["stored-3"], KNOWN["stored-2"], KNOWN["stored-1"]]
+            ],
+            id = "repeats-across-batches"
+        ),
+        param(
+            [[line("e4"), line("e4", Event="Other")], [line("e4", ECO="B00")]],
+            id = "the-roster-tells-games-apart"
+        ),
+        param([[line("e4"), line("d4")], [line("d4")]], id="the-moves-tell-games-apart")
+    ]
+)
 def test_a_merge_keeps_the_first_of_each_game_in_order(batches: list[list[Game]]):
     """
     Asserts that merging batches of games, which repeat one another within

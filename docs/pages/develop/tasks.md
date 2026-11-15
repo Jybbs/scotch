@@ -29,6 +29,7 @@ Every task the repository declares sits below beside its alias and its descripti
 | **Task** | **Alias** | **Description** |
 |---|---|---|
 | `gha:cut` |  | Cut the draft release a version bump on `main` calls for |
+| `gha:order` |  | Decide which commit a `♟️ Deploy` run builds, if any |
 | `gha:prune` |  | Delete each tool cache and Cargo cache a newer one replaced |
 | `gha:retire` |  | Delete each store file R2 holds past the newest earlier ones |
 | `gha:reuse` |  | Copy the coverage total `♟️ CI` attached for the tree on `main` |
@@ -48,6 +49,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
+| `py:affected` | `affected` | Run the tests a change reaches under pytest-testmon, beside each test that failed on its last run, rerunning the whole suite where a file testmon cannot trace, or a file under `src/scotch/cli/` whose docstrings the help snapshots read, changed since the last full run, and passing any further arguments to pytest |
 | `py:check` | `check` | Report every formatting rewrite and lint finding, as annotations under GitHub Actions, passing any further arguments to the formatter |
 | `py:coverage` | `coverage` | Run the test suite under coverage, failing below `fail_under`, writing the HTML report, and passing any further arguments to pytest |
 | `py:format` | `format` | Rewrite the Python source to the house style, passing any further arguments to the formatter |
@@ -76,6 +78,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
+| `site:affected` |  | Run the site's tests a change since the branch left `origin/main` reaches, or the whole suite where the Vitest config or `package.json` changed, passing any further arguments to Vitest |
 | `site:coverage` |  | Run the site's suite under coverage, failing where statements, branches, functions, or lines fall below the `fail_under` that `pyproject.toml` sets, writing the HTML report, and passing any further arguments to Vitest |
 | `site:cruft` | `cruft` | Report an unused file, export, or dependency in the site, and an import cycle, passing any further arguments to knip |
 | `site:draw` | `draw` | Draw the README's preview of the Viewer and its Where to Start cards from the site's own drawings into `docs/assets/readme` |

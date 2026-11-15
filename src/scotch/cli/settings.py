@@ -108,19 +108,27 @@ class Settings(
         """
         return root() / data
 
-    def opened(self) -> PositionIndex:
+    def built(self) -> PositionIndex | None:
         """
-        Reads the index under its folder, writing a line to stderr where
-        the files changed since it was built, and exiting nonzero naming the
-        folder where no index has been built or the one built holds another
-        layout.
+        Reads the index under its folder, returning `None` where no index
+        has been built there and exiting nonzero naming the folder where the
+        one built holds another layout.
         """
         try:
-            index = PositionIndex.read(self.index)
+            return PositionIndex.read(self.index)
         except FileNotFoundError:
-            raise SystemExit(f"No index has been built under {self.index}")
+            return None
         except SchemaError:
             raise SystemExit(f"The index under {self.index} holds another layout")
+
+    def opened(self) -> PositionIndex:
+        """
+        Reads the index `built` reads, writing a line to stderr where the
+        files changed since it was built, and exiting nonzero naming the
+        folder where no index has been built.
+        """
+        if (index := self.built()) is None:
+            raise SystemExit(f"No index has been built under {self.index}")
 
         if self.stale:
             print(self.warning, file=stderr)

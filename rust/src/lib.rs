@@ -19,7 +19,9 @@ mod tokens;
 mod wasm;
 
 pub use games::{Game, read, read_at, trails};
-pub use positions::{Outcomes, Part, Positions, Run, SECTIONS, Sharing, Stored, Tally, standing};
+pub use positions::{
+    CEILING, Outcomes, Part, Positions, Run, SECTIONS, Sharing, Stored, Tally, rating, standing,
+};
 
 use std::io;
 

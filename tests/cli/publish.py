@@ -49,3 +49,14 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(data: Path):
         "store"
     ) == f"No index has been built under {data / 'index'}"
     assert (data / "store" / "manifest.json").read_text() == "{}"
+
+
+def test_an_index_holding_another_layout_exits_naming_where_it_was_read(relaid: Path):
+    """
+    Asserts that a publish against an index whose games table lacks a column
+    exits nonzero naming the directory it read.
+    """
+    assert invoke(
+        "publish",
+        "store"
+    ) == f"The index under {relaid} holds another layout"

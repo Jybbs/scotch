@@ -1,3 +1,5 @@
+import rendered from '../rendered/ratings.json' with { type: 'json' }
+
 import type { Piece } from '../site/pieces.ts'
 import type { Side }  from './examples.ts'
 
@@ -35,14 +37,14 @@ export const RANKS = [
 
 /**
  * Reads the mean of the two players' ratings, rounded, or the one rating a
- * game's tags carry, a rating being a positive whole number, or none where
- * neither tag carries one.
+ * game's tags carry, a rating being a whole number from 1 to the ceiling the
+ * index reads ratings under, or none where neither tag carries one.
  */
 function ratingOf({ headers }: Tied): number | undefined {
   const ratings = [headers.WhiteElo, headers.BlackElo]
     .filter((tag): tag is string => !!tag && /^\d+$/u.test(tag))
     .map(Number)
-    .filter(rating => rating > 0)
+    .filter(rating => rating > 0 && rating <= rendered.ceiling)
   if (ratings.length === 0) return undefined
   return Math.round(ratings.reduce((sum, rating) => sum + rating) / ratings.length)
 }
