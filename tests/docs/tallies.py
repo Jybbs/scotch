@@ -173,6 +173,7 @@ def test_a_tally_writes_each_figure_the_pages_name(archive: Callable[..., Archiv
     assert tally.figures == {
         "draw-median"  : "0",
         "earliest"     : "1870s",
+        "files-held"   : "3",
         "games"        : "5",
         "largest"      : "2",
         "median"       : "2",

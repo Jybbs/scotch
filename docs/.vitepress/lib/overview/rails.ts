@@ -101,6 +101,14 @@ function moveOf(loaded: Loaded, party: Party, cursor: number): string | undefine
 }
 
 /**
+ * Reads where the band behind the column at `cursor` starts, half a gap before
+ * the column's squares.
+ */
+export function bandOf(loaded: Loaded, cursor: number): number {
+  return edgeOf(loaded, cursor) - RAILS.gap / 2
+}
+
+/**
  * Reads the cursor under a point a share of the way across the rails.
  */
 export function cursorAt(loaded: Loaded, share: number): number {
@@ -113,7 +121,7 @@ export function cursorAt(loaded: Loaded, share: number): number {
  * gap before the parting's column.
  */
 export function cutOf(loaded: Loaded): number {
-  return edgeOf(loaded, loaded.shared!.part) - RAILS.gap / 2
+  return bandOf(loaded, loaded.shared!.part)
 }
 
 /**

@@ -20,8 +20,8 @@
   gap         : 0.5em;
 }
 
-.sc-rails-entry[data-game='submitted'] { color: var(--sc-submitted); }
-.sc-rails-entry[data-game='stored'] { color: var(--sc-stored); }
+.sc-rails-entry[data-game='submitted'] { color: color-mix(in oklab, var(--sc-submitted) 60%, var(--sc-ink)); }
+.sc-rails-entry[data-game='stored'] { color: color-mix(in oklab, var(--sc-stored) 60%, var(--sc-ink)); }
 
 .sc-rails-label {
   color          : var(--sc-quiet);
@@ -39,16 +39,24 @@
   overflow : visible;
 }
 
-.sc-rails-square {
-  transition : opacity var(--sc-duration-move) var(--sc-curve-glide);
-}
-
 .sc-rails-square[data-tone='light'] { fill: var(--sc-light); }
 .sc-rails-square[data-tone='dark'] { fill: var(--sc-primary); }
 .sc-rails-square[data-game='submitted'] { fill: var(--sc-submitted); }
 .sc-rails-square[data-game='stored'] { fill: var(--sc-stored); }
 
-.sc-rails-drawing:has(.is-lit) .sc-rails-square:not(.is-lit) { opacity: 0.45; }
+.sc-rails-square.is-lit {
+  stroke       : var(--sc-ink);
+  stroke-width : 0.9;
+}
+
+.sc-rails-band {
+  fill       : color-mix(in oklab, var(--sc-ink) 9%, transparent);
+  opacity    : 0;
+  transition : opacity var(--sc-duration-fade) var(--sc-curve-glide),
+               x var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-rails-band[data-on] { opacity: 1; }
 
 .sc-rails-cut {
   stroke           : var(--sc-ink);

@@ -1,5 +1,5 @@
 import { useElementSize } from '@vueuse/core'
-import { type ComputedRef, type ShallowRef, computed, shallowRef } from 'vue'
+import { type ComputedRef, type ShallowRef, computed, shallowRef, watch } from 'vue'
 
 /**
  * A chart's element, the layout it draws at the element's width, whether that
@@ -26,7 +26,9 @@ export function pointerAt(event: PointerEvent): { x: number, y: number } {
  * Measures a chart's element and lays the chart out across its width in whole
  * pixels, a width of 0 meaning the element has not been measured yet, where the
  * chart draws nothing but still takes the layout's height, which reads no
- * width.
+ * width. A new width reaches the layout on the next animation frame, outside
+ * the resize observer's callback, since a layout whose height follows its width
+ * resizes the element the observer watches and WebKit reports that as a loop.
  *
  * Args:
  *   layoutOf: The layout the chart draws at a width.
@@ -34,12 +36,17 @@ export function pointerAt(event: PointerEvent): { x: number, y: number } {
 export function useChart<T extends { height: number }>(layoutOf: (width: number) => T): Sized<T> {
   const chart     = shallowRef<HTMLElement | null>(null)
   const { width } = useElementSize(chart)
-  const layout    = computed(() => layoutOf(Math.floor(width.value)))
+  const settled   = shallowRef(width.value)
+  const layout    = computed(() => layoutOf(Math.floor(settled.value)))
+
+  watch(width, now => requestAnimationFrame(() => {
+    settled.value = now
+  }))
 
   return {
     chart  : chart,
     layout : layout,
-    sized  : computed(() => width.value > 0),
+    sized  : computed(() => settled.value > 0),
     style  : computed(() => ({ minHeight: `${layout.value.height}px` }))
   }
 }

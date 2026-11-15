@@ -6,6 +6,22 @@ import { Loaded }    from '../../../lib/viewer/loaded.ts'
 import { startMark } from '../start.ts'
 
 /**
+ * Draws the band behind the column the pointer reads, shown only while it
+ * reads one.
+ */
+function band(loaded: Loaded, cursor: number | undefined): VNode {
+  return h('rect', {
+    'class'   : 'sc-rails-band',
+    'data-on' : cursor === undefined ? undefined : '',
+    'height'  : rails.RAILS.height,
+    'rx'      : 2,
+    'width'   : rails.RAILS.cell + rails.RAILS.gap,
+    'x'       : rails.bandOf(loaded, cursor ?? loaded.first),
+    'y'       : 0
+  })
+}
+
+/**
  * Draws one entry of the key in its game's color, its label in mono capitals
  * ahead of its move, or the start mark ahead of the label at the starting
  * position.
@@ -59,8 +75,8 @@ function square(it: rails.Square, lit: number | undefined, register: (node: unkn
  * lifted apart where they differ, under a key naming the run and each game's
  * move where the two part. Pointing at the rails replays the run and the
  * parting, fading the parting line in after the run, unless the site's
- * drawings hold still or a replay is still running, and then reads the
- * position under the pointer into the key.
+ * drawings hold still or a replay is still running, and then lights a band
+ * behind the position under the pointer and reads it into the key.
  */
 export const Rails = defineComponent({
   name: 'ScotchRails',
@@ -104,6 +120,7 @@ export const Rails = defineComponent({
         'role'           : 'img',
         'viewBox'        : `0 0 ${rails.widthOf(props.loaded)} ${rails.RAILS.height}`
       }, [
+        band(props.loaded, cursor.value),
         ...squares.value.map(it => square(it, cursor.value, node => {
           if (node instanceof Element) nodes.set(it, node)
         })),

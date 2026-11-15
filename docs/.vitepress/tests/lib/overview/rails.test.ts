@@ -39,6 +39,14 @@ describe('squaresOf', () => {
   })
 })
 
+describe('bandOf', () => {
+  it('starts each column’s band half a gap before its squares, the parting line on the parting’s band', () => {
+    const step = rails.RAILS.cell + rails.RAILS.gap
+    expect(rails.bandOf(example, example.first + 2)).toBe(2 * step - rails.RAILS.gap / 2)
+    expect(rails.cutOf(example)).toBe(rails.bandOf(example, shared.part))
+  })
+})
+
 describe('cursorAt', () => {
   const shares = [[-0.2, 0], [0, 0], [0.5, 30], [0.999, 59], [1.4, 59]]
 

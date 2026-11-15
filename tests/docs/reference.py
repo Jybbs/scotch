@@ -62,14 +62,22 @@ def test_reach_counts_the_squares_a_piece_moves_to_on_an_empty_board(
     assert reach(Piece.from_symbol(symbol), square) == squares
 
 
-def test_played_names_a_mix_after_the_roles_taking_a_color_whole(reference: Reference):
+def test_each_file_names_the_commands_reading_it(reference: Reference):
     """
-    Asserts that the roles taking a color in a mix are named apart from
-    those taking it whole.
+    Asserts that the index build reads the fetched files and their manifest,
+    and that each command opening the index reads its files and both
+    manifests.
     """
-    assert "mixed in `alert`" in reference.played("critical")
-    assert reference.played("primary").startswith("`run`")
-    assert reference.played("dark").startswith("`ink`, `page`, mixed in")
+    opening = [
+        "scotch match game", "scotch match games", "scotch show game",
+        "scotch show position", "scotch show store"
+    ]
+
+    assert [file["readers"] for file in reference.files] == [
+        ["scotch index games"],
+        ["scotch index games", *opening],
+        opening, opening, opening
+    ]
 
 
 @mark.parametrize(
@@ -91,6 +99,16 @@ def test_played_names_a_chart_series_only_for_a_series_color(
     assert reference.played(token) == worded
 
 
+def test_played_names_a_mix_after_the_roles_taking_a_color_whole(reference: Reference):
+    """
+    Asserts that the roles taking a color in a mix are named apart from
+    those taking it whole.
+    """
+    assert "mixed in `alert`" in reference.played("critical")
+    assert reference.played("primary").startswith("`run`")
+    assert reference.played("dark").startswith("`ink`, `page`, mixed in")
+
+
 def test_the_checks_table_holds_a_row_per_check_the_mise_config_declares(
     reference: Reference
 ):
@@ -109,6 +127,26 @@ def test_the_checks_table_holds_a_row_per_check_the_mise_config_declares(
         "| **Check** | **Passes Where** | **Prints Where It Fails** |\n"
         "|---|---|---|\n"
         "| `venv` | `.venv` exists | `mise x -- uv sync` |"
+    )
+
+
+def test_the_exported_fields_match_the_tables_of_the_match_file(reference: Reference):
+    """
+    Asserts that the fields of the match file the site annotates are the
+    ones its tables list, each with a type and a meaning.
+    """
+    assert {
+        table: [field["name"] for field in fields]
+        for table, fields in reference.exported.items()
+    } == {
+        "export" : ["submitted", "span", "stored", "ties"],
+        "side"   : ["headers", "moves", "placements"],
+        "span"   : ["length", "offset", "start"]
+    }
+    assert all(
+        field["meaning"] and field["type"]
+        for fields in reference.exported.values()
+        for field in fields
     )
 
 

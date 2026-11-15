@@ -43,6 +43,18 @@ class Stop(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     The condition the command prints the message under.
     """
 
+    check: str | None = None
+    """
+    The check a file fails to print the message, named in a few words, where
+    the Guide's sentence on the games a match refuses names it.
+    """
+
+    phrase: str | None = None
+    """
+    The phrase finishing *"A match refuses a file that"* for the message,
+    where the Guide's sentence on the games a match refuses names it.
+    """
+
     @property
     def template(self) -> str:
         """

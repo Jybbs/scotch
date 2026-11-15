@@ -120,6 +120,14 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         return fielded(Export)
 
     @property
+    def exported(self) -> dict[str, list[dict[str, str]]]:
+        """
+        Reads each field of the match file, of one game in it, and of the
+        run it records, as `Export`, `Side`, and `Span` declare them.
+        """
+        return {"export": fields(Export), "side": fields(Side), "span": fields(Span)}
+
+    @property
     def faces(self) -> str:
         """
         Writes a table of each face, what it sets, and the package and the
@@ -145,24 +153,46 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         )
 
     @property
-    def layout(self) -> str:
+    def files(self) -> list[dict[str, str | list[str]]]:
         """
-        Writes a table of each file a run writes under the default data
-        directory, the command writing it, and what it holds, with one row
-        for the folder of each host `sources.toml` names.
+        Lists each file a run writes under the default data directory,
+        its path, the command writing it, what it holds, and the
+        commands reading it, with one entry for the folder of each host
+        `sources.toml` names.
+
+        `scotch index games` reads the fetched files and their manifest, and
+        each command opening the index through `Settings.opened`, or listing
+        the store as `scotch show store` does, reads the index's files and
+        both manifests, since `Settings.stale` compares the two.
         """
         settings = Settings.model_construct()
         index    = settings.index
-        fetched  = "`scotch fetch games`"
-        built    = "`scotch index games`"
+        fetched  = "scotch fetch games"
+        built    = "scotch index games"
+        opening  = [
+            f"scotch {command}"
+            for command in (
+                "match game", "match games", "show game", "show position", "show store"
+            )
+        ]
+        readers = {
+            str(Manifest.path(index))              : opening,
+            str(PositionIndex.path(index))         : opening,
+            str(PositionIndex.table(index))        : opening,
+            str(Manifest.path(settings.downloads)) : [built, *opening]
+        }
 
-        return markdown(
-            headers = ("Path", "Written By", "Holds"),
-            right   = False,
-            rows    = (
+        return [
+            {
+                "holds"   : holds,
+                "path"    : str(path),
+                "readers" : readers.get(str(path), [built]),
+                "writer"  : writer
+            }
+            for path, writer, holds in (
                 *(
                     (
-                        f"`{settings.downloads / host}/`",
+                        f"{settings.downloads / host}/",
                         fetched,
                         "Each file of the host `sources.toml` declares, under the "
                         "path its address names"
@@ -172,21 +202,33 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
                     )
                 ),
                 (
-                    f"`{Manifest.path(settings.downloads)}`",
+                    Manifest.path(settings.downloads),
                     fetched, "The record of each fetched file, keyed by its address"
                 ),
+                (PositionIndex.table(index), built, "One row for each stored game"),
                 (
-                    f"`{PositionIndex.table(index)}`",
-                    built, "One row for each stored game"
-                ),
-                (
-                    f"`{PositionIndex.path(index)}`",
+                    PositionIndex.path(index),
                     built, "Every position the stored games reach, beside their moves"
                 ),
                 (
-                    f"`{Manifest.path(index)}`",
+                    Manifest.path(index),
                     built, "A copy of the manifest the files were read under"
                 )
+            )
+        ]
+
+    @property
+    def layout(self) -> str:
+        """
+        Writes a table of each file `files` lists, the command writing it,
+        and what it holds.
+        """
+        return markdown(
+            headers = ("Path", "Written By", "Holds"),
+            right   = False,
+            rows    = (
+                (f"`{file['path']}`", f"`{file['writer']}`", file["holds"])
+                for file in self.files
             )
         )
 
@@ -498,11 +540,25 @@ def fielded(record: type[BaseModel]) -> str:
     return markdown(
         headers = ("Field", "Type", "Meaning"),
         right   = False,
-        rows    = (
-            (f"`{name}`", typed(field), " ".join(field["description"].split()))
-            for name, field in record.model_json_schema()["properties"].items()
-        )
+        rows    = ((f"`{row['name']}`", row["type"], row["meaning"]) for row in fields(
+            record = record
+        ))
     )
+
+
+def fields(record: type[BaseModel]) -> list[dict[str, str]]:
+    """
+    Reads each field `record` declares from its JSON schema, as its name,
+    the JSON type it is written as, and its meaning.
+    """
+    return [
+        {
+            "meaning" : " ".join(field["description"].split()),
+            "name"    : name,
+            "type"    : typed(field)
+        }
+        for name, field in record.model_json_schema()["properties"].items()
+    ]
 
 
 def named(piece: Piece) -> str:

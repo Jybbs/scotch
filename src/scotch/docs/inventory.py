@@ -83,11 +83,12 @@ class Outputs(RootModel[list[Output]]):
         draws, each file `sources.toml` declares beside the games the store
         holds from it, the figures each Markdown file of `pages` sets inside
         its sentences, the example run the README and the Guide carry, the
-        example runs the commands page and the Guide's walkthroughs set,
-        the lines of the demo's match the Guide glosses, and the tables the
-        Data pages, the Guide's store page, and the Palette and Roles page
-        set beneath their widgets, the disk the store takes under the data
-        directory `settings` names among the figures.
+        example runs the commands page and the Guide's walkthroughs set, and
+        the same runs as the lines each prints, the disk the downloads and
+        the index take, the lines of the demo's match the Guide glosses, and
+        the tables the Data pages, the Guide's store page, and the Palette
+        and Roles page set beneath their widgets, the disk the store takes
+        under the data directory `settings` names among the figures.
         """
         census   = Census(index=index)
         viewer   = Example(path=Outputs.games / "viewer.pgn", shown=0)
@@ -126,12 +127,13 @@ class Outputs(RootModel[list[Output]]):
         submitted = cache(lambda: Outputs.demo.game(root))
         found     = cache(lambda: index.matches(submitted(), top=Outputs.top + 1))
         runs      = {
-            "match-game"    : lambda: ran(
+            "match-game": lambda: (
                 f"scotch match game {Outputs.demo.path} --top {Outputs.top}",
                 found()[0].report(),
                 *(match.line for match in found()[1:])
             ),
-            "match-games"   : lambda: ran(
+
+            "match-games": lambda: (
                 f"scotch match games {Outputs.demo.path}",
                 Pairing(
                     file      = Outputs.demo.path.name,
@@ -140,17 +142,24 @@ class Outputs(RootModel[list[Output]]):
                     submitted = submitted()
                 ).line
             ),
-            "show-game"     : lambda: ran(
+
+            "plies": lambda: (
+                f"scotch match game {Outputs.demo.path} --plies {Outputs.plies}",
+                found()[0].report(Outputs.plies)
+            ),
+
+            "show-game": lambda: (
                 f"scotch show game {found()[0].game.origin.reference}",
                 found()[0].game.pgn
             ),
-            "show-position" : lambda: ran(
+
+            "show-position": lambda: (
                 f"scotch show position {Outputs.position} --top {Outputs.top}",
                 index.answer(Outputs.position, Outputs.top).summary
             ),
-            "show-store"    : lambda: ran(
-                "scotch show store",
-                "…",
+
+            "show-store": lambda: (
+                "scotch show store", "…",
                 Holding(
                     fetched = (),
                     folder  = Settings.model_construct().index,
@@ -188,6 +197,17 @@ class Outputs(RootModel[list[Output]]):
                     )
                 )
                 for name in ("omissions", "shared", "store", "tags", "tie")
+            ),
+            Document.from_value(
+                path  = Outputs.rendered / "runs.json",
+                value = lambda: {name: printed(*run()) for name, run in runs.items()}
+            ),
+            Document.from_value(
+                path  = Outputs.rendered / "disk.json",
+                value = lambda: {
+                    "downloads/" : figures()["downloads-size"],
+                    "index/"     : figures()["index-size"]
+                }
             ),
             Document.from_value(
                 path  = Outputs.rendered / "viewer.json",
@@ -246,8 +266,13 @@ class Outputs(RootModel[list[Output]]):
                 )
             ),
             *(
-                Region(name=f"run-{name}", path=Outputs.commands, render=render)
-                for name, render in runs.items()
+                Region(
+                    name   = f"run-{name}",
+                    path   = Outputs.commands,
+                    render = lambda run=run: ran(*run())
+                )
+                for name, run in runs.items()
+                if name != "plies"
             ),
             Region(
                 name   = "gloss",
@@ -260,21 +285,13 @@ class Outputs(RootModel[list[Output]]):
                     )
                 )
             ),
-            Region(
-                name   = "run-plies",
-                path   = Outputs.guide / "studying.md",
-                render = lambda: ran(
-                    f"scotch match game {Outputs.demo.path} --plies {Outputs.plies}",
-                    found()[0].report(Outputs.plies)
-                )
-            ),
             *(
                 Region(
                     name   = f"run-{name}",
                     path   = Outputs.guide / "studying.md",
-                    render = render
+                    render = lambda run=run: ran(*run())
                 )
-                for name, render in runs.items()
+                for name, run in runs.items()
             ),
             *(Figures(path=page, values=figures) for page in pages)
         ]
@@ -320,6 +337,24 @@ class Outputs(RootModel[list[Output]]):
                 Document.from_value(
                     path  = cls.rendered / "identity.json",
                     value = lambda: identity.model_dump(mode="json")
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "commands.json",
+                    value = lambda: {
+                        "commands" : described.listed,
+                        "files"    : reference.files
+                    }
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "exported.json",
+                    value = lambda: reference.exported
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "refused.json",
+                    value = lambda: [
+                        stop.model_dump(exclude={"commands"})
+                        for stop in stops.printed("match game", naming="<pgn>")
+                    ]
                 ),
                 Document.from_value(
                     path  = cls.rendered / "homes.json",
@@ -515,6 +550,14 @@ def occupied(folder: Path) -> int:
     none.
     """
     return sum(path.stat().st_size for path in folder.rglob("*") if path.is_file())
+
+
+def printed(command: str, *lines: str) -> dict[str, str | list[str]]:
+    """
+    Writes `command` beside each line it prints, a line holding several
+    split into each of them.
+    """
+    return {"command": command, "lines": "\n".join(lines).split("\n")}
 
 
 def ran(command: str, *lines: str) -> str:

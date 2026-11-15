@@ -7,6 +7,7 @@ import * as list     from '../../../lib/data/list.ts'
 import * as timeline from '../../../lib/reference/timeline.ts'
 import * as drawings from './drawings.ts'
 import { Rail }      from './rail.ts'
+import { Tabs }      from './tabs.ts'
 
 /**
  * How long a drawing's marks take to finish unfolding, the last one's delay
@@ -33,34 +34,16 @@ function findField(state: list.List, marks: readonly files.Entry[]): VNode {
 }
 
 /**
- * Draws a tab for each section beside the count of its files, the arrow keys,
- * Home, and End moving between them.
+ * Draws a tab for each section beside the count of its files.
  */
-function sectionTabs(id: string, state: list.List, tabs: Map<files.Section, HTMLElement>): VNode {
-  const pick = (section: files.Section, focus = false): void => {
-    list.showSection(state, section)
-    if (focus) tabs.get(section)?.focus()
-  }
-  const keyed = (event: KeyboardEvent): void => {
-    const { length } = files.SECTIONS
-    const place      = files.SECTIONS.indexOf(state.section.value)
-    const to         = { ArrowLeft: place - 1, ArrowRight: place + 1, End: length - 1, Home: 0 }[event.key]
-    if (to === undefined) return
-    event.preventDefault()
-    pick(files.SECTIONS.at(to % length)!, true)
-  }
-  const bar = { 'aria-label': 'Sections', class: 'sc-data-tabs', onKeydown: keyed, role: 'tablist' }
-
-  return h('div', bar, files.SECTIONS.map(section => h('button', {
-    'aria-controls' : `${id}-drawing`,
-    'aria-selected' : section === state.section.value,
-    class           : 'sc-data-tab',
-    onClick         : () => pick(section),
-    ref             : (node: unknown) => { if (node instanceof HTMLElement) tabs.set(section, node) },
-    role            : 'tab',
-    tabindex        : section === state.section.value ? 0 : -1,
-    type            : 'button'
-  }, [section, h('small', list.countOf(state, section))])))
+function sectionTabs(id: string, state: list.List): VNode {
+  return h(Tabs, {
+    'controls'    : () => `${id}-drawing`,
+    'label'       : 'Sections',
+    'names'       : files.SECTIONS,
+    'on'          : state.section.value,
+    'onUpdate:on' : (section: string) => { list.showSection(state, section as files.Section) }
+  }, { default: ({ name }: { name: files.Section }) => [name, h('small', list.countOf(state, name))] })
 }
 
 /**
@@ -97,7 +80,6 @@ export const Files = defineComponent({
   setup : () => {
     const state = list.useList()
     const id    = useId()
-    const tabs  = new Map<files.Section, HTMLElement>()
 
     const { chart, layout, sized, style } = useChart(width => ({ height: width < 520 ? 200 : 184, width }))
 
@@ -123,7 +105,7 @@ export const Files = defineComponent({
     }
 
     return (): VNode => h('div', { class: 'sc-data sc-data-files' }, [
-      sectionTabs(id, state, tabs),
+      sectionTabs(id, state),
       findField(state, drawn.value.marks),
       h('div', { class: 'sc-data-files-chart', ref: chart, style: style.value }, sized.value ? h('svg', {
         'aria-label' : `${state.section.value}, ${files.LEGENDS[state.section.value]}`,

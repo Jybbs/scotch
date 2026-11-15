@@ -38,7 +38,7 @@ describe('TagGaps', () => {
 
   it('dims every cell but the gaps while the gap mark is lit', async () => {
     const drawn = mount(TagGaps)
-    await drawn.findAll('.sc-data-mark')[0]!.trigger('pointerenter')
+    await drawn.findAll('.sc-data-legend-mark')[0]!.trigger('pointerenter')
     expect(drawn.find('[data-k="carried"]').classes()).toContain('sc-data-off')
     expect(drawn.find('[data-k="gap"]').classes()).not.toContain('sc-data-off')
   })

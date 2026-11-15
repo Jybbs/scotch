@@ -52,7 +52,7 @@ describe('SharedPartings', () => {
 
   it('dims every part but the one a corner mark lights', async () => {
     const drawn = mount(SharedPartings)
-    await drawn.findAll('.sc-data-mark')[2]!.trigger('pointerenter')
+    await drawn.findAll('.sc-data-legend-mark')[2]!.trigger('pointerenter')
     expect(drawn.find('.sc-data-partings-line').classes()).not.toContain('sc-data-off')
     expect(drawn.find('.sc-data-partings-every').classes()).toContain('sc-data-off')
     expect(drawn.find('.sc-data-partings-cell').classes()).toContain('sc-data-off')

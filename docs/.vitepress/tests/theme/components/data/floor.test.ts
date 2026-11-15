@@ -49,7 +49,7 @@ describe('RatingFloor', () => {
 
   it('dims every cell but the standing a corner mark lights', async () => {
     const drawn = mount(RatingFloor)
-    await drawn.find('.sc-data-mark').trigger('pointerenter')
+    await drawn.find('.sc-data-legend-mark').trigger('pointerenter')
     const cells = drawn.findAll('.sc-data-floor-cell')
     const lit   = cells.filter(cell => !cell.classes('sc-data-off'))
     expect(lit.every(cell => cell.attributes('data-k') === 'up')).toBe(true)

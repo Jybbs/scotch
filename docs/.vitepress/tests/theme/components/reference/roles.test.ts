@@ -23,7 +23,8 @@ describe('Roles', () => {
     clock.runAllTimers()
     expect(drawn.findAll('.sc-ref-sheet').length).toBe(2)
     expect(drawn.find('.sc-ref-sheet').attributes('style')).toContain(palette.colorOf('page', 'light'))
-    expect(drawn.find('.sc-ref-over .sc-ref-sheet').attributes('style')).toContain(palette.colorOf('page', 'dark'))
+    expect(drawn.find('.sc-ref-over .sc-ref-sheet').attributes('style'))
+      .toContain(palette.colorOf('page', 'dark'))
   })
 
   test('names the run color first, with its hex, paint, and ratio in each scheme', ({ clock }) => {
@@ -50,7 +51,7 @@ describe('Roles', () => {
 })
 
 describe('Roles, the seam', () => {
-  test('moves the seam under the keyboard, held inside the drawing, and leaves other keys', async ({ clock }) => {
+  test('moves the seam by the keyboard, held inside the drawing, leaving other keys', async ({ clock }) => {
     onScreen()
     reduceMotion()
     const drawn = mount(Roles)
@@ -80,7 +81,10 @@ describe('Roles, the seam', () => {
     vi.spyOn(hold, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 600 } as DOMRect)
     vi.spyOn(hold, 'offsetWidth', 'get').mockReturnValue(600)
     const seam = drawn.find('.sc-ref-seam')
-    Object.assign(seam.element, { hasPointerCapture: vi.fn<() => boolean>(() => false), setPointerCapture: vi.fn<() => void>() })
+    Object.assign(seam.element, {
+      hasPointerCapture : vi.fn<() => boolean>(() => false),
+      setPointerCapture : vi.fn<() => void>()
+    })
     await seam.trigger('pointerdown', { clientX: 300, pointerId: 1 })
     expect(seam.element.setPointerCapture).toHaveBeenCalledWith(1)
     expect(seam.attributes('style')).toContain('translateX(300px)')
@@ -109,6 +113,8 @@ describe('Roles, as the column or the unfold changes it', () => {
     const drawn = mount(Roles)
     clock.runAllTimers()
     resized(342)
+    await flushPromises()
+    clock.advanceTimersToNextFrame()
     await flushPromises()
     expect(drawn.find('.sc-ref').attributes('data-narrow')).toBe('')
   })

@@ -4,7 +4,7 @@
 
 ## Data
 
-The store holds <!-- games -->1,150,156<!-- /games --> games from the <!-- files -->1,465<!-- /files --> files PGN Mentor publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players is rated <!-- openings-floor -->2500<!-- /openings-floor --> or above, every position they reach keyed once, and the [Data](data/index.md) section shows when its games were played and [names each file](data/sources.md).
+The store holds <!-- games -->1,150,156<!-- /games --> games from <!-- files-held -->1,192<!-- /files-held --> of the <!-- files -->1,465<!-- /files --> files PGN Mentor publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players is rated <!-- openings-floor -->2500<!-- /openings-floor --> or above, every position they reach keyed once, and the [Data](data/index.md) section shows when its games were played and [names each file](data/sources.md).
 
 ## Guide
 

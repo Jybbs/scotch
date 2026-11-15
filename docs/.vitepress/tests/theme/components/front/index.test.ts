@@ -12,10 +12,10 @@ vi.mock('@vueuse/core', async original => ({
 
 describe('FRONT_WIDGETS', () => {
   it.each([
-    ['prints', '.sc-front-prints'], ['session', '.sc-front-terminal'], ['split', '.sc-front-split'],
-    ['store', '.sc-front-store']
+    ['menu', '.sc-menu'], ['opening', '.sc-front-opening'], ['prints', '.sc-front-prints'],
+    ['session', '.sc-front-terminal'], ['split', '.sc-front-split'], ['store', '.sc-front-store']
   ])('loads the %s widget with the front page', async (name, drawn) => {
-    const widget = mount(defineComponent({ setup: () => () => h(FRONT_WIDGETS[name]!) }))
+    const widget = mount(defineComponent({ setup: () => () => h('div', h(FRONT_WIDGETS[name]!)) }))
     await vi.dynamicImportSettled()
     await flushPromises()
     expect(widget.element.querySelector(drawn)).not.toBeNull()

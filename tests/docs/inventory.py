@@ -60,6 +60,8 @@ def test_an_index_adds_the_files_written_from_it(
     - The examples, holding the front page's and the Methods page's alone
     - The files the Data page lists, each beside its games by decade
     - The store the Data pages, the store page, and the Viewer read
+    - The output of each example run of the Guide, and the size of each folder
+      under the data directory
     - The Viewer's match beside the demo game alone
     - The example run the README and the Guide carry, naming the stored game
       the demo line meets
@@ -140,6 +142,8 @@ def test_an_index_adds_the_files_written_from_it(
             (Document, f"docs/.vitepress/lib/rendered/{name}.json")
             for name in ("omissions", "shared", "store", "tags", "tie")
         ),
+        (Document, "docs/.vitepress/lib/rendered/runs.json"),
+        (Document, "docs/.vitepress/lib/rendered/disk.json"),
         (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
         (Region, "docs/pages/guide/index.md"),
@@ -510,9 +514,10 @@ def test_shipped_declares_the_files_written_from_declarations(
     Asserts that the outputs declared with no index are these, in
     this order:
 
-    - The identity's JSON, the home squares of the pieces, the keys of each
-      game the site serves, the marks' JSON, the pieces' JSON, and the terms'
-      JSON
+    - The identity's JSON, the commands and data files, the match file's
+      fields, the games matching refuses, the home squares of the pieces, the
+      keys of each game the site serves, the marks' JSON, the pieces' JSON,
+      and the terms' JSON
     - The favicon and each lockup
     - The README's badges, then the install steps of the README and the
       Guide
@@ -532,6 +537,9 @@ def test_shipped_declares_the_files_written_from_declarations(
 
     assert [(type(output), str(output.path)) for output in outputs] == [
         (Document, "docs/.vitepress/lib/rendered/identity.json"),
+        (Document, "docs/.vitepress/lib/rendered/commands.json"),
+        (Document, "docs/.vitepress/lib/rendered/exported.json"),
+        (Document, "docs/.vitepress/lib/rendered/refused.json"),
         (Document, "docs/.vitepress/lib/rendered/homes.json"),
         (Document, "docs/.vitepress/lib/rendered/keys.json"),
         (Document, "docs/.vitepress/lib/rendered/marks.json"),

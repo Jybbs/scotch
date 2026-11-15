@@ -39,7 +39,8 @@ describe('OVERVIEW_WIDGETS', () => {
 describe('Rails', () => {
   it('draws a square for each position and the key at rest', () => {
     const wrapper = mount(Rails)
-    expect(wrapper.findAll('rect')).toHaveLength(rails.squaresOf(rails.example).length)
+    expect(wrapper.findAll('rect.sc-rails-square')).toHaveLength(rails.squaresOf(rails.example).length)
+    expect(wrapper.find('rect.sc-rails-band').attributes('data-on')).toBeUndefined()
     expect(wrapper.find('.sc-rails-key').text())
       .toBe('positions shared36Yours22. c6Kasparov vs. Sosonko22. Bc2')
   })
@@ -51,14 +52,18 @@ describe('Rails', () => {
 
   it('reads the position under the pointer into the key, the start mark at the first', async () => {
     const wrapper = mount(Rails)
+    const band    = (): ReturnType<typeof wrapper.find> => wrapper.find('rect.sc-rails-band')
     await point(wrapper, 'pointermove', 0)
     expect(wrapper.find('.sc-rails-key .sc-start').exists()).toBe(true)
     expect(wrapper.find('rect.is-lit').attributes('data-game')).toBe('submitted')
+    expect(band().attributes('data-on')).toBe('')
     await point(wrapper, 'pointerdown', 0.5)
     expect(wrapper.find('.sc-rails-key').text()).toContain('Position 24 of 36')
+    expect(band().attributes('x')).toBe(String(rails.bandOf(rails.example, rails.cursorAt(rails.example, 0.5))))
     await wrapper.find('svg.sc-rails-drawing').trigger('pointerleave')
     expect(wrapper.find('.sc-rails-key').text()).toContain('positions shared')
     expect(wrapper.find('rect.is-lit').exists()).toBe(false)
+    expect(band().attributes('data-on')).toBeUndefined()
   })
 })
 

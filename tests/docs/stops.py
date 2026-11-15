@@ -83,6 +83,18 @@ def test_a_table_holding_a_name_keeps_the_messages_naming_it():
     )
 
 
+def test_each_refusal_of_a_submitted_game_names_its_check_and_its_phrase():
+    """
+    Asserts that each message `scotch match game` exits on for its `<pgn>`
+    names the check it fails and the phrase the Guide's sentence reads it
+    as.
+    """
+    printed = list(Stops.read().printed("match game", naming="<pgn>"))
+
+    assert len(printed) == 5
+    assert all(stop.check and stop.phrase for stop in printed)
+
+
 def test_the_registry_covers_each_command_the_help_lists():
     """
     Asserts that the registry the package ships names the module of every

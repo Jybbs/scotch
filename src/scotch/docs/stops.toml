@@ -24,33 +24,43 @@ message  = "Unknown option: <token>"
 when     = "A word of the position opens on a hyphen and names no option"
 
 [[stops]]
+check    = "Opens"
 clears   = "Name a file that exists and that the user running the command can read"
 commands = ["match game", "match games"]
 message  = "Cannot read <pgn>: <reason>"
+phrase   = "cannot be opened"
 when     = "The file cannot be opened, with the reason the system gives"
 
 [[stops]]
+check    = "Holds a game"
 clears   = "Pass the file holding the game, a text whose movetext follows its tag pairs"
 commands = ["match game", "match games"]
 message  = "Found no game in <pgn>"
+phrase   = "holds no game"
 when     = "The file holds no game"
 
 [[stops]]
+check    = "One chosen"
 clears   = "Choose one through `--game`, counting from 1"
 commands = ["match game"]
 message  = "Found several games in <pgn>, which --game chooses among"
+phrase   = "holds several with no --game"
 when     = "The file holds several games and `--game` names none"
 
 [[stops]]
+check    = "Has game n"
 clears   = "Choose a game the file holds, which `scotch match games` lists"
 commands = ["match game"]
 message  = "Found no game <n> in <pgn>"
+phrase   = "holds fewer than --game counts"
 when     = "The file holds fewer games than `--game` counts"
 
 [[stops]]
+check    = "Reads whole"
 clears   = "Correct the move or the tag each line below it names"
 commands = ["match game"]
 message  = "Found problems in the game in <pgn>:"
+phrase   = "records an error as it is read"
 when     = "Reading the game recorded an error, such as an illegal move, or its `Variant` tag names a variant other than standard chess"
 
 [[stops]]

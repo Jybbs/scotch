@@ -41,7 +41,7 @@ describe('DatedBands', () => {
 
   it('dims every tier but the one a corner mark lights', async () => {
     const drawn = mount(DatedBands)
-    await drawn.findAll('.sc-data-mark')[1]!.trigger('pointerenter')
+    await drawn.findAll('.sc-data-legend-mark')[1]!.trigger('pointerenter')
     expect(drawn.find('[data-k="part"]').classes()).not.toContain('sc-data-off')
     expect(drawn.find('[data-k="full"]').classes()).toContain('sc-data-off')
   })

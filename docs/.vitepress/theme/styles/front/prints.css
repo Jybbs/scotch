@@ -13,9 +13,9 @@
   text-transform  : uppercase;
 }
 
-.sc-front-lab [data-game='submitted'] { color: var(--sc-submitted); }
+.sc-front-lab [data-game='submitted'] { color: color-mix(in oklab, var(--sc-submitted) 60%, var(--sc-ink)); }
 
-.sc-front-lab [data-game='stored'] { color: var(--sc-stored); }
+.sc-front-lab [data-game='stored'] { color: color-mix(in oklab, var(--sc-stored) 60%, var(--sc-ink)); }
 
 .sc-front-track,
 .sc-front-ties {
@@ -31,11 +31,12 @@
   aspect-ratio          : 1;
   padding               : 2px;
   border-radius         : 3px;
-  background            : var(--sc-page);
+  background            : color-mix(in oklab, var(--sc-page) 55%, transparent);
   box-shadow            : inset 0 0 0 1px var(--sc-rule);
   opacity               : 0.25;
   cursor                : pointer;
-  transition            : opacity var(--sc-duration-fade) var(--sc-curve-glide), box-shadow var(--sc-duration-fade) var(--sc-curve-glide);
+  transition            : opacity var(--sc-duration-fade) var(--sc-curve-glide),
+                          box-shadow var(--sc-duration-fade) var(--sc-curve-glide);
 }
 
 .sc-front-print i {
@@ -103,4 +104,8 @@
     gap     : 0;
     padding : 1px;
   }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .sc-front-print { background: var(--sc-page); }
 }
