@@ -21,7 +21,7 @@ A change to `.github/labels.toml`, a ruleset under `.github/rulesets/`, or `.git
 
 ## 🪻 Code Style
 
-[*Prose*](https://pypi.org/project/prose-formatter/) settles the form of the Python under `.mise/tasks`, `src`, and `tests` from the `[tool.prose]` table in `pyproject.toml`. `mise format` rewrites the source to that form, and `mise check` reports every rewrite the formatter would make beside every lint finding. A lint finding is fixed in the source or held out with `# prose: ignore[<rule>]` on the line it anchors on, whereas a `# prose: skip` trailing the opening line of a construct keeps the layout the formatter would reflow there and silences no lint finding.
+[*Prose*](https://pypi.org/project/prose-formatter/) settles the form of the Python under `.mise/tasks`, `src`, and `tests` from the `[tool.prose]` table in `pyproject.toml`. `mise format` rewrites the source to that form, and `mise check` reports every rewrite the formatter would make beside every lint finding. A lint finding is fixed in the source. Where a rule does not fit the codebase, its `[tool.prose.rules.<rule>]` table turns it off or narrows what it reports across the whole repository, and no line carries a marker silencing the formatter or the linter.
 
 [rustfmt](https://rust-lang.github.io/rustfmt/) settles the form of the crate under `rust/` from its defaults. `mise run rs:format` rewrites the crate to that form, and `mise run rs:check` reports every rewrite rustfmt would make beside every lint [Clippy](https://doc.rust-lang.org/clippy/) reports under each of the crate's features, its pedantic group included.
 
