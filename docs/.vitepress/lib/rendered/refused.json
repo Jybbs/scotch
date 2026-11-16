@@ -1,0 +1,37 @@
+[
+  {
+    "clears": "Name a file that exists and that the user running the command can read",
+    "message": "Cannot read <pgn>: <reason>",
+    "when": "The file cannot be opened, with the reason the system gives",
+    "check": "Opens",
+    "phrase": "cannot be opened"
+  },
+  {
+    "clears": "Pass the file holding the game, a text whose movetext follows its tag pairs",
+    "message": "Found no game in <pgn>",
+    "when": "The file holds no game",
+    "check": "Holds a game",
+    "phrase": "holds no game"
+  },
+  {
+    "clears": "Choose one through `--game`, counting from 1",
+    "message": "Found several games in <pgn>, which --game chooses among",
+    "when": "The file holds several games and `--game` names none",
+    "check": "One chosen",
+    "phrase": "holds several with no --game"
+  },
+  {
+    "clears": "Choose a game the file holds, which `scotch match games` lists",
+    "message": "Found no game <n> in <pgn>",
+    "when": "The file holds fewer games than `--game` counts",
+    "check": "Has game n",
+    "phrase": "holds fewer than --game counts"
+  },
+  {
+    "clears": "Correct the move or the tag each line below it names",
+    "message": "Found problems in the game in <pgn>:",
+    "when": "Reading the game recorded an error, such as an illegal move, or its `Variant` tag names a variant other than standard chess",
+    "check": "Reads whole",
+    "phrase": "records an error as it is read"
+  }
+]

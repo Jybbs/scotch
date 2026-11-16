@@ -51,7 +51,7 @@ describe('CrowdedLines', () => {
 
   it('dims every block off the line picked while its corner mark is lit', async () => {
     const drawn = mount(CrowdedLines)
-    await drawn.findAll('.sc-data-mark')[0]!.trigger('pointerenter')
+    await drawn.findAll('.sc-data-legend-mark')[0]!.trigger('pointerenter')
     expect(drawn.find('[data-on="picked"]').classes()).not.toContain('sc-data-off')
     expect(drawn.find('.sc-data-crowding-block:not([data-on])').classes()).toContain('sc-data-off')
   })

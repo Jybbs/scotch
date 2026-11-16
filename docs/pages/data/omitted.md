@@ -1,6 +1,6 @@
 # Games Left Out
 
-The fetched files hold <!-- left-read -->4,806,573<!-- /left-read --> games, and the index keeps <!-- left-kept -->1,150,156<!-- /left-kept --> of them and leaves out <!-- left-out -->3,656,417<!-- /left-out -->. Each build of the index records every game it leaves out beside its reason, and each count below comes from that record by `mise run docs:render`.
+The fetched files hold <!-- left-read -->4,806,573<!-- /left-read --> games, and the index leaves out <!-- left-out -->3,656,417<!-- /left-out --> of them and keeps the rest, the store [Data](index.md) counts. Each build of the index records every game it leaves out beside its reason, and each count below comes from that record by `mise run docs:render`.
 
 ## The Ledger
 

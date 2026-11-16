@@ -153,6 +153,11 @@ describe('Run, its list', () => {
       .toEqual([label, stored])
   })
 
+  it('sets the start mark in both games’ columns of the starting position alone', () => {
+    const wrapper = mounted()
+    expect([0, 1].map(ply => wrapper.find(`[id$='-ply-${ply}']`).findAll('.sc-start').length)).toEqual([2, 0])
+  })
+
   it('centers the row of the ply in view in the list', async () => {
     const scrolled = vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
     vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockReturnValue(400)

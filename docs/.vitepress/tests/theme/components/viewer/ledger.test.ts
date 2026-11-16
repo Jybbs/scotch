@@ -56,12 +56,23 @@ afterEach(() => {
 })
 
 describe('Ledger as drawn', () => {
-  it('binds a row for every two plies, marking the moves reaching the cursor it opens on', () => {
+  it('binds a row for every two plies beneath the start, marking the moves reaching the cursor it opens on', () => {
     const { wrapper } = mounted()
-    expect(wrapper.findAll('[role="row"]')).toHaveLength(sheetOf(loaded).rows.length)
+    expect(wrapper.findAll('[role="row"]')).toHaveLength(sheetOf(loaded).rows.length + 1)
     expect(current(wrapper))
       .toEqual([EXAMPLES.match.submitted.moves[meet - 1], EXAMPLES.match.stored!.moves[meet - 1]])
-    expect(wrapper.find('[data-at]').element).toBe(wrapper.findAll('[role="row"]')[rowAt(meet, 0)]!.element)
+    expect(wrapper.find('[data-at]').element).toBe(wrapper.findAll('[role="row"]')[rowAt(meet, 0) + 1]!.element)
+  })
+
+  it('opens on a row setting the start mark in each game’s half', () => {
+    const start = mounted().wrapper.find('[role="row"]')
+    expect(start.findAll('.sc-viewer-start').map(half => [half.attributes('data-game'), half.text()]))
+      .toEqual([['submitted', 'Start'], ['stored', 'Start']])
+  })
+
+  it('leaves the stored half of the start row empty where no stored game matched', () => {
+    const start = mounted(new Loaded(EXAMPLES.alone)).wrapper.find('[role="row"]')
+    expect(start.findAll('.sc-viewer-start').map(half => half.text())).toEqual(['Start', ''])
   })
 
   it('moves the cursor to a move pressed', async () => {
@@ -89,10 +100,10 @@ describe('Ledger painting the cursor', () => {
       .toEqual([EXAMPLES.match.submitted.moves[meet + 2], EXAMPLES.match.stored!.moves[meet + 2]])
     expect([was.hasAttribute('aria-current'), was.tabIndex]).toEqual([false, -1])
     expect(wrapper.findAll('[data-at]').map(row => row.element))
-      .toEqual([wrapper.findAll('[role="row"]')[rowAt(meet + 3, 0)]!.element])
+      .toEqual([wrapper.findAll('[role="row"]')[rowAt(meet + 3, 0) + 1]!.element])
   })
 
-  it('draws no rows and lights none for a game that plays no move', () => {
+  it('draws the start row alone and lights it for a game that plays no move', () => {
     const { submitted }        = EXAMPLES.alone
     const { painted, wrapper } = mounted(new Loaded({
       ...EXAMPLES.alone,
@@ -101,7 +112,14 @@ describe('Ledger painting the cursor', () => {
     painted.load()
     painted.paint(0, false)
     expect([wrapper.findAll('[role="row"]'), wrapper.findAll('[data-at]')].map(found => found.length))
-      .toEqual([0, 0])
+      .toEqual([1, 1])
+  })
+
+  it('lights the start row at the starting position', () => {
+    const { painted, wrapper } = mounted()
+    painted.load()
+    painted.paint(0, false)
+    expect(wrapper.findAll('[data-at]').map(row => row.element)).toEqual([wrapper.find('[role="row"]').element])
   })
 
   it('leaves the submitted game’s first move the one tab stop at the starting position', () => {
@@ -163,6 +181,13 @@ describe('Ledger’s threads', () => {
     expect(wrapper.find('.sc-viewer-bar').attributes('opacity')).toBe('1')
   })
 
+  it('draws the run’s band from the row the run meets in, beneath the start row', () => {
+    const { painted, wrapper } = mounted()
+    painted.load()
+    const y = Number(wrapper.find('.sc-viewer-bar').attributes('y'))
+    expect(Math.floor((y + 3.5) / 24)).toBe(rowAt(meet, 0) + 1)
+  })
+
   it('moves each game’s ring along its thread, hiding the ring of a game holding no position', () => {
     const { painted, wrapper } = mounted()
     painted.load()
@@ -188,7 +213,7 @@ describe('Ledger’s scroll', () => {
     resize()
     painted.paint(60, false)
     expect(Element.prototype.scrollTo)
-      .toHaveBeenLastCalledWith({ behavior: 'auto', top: 24 * Math.round((rowAt(60, 0) * 24 - 80) / 24) })
+      .toHaveBeenLastCalledWith({ behavior: 'auto', top: 24 * Math.round(((rowAt(60, 0) + 1) * 24 - 80) / 24) })
   })
 
   it('glides the box on a glide, and scrolls it no further for a step keeping the same row', () => {

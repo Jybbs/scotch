@@ -1,11 +1,11 @@
 """
 Holds `Stops`, the messages a command exits nonzero on, read from the
 `stops.toml` beside this module, which the commands page sets beneath each
-command, the Guide's walkthroughs set for the steps they cover, and the
-audit's `StopCheck` holds to the messages the code prints.
+command, Matching a Game sets for the games it refuses, and the audit's
+`StopCheck` holds to the messages the code prints.
 """
 
-from collections.abc         import Iterable, Iterator
+from collections.abc         import Iterator
 from importlib.resources     import files
 from importlib.resources.abc import Traversable
 from pathlib                 import Path
@@ -41,6 +41,18 @@ class Stop(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     when: str
     """
     The condition the command prints the message under.
+    """
+
+    check: str | None = None
+    """
+    The check a file fails to print the message, named in a few words, where
+    the Guide's sentence on the games a match refuses names it.
+    """
+
+    phrase: str | None = None
+    """
+    The phrase finishing *"A match refuses a file that"* for the message,
+    where the Guide's sentence on the games a match refuses names it.
     """
 
     @property
@@ -92,30 +104,6 @@ class Stops(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         `scotch.docs` package ships unless another is named.
         """
         return cls.model_validate(loads(path.read_text(encoding="utf-8")))
-
-    def steps(self, commands: Iterable[tuple[str, str | None]]) -> str:
-        """
-        Writes the table of each message the commands of `commands` exit
-        nonzero on, in the order given, each command paired with the part a
-        message must hold to be listed, or with `None` to list every message
-        it exits on. Each message sits beside its command linked to its
-        section of the commands page, when it prints the message, and the
-        step that clears it.
-        """
-        return markdown(
-            headers = ("Command", "Message", "When", "Clears It"),
-            right   = False,
-            rows    = (
-                (
-                    f"[`scotch {command}`](../reference/commands.md"
-                    f"#scotch-{command.replace(' ', '-')})",
-                    coded(stop.message),
-                    stop.when, stop.clears
-                )
-                for command, naming in commands
-                for stop in self.printed(command, naming)
-            )
-        )
 
     def table(self, command: str, naming: str | None = None) -> str:
         """

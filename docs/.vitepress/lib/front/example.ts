@@ -21,10 +21,16 @@ export type Game = 'stored' | 'submitted'
 type Raw = typeof examples.front
 
 /**
+ * The opacity of a fingerprint's lightest digit and the opacity each step of a
+ * digit adds, so the digit `f` draws at 0.9.
+ */
+export const SHADE = { least: 0.08, step: 0.82 / 15 } as const
+
+/**
  * Writes a key `scotch render docs` writes in decimal as the 16 hex digits of
  * its 64 bits.
  */
-function hexOf(key: string): string {
+export function hexOf(key: string): string {
   return BigInt(key).toString(16).padStart(16, '0')
 }
 

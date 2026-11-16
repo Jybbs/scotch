@@ -41,7 +41,7 @@ function statusLine(status: Status, show: (on: boolean) => void, verdict?: Verdi
  * boards differ on reaches the Viewer through `show`. The field taking a move
  * in SAN sits under the status line, shown while the stored game is covered,
  * and a move made on the stored board or typed there reaches the Viewer as
- * `offer`.
+ * `offer`. The default slot sits over the track.
  */
 export const Stage = defineComponent({
   name: 'ScotchStage',
@@ -66,7 +66,7 @@ export const Stage = defineComponent({
     turn  : (facing: Facing) => facing === 'black' || facing === 'white'
   },
 
-  setup: (props, { emit }) => {
+  setup: (props, { emit, slots }) => {
     const cover = (on: boolean): void => {
       emit('cover', on)
     }
@@ -109,6 +109,7 @@ export const Stage = defineComponent({
           })
         ]),
         h('div', { class: 'sc-viewer-under' }, [
+          slots.default?.(),
           h(Track, { cursor, facing, loaded, onGo: go, ref: parts.track, status: props.status })
         ])
       ]

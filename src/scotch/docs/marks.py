@@ -1,5 +1,5 @@
 """
-Holds `Marks`, what the identity page draws of the SVGs tracked under
+Holds `Marks`, what the Marks page draws of the SVGs tracked under
 `docs/assets/`, meaning the `Drawing` of each one, the `Stop` of each
 place the site or the README sets a mark, and the `Guide` of each length
 of the mark's construction, each measured from the `Box` of one subpath
@@ -306,8 +306,8 @@ class Drawing(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
 class Marks(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The drawings the identity page sets, beside each place they stand and
-    each length of the mark.
+    The drawings the Marks page sets, beside each place they stand and each
+    length of the mark.
     """
 
     guides: tuple[Guide, ...]

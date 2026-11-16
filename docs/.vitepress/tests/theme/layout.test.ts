@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h }       from 'vue'
 
 import { IDENTITY } from '../../lib/identity/tokens.ts'
+import { Notes }    from '../../theme/components/notes.ts'
 import { Layout }   from '../../theme/layout.ts'
 
 vi.mock('vitepress/theme-without-fonts', () => ({
@@ -15,13 +16,24 @@ vi.mock('vitepress/theme-without-fonts', () => ({
     })
   }
 }))
+vi.mock('../../theme/components/colophon.ts', () => ({
+  Colophon: defineComponent({ setup: () => () => h('footer', { class: 'sc-colophon' }) })
+}))
 vi.mock('../../theme/components/front/layer.ts', () => ({
   Layer: defineComponent({ setup: () => () => h('i', { class: 'layer' }) })
 }))
 
 describe('Layout', () => {
+  it('sets the colophon beneath every page', () => {
+    expect(mount(Layout).find("[data-slot='layout-bottom'] .sc-colophon").exists()).toBe(true)
+  })
+
   it("sets beneath every page the slip a term's link opens", () => {
     expect(mount(Layout).find("[data-slot='layout-bottom'] .sc-slip").exists()).toBe(true)
+  })
+
+  it('sets beneath every page the component picking out a citation and its source', () => {
+    expect(mount(Layout).findComponent(Notes).exists()).toBe(true)
   })
 
   it('draws the layer the pour plays on before the hero', () => {

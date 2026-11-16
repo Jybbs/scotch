@@ -37,6 +37,17 @@ class Commands(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     The messages each command exits nonzero on.
     """
 
+    @property
+    def listed(self) -> list[dict[str, str]]:
+        """
+        Lists each command the help of the app shows, its verb, its noun,
+        and the first line of the help its verb's group gives.
+        """
+        return [
+            {"group": self.app[verb].help.split("\n")[0], "noun": noun, "verb": verb}
+            for verb, noun in commands(self.app)
+        ]
+
     def section(self, *tokens: str) -> str:
         """
         Writes the section of the command its verb and its noun in `tokens`

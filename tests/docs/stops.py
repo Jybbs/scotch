@@ -83,6 +83,18 @@ def test_a_table_holding_a_name_keeps_the_messages_naming_it():
     )
 
 
+def test_each_refusal_of_a_submitted_game_names_its_check_and_its_phrase():
+    """
+    Asserts that each message `scotch match game` exits on for its `<pgn>`
+    names the check it fails and the phrase the Guide's sentence reads it
+    as.
+    """
+    printed = list(Stops.read().printed("match game", naming="<pgn>"))
+
+    assert len(printed) == 5
+    assert all(stop.check and stop.phrase for stop in printed)
+
+
 def test_the_registry_covers_each_command_the_help_lists():
     """
     Asserts that the registry the package ships names the module of every
@@ -99,50 +111,3 @@ def test_the_registry_covers_each_command_the_help_lists():
     } <= set(stops.modules)
     assert {command for stop in stops.stops for command in stop.commands} <= listed
 
-
-def test_the_steps_table_names_each_command_in_the_order_given():
-    """
-    Asserts that the table of several commands lists each command's messages
-    in the order the commands are given, each beside its command linked to
-    its section of the commands page, keeps only the messages holding the
-    part a command is paired with, and leaves out the messages of every
-    other command.
-    """
-    stops = Stops(
-        modules = (),
-        stops   = (
-            Stop(
-                clears   = "One",
-                commands = ("a b",),
-                message  = "First",
-                when     = "Early"
-            ),
-            Stop(
-                clears   = "Two",
-                commands = ("c d",),
-                message  = "Second <index>",
-                when     = "Late"
-            ),
-            Stop(
-                clears   = "Four",
-                commands = ("c d",),
-                message  = "Fourth <pgn>",
-                when     = "Later"
-            ),
-            Stop(
-                clears   = "Three",
-                commands = ("e f",),
-                message  = "Third",
-                when     = "Never"
-            )
-        )
-    )
-
-    assert stops.steps((("c d", "<index>"), ("a b", None))).splitlines() == [
-        "| **Command** | **Message** | **When** | **Clears It** |",
-        "|---|---|---|---|",
-        "| [`scotch c d`](../reference/commands.md#scotch-c-d) | `Second <index>`"
-        " | Late | Two |",
-        "| [`scotch a b`](../reference/commands.md#scotch-a-b) | `First` | Early"
-        " | One |"
-    ]

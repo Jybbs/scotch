@@ -61,6 +61,8 @@ def test_an_index_adds_the_files_written_from_it(
     - The examples, holding the front page's and the Methods page's alone
     - The files the Data page lists, each beside its games by decade
     - The store the Data pages, the store page, and the Viewer read
+    - The output of each example run of the Guide, and the size of each folder
+      under the data directory
     - The Viewer's match beside the demo game alone
     - The example run the README and the Guide carry, naming the stored game
       the demo line meets
@@ -107,7 +109,6 @@ def test_an_index_adds_the_files_written_from_it(
                         "<!-- order -->\n<!-- /order -->\n",
 
         "guide/index.md": (
-            "<!-- example -->\n<!-- /example -->\n\n"
             "Holds <!-- games -->0<!-- /games --> games and"
             " <!-- undated -->?<!-- /undated --> undated.\n\n"
             "Shares <!-- demo-run -->0<!-- /demo-run --> positions.\n"
@@ -120,7 +121,7 @@ def test_an_index_adds_the_files_written_from_it(
 
         "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
         "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
-        "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n",
+        "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
         "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n",
         **walked()
     }
@@ -141,16 +142,17 @@ def test_an_index_adds_the_files_written_from_it(
             (Document, f"docs/.vitepress/lib/rendered/{name}.json")
             for name in ("omissions", "shared", "store", "tags", "tie")
         ),
+        (Document, "docs/.vitepress/lib/rendered/runs.json"),
+        (Document, "docs/.vitepress/lib/rendered/disk.json"),
         (Document, "docs/.vitepress/lib/rendered/viewer.json"),
         (Region, ".github/README.md"),
-        (Region, "docs/pages/guide/index.md"),
         (Region, "docs/pages/data/index.md"),
         *[(Region, "docs/pages/data/lengths.md")] * 2,
         *[(Region, "docs/pages/data/omitted.md")] * 2,
         *[(Region, "docs/pages/data/shared.md")] * 3,
         *[(Region, "docs/pages/data/tags.md")] * 2,
         (Region, "docs/pages/guide/store.md"),
-        (Region, "docs/pages/reference/identity.md"),
+        (Region, "docs/pages/identity/palette.md"),
         (Region, "docs/pages/data/tags.md"),
         *[(Region, "docs/pages/reference/commands.md")] * len(RUNS),
         (Region, "docs/pages/guide/matching.md"),
@@ -181,12 +183,6 @@ def test_an_index_adds_the_files_written_from_it(
     assert [viewer[name]["submitted"]["moves"][0] for name in ("alone", "match")] == [
         "d4", "Nf3"
     ]
-    assert text["guide/index.md"].startswith(
-        "<!-- example -->\n```bash\nscotch match game"
-        " docs/public/games/demo.pgn\n```\n\n```text\n"
-        "players/Kasparov.zip:1  Kasparov, Gary vs. Sosonko, Gennadi, Tilburg,"
-        " 1981.??.??\n"
-    )
     assert "Holds <!-- games -->10<!-- /games --> games and" in text["guide/index.md"]
     assert "<!-- undated -->0<!-- /undated --> undated." in text["guide/index.md"]
     assert "<!-- demo-run -->43<!-- /demo-run -->" in text["guide/index.md"]
@@ -253,39 +249,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     """
     root = checkout(
         {
-            "data/index.md": (
-                "Holds <!-- files -->0<!-- /files --> files.\n\n"
-                "<!-- sources -->\n<!-- /sources -->\n"
-            ),
-
-            "guide/index.md"    : "<!-- install -->\n<!-- /install -->\n",
-            "guide/matching.md" : marked("refused"),
-            "guide/setup.md"    : marked("steps", "checks", "stops"),
-            "guide/store.md"    : "<!-- source -->\n<!-- /source -->\n",
-            "index.md"          : "<!-- tagline --><!-- /tagline -->\n",
-
-            "reference/identity.md": "".join(
-                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
-                for name in (
-                    "palette", "roles", "faces", "pieces", "marks", "construction"
-                )
-            ),
-
-            "reference/settings.md": "".join(
-                f"<!-- {name} -->\n<!-- /{name} -->\n\n"
-                for name in ("settings", "order", "origin")
-            ),
-
-            "reference/tasks.md" : "<!-- tasks -->\n<!-- /tasks -->\n",
-            "reference/terms.md" : "<!-- terms -->\n<!-- /terms -->\n",
-
-            "reference/commands.md": marked(
-                *(f"command-{verb}-{noun}" for verb, noun in commands(app)),
-                "run-cite-source",
-                "run-fetch-games"
-            ),
-
-            "reference/files.md": marked(
+            "data/files.md": marked(
                 "layout",
                 "manifest",
                 "columns",
@@ -293,7 +257,30 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
                 "warning"
             ),
 
-            "reference/match.md": marked("export", "side", "span")
+            "data/index.md"       : "Holds <!-- files -->0<!-- /files --> files.\n",
+            "data/sources.md"     : "<!-- sources -->\n<!-- /sources -->\n",
+            "develop/tasks.md"    : "<!-- tasks -->\n<!-- /tasks -->\n",
+            "guide/matching.md"   : marked("refused"),
+            "guide/setup.md"      : marked("install", "steps", "checks"),
+            "guide/store.md"      : "<!-- source -->\n<!-- /source -->\n",
+            "identity/faces.md"   : marked("faces", "pieces"),
+            "identity/marks.md"   : marked("marks", "construction"),
+            "index.md"            : "<!-- tagline --><!-- /tagline -->\n",
+            "develop/citing.md"   : marked("command-cite-source", "run-cite-source"),
+            "identity/palette.md" : marked("palette", "roles"),
+
+            "reference/commands.md": marked(
+                *(
+                    f"command-{verb}-{noun}"
+                    for verb, noun in commands(app)
+                    if verb != "cite"
+                ),
+                "run-fetch-games"
+            ),
+
+            "reference/settings.md" : marked("settings", "order", "origin"),
+            "reference/terms.md"    : "<!-- terms -->\n<!-- /terms -->\n",
+            "reference/match.md"    : marked("export", "side", "span")
         }
     )
     outputs = Outputs.shipped(app, Path(".github/README.md"), root)
@@ -301,14 +288,15 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     for output in outputs:
         output.write(root)
 
-    data  = (root / "docs/pages/data/index.md").read_text()
-    front = (root / "docs/pages/index.md").read_text()
-    pages = (root / "docs/pages/reference/commands.md").read_text()
-    store = (root / "docs/pages/guide/store.md").read_text()
+    citing = (root / "docs/pages/develop/citing.md").read_text()
+    data   = (root / "docs/pages/data/index.md").read_text()
+    front  = (root / "docs/pages/index.md").read_text()
+    pages  = (root / "docs/pages/reference/commands.md").read_text()
+    store  = (root / "docs/pages/guide/store.md").read_text()
 
     assert [*output.problems(root) for output in outputs] == []
     assert f"<!-- files -->{len(Sources.read().sources):,}<!-- /files -->" in data
-    assert "|---|---|---|" in data
+    assert "|---|---|---|" in (root / "docs/pages/data/sources.md").read_text()
     assert front == f"<!-- tagline -->{Identity().tagline}<!-- /tagline -->\n"
     assert "\n".join(
         (root / "docs/pages/guide" / page).read_text()
@@ -323,10 +311,10 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     }
     assert all(
         f"<!-- command-{verb}-{noun} -->\n{Commands(app=app).section(verb, noun)}\n"
-        in pages
+        in (citing if verb == "cite" else pages)
         for verb, noun in commands(app)
     )
-    assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in pages
+    assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in citing
     assert pages.count("Fetched https://www.pgnmentor.com/") == 4
     assert loads(
         (root / "docs/public/matches/alone.json").read_text()
@@ -423,10 +411,9 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
                             "<!-- dated -->\n<!-- /dated -->\n\n"
                             "<!-- order -->\n<!-- /order -->\n",
 
-            "guide/index.md"        : "<!-- example -->\n<!-- /example -->\n",
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
+            "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
             "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
-            "reference/identity.md" : "<!-- series -->\n<!-- /series -->\n",
             **walked()
         }
     )
@@ -519,15 +506,15 @@ def test_shipped_declares_the_files_written_from_declarations(
     Asserts that the outputs declared with no index are these, in
     this order:
 
-    - The identity's JSON, the home squares of the pieces, the keys of each
-      game the site serves, the marks' JSON, the pieces' JSON, and the terms'
-      JSON
+    - The identity's JSON, the commands and data files, the match file's
+      fields, the games matching refuses, the home squares of the pieces, the
+      keys of each game the site serves, the marks' JSON, the pieces' JSON,
+      and the terms' JSON
     - The favicon and each lockup
-    - The README's badges, then the install steps of the README and the
-      Guide
-    - The Guide's setup walkthrough, its install steps each beside what it
-      does, the checks `mise doctor project` runs, and the ways fetching and
-      indexing stop, then the games matching refuses
+    - The README's badges, then the install steps of the README and of the
+      Guide's setup walkthrough
+    - The setup walkthrough's install steps each beside what it does and the
+      checks `mise doctor project` runs, then the games matching refuses
     - The table of sources, then the row of sources the store page copies
     - The Reference section's settings with their read order and root,
       tasks, identity tables, terms, data files, and match file
@@ -541,6 +528,9 @@ def test_shipped_declares_the_files_written_from_declarations(
 
     assert [(type(output), str(output.path)) for output in outputs] == [
         (Document, "docs/.vitepress/lib/rendered/identity.json"),
+        (Document, "docs/.vitepress/lib/rendered/commands.json"),
+        (Document, "docs/.vitepress/lib/rendered/exported.json"),
+        (Document, "docs/.vitepress/lib/rendered/refused.json"),
         (Document, "docs/.vitepress/lib/rendered/homes.json"),
         (Document, "docs/.vitepress/lib/rendered/keys.json"),
         (Document, "docs/.vitepress/lib/rendered/marks.json"),
@@ -552,20 +542,24 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/assets/lockup-light.svg"),
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
-        (Region, "docs/pages/guide/index.md"),
         *[(Region, "docs/pages/guide/setup.md")] * 3,
         (Region, "docs/pages/guide/matching.md"),
-        (Region, "docs/pages/data/index.md"),
+        (Region, "docs/pages/data/sources.md"),
         (Region, "docs/pages/guide/store.md"),
-        *[(Region, "docs/pages/reference/settings.md")] * 3,
-        (Region, "docs/pages/reference/tasks.md"),
-        *[(Region, "docs/pages/reference/identity.md")] * 6,
-        (Region, "docs/pages/reference/terms.md"),
-        *[(Region, "docs/pages/reference/files.md")] * 5,
+        *[(Region, "docs/pages/data/files.md")] * 5,
+        (Region, "docs/pages/develop/tasks.md"),
+        *[(Region, "docs/pages/identity/faces.md")] * 2,
+        *[(Region, "docs/pages/identity/marks.md")] * 2,
+        *[(Region, "docs/pages/identity/palette.md")] * 2,
         *[(Region, "docs/pages/reference/match.md")] * 3,
+        *[(Region, "docs/pages/reference/settings.md")] * 3,
+        (Region, "docs/pages/reference/terms.md"),
+        (Region, "docs/pages/develop/citing.md"),
         *[(Region, "docs/pages/reference/commands.md")] * (len(
             list(commands(app))
-        ) + 2),
+        ) - 1),
+        (Region, "docs/pages/develop/citing.md"),
+        (Region, "docs/pages/reference/commands.md"),
         (Document, "docs/public/matches/alone.json"),
         (Figures, "docs/pages/page.md"),
         (Footnotes, "docs/pages/page.md")

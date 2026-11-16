@@ -3,7 +3,7 @@ import { flushPromises, mount }            from '@vue/test-utils'
 import { afterEach, describe, expect, vi } from 'vitest'
 
 import { Prints }       from '../../../../theme/components/front/prints.ts'
-import { test }         from '../../../common/clock.ts'
+import { homed, test }  from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 
 vi.mock('@vueuse/core', async original => ({
@@ -48,6 +48,7 @@ describe('Prints', () => {
   test('steps a ply at a time on the clock', async ({ clock }) => {
     const prints = mount(Prints)
     await flushPromises()
+    await homed(prints)
     clock.advanceTimersByTime(650)
     await flushPromises()
     expect(prints.find('[role=slider]').attributes('aria-valuetext')).toBe('Ply 1')

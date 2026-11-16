@@ -2,7 +2,9 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, vi } from 'vitest'
 
+import { PLACED }   from '../../../../lib/markdown/placements.ts'
 import { MARKS }    from '../../../../lib/reference/marks.ts'
+import { cardOf }   from '../../../../lib/site/routes.ts'
 import { Marks }    from '../../../../theme/components/reference/marks.ts'
 import { test }     from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
@@ -65,6 +67,11 @@ describe('Marks, at each place', () => {
     expect(drawn.find('.sc-ref-readout').text()).toContain('Link card')
     expect(drawn.find('.sc-ref-readout small').text()).toBe('400 by 200 px')
     expect(drawn.find('img').attributes('style')).toContain('opacity: 1')
+  })
+
+  test('shows the link card of the page that places it', ({ clock }) => {
+    const [page] = Object.entries(PLACED).find(([, list]) => list.some(({ draw }) => draw === 'marks'))!
+    expect(settled(clock).find('img').attributes('src')).toBe(cardOf(page))
   })
 
   test('marks the stop it stands nearest', ({ clock }) => {

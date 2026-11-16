@@ -16,12 +16,12 @@ describe('buildNav', () => {
 })
 
 describe('buildSidebar', () => {
-  test("groups each section's pages under it by their headings, the overview leading", ({ repo }) => {
+  test("groups each section's pages under it by their headings, an Overview entry leading", ({ repo }) => {
     repo.write('pages/data/index.md', '# Data\n')
     repo.write('pages/data/lengths.md', '# Game Lengths\n')
     expect(buildSidebar(`${repo.root}/pages`, [{ label: 'Data', slug: 'data' }])).toEqual({
       '/data/': [{
-        items : [{ link: '/data/', text: 'Data' }, { link: '/data/lengths', text: 'Game Lengths' }],
+        items : [{ link: '/data/', text: 'Overview' }, { link: '/data/lengths', text: 'Game Lengths' }],
         text  : 'Data'
       }]
     })
@@ -35,7 +35,7 @@ describe('buildSidebar', () => {
       .toEqual({
         '/guide/': [{
           items : [
-            { link: '/guide/', text: 'Guide' },
+            { link: '/guide/', text: 'Overview' },
             { link: '/guide/setup', text: 'Setting Up' },
             { link: '/guide/matching', text: 'Matching a Game' }
           ],

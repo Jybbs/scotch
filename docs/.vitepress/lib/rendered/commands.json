@@ -1,0 +1,103 @@
+{
+  "commands": [
+    {
+      "group": "Prints the footnote definition citing a source.",
+      "noun": "source",
+      "verb": "cite"
+    },
+    {
+      "group": "Downloads the files the store draws its games from.",
+      "noun": "games",
+      "verb": "fetch"
+    },
+    {
+      "group": "Builds the index of stored games from the fetched files.",
+      "noun": "games",
+      "verb": "index"
+    },
+    {
+      "group": "Matches a submitted game against the stored games.",
+      "noun": "game",
+      "verb": "match"
+    },
+    {
+      "group": "Matches a submitted game against the stored games.",
+      "noun": "games",
+      "verb": "match"
+    },
+    {
+      "group": "Prints a stored game, a position, or what the store holds.",
+      "noun": "game",
+      "verb": "show"
+    },
+    {
+      "group": "Prints a stored game, a position, or what the store holds.",
+      "noun": "position",
+      "verb": "show"
+    },
+    {
+      "group": "Prints a stored game, a position, or what the store holds.",
+      "noun": "store",
+      "verb": "show"
+    }
+  ],
+  "files": [
+    {
+      "holds": "Each file of the host `sources.toml` declares, under the path its address names",
+      "path": ".cache/data/downloads/www.pgnmentor.com/",
+      "readers": [
+        "scotch index games"
+      ],
+      "writer": "scotch fetch games"
+    },
+    {
+      "holds": "The record of each fetched file, keyed by its address",
+      "path": ".cache/data/downloads/manifest.json",
+      "readers": [
+        "scotch index games",
+        "scotch match game",
+        "scotch match games",
+        "scotch show game",
+        "scotch show position",
+        "scotch show store"
+      ],
+      "writer": "scotch fetch games"
+    },
+    {
+      "holds": "One row for each stored game",
+      "path": ".cache/data/index/games.parquet",
+      "readers": [
+        "scotch match game",
+        "scotch match games",
+        "scotch show game",
+        "scotch show position",
+        "scotch show store"
+      ],
+      "writer": "scotch index games"
+    },
+    {
+      "holds": "Every position the stored games reach, beside their moves",
+      "path": ".cache/data/index/positions.bin",
+      "readers": [
+        "scotch match game",
+        "scotch match games",
+        "scotch show game",
+        "scotch show position",
+        "scotch show store"
+      ],
+      "writer": "scotch index games"
+    },
+    {
+      "holds": "A copy of the manifest the files were read under",
+      "path": ".cache/data/index/manifest.json",
+      "readers": [
+        "scotch match game",
+        "scotch match games",
+        "scotch show game",
+        "scotch show position",
+        "scotch show store"
+      ],
+      "writer": "scotch index games"
+    }
+  ]
+}

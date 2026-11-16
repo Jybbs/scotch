@@ -32,9 +32,10 @@ export interface DriveTuning {
  * Plays a widget's steps on a clock while its panel is on the screen and the
  * site's drawings move, holding while a pointer rests on the panel or focus
  * sits inside it, and resting on the last step for `rest` beats before it
- * starts over. While the drawings hold still, the widget stands on its
- * `settle` step until the reader picks another, moving there once the widget
- * mounts, so hydration meets the first step the build rendered on the server.
+ * starts over. The widget opens on its `settle` step, so its first paint and
+ * the build's server render both show the figure at its true value before the
+ * clock plays on from there. While the drawings hold still, the widget stands
+ * on that step until the reader picks another.
  *
  * Args:
  *   panel  : The ref the widget's panel binds to.
@@ -45,7 +46,7 @@ export function useDrive(panel: Ref<HTMLElement | null>, tuning: DriveTuning): D
   const mounted    = useMounted()
   const seen       = useElementVisibility(panel)
   const held       = shallowRef(false)
-  const at         = shallowRef(tuning.start)
+  const at         = shallowRef(tuning.settle)
   let waited       = 0
 
   const timer = useIntervalFn(() => {

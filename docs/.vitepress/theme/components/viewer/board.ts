@@ -1,15 +1,14 @@
 import type { PropType, ShallowRef, VNode }                                  from 'vue'
 import { defineComponent, h, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
 
-import { readingOrder }                              from '../../../lib/methods/board.ts'
-import { shadeOf }                                   from '../../../lib/methods/squares.ts'
 import * as drawings                                 from '../../../lib/viewer/drawing.ts'
 import { GameBoard }                                 from '../../../lib/viewer/gameboard.ts'
 import * as games                                    from '../../../lib/viewer/games.ts'
 import { type Loaded, NOTHING, PARTIES, type Party } from '../../../lib/viewer/loaded.ts'
 import { Picking, squareAt }                         from '../../../lib/viewer/offering.ts'
 import { type Hop, moveTo, standingOf }              from '../../../lib/viewer/placements.ts'
-import { type Facing, SQUARE, cornerOf }             from '../../../lib/viewer/trail.ts'
+import { type Facing, SQUARE, cornerOf, groundOf }   from '../../../lib/viewer/trail.ts'
+import { startMark }                                 from '../start.ts'
 
 /**
  * The calls a board answers the pointer through while it takes a move.
@@ -51,13 +50,14 @@ function drawing(
     'viewBox'     : `0 0 ${8 * SQUARE} ${8 * SQUARE}`,
     ...pointing
   }, [
-    h('g', readingOrder.map(square => h('rect', {
+    h('g', groundOf(facing).map(({ shade, square, x, y }) => h('rect', {
       'class'       : 'sc-viewer-square',
-      'data-shade'  : shadeOf(square),
+      'data-shade'  : shade,
       'data-square' : square,
       'height'      : SQUARE,
       'width'       : SQUARE,
-      ...cornerOf(square, facing)
+      'x'           : x,
+      'y'           : y
     }))),
     ...[opening.hop?.from, opening.hop?.to].map(square => h('rect', {
       'class'        : 'sc-viewer-hop',
@@ -192,7 +192,7 @@ export const GameFigure = defineComponent({
     return () => {
       const side = props.loaded.sideOf(props.party)
       const ply  = props.loaded.plyOf(props.party, props.cursor)
-      const move = side && ply ? games.numbered(side, ply - 1) : 'Start'
+      const move = side && ply ? games.numbered(side, ply - 1) : startMark()
       return h('figure', { 'class': 'sc-viewer-figure', 'data-game': props.party }, [
         h('div', { class: 'sc-viewer-box' }, [
           drawing(

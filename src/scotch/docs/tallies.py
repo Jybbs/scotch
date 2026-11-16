@@ -297,7 +297,7 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         "Alekhine", "Botvinnik", "Spassky", "Karpov", "Anand"
     )
     """
-    The files the identity page charts, in the order the palette's series take
+    The files the Palette and Roles page charts, in the order the palette's series take
     them.
     """
 
@@ -504,9 +504,9 @@ class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     @property
     def charted(self) -> list[Archive]:
         """
-        Reads the files the identity page charts one series of the palette
-        for, in the order `CHARTED` names them, leaving out one the store
-        lacks.
+        Reads the files the Palette and Roles page charts one series of the
+        palette for, in the order `CHARTED` names them, leaving out one the
+        store lacks.
         """
         held = {archive.name: archive for archive in self.files}
 

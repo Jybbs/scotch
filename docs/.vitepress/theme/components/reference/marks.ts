@@ -102,7 +102,7 @@ function card(frame: MarkFrame): VNode {
   return h('img', {
     alt    : 'The link card of this page',
     height : 200,
-    src    : cardOf('reference/identity.md'),
+    src    : cardOf('identity/marks.md'),
     style  : {
       display   : frame.card > 0 ? undefined : 'none',
       opacity   : frame.card,

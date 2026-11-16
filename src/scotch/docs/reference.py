@@ -1,20 +1,23 @@
 """
-Holds `Reference`, the tables the Reference section's pages set beneath
-their drawings, each written from what declares it, meaning `Settings`, what
-`mise tasks` reports, the `Identity`, `Marks`, `Terms`, what python-chess
-ships, the hosts `sources.toml` names, the records of the manifest and the
-match file, the `COLUMNS` of the games table, the crate's `SECTIONS` of
-`positions.bin`, and the checks `.mise/config.toml` declares, so a change to
-any of them reaches its page through the next `scotch render docs`.
+Holds `Reference`, the tables the Identity, Data, Reference, and Develop
+pages set beneath their drawings, each written from what declares it,
+meaning `Settings`, what `mise tasks` reports, the `Identity`, `Marks`,
+`Terms`, what python-chess ships, the hosts `sources.toml` names,
+the records of the manifest and the match file, the `COLUMNS` of the
+games table, the crate's `SECTIONS` of `positions.bin`, and the checks
+`.mise/config.toml` declares, so a change to any of them reaches its page
+through the next `scotch render docs`.
 """
 
-from chess     import Board, COLOR_NAMES, Piece, parse_square, piece_name
-from inspect   import getdoc
-from itertools import groupby
-from json      import loads
-from operator  import attrgetter
-from pathlib   import Path
-from pydantic  import BaseModel
+from chess           import Board, COLOR_NAMES, Piece, parse_square, piece_name
+from collections.abc import Iterable
+from inspect         import getdoc
+from itertools       import groupby
+from json            import loads
+from more_itertools  import partition
+from operator        import attrgetter
+from pathlib         import Path
+from pydantic        import BaseModel
 from pydantic_settings import (
     DotEnvSettingsSource,
     EnvSettingsSource,
@@ -38,7 +41,8 @@ from scotch.sources.schemas  import Download, Manifest, Sources
 
 class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The declarations under `root` the Reference section's pages describe.
+    The declarations under `root` the Identity, Data, Reference, and Develop
+    pages describe.
     """
 
     homes: ClassVar[dict[str, str]] = {
@@ -59,6 +63,12 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     The square the pieces drawing first stands each piece on, by its symbol.
     """
 
+    user_tasks: ClassVar[tuple[str, ...]] = ("data:fetch", "data:index")
+    """
+    The tasks a user runs to build the store a match reads, which the Tasks
+    page sets apart from the ones a contributor runs.
+    """
+
     root: Path
     """
     The repository's root.
@@ -66,7 +76,7 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
 
     identity: Identity = Identity()
     """
-    The identity the section's identity page draws.
+    The identity the Identity section's pages draw.
     """
 
     @property
@@ -118,6 +128,14 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         return fielded(Export)
 
     @property
+    def exported(self) -> dict[str, list[dict[str, str]]]:
+        """
+        Reads each field of the match file, of one game in it, and of the
+        run it records, as `Export`, `Side`, and `Span` declare them.
+        """
+        return {"export": fields(Export), "side": fields(Side), "span": fields(Span)}
+
+    @property
     def faces(self) -> str:
         """
         Writes a table of each face, what it sets, and the package and the
@@ -143,24 +161,46 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         )
 
     @property
-    def layout(self) -> str:
+    def files(self) -> list[dict[str, str | list[str]]]:
         """
-        Writes a table of each file a run writes under the default data
-        directory, the command writing it, and what it holds, with one row
-        for the folder of each host `sources.toml` names.
+        Lists each file a run writes under the default data directory,
+        its path, the command writing it, what it holds, and the
+        commands reading it, with one entry for the folder of each host
+        `sources.toml` names.
+
+        `scotch index games` reads the fetched files and their manifest, and
+        each command opening the index through `Settings.opened`, or listing
+        the store as `scotch show store` does, reads the index's files and
+        both manifests, since `Settings.stale` compares the two.
         """
         settings = Settings.model_construct()
         index    = settings.index
-        fetched  = "`scotch fetch games`"
-        built    = "`scotch index games`"
+        fetched  = "scotch fetch games"
+        built    = "scotch index games"
+        opening  = [
+            f"scotch {command}"
+            for command in (
+                "match game", "match games", "show game", "show position", "show store"
+            )
+        ]
+        readers = {
+            str(Manifest.path(index))              : opening,
+            str(PositionIndex.path(index))         : opening,
+            str(PositionIndex.table(index))        : opening,
+            str(Manifest.path(settings.downloads)) : [built, *opening]
+        }
 
-        return markdown(
-            headers = ("Path", "Written By", "Holds"),
-            right   = False,
-            rows    = (
+        return [
+            {
+                "holds"   : holds,
+                "path"    : str(path),
+                "readers" : readers.get(str(path), [built]),
+                "writer"  : writer
+            }
+            for path, writer, holds in (
                 *(
                     (
-                        f"`{settings.downloads / host}/`",
+                        f"{settings.downloads / host}/",
                         fetched,
                         "Each file of the host `sources.toml` declares, under the "
                         "path its address names"
@@ -170,21 +210,33 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
                     )
                 ),
                 (
-                    f"`{Manifest.path(settings.downloads)}`",
+                    Manifest.path(settings.downloads),
                     fetched, "The record of each fetched file, keyed by its address"
                 ),
+                (PositionIndex.table(index), built, "One row for each stored game"),
                 (
-                    f"`{PositionIndex.table(index)}`",
-                    built, "One row for each stored game"
-                ),
-                (
-                    f"`{PositionIndex.path(index)}`",
+                    PositionIndex.path(index),
                     built, "Every position the stored games reach, beside their moves"
                 ),
                 (
-                    f"`{Manifest.path(index)}`",
+                    Manifest.path(index),
                     built, "A copy of the manifest the files were read under"
                 )
+            )
+        ]
+
+    @property
+    def layout(self) -> str:
+        """
+        Writes a table of each file `files` lists, the command writing it,
+        and what it holds.
+        """
+        return markdown(
+            headers = ("Path", "Written By", "Holds"),
+            right   = False,
+            rows    = (
+                (f"`{file['path']}`", f"`{file['writer']}`", file["holds"])
+                for file in self.files
             )
         )
 
@@ -211,9 +263,11 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         on the default every setting falls back to.
         """
         said = {
-            EnvSettingsSource  : lambda source: f"The `{source.env_prefix}` variable",
-            InitSettingsSource : lambda _:
+            EnvSettingsSource: lambda source: f"The `{source.env_prefix}` variable",
+
+            InitSettingsSource: lambda _:
                 f"A keyword argument passed to `{Settings.__name__}`",
+
             PyprojectTomlConfigSettingsSource: lambda source: (
                 f"The `[{'.'.join(source.toml_table_header)}]` table of the "
                 f"project's `{source.toml_file_path.name}`"
@@ -434,25 +488,29 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
     @property
     def tasks(self) -> str:
         """
-        Writes a heading and a table for each group of tasks `mise tasks`
-        lists, each row holding the task, its alias, and its description.
+        Writes the table of the tasks a user runs under a heading of
+        its own, then a heading over the tasks a contributor runs and
+        a subheading and a table for each of their groups, from what
+        `mise tasks` lists, each row holding the task, its alias, and its
+        description.
         """
+        contributed, used = partition(
+            lambda task: task.name in self.user_tasks,
+            sorted(Task.listed(self.root), key=attrgetter("name"))
+        )
+
         return "\n\n".join(
-            f"## `{group}`\n\n" + markdown(
-                headers = ("Task", "Alias", "Description"),
-                right   = False,
-                rows    = (
-                    (
-                        f"`{task.name}`",
-                        ", ".join(f"`{alias}`" for alias in task.aliases),
-                        task.description.replace("|", r"\|")
+            (
+                "## Tasks a User Runs",
+                tabled(used),
+                "## Tasks a Contributor Runs",
+                *(
+                    f"### `{group}`\n\n{tabled(tasks)}"
+                    for group, tasks in groupby(
+                        contributed,
+                        key = lambda task: task.name.partition(":")[0]
                     )
-                    for task in tasks
                 )
-            )
-            for group, tasks in groupby(
-                sorted(Task.listed(self.root), key=attrgetter("name")),
-                key = lambda task: task.name.partition(":")[0]
             )
         )
 
@@ -496,11 +554,25 @@ def fielded(record: type[BaseModel]) -> str:
     return markdown(
         headers = ("Field", "Type", "Meaning"),
         right   = False,
-        rows    = (
-            (f"`{name}`", typed(field), " ".join(field["description"].split()))
-            for name, field in record.model_json_schema()["properties"].items()
-        )
+        rows    = ((f"`{row['name']}`", row["type"], row["meaning"]) for row in fields(
+            record = record
+        ))
     )
+
+
+def fields(record: type[BaseModel]) -> list[dict[str, str]]:
+    """
+    Reads each field `record` declares from its JSON schema, as its name,
+    the JSON type it is written as, and its meaning.
+    """
+    return [
+        {
+            "meaning" : " ".join(field["description"].split()),
+            "name"    : name,
+            "type"    : typed(field)
+        }
+        for name, field in record.model_json_schema()["properties"].items()
+    ]
 
 
 def named(piece: Piece) -> str:
@@ -527,6 +599,26 @@ def reach(piece: Piece, square: str) -> int:
     board.turn = piece.color
 
     return board.pseudo_legal_moves.count()
+
+
+def tabled(tasks: Iterable[Task]) -> str:
+    """
+    Writes the table of `tasks`, each row holding the task, its aliases, and
+    its description, escaping each pipe in a description so the text stays
+    inside its cell.
+    """
+    return markdown(
+        headers = ("Task", "Alias", "Description"),
+        right   = False,
+        rows    = (
+            (
+                f"`{task.name}`",
+                ", ".join(f"`{alias}`" for alias in task.aliases),
+                task.description.replace("|", r"\|")
+            )
+            for task in tasks
+        )
+    )
 
 
 def typed(field: dict[str, object]) -> str:

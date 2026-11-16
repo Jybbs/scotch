@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import * as draw           from '../../../lib/cards/draw.ts'
+import { ROLES, resolve }  from '../../../lib/identity/roles.ts'
 import { IDENTITY, hexOf } from '../../../lib/identity/tokens.ts'
 import { SECTIONS }        from '../../../lib/site/sections.ts'
 
@@ -13,12 +14,14 @@ const EDITION: draw.Edition = {
 
 /**
  * Reads the style of every node of the card for the section at `place` that is
- * drawn in that section's color.
+ * drawn in that section's color, leaving out a game's square, which sits off
+ * the center line the run's squares share, since a section may take a game's
+ * color.
  */
 function accented(place: number): Record<string, number | string>[] {
-  const section = SECTIONS[place]!
-  return nodes(draw.pageCard(EDITION, { section, title: 'A Page' }, SECTIONS))
-    .flatMap(node => node.props.style?.background === hexOf(section.color) ? [node.props.style] : [])
+  const color  = hexOf(SECTIONS[place]!.color)
+  const center = runSquares(place)[0]?.top
+  return stylesOf(place).filter(style => style.background === color && (!('left' in style) || style.top === center))
 }
 
 /**
@@ -38,10 +41,26 @@ function nodes(node: draw.Tree | string): draw.Tree[] {
 
 /**
  * Reads how far from the rails' left the run starts on the card for the section
- * at `place`.
+ * at `place`, at its first square on a light column or a dark one.
  */
 function runStart(place: number): number {
-  return Math.min(...accented(place).flatMap(style => typeof style.left === 'number' ? [style.left] : []))
+  return Math.min(...[...runSquares(place), ...accented(place)].flatMap(style => typeof style.left === 'number' ? [style.left] : []))
+}
+
+/**
+ * Reads the style of each square of the run on a light column, drawn in the
+ * run's own color, on the card for the section at `place`.
+ */
+function runSquares(place: number): Record<string, number | string>[] {
+  return stylesOf(place).filter(style => 'left' in style && style.background === resolve(ROLES.run.dark))
+}
+
+/**
+ * Reads the style of every node of the card for the section at `place`.
+ */
+function stylesOf(place: number): Record<string, number | string>[] {
+  return nodes(draw.pageCard(EDITION, { section: SECTIONS[place]!, title: 'A Page' }, SECTIONS))
+    .flatMap(node => node.props.style ? [node.props.style] : [])
 }
 
 /**

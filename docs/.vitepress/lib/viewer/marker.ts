@@ -107,7 +107,7 @@ export class SheetMarker {
       first : sheet.first,
       left  : gutter.offsetLeft,
       row   : first.offsetHeight,
-      top   : sheet.rows[0]?.index ?? 0,
+      top   : sheet.start,
       width : gutter.offsetWidth
     }, loaded)
     svg.setAttribute('viewBox', `0 0 ${rows.offsetWidth} ${rows.offsetHeight}`)
@@ -166,7 +166,7 @@ export class SheetMarker {
       cell.tabIndex = 0
     }
     if (now.length === 0 && this.#cells.submitted[0]) this.#cells.submitted[0].tabIndex = 0
-    const index = rowAt(cursor, sheet.first) - (sheet.rows[0]?.index ?? 0)
+    const index = rowAt(cursor, sheet.first) - sheet.start
     const lit   = this.#drawn.rows.children[index] as HTMLElement | undefined
     if (this.#lit && lit !== this.#lit) delete this.#lit.dataset.at
     if (lit) lit.dataset.at = ''

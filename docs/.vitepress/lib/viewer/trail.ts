@@ -1,5 +1,7 @@
 import { clamp } from '@vueuse/core'
 
+import { readingOrder }           from '../methods/board.ts'
+import { shadeOf }                from '../methods/squares.ts'
 import { type Piece, pieceKind }  from '../site/pieces.ts'
 import { type Travel, changesOf } from './placements.ts'
 
@@ -7,6 +9,15 @@ import { type Travel, changesOf } from './placements.ts'
  * The side a board is drawn from, White's at the foot unless turned to Black's.
  */
 export type Facing = 'black' | 'white'
+
+/**
+ * One square of a board's ground: the square, a1 being 0, its shade, and the
+ * corner it is drawn from.
+ */
+export interface Ground extends Point {
+  shade  : 'dark' | 'light'
+  square : number
+}
 
 /**
  * A change between two plies with each traveler's trail laid out: each piece
@@ -136,6 +147,17 @@ function knightly({ now, was }: Travel): boolean {
 export function cornerOf(square: number, facing: Facing = 'white'): Point {
   const at = facing === 'black' ? 63 - square : square
   return { x: (at % 8) * SQUARE, y: (7 - Math.floor(at / 8)) * SQUARE }
+}
+
+/**
+ * Lays out the 64 squares of a board in the order a reader reads them, the
+ * eighth rank first, each shaded and set at its corner as the board faces.
+ */
+export function groundOf(facing: Facing = 'white'): Ground[] {
+  return readingOrder.map(square => {
+    const { x, y } = cornerOf(square, facing)
+    return { shade: shadeOf(square), square, x, y }
+  })
 }
 
 /**

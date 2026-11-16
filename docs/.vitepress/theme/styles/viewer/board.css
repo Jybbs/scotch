@@ -110,6 +110,8 @@
   font-variant-numeric : tabular-nums;
   text-align           : right;
   white-space          : nowrap;
+
+  & .sc-start { color: var(--sc-viewer-game); }
 }
 
 @media (width < 40rem) {

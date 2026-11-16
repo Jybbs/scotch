@@ -34,7 +34,7 @@ describe('Tool as the build renders it', () => {
       .toEqual([EXAMPLES.match.submitted.moves[meet - 1], EXAMPLES.match.stored!.moves[meet - 1]])
     expect(host.querySelector('.sc-viewer-count')?.textContent).toBe(String(length))
     expect(host.querySelector('.sc-viewer-status')?.textContent).toBe(`Same position · 1 of ${length}`)
-    expect(host.querySelector('.sc-viewer-colophon')?.textContent).toBe('Games435,321')
+    expect(host.querySelector('.sc-viewer-stats')?.textContent).toBe('Games435,321')
   })
 
   it('hydrates the rendered markup at that position with nothing moved', async () => {
@@ -45,6 +45,24 @@ describe('Tool as the build renders it', () => {
     createSSRApp(Tool).mount(host)
     await flushPromises()
     expect(host.innerHTML).toBe(rendered)
+  })
+})
+
+describe('Tool, its legend', () => {
+  it('names each game in its color in the corner, the submitted game first', async () => {
+    const { wrapper } = mountedTool()
+    const marks       = wrapper.findAll('.sc-viewer-legend .sc-data-legend-mark')
+    expect(marks.map(mark => [mark.attributes('aria-label'), mark.attributes('style')])).toEqual([
+      ['Your game', '--sc-data-tone: var(--sc-submitted);'],
+      ['The stored game', '--sc-data-tone: var(--sc-stored);']
+    ])
+    await marks[1]!.trigger('pointerenter')
+    expect(wrapper.find('.sc-viewer-legend .sc-data-legend-caption').text()).toBe('The stored game')
+  })
+
+  it('opens the line beneath the boards', () => {
+    const { wrapper } = mountedTool()
+    expect(wrapper.find('.sc-viewer-under').element.firstElementChild?.classList).toContain('sc-viewer-legend')
   })
 })
 
@@ -59,6 +77,15 @@ describe('Tool as a reader steps it', () => {
       .toEqual([`Different · meet at ply ${meet}`, 'no'])
     expect(await pressed(root, 'Home')).toBe(false)
     clock.advanceTimersByTime(5000)
+  })
+
+  test('captions each board with the start mark at the starting position and with a move after it', async () => {
+    const { root, wrapper } = mountedTool()
+    const captions          = (): string[] => wrapper.findAll('.sc-viewer-caption-move').map(move => move.text())
+    expect(captions().every(move => /^\d+\./u.test(move))).toBe(true)
+    await pressed(root, 'Home')
+    expect(captions()).toEqual(['Start', 'Start'])
+    expect(wrapper.findAll('.sc-viewer-caption-move .sc-start-glyph')).toHaveLength(2)
   })
 
   test('turns both boards on F, pressing the flip', async ({ clock }) => {

@@ -3,7 +3,7 @@ import { flushPromises, mount }            from '@vue/test-utils'
 import { afterEach, describe, expect, vi } from 'vitest'
 
 import { Session }      from '../../../../theme/components/front/session.ts'
-import { test }         from '../../../common/clock.ts'
+import { homed, test }  from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 
 vi.mock('@vueuse/core', async original => ({
@@ -16,9 +16,17 @@ afterEach(() => {
 })
 
 describe('Session', () => {
-  test('opens on an empty prompt, then types the first command a beat at a time', async ({ clock }) => {
+  test('opens on the whole session, its figure at its true value before any motion', async () => {
     const session = mount(Session)
     await flushPromises()
+    expect(session.find('.sc-front-spoken').text()).toBe('6')
+    expect(session.findAll('pre > div').at(-1)!.text()).toBe('❯')
+  })
+
+  test('starts over on an empty prompt, then types the first command a beat at a time', async ({ clock }) => {
+    const session = mount(Session)
+    await flushPromises()
+    await homed(session)
     expect(session.find('pre').text()).toBe('❯')
     clock.advanceTimersByTime(220)
     await flushPromises()

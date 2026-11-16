@@ -48,7 +48,6 @@
   min-height  : 30px;
 }
 
-.sc-data-tools-caption,
 .sc-data-read dt,
 .sc-data-folio span,
 .sc-data-rows-head,
@@ -60,7 +59,6 @@
   color          : var(--sc-data-quiet);
 }
 
-.sc-data-tools-caption,
 .sc-data-read dt { font-size: 0.6rem; }
 
 .sc-data-chart {
@@ -69,7 +67,7 @@
   outline-offset : 4px;
 }
 
-:is(.sc-data-chart, .sc-data-tab, .sc-data-toggle):focus-visible { outline: 2px solid var(--sc-data-link); }
+:is(.sc-data-chart, .sc-data-tab):focus-visible { outline: 2px solid var(--sc-data-link); }
 
 .sc-data-svg {
   display  : block;
@@ -153,4 +151,109 @@
   }
 
   .sc-data-read { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.sc-refused {
+  container-type : inline-size;
+  display        : grid;
+  gap            : 14px;
+  color          : var(--sc-ink);
+}
+
+.vp-doc .sc-refused :is(dl, dd, p) { margin: 0; padding: 0; }
+
+.vp-doc .sc-refused-said { font: 400 1.0625rem/1.9 var(--sc-face-body); }
+
+.sc-refused-held { white-space: nowrap; }
+
+.sc-refused-term {
+  --sc-sweep          : 0%;
+  display             : inline;
+  padding             : 0 0 2px;
+  border              : 0;
+  background-color    : transparent;
+  background-image    : repeating-conic-gradient(var(--sc-page) 0 25%, transparent 0 50%),
+                        linear-gradient(
+                          90deg,
+                          var(--sc-run) var(--sc-sweep),
+                          color-mix(in oklab, currentColor 62%, var(--sc-page)) 0
+                        );
+  background-position : 0 100%, 0 100%;
+  background-repeat   : repeat-x, no-repeat;
+  background-size     : 4px 4px, 100% 4px;
+  color               : var(--sc-ink);
+  font                : inherit;
+  white-space         : normal;
+  cursor              : pointer;
+  transition          : color var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-refused-term:hover,
+.sc-refused-term:focus-visible,
+.sc-refused-term[aria-expanded='true'] {
+  --sc-sweep : 100%;
+  color      : var(--sc-run);
+}
+
+.sc-refused-term:focus-visible { outline: 2px solid var(--sc-run); outline-offset: 2px; }
+
+.vp-doc .sc-refused-code {
+  padding     : 0;
+  background  : none;
+  color       : inherit;
+  font-size   : 0.9em;
+  white-space : nowrap;
+}
+
+.sc-refused-slip {
+  display       : grid;
+  gap           : 8px;
+  padding       : 10px 12px 12px;
+  border        : 1px solid var(--sc-rule);
+  border-radius : 5px;
+  background    : var(--sc-raised);
+  animation     : sc-refused-in var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+@keyframes sc-refused-in {
+  from { opacity: 0; }
+}
+
+.sc-refused-slip > b {
+  color : var(--sc-run);
+  font  : 400 1rem/1.25 var(--sc-face-display);
+}
+
+.vp-doc .sc-refused-message {
+  padding                : 0;
+  background             : none;
+  color                  : var(--sc-alert);
+  font                   : 500 0.82rem/1.5 var(--sc-face-code);
+  font-variant-ligatures : none;
+  overflow-wrap          : anywhere;
+}
+
+.sc-refused-slip dl {
+  display               : grid;
+  grid-template-columns : minmax(0, 1fr);
+  gap                   : 10px;
+}
+
+@container (width >= 34rem) {
+  .sc-refused-slip dl {
+    grid-template-columns : repeat(2, minmax(0, 1fr));
+    gap                   : 20px;
+  }
+}
+
+.sc-refused-slip dt {
+  color          : var(--sc-quiet);
+  font           : 500 0.75rem/1.4 var(--sc-face-code);
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+}
+
+.vp-doc .sc-refused-slip dd {
+  margin-top : 2px;
+  font       : 400 0.875rem/1.45 var(--sc-face-body);
 }

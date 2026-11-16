@@ -5,6 +5,7 @@ import { FIGURE }            from '../../lib/markdown/placements.ts'
 import { DATA_WIDGETS }      from './data/index.ts'
 import { FRONT_WIDGETS }     from './front/index.ts'
 import { METHODS_WIDGETS }   from './methods/index.ts'
+import { OVERVIEW_WIDGETS }  from './overview/index.ts'
 import { REFERENCE_WIDGETS } from './reference/index.ts'
 
 /**
@@ -14,6 +15,7 @@ export const WIDGETS: Record<string, Component> = {
   ...DATA_WIDGETS,
   ...FRONT_WIDGETS,
   ...METHODS_WIDGETS,
+  ...OVERVIEW_WIDGETS,
   ...REFERENCE_WIDGETS
 }
 

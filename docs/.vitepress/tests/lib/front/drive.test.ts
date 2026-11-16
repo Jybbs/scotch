@@ -37,6 +37,11 @@ afterEach(() => {
 })
 
 describe('useDrive', () => {
+  test('opens on its settle step while the drawings move', async () => {
+    const { at } = await driven()
+    expect(at.value).toBe(TUNING.settle)
+  })
+
   test('plays each step on the clock, rests on the last, and starts over', async ({ clock }) => {
     const { at } = await driven()
     const steps  = [] as number[]
@@ -44,7 +49,7 @@ describe('useDrive', () => {
       clock.advanceTimersByTime(TUNING.interval)
       steps.push(at.value)
     }
-    expect(steps).toEqual([1, 2, 2, 0, 1])
+    expect(steps).toEqual([2, 0, 1, 2, 2])
   })
 
   test('holds while a pointer or focus rests on the panel', async ({ clock }) => {
@@ -52,18 +57,18 @@ describe('useDrive', () => {
     hold(true)
     await nextTick()
     clock.advanceTimersByTime(TUNING.interval * 3)
-    expect(at.value).toBe(0)
+    expect(at.value).toBe(TUNING.settle)
     hold(false)
     await nextTick()
-    clock.advanceTimersByTime(TUNING.interval)
-    expect(at.value).toBe(1)
+    clock.advanceTimersByTime(TUNING.interval * 2)
+    expect(at.value).toBe(0)
   })
 
   test('holds while the panel is off the screen', async ({ clock }) => {
     seen.value   = false
     const { at } = await driven()
     clock.advanceTimersByTime(TUNING.interval * 3)
-    expect(at.value).toBe(0)
+    expect(at.value).toBe(TUNING.settle)
   })
 
 })

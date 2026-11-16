@@ -67,3 +67,210 @@
 }
 
 :root:not([data-motion='playing']) .sc-front-cursor { animation: none; }
+
+.vp-doc .sc-front-opening { gap: 32px; }
+
+.vp-doc .sc-front-opening p.sc-front-says {
+  max-width : 54ch;
+  color     : var(--sc-ink);
+  font      : 400 clamp(1.375rem, 1.2rem + 1vw, 1.75rem) / 1.3 var(--sc-face-display);
+  text-wrap : pretty;
+}
+
+.sc-front-terminal.is-typing { height: auto; }
+
+.sc-front-terminal.is-typing header { justify-content: space-between; }
+
+.sc-front-chrome {
+  display     : flex;
+  align-items : center;
+  gap         : 7px;
+}
+
+.sc-front-chrome i {
+  width         : 9px;
+  height        : 9px;
+  border-radius : 50%;
+  background    : color-mix(in oklab, var(--sc-ground) 22%, var(--sc-dark));
+}
+
+.sc-front-chrome span { margin-left: 8px; }
+
+.sc-front-replay {
+  padding       : 2px 10px;
+  border        : 1px solid color-mix(in oklab, var(--sc-ground) 40%, var(--sc-dark));
+  border-radius : 999px;
+  background    : none;
+  color         : var(--sc-ground);
+  font          : 500 0.75rem/18px var(--sc-face-code);
+  cursor        : pointer;
+}
+
+.sc-front-replay:disabled { visibility: hidden; }
+.sc-front-replay:focus-visible { outline: 2px solid var(--sc-ground); outline-offset: 2px; }
+
+.sc-front-terminal.is-typing pre {
+  display       : grid;
+  align-content : start;
+  overflow-wrap : break-word;
+}
+
+.sc-front-terminal.is-typing pre::after { content: none; }
+
+.sc-front-typed {
+  display               : grid;
+  grid-template-columns : 2ch minmax(0, 1fr);
+}
+
+.sc-front-ghost,
+.sc-front-live { grid-area: 1 / 1; }
+
+.sc-front-ghost { visibility: hidden; }
+
+.sc-front-rails .sc-rails { margin: 0; }
+
+.sc-front-rails .sc-rails-square,
+.sc-front-rails .sc-rails-cut { transition: opacity var(--sc-duration-glide) var(--sc-curve-glide); }
+
+.sc-front-rails[data-stage='empty'] .sc-rails-square,
+.sc-front-rails[data-stage='run'] .sc-rails-square:not([data-game='both']) { opacity: 0.12; }
+
+.sc-front-rails[data-stage='empty'] .sc-rails-cut,
+.sc-front-rails[data-stage='run'] .sc-rails-cut { opacity: 0; }
+
+.sc-front-terminal.sc-menu {
+  container-type     : inline-size;
+  grid-template-rows : 30px auto auto;
+  height             : auto;
+}
+
+.sc-menu > * { min-width: 0; }
+
+.sc-menu button { font-variant-ligatures: none; }
+
+.sc-menu-ask {
+  display : grid;
+  gap     : 8px;
+  padding : 14px 16px 12px;
+  font    : 400 0.8125rem/1.7 var(--sc-face-code);
+}
+
+.sc-menu-line { overflow-wrap: anywhere; }
+
+.sc-menu-line .sc-front-prompt { font-weight: 700; }
+
+.sc-menu-program { color: var(--sc-light); }
+
+.sc-menu-sub { color: var(--sc-series-1); }
+
+.sc-menu-flag { color: var(--sc-warning); }
+
+.sc-menu-key {
+  margin-left    : 4px;
+  padding        : 0 5px;
+  border         : 1px solid color-mix(in oklab, var(--sc-ground) 30%, var(--sc-dark));
+  border-radius  : 3px;
+  color          : color-mix(in oklab, var(--sc-ground) 70%, var(--sc-dark));
+  font-size      : 0.6rem;
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+  vertical-align : 1px;
+}
+
+.sc-menu-choices {
+  display               : grid;
+  grid-template-columns : minmax(0, 1fr);
+  margin-left           : 2ch;
+}
+
+.sc-menu-choice {
+  position              : relative;
+  display               : grid;
+  grid-column           : 1 / -1;
+  grid-template-columns : subgrid;
+  column-gap            : 2ch;
+  padding               : 1px 8px;
+  border                : 0;
+  border-radius         : 3px;
+  background            : none;
+  color                 : color-mix(in oklab, var(--sc-ground) 86%, var(--sc-dark));
+  font                  : inherit;
+  font-size             : 0.75rem;
+  text-align            : left;
+  cursor                : pointer;
+  transition            : background var(--sc-duration-fade) var(--sc-curve-glide);
+}
+
+.sc-menu-say { color: color-mix(in oklab, var(--sc-ground) 64%, var(--sc-dark)); }
+
+.sc-menu-choice:hover .sc-menu-say { color: color-mix(in oklab, var(--sc-ground) 86%, var(--sc-dark)); }
+
+.sc-menu-choice:focus-visible,
+.sc-menu-run:focus-visible {
+  outline        : 1px solid var(--sc-series-4);
+  outline-offset : -1px;
+}
+
+.sc-menu-choice[aria-current='true'] {
+  background : var(--sc-ground);
+  color      : var(--sc-dark);
+}
+
+.sc-menu-choice[aria-current='true']::before {
+  content     : '❯';
+  position    : absolute;
+  left        : -2ch;
+  color       : var(--sc-series-4);
+  font-weight : 700;
+}
+
+.sc-menu-choice[aria-current='true'] .sc-menu-sub {
+  color: color-mix(in oklab, var(--sc-series-1) 60%, var(--sc-dark));
+}
+
+.sc-menu-choice[aria-current='true'] .sc-menu-flag {
+  color: color-mix(in oklab, var(--sc-warning) 50%, var(--sc-dark));
+}
+
+.sc-menu-choice[aria-current='true'] .sc-menu-say {
+  color: color-mix(in oklab, var(--sc-dark) 72%, var(--sc-ground));
+}
+
+.sc-menu-run {
+  height              : calc(10lh + 30px);
+  min-width           : 0;
+  padding             : 14px 16px 16px;
+  overflow            : auto;
+  border-top          : 1px dashed color-mix(in oklab, var(--sc-ground) 22%, var(--sc-dark));
+  font                : 400 0.8125rem/1.7 var(--sc-face-code);
+  overscroll-behavior : contain;
+  scrollbar-color     : color-mix(in oklab, var(--sc-ground) 30%, var(--sc-dark)) transparent;
+  scrollbar-width     : thin;
+}
+
+.sc-menu-lines {
+  min-width              : 0;
+  font-variant-ligatures : none;
+  white-space            : pre-wrap;
+  overflow-wrap          : anywhere;
+}
+
+.sc-menu-lines.is-columns {
+  min-width     : max-content;
+  white-space   : pre;
+  overflow-wrap : normal;
+}
+
+.sc-menu-lines .sc-front-out[data-answer] {
+  margin-left  : -16px;
+  padding-left : calc(16px + 2ch - 3px);
+  border-left  : 3px solid var(--sc-series-4);
+  background   : color-mix(in oklab, var(--sc-ground) 7%, var(--sc-dark));
+  color        : var(--sc-ground);
+}
+
+@container (width >= 36rem) {
+  .sc-menu-choices { grid-template-columns: max-content minmax(0, 1fr); }
+
+  .sc-menu-run { height: calc(12lh + 30px); }
+}

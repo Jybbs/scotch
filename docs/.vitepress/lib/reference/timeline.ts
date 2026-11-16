@@ -176,10 +176,15 @@ export function useBeats(): Beats {
 }
 
 /**
- * Runs a drawing's unfold once it first comes on screen, starting from `prime`,
- * and ends on `settle` once the unfold finishes, a reader touches the drawing,
- * or the unfold reaches its length. While the site's drawings hold still, the
- * drawing gets `settle` alone, whenever they come to hold still.
+ * Runs a drawing's unfold once a reader's scroll first brings it on screen,
+ * starting from `prime`, and ends on `settle` once the unfold finishes, a
+ * reader touches the drawing, the page is printed, or the unfold reaches its
+ * length. The drawing stands whole from its first paint, so a full-page
+ * capture, which does not scroll the page, shows it whole, and a drawing any
+ * part of which was on screen before the first scroll stays whole. Every other
+ * drawing takes `prime` on that first scroll, before it comes into view. While
+ * the site's drawings hold still, the drawing gets `settle` alone, whenever
+ * they come to hold still.
  *
  * Args:
  *   node  : The drawing's element.
@@ -188,9 +193,12 @@ export function useBeats(): Beats {
  */
 export function useUnfold(node: NodeRef, beats: Beats, story: Story): void {
   const { moving } = useMotion()
+  const seen       = core.useElementVisibility(node)
+  let primed       = false
   let running      = false
 
   const end = (): void => {
+    primed  = false
     running = false
     beats.stop()
     story.settle()
@@ -198,20 +206,24 @@ export function useUnfold(node: NodeRef, beats: Beats, story: Story): void {
   const touch = (): void => {
     if (running) end()
   }
+  core.useEventListener('scroll', () => {
+    primed = moving.value && !seen.value
+    if (primed) story.prime()
+  }, { once: true, passive: true })
   const { stop } = core.useIntersectionObserver(node, ([entry]) => {
-    if (!entry?.isIntersecting) return
+    if (!entry?.isIntersecting || !primed) return
     stop()
-    if (!moving.value) return
+    primed  = false
     running = true
-    story.prime()
     story.play(beats, touch)
     beats.at(story.length, touch)
   }, { threshold: SEEN })
 
-  onMounted(moving.value ? story.prime : story.settle)
+  onMounted(story.settle)
   watch(moving, now => {
     if (!now) end()
   })
+  core.useEventListener('beforeprint', end)
   core.useEventListener(node, 'pointerdown', touch)
   core.useEventListener(node, 'keydown', (event: KeyboardEvent) => {
     if (!['Shift', 'Tab'].includes(event.key)) touch()

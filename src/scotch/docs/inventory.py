@@ -38,6 +38,7 @@ class Outputs(RootModel[list[Output]]):
     The files `scotch render docs` writes, in the order it writes them.
     """
 
+    citing   : ClassVar[Path]            = Path("docs/pages/develop/citing.md")
     commands : ClassVar[Path]            = Path("docs/pages/reference/commands.md")
     games    : ClassVar[Path]            = Path("docs/public/games")
     glosses  : ClassVar[tuple[str, ...]] = (
@@ -76,18 +77,19 @@ class Outputs(RootModel[list[Output]]):
     ) -> list[Output]:
         """
         Lists the files written from `index`, meaning the store the Data
-        pages, the Guide's store page, the identity page, and the Viewer
-        read, the examples the front page, the Methods page, and the link
-        cards draw, the match the Viewer opens on beside the demo game
-        alone, the demo's match file, the file list the Data page draws,
-        each file `sources.toml` declares beside the games the store holds
-        from it, the figures each Markdown file of `pages` sets inside
+        pages, the Guide's store page, the Palette and Roles page, and the
+        Viewer read, the examples the front page, the Methods page, and the
+        link cards draw, the match the Viewer opens on beside the demo game
+        alone, the demo's match file, the file list the Source Files page
+        draws, each file `sources.toml` declares beside the games the store
+        holds from it, the figures each Markdown file of `pages` sets inside
         its sentences, the example run the README and the Guide carry, the
-        example runs the commands page and the Guide's walkthroughs set, the
-        lines of the demo's match the Guide glosses, and the tables the Data
-        pages, the Guide's store page, and the identity page set beneath
-        their widgets, the disk the store takes under the data directory
-        `settings` names among the figures.
+        example runs the commands page and the Guide's walkthroughs set, and
+        the same runs as the lines each prints, the disk the downloads and
+        the index take, the lines of the demo's match the Guide glosses, and
+        the tables the Data pages, the Guide's store page, and the Palette
+        and Roles page set beneath their widgets, the disk the store takes
+        under the data directory `settings` names among the figures.
         """
         census   = Census(index=index)
         viewer   = Example(path=Outputs.games / "viewer.pgn", shown=0)
@@ -126,12 +128,13 @@ class Outputs(RootModel[list[Output]]):
         submitted = cache(lambda: Outputs.demo.game(root))
         found     = cache(lambda: index.matches(submitted(), top=Outputs.top + 1))
         runs      = {
-            "match-game"    : lambda: ran(
+            "match-game": lambda: (
                 f"scotch match game {Outputs.demo.path} --top {Outputs.top}",
                 found()[0].report(),
                 *(match.line for match in found()[1:])
             ),
-            "match-games"   : lambda: ran(
+
+            "match-games": lambda: (
                 f"scotch match games {Outputs.demo.path}",
                 Pairing(
                     file      = Outputs.demo.path.name,
@@ -140,17 +143,24 @@ class Outputs(RootModel[list[Output]]):
                     submitted = submitted()
                 ).line
             ),
-            "show-game"     : lambda: ran(
+
+            "plies": lambda: (
+                f"scotch match game {Outputs.demo.path} --plies {Outputs.plies}",
+                found()[0].report(Outputs.plies)
+            ),
+
+            "show-game": lambda: (
                 f"scotch show game {found()[0].game.origin.reference}",
                 found()[0].game.pgn
             ),
-            "show-position" : lambda: ran(
+
+            "show-position": lambda: (
                 f"scotch show position {Outputs.position} --top {Outputs.top}",
                 index.answer(Outputs.position, Outputs.top).summary
             ),
-            "show-store"    : lambda: ran(
-                "scotch show store",
-                "…",
+
+            "show-store": lambda: (
+                "scotch show store", "…",
                 Holding(
                     fetched = (),
                     folder  = Settings.model_construct().index,
@@ -190,22 +200,30 @@ class Outputs(RootModel[list[Output]]):
                 for name in ("omissions", "shared", "store", "tags", "tie")
             ),
             Document.from_value(
+                path  = Outputs.rendered / "runs.json",
+                value = lambda: {name: printed(*run()) for name, run in runs.items()}
+            ),
+            Document.from_value(
+                path  = Outputs.rendered / "disk.json",
+                value = lambda: {
+                    "downloads/" : figures()["downloads-size"],
+                    "index/"     : figures()["index-size"]
+                }
+            ),
+            Document.from_value(
                 path  = Outputs.rendered / "viewer.json",
                 value = lambda: {
                     "alone" : examples["demo"].exported(root).model_dump(mode="json"),
                     "match" : viewer.exported(root, index).model_dump(mode="json")
                 }
             ),
-            *(
-                Region(
-                    name   = "example",
-                    path   = page,
-                    render = lambda: (
-                        f"```bash\nscotch match game {examples['demo'].path}\n```\n\n"
-                        f"```text\n{drawn()['demo'].summary}\n```"
-                    )
+            Region(
+                name   = "example",
+                path   = readme,
+                render = lambda: (
+                    f"```bash\nscotch match game {examples['demo'].path}\n```\n\n"
+                    f"```text\n{drawn()['demo'].summary}\n```"
                 )
-                for page in (readme, Outputs.guide / "index.md")
             ),
             *(
                 Region(
@@ -228,7 +246,7 @@ class Outputs(RootModel[list[Output]]):
                     ("docs/pages/data/tags.md", "tags", "carried"),
                     ("docs/pages/data/tags.md", "tags", "dated"),
                     ("docs/pages/guide/store.md", "store", "archives"),
-                    ("docs/pages/reference/identity.md", "store", "series")
+                    ("docs/pages/identity/palette.md", "store", "series")
                 )
             ),
             Region(
@@ -246,8 +264,13 @@ class Outputs(RootModel[list[Output]]):
                 )
             ),
             *(
-                Region(name=f"run-{name}", path=Outputs.commands, render=render)
-                for name, render in runs.items()
+                Region(
+                    name   = f"run-{name}",
+                    path   = Outputs.commands,
+                    render = lambda run=run: ran(*run())
+                )
+                for name, run in runs.items()
+                if name != "plies"
             ),
             Region(
                 name   = "gloss",
@@ -260,21 +283,13 @@ class Outputs(RootModel[list[Output]]):
                     )
                 )
             ),
-            Region(
-                name   = "run-plies",
-                path   = Outputs.guide / "studying.md",
-                render = lambda: ran(
-                    f"scotch match game {Outputs.demo.path} --plies {Outputs.plies}",
-                    found()[0].report(Outputs.plies)
-                )
-            ),
             *(
                 Region(
                     name   = f"run-{name}",
                     path   = Outputs.guide / "studying.md",
-                    render = render
+                    render = lambda run=run: ran(*run())
                 )
-                for name, render in runs.items()
+                for name, run in runs.items()
             ),
             *(Figures(path=page, values=figures) for page in pages)
         ]
@@ -323,6 +338,24 @@ class Outputs(RootModel[list[Output]]):
                 Document.from_value(
                     path  = cls.rendered / "identity.json",
                     value = lambda: identity.model_dump(mode="json")
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "commands.json",
+                    value = lambda: {
+                        "commands" : described.listed,
+                        "files"    : reference.files
+                    }
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "exported.json",
+                    value = lambda: reference.exported
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "refused.json",
+                    value = lambda: [
+                        stop.model_dump(exclude={"commands"})
+                        for stop in stops.printed("match game", naming="<pgn>")
+                    ]
                 ),
                 Document.from_value(
                     path  = cls.rendered / "homes.json",
@@ -376,7 +409,7 @@ class Outputs(RootModel[list[Output]]):
                 ),
                 *(
                     Region(name="install", path=page, render=lambda: project.install)
-                    for page in (readme, cls.guide / "index.md")
+                    for page in (readme, cls.guide / "setup.md")
                 ),
                 Region(
                     name   = "steps",
@@ -389,24 +422,13 @@ class Outputs(RootModel[list[Output]]):
                     render = lambda: reference.checks
                 ),
                 Region(
-                    name   = "stops",
-                    path   = cls.guide / "setup.md",
-                    render = lambda: stops.steps(
-                        (
-                            ("fetch games", None),
-                            ("index games", None),
-                            ("match game", "<index>")
-                        )
-                    )
-                ),
-                Region(
                     name   = "refused",
                     path   = cls.guide / "matching.md",
                     render = lambda: stops.table("match game", naming="<pgn>")
                 ),
                 Region(
                     name   = "sources",
-                    path   = Path("docs/pages/data/index.md"),
+                    path   = Path("docs/pages/data/sources.md"),
                     render = lambda: markdown(
                         headers = ("Provider", "Section", "File", "Name"),
                         right   = False,
@@ -435,42 +457,42 @@ class Outputs(RootModel[list[Output]]):
                 *(
                     Region(
                         name   = name,
-                        path   = Path("docs/pages/reference") / page,
+                        path   = Path("docs/pages") / page,
                         render = lambda name=name: getattr(reference, name)
                     )
                     for page, name in (
-                        ("settings.md", "settings"),
-                        ("settings.md", "order"),
-                        ("settings.md", "origin"),
-                        ("tasks.md", "tasks"),
-                        ("identity.md", "palette"),
-                        ("identity.md", "roles"),
-                        ("identity.md", "faces"),
-                        ("identity.md", "pieces"),
-                        ("identity.md", "marks"),
-                        ("identity.md", "construction"),
-                        ("terms.md", "terms"),
-                        ("files.md", "layout"),
-                        ("files.md", "manifest"),
-                        ("files.md", "columns"),
-                        ("files.md", "sections"),
-                        ("files.md", "warning"),
-                        ("match.md", "export"),
-                        ("match.md", "side"),
-                        ("match.md", "span")
+                        ("data/files.md", "layout"),
+                        ("data/files.md", "manifest"),
+                        ("data/files.md", "columns"),
+                        ("data/files.md", "sections"),
+                        ("data/files.md", "warning"),
+                        ("develop/tasks.md", "tasks"),
+                        ("identity/faces.md", "faces"),
+                        ("identity/faces.md", "pieces"),
+                        ("identity/marks.md", "marks"),
+                        ("identity/marks.md", "construction"),
+                        ("identity/palette.md", "palette"),
+                        ("identity/palette.md", "roles"),
+                        ("reference/match.md", "export"),
+                        ("reference/match.md", "side"),
+                        ("reference/match.md", "span"),
+                        ("reference/settings.md", "settings"),
+                        ("reference/settings.md", "order"),
+                        ("reference/settings.md", "origin"),
+                        ("reference/terms.md", "terms")
                     )
                 ),
                 *(
                     Region(
                         name   = f"command-{verb}-{noun}",
-                        path   = cls.commands,
+                        path   = cls.citing if verb == "cite" else cls.commands,
                         render = partial(described.section, verb, noun)
                     )
                     for verb, noun in commands(app)
                 ),
                 Region(
                     name   = "run-cite-source",
-                    path   = cls.commands,
+                    path   = cls.citing,
                     render = lambda: ran(
                         "scotch cite source zobrist1970",
                         references().cite("zobrist1970")
@@ -522,6 +544,14 @@ def occupied(folder: Path) -> int:
     none.
     """
     return sum(path.stat().st_size for path in folder.rglob("*") if path.is_file())
+
+
+def printed(command: str, *lines: str) -> dict[str, str | list[str]]:
+    """
+    Writes `command` beside each line it prints, a line holding several
+    split into each of them.
+    """
+    return {"command": command, "lines": "\n".join(lines).split("\n")}
 
 
 def ran(command: str, *lines: str) -> str:

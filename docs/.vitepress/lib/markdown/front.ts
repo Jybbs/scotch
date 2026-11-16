@@ -16,7 +16,7 @@ export const FRONT = 'index.md'
 /**
  * The numeral each entry opens on, in the order the page sets them.
  */
-const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'] as const
+export const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'] as const
 
 /**
  * Writes the head an entry opens on, its numeral beside its section's name as a

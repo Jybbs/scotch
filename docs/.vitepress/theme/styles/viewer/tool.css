@@ -81,7 +81,7 @@
   outline-offset : 2px;
 }
 
-.sc-viewer-colophon {
+.sc-viewer-stats {
   display         : flex;
   justify-content : center;
   width           : fit-content;
@@ -120,7 +120,7 @@
     margin-top : 16px;
   }
 
-  .sc-viewer-colophon {
+  .sc-viewer-stats {
     display               : grid;
     grid-template-columns : repeat(2, minmax(0, 1fr));
     row-gap               : 14px;
