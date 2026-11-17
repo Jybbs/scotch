@@ -8,6 +8,7 @@ timeout     = "5s"
 
 [env]
 _.path              = ".mise/bin"
+AUDIT_IGNORE        = "GHSA-fc5q-39xc-vjpf"
 CARGO_TARGET_DIR    = "{{config_root}}/.cache/cargo"
 JITI_FS_CACHE       = "false"
 NODE_COMPILE_CACHE  = "{{config_root}}/.cache/node"
@@ -25,10 +26,11 @@ locked = true
 [tools]
 bun                                = "1.4.4"
 "github:wasm-bindgen/wasm-bindgen" = "0.2.130"
+jq                                 = "1.8.2"
 lychee                             = "0.24.2"
 node                               = "26.13.0"
 osv-scanner                        = "2.7.1"
 python                             = "3.15.2"
-rust                               = { components = "clippy,rustfmt", profile = "minimal", targets = "wasm32-unknown-unknown", version = "1.99.1" }
+rust                               = { components = "clippy,rustfmt", profile = "minimal", targets = "wasm32-unknown-unknown", version = "1.100.0" }
 uv                                 = "0.13.7"
 zizmor                             = "1.32.0"

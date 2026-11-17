@@ -266,6 +266,14 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
             '[Variant "Chess960"]\n'
             '[FEN "4k3/8/8/8/8/8/8/R4K1R w KQ - 0 1"]\n\n1. O-O *\n',
             id = "chess960-castle"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 w - - +1_0 +2"]\n\n1. Ke2 *\n',
+            id = "signed-clocks-holding-an-underscore"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 w - - -_1 1"]\n\n1. Ke2 *\n',
+            id = "underscore-after-a-clock-sign"
         )
     ]
 )
