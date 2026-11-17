@@ -127,16 +127,16 @@
 
 .sc-front-ghost { visibility: hidden; }
 
-.sc-front-rails .sc-rails { margin: 0; }
+.sc-front-rails figure { margin: 0; }
 
-.sc-front-rails .sc-rails-square,
-.sc-front-rails .sc-rails-cut { transition: opacity var(--sc-duration-glide) var(--sc-curve-glide); }
+.sc-front-rails rect[data-game],
+.sc-front-rails line { transition: opacity var(--sc-duration-glide) var(--sc-curve-glide); }
 
-.sc-front-rails[data-stage='empty'] .sc-rails-square,
-.sc-front-rails[data-stage='run'] .sc-rails-square:not([data-game='both']) { opacity: 0.12; }
+.sc-front-rails[data-stage='empty'] rect[data-game],
+.sc-front-rails[data-stage='run'] rect[data-game]:not([data-game='both']) { opacity: 0.12; }
 
-.sc-front-rails[data-stage='empty'] .sc-rails-cut,
-.sc-front-rails[data-stage='run'] .sc-rails-cut { opacity: 0; }
+.sc-front-rails[data-stage='empty'] line,
+.sc-front-rails[data-stage='run'] line { opacity: 0; }
 
 .sc-front-terminal.sc-menu {
   container-type     : inline-size;

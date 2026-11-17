@@ -13,7 +13,7 @@ import { reduceMotion }     from '../../../common/motion.ts'
  * the drawing set 600 pixels wide from the left of the page.
  */
 async function point(wrapper: ReturnType<typeof mount>, type: string, share: number): Promise<void> {
-  const drawing = wrapper.find('svg.sc-rails-drawing').element
+  const drawing = wrapper.find('svg[role=img]').element
   vi.spyOn(drawing, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 600 } as DOMRect)
   drawing.dispatchEvent(new PointerEvent(type, { clientX: share * 600 }))
   await wrapper.vm.$nextTick()
@@ -32,16 +32,16 @@ describe('OVERVIEW_WIDGETS', () => {
     const widget = mount(defineComponent({ setup: () => () => h(OVERVIEW_WIDGETS.rails!) }))
     await vi.dynamicImportSettled()
     await flushPromises()
-    expect(widget.find('.sc-rails').exists()).toBe(true)
+    expect(widget.find('figure').exists()).toBe(true)
   })
 })
 
 describe('Rails', () => {
   it('draws a square for each position and the key at rest', () => {
     const wrapper = mount(Rails)
-    expect(wrapper.findAll('rect.sc-rails-square')).toHaveLength(rails.squaresOf(rails.example).length)
-    expect(wrapper.find('rect.sc-rails-band').attributes('data-on')).toBeUndefined()
-    expect(wrapper.find('.sc-rails-key').text())
+    expect(wrapper.findAll('rect[data-game]')).toHaveLength(rails.squaresOf(rails.example).length)
+    expect(wrapper.find('svg[role=img] > rect:first-child').attributes('data-on')).toBeUndefined()
+    expect(wrapper.find('p[aria-live]').text())
       .toBe('positions shared36Yours22. c6Kasparov vs. Sosonko22. Bc2')
   })
 
@@ -52,48 +52,48 @@ describe('Rails', () => {
 
   it('reads the position under the pointer into the key, the start mark at the first', async () => {
     const wrapper = mount(Rails)
-    const band    = (): ReturnType<typeof wrapper.find> => wrapper.find('rect.sc-rails-band')
+    const band    = (): ReturnType<typeof wrapper.find> => wrapper.find('svg[role=img] > rect:first-child')
     await point(wrapper, 'pointermove', 0)
-    expect(wrapper.find('.sc-rails-key .sc-start').exists()).toBe(true)
-    expect(wrapper.find('rect.is-lit').attributes('data-game')).toBe('submitted')
+    expect(wrapper.find('p[aria-live] .sc-start').exists()).toBe(true)
+    expect(wrapper.find('rect[data-lit]').attributes('data-game')).toBe('submitted')
     expect(band().attributes('data-on')).toBe('')
     await point(wrapper, 'pointerdown', 0.5)
-    expect(wrapper.find('.sc-rails-key').text()).toContain('Position 24 of 36')
+    expect(wrapper.find('p[aria-live]').text()).toContain('Position 24 of 36')
     const at = rails.cursorAt(rails.example, 0.5)
     expect(band().attributes('x')).toBe(String(rails.bandOf(rails.example, at)))
-    await wrapper.find('svg.sc-rails-drawing').trigger('pointerleave')
-    expect(wrapper.find('.sc-rails-key').text()).toContain('positions shared')
-    expect(wrapper.find('rect.is-lit').exists()).toBe(false)
+    await wrapper.find('svg[role=img]').trigger('pointerleave')
+    expect(wrapper.find('p[aria-live]').text()).toContain('positions shared')
+    expect(wrapper.find('rect[data-lit]').exists()).toBe(false)
     expect(band().attributes('data-on')).toBeUndefined()
   })
 })
 
 describe('Rails’ replay', () => {
   it('replays the run and the parting as the pointer enters, still under reduced motion', async () => {
-    await mount(Rails).find('svg.sc-rails-drawing').trigger('pointerenter')
+    await mount(Rails).find('svg[role=img]').trigger('pointerenter')
     expect(animate).toHaveBeenCalledTimes(rails.squaresOf(rails.example).length + 1)
     animate.mockClear()
     reduceMotion()
-    await mount(Rails).find('svg.sc-rails-drawing').trigger('pointerenter')
+    await mount(Rails).find('svg[role=img]').trigger('pointerenter')
     expect(animate).not.toHaveBeenCalled()
   })
 
   it('fades the parting line in after the run, still under reduced motion', async () => {
     const { delay, duration, keys } = rails.cutReplayOf(rails.example)
     const wrapper                   = mount(Rails)
-    const cut                       = wrapper.find('line.sc-rails-cut').element
-    await wrapper.find('svg.sc-rails-drawing').trigger('pointerenter')
+    const cut                       = wrapper.find('line').element
+    await wrapper.find('svg[role=img]').trigger('pointerenter')
     const at = animate.mock.contexts.indexOf(cut)
     expect(animate.mock.calls[at]).toEqual([keys, { delay, duration, fill: 'backwards' }])
     animate.mockClear()
     reduceMotion()
     const still = mount(Rails)
-    await still.find('svg.sc-rails-drawing').trigger('pointerenter')
-    expect(animate.mock.contexts).not.toContain(still.find('line.sc-rails-cut').element)
+    await still.find('svg[role=img]').trigger('pointerenter')
+    expect(animate.mock.contexts).not.toContain(still.find('line').element)
   })
 
   it('leaves a replay still running to finish as the pointer enters again', async () => {
-    const drawing = mount(Rails).find('svg.sc-rails-drawing')
+    const drawing = mount(Rails).find('svg[role=img]')
     animate.mockReturnValue({ playState: 'running' } as Animation)
     await drawing.trigger('pointerenter')
     await drawing.trigger('pointerenter')

@@ -1,8 +1,8 @@
-import { readFileSync }     from 'node:fs'
-import { readFile }         from 'node:fs/promises'
-import { createRequire }    from 'node:module'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath }    from 'node:url'
+import { readFileSync, readdirSync } from 'node:fs'
+import { readFile }                  from 'node:fs/promises'
+import { createRequire }             from 'node:module'
+import { dirname, resolve }          from 'node:path'
+import { fileURLToPath }             from 'node:url'
 
 import { compile }              from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
@@ -11,7 +11,8 @@ import { ROLES }                from '../../../lib/identity/roles.ts'
 import { IDENTITY, propertyOf } from '../../../lib/identity/tokens.ts'
 import * as timing              from '../../../lib/motion/timing.ts'
 
-const SHEET = fileURLToPath(new URL('../../../theme/styles/tailwind.css', import.meta.url))
+const CLASS_NAMES = /\sclass="([^"]+)"|'([\w -]+)'/gu
+const SHEET       = fileURLToPath(new URL('../../../theme/styles/tailwind.css', import.meta.url))
 /**
  * The name each color takes after its utility's prefix, such as `series-1`
  * for the `series_1` token and `data-black` for the `data_black` role.
@@ -23,6 +24,18 @@ const durations = Object.keys(timing.DURATIONS)
 const faces     = Object.keys(IDENTITY.faces)
 const require   = createRequire(import.meta.url)
 const source    = readFileSync(SHEET, 'utf8')
+const templates = resolve(dirname(require.resolve('vitepress')), '../client/theme-default')
+
+/**
+ * Each name the default theme’s templates can write as a class, read from a
+ * `class` attribute or a quoted name a binding or a computed class list holds,
+ * such as `container` on the column a page sits in and `fixed` on the local
+ * navigation.
+ */
+const themeClasses = (): string[] => [...new Set(readdirSync(templates, { encoding: 'utf8', recursive: true })
+  .filter(file => file.endsWith('.vue'))
+  .flatMap(file => Array.from(readFileSync(resolve(templates, file), 'utf8').matchAll(CLASS_NAMES)))
+  .flatMap(([, attribute, quoted]) => (attribute ?? quoted)!.split(/\s+/u)))]
 
 /**
  * The CSS Tailwind writes for the entry sheet when `candidate` is the one
@@ -84,7 +97,10 @@ describe('the identity’s utilities', () => {
 })
 
 describe('Tailwind’s defaults', () => {
-  it.each(['bg-red-500', 'text-white', 'font-sans', 'font-mono', 'ease-in-out', 'animate-spin', 'xl:block', '2xl:block'])(
+  it.each([
+    'bg-red-500', 'text-white', 'font-sans', 'font-mono', 'ease-in-out', 'animate-spin', 'xl:block',
+    '2xl:block'
+  ])(
     'builds nothing for %s, which no identity token names',
     async candidate => {
       expect(await built(candidate)).toBe(await built())
@@ -109,7 +125,12 @@ describe('Tailwind’s defaults', () => {
   })
 })
 
-it('scans no module for classes, so the build writes no utility before a component carries one', async () => {
-  const { root, sources } = await compiled()
-  expect({ root, sources }).toStrictEqual({ root: 'none', sources: [] })
+describe('the class scan', () => {
+  it('reads every module under docs/.vitepress, two folders above the entry sheet', async () => {
+    expect((await compiled()).root).toStrictEqual({ base: dirname(SHEET), pattern: '../..' })
+  })
+
+  it('builds nothing for a class the default theme writes, so no utility restyles its markup', async () => {
+    expect((await compiled()).build(themeClasses())).toBe(await built())
+  })
 })
