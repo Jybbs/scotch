@@ -43,10 +43,10 @@ jobs:
         include:
           - name: 🩺 Advisories
             task: lock:audit
-            tools: bun osv-scanner python rust uv
+            tools: bun jq osv-scanner python rust uv
           - name: 🔐 Lockfiles
             task: lock:check
-            tools: bun osv-scanner python rust uv
+            tools: bun jq osv-scanner python rust uv
           - name: 🪻 Prose
             shared-key: scotch-python
             task: py:check

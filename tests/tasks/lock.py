@@ -9,7 +9,9 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
   task script declaring its own dependencies, for the crate's
   `rust/Cargo.lock`, and for the site's `docs/bun.lock`
 - The advisories `lock:audit` sets aside from `bun audit` while no
-  release fixes them, and its failure once a release fixes one
+  release fixes them, and its failure once a release fixes one, its
+  stand-in `gh` running the task's own `--jq` filter through `jq` over
+  the advisories saved under `fixtures/advisories/`
 - The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
@@ -19,10 +21,14 @@ writes lands in a directory the case owns.
 """
 
 from common.stand_ins import Scratch
+from json             import loads
+from pathlib          import Path
 from pytest           import mark, param
 
-ADVISORY = "GHSA-fc5q-39xc-vjpf"
-CARGO    = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml"
+ADVISORIES = Path(__file__).parent / "fixtures" / "advisories"
+ADVISORY   = "GHSA-fc5q-39xc-vjpf"
+CARGO = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml"
+GH    = f'jq -r "$3" "{ADVISORIES}/${{4##*/}}.json"'
 
 
 def test_a_lockfile_matching_its_manifest_passes(scratch: Scratch):
@@ -197,42 +203,36 @@ def test_audit_fails_on_an_advisory_for_the_site(scratch: Scratch):
 
 
 @mark.parametrize(
-    ("ignore", "gh", "bun"),
+    ("ignore", "bun"),
     [
-        param("", "exit 1", "bun audit --cwd docs", id="empty"),
+        param("", "bun audit --cwd docs", id="empty"),
+        param(ADVISORY, f"bun audit --cwd docs --ignore={ADVISORY}", id="unpatched"),
         param(
-            ADVISORY,
-            "printf '\\nA ReDoS\\n'",
-            f"bun audit --cwd docs --ignore={ADVISORY}",
-            id = "unpatched"
-        ),
-        param(
-            f"{ADVISORY} GHSA-px8p-9vwx-vf98",
-            "printf '\\nA ReDoS\\n'",
-            f"bun audit --cwd docs --ignore={ADVISORY} --ignore=GHSA-px8p-9vwx-vf98",
+            f"{ADVISORY} GHSA-7w2g-9mf9-324m",
+            f"bun audit --cwd docs --ignore={ADVISORY} --ignore=GHSA-7w2g-9mf9-324m",
             id = "two-unpatched"
         )
     ]
 )
 def test_audit_sets_aside_each_advisory_no_release_fixes(
     bun     : str,
-    gh      : str,
     ignore  : str,
     scratch : Scratch
 ):
     """
-    Asserts that `lock:audit` passes `--ignore` to `bun audit` for each id
-    `AUDIT_IGNORE` lists whose advisory names no patched version, printing
-    the advisory's summary after reading each advisory once in the order the
-    list gives, and runs the plain `bun audit` without calling `gh` where
-    the list is empty.
+    Asserts that `lock:audit` passes `--ignore` to `bun audit` for each
+    id `AUDIT_IGNORE` lists whose saved advisory names no patched version,
+    printing the advisory's summary after reading each advisory once in the
+    order the list gives, and runs the plain `bun audit` without calling
+    `gh` where the list is empty.
     """
-    result = scratch.run("audit", gh=gh, ignore=ignore)
+    result = scratch.run("audit", gh=GH, ignore=ignore)
 
     assert result.returncode == 0
     assert scratch.calls[-1] == bun
     assert result.stderr.splitlines() == [
-        f"Setting {advisory} aside while no release fixes it: A ReDoS"
+        f"Setting {advisory} aside while no release fixes it: "
+        + loads((ADVISORIES / f"{advisory}.json").read_text())["summary"]
         for advisory in ignore.split()
     ]
     assert [call.split()[-1] for call in scratch.calls if "/advisories/" in call] == [
@@ -241,15 +241,28 @@ def test_audit_sets_aside_each_advisory_no_release_fixes(
 
 
 @mark.parametrize(
-    ("gh", "stderr"),
+    ("ignore", "gh", "stderr"),
     [
         param(
-            "printf 'picomatch 4.0.8\\nA ReDoS\\n'",
-            f"{ADVISORY} is fixed in picomatch 4.0.8, so delete it from AUDIT_IGNORE",
+            "GHSA-r9jc-w898-3fv6",
+            GH,
+            "GHSA-r9jc-w898-3fv6 is fixed in nuxt 4.6.4, so delete it",
             id = "patched"
         ),
-        param("echo 'HTTP 404: Not Found' >&2; exit 1", "HTTP 404", id="unreadable"),
         param(
+            "GHSA-4528-x5fx-h6hg",
+            GH,
+            "GHSA-4528-x5fx-h6hg is fixed in joi 17.13.9, joi 18.3.1, so delete it",
+            id = "partly-patched"
+        ),
+        param(
+            ADVISORY,
+            "echo 'HTTP 404: Not Found' >&2; exit 1",
+            "HTTP 404",
+            id = "unreadable"
+        ),
+        param(
+            ADVISORY,
             "echo 'error connecting to api.github.com' >&2; exit 1",
             "error connecting to api.github.com",
             id = "unreachable"
@@ -258,16 +271,17 @@ def test_audit_sets_aside_each_advisory_no_release_fixes(
 )
 def test_audit_fails_once_a_release_fixes_an_advisory_or_it_cannot_be_read(
     gh      : str,
+    ignore  : str,
     scratch : Scratch,
     stderr  : str
 ):
     """
-    Asserts that `lock:audit` exits one without running `bun audit` where
-    an advisory `AUDIT_IGNORE` lists names a patched version, naming the
-    entry to delete and the release to lift to, and where `gh` cannot read
-    the advisory.
+    Asserts that `lock:audit` exits one without running `bun audit` where a
+    saved advisory `AUDIT_IGNORE` lists names a patched version for any of
+    its packages, naming the entry to delete and each release to lift to,
+    and where `gh` cannot read the advisory.
     """
-    result = scratch.run("audit", gh=gh, ignore=ADVISORY)
+    result = scratch.run("audit", gh=gh, ignore=ignore)
 
     assert result.returncode == 1
     assert not any(call.startswith("bun ") for call in scratch.calls)
