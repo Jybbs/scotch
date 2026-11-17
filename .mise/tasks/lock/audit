@@ -1,9 +1,31 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Fail on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, or where an advisory database cannot be reached"
+#MISE description = "Fail on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, apart from one `AUDIT_IGNORE` lists while no release fixes it, or where an advisory database cannot be reached"
 
 source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 
 uv audit --preview-features audit-command
 each_script uv audit --preview-features audit-command
 osv-scanner scan source --lockfile rust/Cargo.lock
-bun audit --cwd docs
+
+set --
+for id in ${AUDIT_IGNORE:-}; do
+  advisory="$(gh api --jq '
+    (
+      [
+        .vulnerabilities[]
+        | select(.first_patched_version)
+        | .package.name + " " + .first_patched_version
+      ]
+      | join(", ")
+    ),
+    .summary
+  ' "/advisories/$id")"
+  patched="${advisory%%$'\n'*}"
+  if [[ -n "$patched" ]]; then
+    echo "$id is fixed in $patched, so delete it from AUDIT_IGNORE in .mise/config.toml and lift to that release" >&2
+    exit 1
+  fi
+  echo "Setting $id aside while no release fixes it: ${advisory#*$'\n'}" >&2
+  set -- "$@" "--ignore=$id"
+done
+bun audit --cwd docs "$@"
