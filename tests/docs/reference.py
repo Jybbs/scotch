@@ -9,7 +9,7 @@ match file and the manifest.
 from chess   import Piece
 from json    import dumps
 from pathlib import Path
-from pytest  import MonkeyPatch, fixture, mark, param
+from pytest  import MonkeyPatch, Subtests, fixture, mark, param
 from pytest_subprocess.fake_process import FakeProcess
 
 from scotch.cli.settings     import Settings
@@ -130,7 +130,10 @@ def test_the_checks_table_holds_a_row_per_check_the_mise_config_declares(
     )
 
 
-def test_the_exported_fields_match_the_tables_of_the_match_file(reference: Reference):
+def test_the_exported_fields_match_the_tables_of_the_match_file(
+    reference : Reference,
+    subtests  : Subtests
+):
     """
     Asserts that the fields of the match file the site annotates are the
     ones its tables list, each with a type and a meaning.
@@ -143,11 +146,12 @@ def test_the_exported_fields_match_the_tables_of_the_match_file(reference: Refer
         "side"   : ["headers", "moves", "placements"],
         "span"   : ["length", "offset", "start"]
     }
-    assert all(
-        field["meaning"] and field["type"]
-        for fields in reference.exported.values()
-        for field in fields
-    )
+
+    for table, fields in reference.exported.items():
+        for field in fields:
+            with subtests.test(field=f"{table}.{field['name']}"):
+                assert field["meaning"]
+                assert field["type"]
 
 
 def test_the_faces_table_reads_each_faces_version_from_the_manifest(
@@ -163,24 +167,34 @@ def test_the_faces_table_reads_each_faces_version_from_the_manifest(
     ) in reference.faces
 
 
-def test_the_field_tables_hold_a_row_per_declared_field(reference: Reference):
+@mark.parametrize(
+    ("table", "fields"),
+    [
+        param(
+            "columns",
+            ["game", "errors", "origin", "plies", "result", "tags"],
+            id = "columns"
+        ),
+        param("manifest", ["etag", "sha256", "size_bytes", "fetched"], id="manifest"),
+        param("export", ["submitted", "span", "stored", "ties"], id="export"),
+        param("side", ["headers", "moves", "placements"], id="side"),
+        param("span", ["length", "offset", "start"], id="span")
+    ]
+)
+def test_the_field_tables_hold_a_row_per_declared_field(
+    fields    : list[str],
+    reference : Reference,
+    table     : str
+):
     """
     Asserts that the tables of the games table, the manifest, and the match
     file each hold one row for each field their record declares, in the
     order it declares them.
     """
-    names = lambda table: [row.split("`")[1] for row in table.splitlines()[2:]]
-
     assert [
-        names(getattr(reference, name))
-        for name in ("columns", "manifest", "export", "side", "span")
-    ] == [
-        ["game", "errors", "origin", "plies", "result", "tags"],
-        ["etag", "sha256", "size_bytes", "fetched"],
-        ["submitted", "span", "stored", "ties"],
-        ["headers", "moves", "placements"],
-        ["length", "offset", "start"]
-    ]
+        row.split("`")[1]
+        for row in getattr(reference, table).splitlines()[2:]
+    ] == fields
 
 
 def test_the_layout_table_names_each_file_under_the_default_data_directory(
@@ -436,8 +450,8 @@ def test_the_sections_table_follows_the_order_the_crate_declares(reference: Refe
 
 def test_the_settings_table_writes_a_row_per_field(reference: Reference):
     """
-    Asserts that the table holds a row for each field `Settings` declares,
-    under its `SCOTCH_` variable, its key, and its default.
+    Asserts that the table holds a row for each field `Settings` declares
+    beneath its header.
     """
     rows = reference.settings.splitlines()
 
@@ -445,10 +459,18 @@ def test_the_settings_table_writes_a_row_per_field(reference: Reference):
         "| **Variable** | **Key** | **Type** | **Default** | **Meaning** |"
     )
     assert len(rows) == 2 + len(Settings.model_fields)
-    assert all(
-        f"`SCOTCH_{name.upper()}` | `{name}`" in reference.settings
-        for name in Settings.model_fields
-    )
+
+
+@mark.parametrize("name", Settings.model_fields)
+def test_the_settings_table_names_each_field_by_its_variable_and_key(
+    name      : str,
+    reference : Reference
+):
+    """
+    Asserts that the row of the field `name` holds its `SCOTCH_` variable
+    beside its key.
+    """
+    assert f"`SCOTCH_{name.upper()}` | `{name}`" in reference.settings
 
 
 def test_the_tasks_table_sets_each_group_under_its_heading(

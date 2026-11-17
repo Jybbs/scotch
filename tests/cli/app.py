@@ -16,7 +16,7 @@ from importlib.metadata import (
     version
 )
 from pathlib          import Path
-from pytest           import CaptureFixture, MonkeyPatch, mark, param
+from pytest           import CaptureFixture, mark, param
 from subprocess       import run
 from syrupy.assertion import SnapshotAssertion
 from sys              import executable
@@ -40,10 +40,9 @@ from scotch.repo.schemas import normalized
     ]
 )
 def test_help_text(
-    capsys      : CaptureFixture[str],
-    monkeypatch : MonkeyPatch,
-    snapshot    : SnapshotAssertion,
-    tokens      : tuple[str, ...]
+    capsys   : CaptureFixture[str],
+    snapshot : SnapshotAssertion,
+    tokens   : tuple[str, ...]
 ):
     """
     Asserts that `--help` exits zero and prints the help text its snapshot
@@ -51,8 +50,6 @@ def test_help_text(
     registers, which lists the summary of every command it holds, and for
     each command, the hidden ones included.
     """
-    monkeypatch.setenv("COLUMNS", "80")
-
     assert invoke(*tokens, "--help") == 0
     assert capsys.readouterr().out == snapshot
 

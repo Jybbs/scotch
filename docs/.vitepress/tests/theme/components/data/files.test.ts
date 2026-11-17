@@ -4,6 +4,7 @@ import { describe, expect, it, vi }              from 'vitest'
 
 import * as files       from '../../../../lib/data/files.ts'
 import { Files }        from '../../../../theme/components/data/files.ts'
+import { test }         from '../../../common/clock.ts'
 import { pressed }      from '../../../common/keys.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 import { resized }      from '../../../common/size.ts'
@@ -132,16 +133,14 @@ describe('Files, on the Openings', () => {
 })
 
 describe('Files, as it comes into view', () => {
-  it('unfolds its marks once, then stops', async () => {
-    vi.useFakeTimers()
+  test('unfolds its marks once, then stops', async ({ clock }) => {
     const report = onScreen()
     const list   = mount(Files)
     await report()
     expect(list.find('.sc-data-unfold').exists()).toBe(true)
-    vi.advanceTimersByTime(1800)
+    clock.advanceTimersByTime(1800)
     await flushPromises()
     expect(list.find('.sc-data-unfold').exists()).toBe(false)
-    vi.useRealTimers()
   })
 
   it('holds still for a reader who prefers reduced motion', async () => {

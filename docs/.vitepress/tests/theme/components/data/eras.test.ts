@@ -4,9 +4,10 @@ import { describe, expect, it, vi }                from 'vitest'
 
 import { CHART, moveX } from '../../../../lib/data/lengths.ts'
 import { useMove }      from '../../../../lib/data/move.ts'
-import { tenth }        from '../../../../lib/data/numbers.ts'
 import * as ridges      from '../../../../lib/data/ridges.ts'
 import { Eras }         from '../../../../theme/components/data/eras.ts'
+import { test }         from '../../../common/clock.ts'
+import * as glide       from '../../../common/glide.ts'
 import { prevented }    from '../../../common/keys.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 import { unsized }      from '../../../common/size.ts'
@@ -122,7 +123,24 @@ describe('Eras, under reduced motion', () => {
     reduceMotion()
     const { eras, list } = mounted()
     await list.trigger('keydown', { key: 'ArrowRight' })
-    expect((eras.find('.sc-data-mover').element as HTMLElement).style.transform)
-      .toBe(`translate3d(${tenth(moveX(layout, CHART.opening + 1))}px, 0, 0)`)
+    expect(glide.mover(eras)).toBe(`translate3d(${glide.moverAt(layout, CHART.opening + 1)}, 0, 0)`)
+  })
+})
+
+describe('Eras, its glide', () => {
+  test('has the line at the move within the pointer glide after a pointer moves', async ({ clock }) => {
+    const { eras, list } = mounted()
+    await list.trigger('pointermove', { clientX: moveX(layout, 30), clientY: layout.top })
+    await glide.glided(clock)
+    expect(glide.mover(eras)).toContain(glide.moverAt(layout, 30))
+  })
+
+  test('takes the longer glide again for a key once a pointer has moved the line', async ({ clock }) => {
+    const { eras, list } = mounted()
+    await list.trigger('pointermove', { clientX: moveX(layout, 30), clientY: layout.top })
+    await glide.glided(clock)
+    await list.trigger('keydown', { key: 'End' })
+    await glide.glided(clock)
+    expect(glide.mover(eras)).not.toContain(glide.moverAt(layout, CHART.plotted))
   })
 })

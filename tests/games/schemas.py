@@ -24,7 +24,7 @@ from common.games    import line
 from common.sources  import zipped
 from pathlib         import Path
 from pydantic        import ValidationError
-from pytest          import LogCaptureFixture, mark, param, raises
+from pytest          import LogCaptureFixture, Subtests, mark, param, raises
 from zipfile         import Path as ZipPath, ZipFile
 
 from scotch.games.schemas import Frame, Game, Origin
@@ -663,12 +663,13 @@ def test_boards_yields_each_position_on_one_board():
     boards = list(line("e4", "e5").boards())
 
     assert len(boards) == 3
-    assert all(board is boards[0] for board in boards)
+    assert len({*map(id, boards)}) == 1
     assert boards[0].move_stack == list(moves("e2e4", "e7e5"))
 
 
 def test_every_frame_draws_its_position_under_numbers_kept_from_the_first(
-    replayed: Game
+    replayed : Game,
+    subtests : Subtests
 ):
     """
     Asserts that each frame holds the pieces of its position on their
@@ -677,19 +678,17 @@ def test_every_frame_draws_its_position_under_numbers_kept_from_the_first(
     """
     numbers = {number for number, _, _ in replayed.frames[0].pieces}
 
-    assert [
-        {(
-            spot, symbol
-        ) for _, spot, symbol in frame.pieces} for frame in replayed.frames
-    ] == [
-        {(spot, piece.symbol()) for spot, piece in board.piece_map().items()}
-        for board in replayed.boards()
-    ]
-    assert all(
-        len(numbered := {number for number, _, _ in frame.pieces}) == len(frame.pieces)
-        and numbered <= numbers
-        for frame in replayed.frames
-    )
+    for ply, (frame, board) in enumerate(
+        zip(replayed.frames, replayed.boards(), strict=True)
+    ):
+        with subtests.test(ply=ply):
+            numbered = {number for number, _, _ in frame.pieces}
+
+            assert {(spot, symbol) for _, spot, symbol in frame.pieces} == {
+                (spot, piece.symbol()) for spot, piece in board.piece_map().items()
+            }
+            assert len(numbered) == len(frame.pieces)
+            assert numbered <= numbers
 
 
 def test_every_game_reads_in_file_order(read: Callable[..., list[Game]]):

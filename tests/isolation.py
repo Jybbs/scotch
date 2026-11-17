@@ -1,12 +1,13 @@
 """
 Pins the isolation the suite keeps from the machine running it, covering
-the shell variables each test starts without, the home directory it reads,
-the block that stops a test without the `network` mark from opening a
-connection, and the mark that lets a `network` test open one.
+the shell variables each test starts without, the terminal's type and width
+it starts with, the home directory it reads, the block that stops a test
+without the `network` mark from opening a connection, and the mark that lets
+a `network` test open one.
 """
 
 from collections.abc  import Iterator
-from common.isolation import CLEARED, pytest_collection_modifyitems
+from common.isolation import CLEARED, PINNED, pytest_collection_modifyitems
 from os               import environ
 from pathlib          import Path
 from pytest           import FixtureRequest, MonkeyPatch, fixture, mark, raises, warns
@@ -36,6 +37,16 @@ def test_a_socket_stays_closed_outside_the_network_mark():
     """
     with warns(UserWarning), raises(SocketBlockedError):
         create_connection(("blocked.invalid", 80))
+
+
+@mark.parametrize(("name", "value"), PINNED.items())
+def test_the_terminal_type_and_width_are_pinned(name: str, value: str):
+    """
+    Asserts that the variable `name` reaches every test set to `value`, so
+    output a terminal's type or width shapes compares byte for byte on any
+    machine.
+    """
+    assert environ[name] == value
 
 
 def test_home_is_an_empty_directory():
