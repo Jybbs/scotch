@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Fail on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, apart from one `AUDIT_IGNORE` lists while no release fixes it, or where an advisory database cannot be reached"
+#MISE description = "Fail where an advisory database cannot be reached, or on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves other than one `AUDIT_IGNORE` lists while no release fixes it"
 
 source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 

@@ -231,7 +231,10 @@ def test_audit_sets_aside_each_advisory_no_release_fixes(
 
     assert result.returncode == 0
     assert scratch.calls[-1] == bun
-    assert ("A ReDoS" in result.stderr) == bool(ignore)
+    assert result.stderr.splitlines() == [
+        f"Setting {advisory} aside while no release fixes it: A ReDoS"
+        for advisory in ignore.split()
+    ]
     assert [call.split()[-1] for call in scratch.calls if "/advisories/" in call] == [
         f"/advisories/{advisory}" for advisory in ignore.split()
     ]
@@ -245,10 +248,15 @@ def test_audit_sets_aside_each_advisory_no_release_fixes(
             f"{ADVISORY} is fixed in picomatch 4.0.8, so delete it from AUDIT_IGNORE",
             id = "patched"
         ),
-        param("echo 'HTTP 404: Not Found' >&2; exit 1", "HTTP 404", id="unreachable")
+        param("echo 'HTTP 404: Not Found' >&2; exit 1", "HTTP 404", id="unreadable"),
+        param(
+            "echo 'error connecting to api.github.com' >&2; exit 1",
+            "error connecting to api.github.com",
+            id = "unreachable"
+        )
     ]
 )
-def test_audit_fails_once_a_release_fixes_an_advisory_or_github_is_unreachable(
+def test_audit_fails_once_a_release_fixes_an_advisory_or_it_cannot_be_read(
     gh      : str,
     scratch : Scratch,
     stderr  : str
