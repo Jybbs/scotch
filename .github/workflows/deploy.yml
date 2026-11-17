@@ -51,7 +51,7 @@ jobs:
         with:
           ref: ${{ needs.order.outputs.commit }}
           shared-key: scotch-python
-          tools: python rust uv
+          tools: jq python rust uv
       - name: Run the suite under coverage
         if: ${{ steps.reuse.outputs.found != 'true' }}
         run: mise run py:coverage
