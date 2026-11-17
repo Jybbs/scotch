@@ -35,14 +35,14 @@ async function shoot(
 ): Promise<void> {
   const { width } = parts.LAYOUT
   const fit       = { mode: 'width', value: 2 * width } as const
-  for (let at = 0; at < frames.length; at += shooting.batch) {
-    // oxlint-disable-next-line no-await-in-loop -- each batch is encoded in order before the next is drawn
-    const shots = await Promise.all(frames.slice(at, at + shooting.batch).map(async frame => {
-      const image = await renderAsync(await draw(frame), { fitTo: fit })
-      return gif.halve(image.pixels, width, parts.HEIGHT)
-    }))
-    for (const pixels of shots) take(pixels)
+  function* batches(): Generator<Promise<Uint8Array[]>> {
+    for (let at = 0; at < frames.length; at += shooting.batch)
+      yield Promise.all(frames.slice(at, at + shooting.batch).map(async frame => {
+        const image = await renderAsync(await draw(frame), { fitTo: fit })
+        return gif.halve(image.pixels, width, parts.HEIGHT)
+      }))
   }
+  for await (const shots of batches()) for (const pixels of shots) take(pixels)
 }
 
 /**
