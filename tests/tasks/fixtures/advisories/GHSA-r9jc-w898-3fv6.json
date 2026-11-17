@@ -1,0 +1,17 @@
+{
+  "ghsa_id": "GHSA-r9jc-w898-3fv6",
+  "cve_id": "CVE-2026-128074",
+  "html_url": "https://github.com/advisories/GHSA-r9jc-w898-3fv6",
+  "summary": "Nuxt payload URL generation has quadratic cost for repeated slashes in the request path",
+  "severity": "medium",
+  "vulnerabilities": [
+    {
+      "package": {
+        "ecosystem": "npm",
+        "name": "nuxt"
+      },
+      "vulnerable_version_range": ">= 4.6.0, < 4.6.4",
+      "first_patched_version": "4.6.4"
+    }
+  ]
+}
