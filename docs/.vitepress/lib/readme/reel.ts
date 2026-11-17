@@ -1,4 +1,5 @@
 import { renderAsync } from '@resvg/resvg-js'
+import { Readable }    from 'node:stream'
 
 import { facesOf }                      from '../cards/faces.ts'
 import { hexOf }                        from '../identity/tokens.ts'
@@ -13,19 +14,21 @@ import { type Frame, PACE, type Scene } from './scene.ts'
  * many frames one is counted toward the palette.
  */
 export interface Shooting {
-  batch  : number
-  sample : number
+  concurrency : number
+  sample      : number
 }
 
 /**
- * The shooting the preview is encoded with.
+ * The shooting the preview is encoded with. The concurrency of 8 is untuned,
+ * and eight renders at twice the preview's width hold about 53 MiB of RGBA.
  */
-const SHOOTING: Readonly<Shooting> = { batch: 8, sample: 5 }
+const SHOOTING: Readonly<Shooting> = { concurrency: 8, sample: 5 }
 
 /**
- * Draws the frames in batches at twice the preview's width, as a screen at a
- * device scale of 2 draws them, and passes each frame's RGB bytes, halved to
- * the preview's width, to `take` in order.
+ * Draws the frames at twice the preview's width, as a screen at a device scale
+ * of 2 draws them, at most `concurrency` at once, and passes each frame's RGB
+ * bytes, halved to the preview's width, to `take` in order, through
+ * `Readable.map`, https://nodejs.org/api/stream.html#readablemapfn-options.
  */
 async function shoot(
   draw     : (frame: Frame) => Promise<string>,
@@ -33,16 +36,14 @@ async function shoot(
   shooting : Readonly<Shooting>,
   take     : (pixels: Uint8Array) => void
 ): Promise<void> {
-  const { width } = parts.LAYOUT
-  const fit       = { mode: 'width', value: 2 * width } as const
-  function* batches(): Generator<Promise<Uint8Array[]>> {
-    for (let at = 0; at < frames.length; at += shooting.batch)
-      yield Promise.all(frames.slice(at, at + shooting.batch).map(async frame => {
-        const image = await renderAsync(await draw(frame), { fitTo: fit })
-        return gif.halve(image.pixels, width, parts.HEIGHT)
-      }))
-  }
-  for await (const shots of batches()) for (const pixels of shots) take(pixels)
+  const { concurrency } = shooting
+  const { width }       = parts.LAYOUT
+  const fit             = { mode: 'width', value: 2 * width } as const
+  const shots: AsyncIterable<Uint8Array> = Readable.from(frames).map(async (frame: Frame) => {
+    const image = await renderAsync(await draw(frame), { fitTo: fit })
+    return gif.halve(image.pixels, width, parts.HEIGHT)
+  }, { concurrency })
+  for await (const pixels of shots) take(pixels)
 }
 
 /**
