@@ -222,7 +222,7 @@ pub fn castling(pos: &Chess) -> String {
 /// Reads `part` as Python's `int` reads a FEN field, an optional sign before
 /// ASCII digits that single underscores may separate.
 fn integer(part: &str) -> Option<i64> {
-    let digits = part.strip_prefix(['+', '-']).unwrap_or(part);
+    let digits = part.trim_prefix(['+', '-']);
     let grouped = !digits.starts_with('_')
         && !digits.ends_with('_')
         && !digits.contains("__")
@@ -298,6 +298,29 @@ fn is_format(c: char) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_fen_number_reads_as_python_int_reads_it() {
+        for (part, number) in [
+            ("12", Some(12)),
+            ("+12", Some(12)),
+            ("-3", Some(-3)),
+            ("1_000", Some(1000)),
+            ("+1_0", Some(10)),
+            ("", None),
+            ("+", None),
+            ("-", None),
+            ("++1", None),
+            ("+-1", None),
+            ("-+1", None),
+            ("_1", None),
+            ("1_", None),
+            ("-_1", None),
+            ("1__0", None),
+        ] {
+            assert_eq!(integer(part), number, "{part:?}");
+        }
+    }
 
     #[test]
     fn python_chess_writes_its_repr() {
