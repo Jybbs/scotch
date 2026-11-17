@@ -43,22 +43,22 @@ jobs:
         include:
           - name: 🩺 Advisories
             task: lock:audit
-            tools: bun jq osv-scanner python rust uv
+            tools: bun osv-scanner python rust uv
           - name: 🔐 Lockfiles
             task: lock:check
-            tools: bun jq osv-scanner python rust uv
+            tools: bun osv-scanner python rust uv
           - name: 🪻 Prose
             shared-key: scotch-python
             task: py:check
-            tools: python rust uv
+            tools: jq python rust uv
           - name: ☂️ Coverage
             shared-key: scotch-python
             task: py:coverage
-            tools: python rust uv
+            tools: jq python rust uv
           - name: 📋 Audit
             shared-key: scotch-python
             task: repo:audit
-            tools: python rust uv
+            tools: jq python rust uv
           - name: 🔦 Workflows
             task: repo:lint
             tools: zizmor
