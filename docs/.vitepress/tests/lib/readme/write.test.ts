@@ -15,9 +15,10 @@ describe('writeReadme', () => {
     const written = await writeReadme(repo.metaUrl, (_, scheme) =>
       Promise.resolve(Buffer.from(`GIF ${scheme}`)))
     expect(written.toSorted()).toEqual([
-      'assets/readme/guide-dark.svg', 'assets/readme/guide-light.svg', 'assets/readme/methods-dark.svg',
-      'assets/readme/methods-light.svg', 'assets/readme/preview-dark.gif', 'assets/readme/preview-light.gif',
-      'assets/readme/viewer-dark.svg', 'assets/readme/viewer-light.svg'
+      '.github/assets/readme/guide-dark.svg', '.github/assets/readme/guide-light.svg',
+      '.github/assets/readme/methods-dark.svg', '.github/assets/readme/methods-light.svg',
+      '.github/assets/readme/preview-dark.gif', '.github/assets/readme/preview-light.gif',
+      '.github/assets/readme/viewer-dark.svg', '.github/assets/readme/viewer-light.svg'
     ])
     expect(fs.readFileSync(path.join(readmeDir(repo.metaUrl), 'preview-dark.gif'), 'utf8')).toBe('GIF dark')
   }, 30_000)

@@ -1501,14 +1501,17 @@ def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
     (sample.root / "cited.md").write_text("A claim.[^doe2020]\n")
     (sample.root / "broken.md").write_text("<!-- table -->\n")
 
+    unread = (
+        "Line 3 of src/scotch/citations/references.bib holds a block "
+        "bibtexparser could not read"
+    )
+
     def unreadable() -> References:
         """
         Raises the error `References.read` raises for a block it could not
         read.
         """
-        raise ValueError(
-            "Line 3 of docs/references.bib holds a block bibtexparser could not read"
-        )
+        raise ValueError(unread)
     monkeypatch.setattr(
         Checkout,
         "outputs",
@@ -1541,9 +1544,5 @@ def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
             "holds other than one <!-- table --> followed by one "
             "<!-- /table -->"
         ),
-        (
-            Path("cited.md"),
-            None,
-            "Line 3 of docs/references.bib holds a block bibtexparser could not read"
-        )
+        (Path("cited.md"), None, unread)
     ]

@@ -585,9 +585,9 @@ class RenderCheck(Check):
         Yields a finding at each place a file has drifted, naming the task
         that rewrites it, and a finding naming the error at a page whose
         markers no longer enclose one region, which cites a key no entry of
-        `docs/references.bib` holds, or which cites a source while the file
-        holds a block bibtexparser could not read or an entry of another
-        shape, none of which the task can rewrite.
+        `src/scotch/citations/references.bib` holds, or which cites a source
+        while the file holds a block bibtexparser could not read or an entry
+        of another shape, none of which the task can rewrite.
         """
         root = self.checkout.root
 

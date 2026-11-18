@@ -32,7 +32,7 @@
         "ignoreDependencies" : ["oxlint", "@fontsource/.+"],
         "rules"              : { "cycles": "error" },
         "typescript"         : { "config": [".vitepress/tsconfig.json"] },
-        "vitest"             : { "config": [".vitepress/vitest.config.ts"] }
+        "vitest"             : { "config": [".vitepress/config/vitest.config.ts"] }
     },
     "overrides"       : {
         "fflate"    : "0.8.3",

@@ -18,18 +18,18 @@ def test_badges_link_each_logo_from_the_readme_beside_a_value_in_walnut(
 ):
     """
     Pins the three badges for a README under `.github/`, each logo reached
-    by a path climbing out of that folder and each value filled in Walnut.
+    by a path under that folder's `assets/` and each value filled in Walnut.
     """
     assert project.badges(Path(".github/README.md")).splitlines() == [
-        "[![Python](../docs/assets/badges/python.svg)"
+        "[![Python](assets/badges/python.svg)"
         "![3.14+](https://img.shields.io/badge/3.14+-764017?style=for-the-badge)]"
         "(https://www.python.org/)",
-        "[![Coverage](../docs/assets/badges/coverage.svg)"
+        "[![Coverage](assets/badges/coverage.svg)"
         "![percent](https://img.shields.io/badge/dynamic/json?url=https://example.org/"
         "coverage.json&query=%24&suffix=%25&style=for-the-badge&label=&color=764017)]"
         "(https://github.com/owner/scotch/actions/workflows/deploy.yml"
         "?query=branch%3Amain)",
-        "[![Docs](../docs/assets/badges/docs.svg)"
+        "[![Docs](assets/badges/docs.svg)"
         "![Docs](https://img.shields.io/badge/Docs-764017?style=for-the-badge)]"
         "(https://example.org/)"
     ]
