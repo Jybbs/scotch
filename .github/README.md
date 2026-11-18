@@ -1,13 +1,13 @@
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../docs/assets/lockup-dark.svg">
-  <img src="../docs/assets/lockup-light.svg" alt="scotch. Find the grandmaster game closest to yours." width="560">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/lockup-dark.svg">
+  <img src="assets/lockup-light.svg" alt="scotch. Find the grandmaster game closest to yours." width="560">
 </picture>
 
 <!-- badges -->
-[![Python](../docs/assets/badges/python.svg)![3.15+](https://img.shields.io/badge/3.15+-764017?style=for-the-badge)](https://www.python.org/)
-[![Coverage](../docs/assets/badges/coverage.svg)![percent](https://img.shields.io/badge/dynamic/json?url=https://scotch.fyi/coverage.json&query=%24&suffix=%25&style=for-the-badge&label=&color=764017)](https://github.com/Jybbs/scotch/actions/workflows/deploy.yml?query=branch%3Amain)
-[![Docs](../docs/assets/badges/docs.svg)![Docs](https://img.shields.io/badge/Docs-764017?style=for-the-badge)](https://scotch.fyi/)
+[![Python](assets/badges/python.svg)![3.15+](https://img.shields.io/badge/3.15+-764017?style=for-the-badge)](https://www.python.org/)
+[![Coverage](assets/badges/coverage.svg)![percent](https://img.shields.io/badge/dynamic/json?url=https://scotch.fyi/coverage.json&query=%24&suffix=%25&style=for-the-badge&label=&color=764017)](https://github.com/Jybbs/scotch/actions/workflows/deploy.yml?query=branch%3Amain)
+[![Docs](assets/badges/docs.svg)![Docs](https://img.shields.io/badge/Docs-764017?style=for-the-badge)](https://scotch.fyi/)
 <!-- /badges -->
 
 </div>
@@ -19,8 +19,8 @@
 ***Scotch*** reads a chess game you played from a Portable Game Notation (PGN) file, finds the grandmaster game sharing the longest unbroken run of positions with it, and shows how that game continued from the last position the two share. A game reaching a stored position by another order of moves still meets it there, since each position is matched by its key rather than by the moves reaching it, as **[Methods](https://scotch.fyi/methods/)** sets out.
 
 <a href="https://scotch.fyi/viewer/"><picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/preview-dark.gif">
-  <img src="../docs/assets/readme/preview-light.gif" alt="Two boards step through a game and the grandmaster game it reaches by another order of moves, their rings turning one shared color while the two show one position, until the games part." width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/preview-dark.gif">
+  <img src="assets/readme/preview-light.gif" alt="Two boards step through a game and the grandmaster game it reaches by another order of moves, their rings turning one shared color while the two show one position, until the games part." width="100%">
 </picture></a>
 
 ## 🪺 The Games
@@ -65,9 +65,9 @@ With `--json` and a path, the same command writes the match to a file the **[Vie
 ## 🕰️ Where to Start
 
 <p align="center">
-<a href="https://scotch.fyi/guide/"><picture><source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/guide-dark.svg"><img src="../docs/assets/readme/guide-light.svg" alt="Guide" width="260"></picture></a>
-<a href="https://scotch.fyi/viewer/"><picture><source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/viewer-dark.svg"><img src="../docs/assets/readme/viewer-light.svg" alt="Viewer" width="260"></picture></a>
-<a href="https://scotch.fyi/methods/"><picture><source media="(prefers-color-scheme: dark)" srcset="../docs/assets/readme/methods-dark.svg"><img src="../docs/assets/readme/methods-light.svg" alt="Methods" width="260"></picture></a>
+<a href="https://scotch.fyi/guide/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/guide-dark.svg"><img src="assets/readme/guide-light.svg" alt="Guide" width="260"></picture></a>
+<a href="https://scotch.fyi/viewer/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/viewer-dark.svg"><img src="assets/readme/viewer-light.svg" alt="Viewer" width="260"></picture></a>
+<a href="https://scotch.fyi/methods/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/methods-dark.svg"><img src="assets/readme/methods-light.svg" alt="Methods" width="260"></picture></a>
 </p>
 
 - **[Guide](https://scotch.fyi/guide/)** takes a fresh clone through building the store to reading each line of a match's report, from **[Setting Up](https://scotch.fyi/guide/setup)** to **[Studying a Match](https://scotch.fyi/guide/studying)**

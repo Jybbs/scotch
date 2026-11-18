@@ -1,9 +1,9 @@
 """
 Holds the records `scotch lift pins` reports and writes, meaning each `Lift`
 of a pin to its newest release beside the `Edit` writing that release into
-the file declaring it and the `Advisory` the release clears, the `Report`
-printing every lift as one Markdown table, and the records it reads each
-manager's answer into.
+the file declaring it and the `Advisory` the release clears, the `Failure`
+an attempt at a lift stops on, the `Report` printing every lift as one
+Markdown table, and the records it reads each manager's answer into.
 """
 
 from collections.abc import Collection, Iterable
@@ -50,6 +50,24 @@ class Advisory(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         address.
         """
         return f"[{self.id}]({self.link})"
+
+
+class Failure(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The command an attempt at a lift stopped on, beside the log of the
+    attempt.
+    """
+
+    command: str
+    """
+    The command that exited nonzero, as a reader runs it from the root, such
+    as `mise run repo:ci`.
+    """
+
+    log: Path
+    """
+    The file holding each command the attempt ran and what it printed.
+    """
 
 
 class Listing(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -469,18 +487,13 @@ class Report(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
     """
 
     @property
-    def majors(self) -> tuple[str, ...]:
+    def leads(self) -> tuple[str, ...]:
         """
-        Lists the name of each pin whose lift is major, in the order
-        the table gives them, once for each set of pins `coupled` holds
-        together.
+        Lists the name of each pin the report lifts, in the order the table
+        gives them, once for each set of pins `coupled` holds together, the
+        names a failing trial tries in turn.
         """
-        return tuple(
-            unique_everseen(
-                (lift.name for lift in self.rows if lift.major),
-                key = coupled
-            )
-        )
+        return tuple(unique_everseen((lift.name for lift in self.rows), key=coupled))
 
     @property
     def names(self) -> frozenset[str]:

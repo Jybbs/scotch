@@ -114,6 +114,7 @@ describe('GameBoard stepping', () => {
 
 describe('GameBoard over any run of steps', () => {
   test('lands on the last step’s ply, each piece setting off from where it stands', ({ clock }) => {
+    const blank = drawn()
     assert(property(
       integer({ max: submitted.moves.length, min: 0 }),
       array(record({
@@ -122,7 +123,9 @@ describe('GameBoard over any run of steps', () => {
         wait  : integer({ max: 900, min: 0 })
       }), { maxLength: 10 }),
       (opening, steps) => {
-        const board = new GameBoard(drawn())
+        const svg   = blank.cloneNode(true) as SVGSVGElement
+        document.body.append(svg)
+        const board = new GameBoard(svg)
         board.load(submitted)
         board.go(opening, 'jump')
         for (const { reach, to, wait } of steps) {

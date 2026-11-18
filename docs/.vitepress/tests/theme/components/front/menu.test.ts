@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import * as studying from '../../../../lib/front/studying.ts'
 import { Menu }      from '../../../../theme/components/front/menu.ts'
+import { test }      from '../../../common/clock.ts'
 import { pressed }   from '../../../common/keys.ts'
 
 describe('Menu', () => {
@@ -17,19 +18,17 @@ describe('Menu', () => {
     expect(drawn.find("[data-kind='program']").text()).toBe('scotch')
   })
 
-  it('types a picked run into the screen and keeps its last line in view', async () => {
-    vi.useFakeTimers()
+  test('types a picked run into the screen and keeps its last line in view', async ({ clock }) => {
     const drawn  = mount(Menu, { attachTo: document.body })
     const screen = drawn.find("[role='region']").element
     const scroll = vi.fn<(options?: ScrollToOptions) => void>()
     screen.scrollTo = scroll as typeof screen.scrollTo
     Object.defineProperty(screen, 'scrollHeight', { value: 480 })
     await drawn.findAll("[role='group'] button")[4]!.trigger('click')
-    await vi.runAllTimersAsync()
+    await clock.runAllTimersAsync()
     expect(drawn.find("[role='region']").attributes('aria-label')).toBe(studying.RUNS[4]!.heading)
     expect(drawn.find('[data-columns]').exists()).toBe(true)
     expect(scroll).toHaveBeenLastCalledWith({ top: 480 })
-    vi.useRealTimers()
     drawn.unmount()
   })
 

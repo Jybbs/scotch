@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { PLACED }               from '../../../lib/markdown/placements.ts'
+import { WIDGETS }              from '../../../theme/components/figure.ts'
 import { builtPages, pageText } from '../../common/pages.ts'
 
 const placed  = Object.entries(PLACED).flatMap(([page, list]) => list.map(each => ({ page, ...each })))
@@ -19,5 +20,9 @@ describe('PLACED', () => {
   it.each(regions)('finds one pair of markers around the $region region on $page', ({ page, region }) => {
     const markers = [`<!-- ${region} -->`, `<!-- /${region} -->`]
     expect(markers.map(marker => pageText(page).split(marker).length)).toEqual([2, 2])
+  })
+
+  it('names a widget some family holds for every placement, and every such widget is placed', () => {
+    expect(new Set(Object.keys(WIDGETS))).toEqual(new Set(placed.map(({ draw }) => draw)))
   })
 })

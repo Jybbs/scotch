@@ -15,7 +15,7 @@ from pytest_subprocess.fake_process import FakeProcess
 from subprocess import CalledProcessError
 from typing     import TextIO
 
-from scotch.pins.schemas import Edit, Lift, Spelling
+from scotch.pins.schemas import Edit, Failure, Lift, Spelling
 from scotch.pins.trees   import Tree
 
 
@@ -80,18 +80,25 @@ def test_a_logged_command_writes_itself_and_its_output(
 
 
 @mark.parametrize(
-    ("relocks", "upgraded", "ran", "passed"),
+    ("relocks", "upgraded", "ran", "failed"),
     [
-        param("", True, 6, True, id="every-step"),
-        param("", False, 6, True, id="no-upgrade"),
-        param("lock:sync", True, 4, False, id="failing-relock"),
-        param("repo:audit", True, 6, False, id="failing-audit")
+        param("", True, 7, None, id="every-step"),
+        param("", False, 7, None, id="no-upgrade"),
+        param("lock:sync", True, 4, "mise run lock:sync", id="failing-relock"),
+        param(
+            "--lockfile-only",
+            True,
+            5,
+            "mise exec -- bun update --cwd=docs --lockfile-only",
+            id = "failing-update"
+        ),
+        param("repo:audit", True, 7, "mise run repo:audit", id="failing-audit")
     ],
     indirect = ["relocks"]
 )
 def test_a_lift_runs_each_step_in_turn_until_one_fails(
+    failed   : str | None,
     fp       : FakeProcess,
-    passed   : bool,
     ran      : int,
     relocks  : list[list[str]],
     tmp_path : Path,
@@ -99,11 +106,12 @@ def test_a_lift_runs_each_step_in_turn_until_one_fails(
     upgraded : bool
 ):
     """
-    Asserts that a lift rewrites each version its lifts' edits name, then
-    locks and installs the tools, relocks `uv.lock` upgrading each package
-    a lift moves, relocks every lockfile, renders the files restating a pin,
-    and audits the tree, in that order, logging each command and running no
-    step after one that fails.
+    Asserts that a lift rewrites each version its lifts' edits name,
+    then locks and installs the tools, relocks `uv.lock` upgrading each
+    package a lift moves, relocks every lockfile, upgrades each version
+    `docs/bun.lock` resolves within its range, renders the files restating
+    a pin, and audits the tree, in that order, logging each command, running
+    no step after one that fails, and naming the step that failed.
     """
     lifts = [
         Lift(
@@ -136,7 +144,7 @@ def test_a_lift_runs_each_step_in_turn_until_one_fails(
     ]
 
     with (tmp_path / "log").open("w") as handle:
-        assert tree.lift(handle, lifts) is passed
+        assert tree.lift(handle, lifts) == failed
 
     assert called(fp) == relocks[:ran]
     assert 'uv     = "0.13.5"' in (tree.root / ".mise" / "config.toml").read_text()
@@ -183,22 +191,22 @@ def test_a_scrubbed_tree_drops_what_the_run_put_in_its_environment(sample: Sampl
     assert (tree.root, tree.logs) == (root, root / ".cache" / "lift")
 
 
-@mark.parametrize(("status", "passed"), [param(0, True), param(1, False)])
+@mark.parametrize(("status", "failed"), [param(0, None), param(1, "mise run repo:ci")])
 def test_a_check_runs_every_check_a_pull_request_runs(
+    failed   : str | None,
     fp       : FakeProcess,
-    passed   : bool,
     status   : int,
     tmp_path : Path,
     tree     : Tree
 ):
     """
-    Asserts that a check runs `repo:ci` in the tree and reports whether
-    it passed.
+    Asserts that a check runs `repo:ci` in the tree and names it where it
+    fails.
     """
     fp.register(["mise", "-C", tree.root, "run", "repo:ci"], returncode=status)
 
     with (tmp_path / "log").open("w") as handle:
-        assert tree.check(handle) is passed
+        assert tree.check(handle) == failed
 
 
 @mark.parametrize("changes", [param(b"diff", id="changed"), param(b"", id="clean")])
@@ -248,47 +256,56 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
 
 
 @mark.parametrize(
-    ("lifted", "checked", "verdict", "patch"),
+    ("lift_failure", "checked", "check_failure", "patch"),
     [
-        param(True, True, True, b"lifted", id="passing-trial"),
-        param(True, True, False, None, id="failing-trial"),
-        param(False, True, True, None, id="failing-lift"),
-        param(True, False, False, b"lifted", id="write-without-a-trial")
+        param(None, True, None, b"lifted", id="passing-trial"),
+        param(None, True, "mise run repo:ci", "mise run repo:ci", id="failing-trial"),
+        param(
+            "mise run lock:sync",
+            True,
+            None,
+            "mise run lock:sync",
+            id = "failing-lift"
+        ),
+        param(None, False, "mise run repo:ci", b"lifted", id="write-without-a-trial")
     ]
 )
 def test_an_attempt_returns_the_diff_only_where_every_step_passes(
-    checked     : bool,
-    fp          : FakeProcess,
-    lifted      : bool,
-    monkeypatch : MonkeyPatch,
-    patch       : bytes | None,
-    tree        : Tree,
-    verdict     : bool
+    check_failure : str | None,
+    checked       : bool,
+    fp            : FakeProcess,
+    lift_failure  : str | None,
+    monkeypatch   : MonkeyPatch,
+    patch         : bytes | str,
+    tree          : Tree
 ):
     """
     Asserts that an attempt returns the diff its clone holds once the lift
     passes and, where it is checked, once `mise ci` passes there too, and
-    returns `None` otherwise, checking nothing after a failing lift or where
-    it is not checked, and creating the folder its log lands in.
+    otherwise the command that failed beside the log, checking nothing after
+    a failing lift or where it is not checked, and creating the folder its
+    log lands in.
     """
     checks = []
 
-    def check(self: Tree, handle: TextIO) -> bool:
+    def check(self: Tree, handle: TextIO) -> str | None:
         """
-        Records the check and returns the verdict the case sets.
+        Records the check and returns the failing command the case sets.
         """
         checks.append(handle)
 
-        return verdict
+        return check_failure
 
     monkeypatch.setattr(Tree, "clone", cloned)
-    monkeypatch.setattr(Tree, "lift", lambda self, handle, lifts: lifted)
+    monkeypatch.setattr(Tree, "lift", lambda self, handle, lifts: lift_failure)
     monkeypatch.setattr(Tree, "check", check)
     fp.register(["git", "diff", "--binary"], stdout=b"lifted")
     log = tree.logs / "trial.log"
 
-    assert tree.attempt([], log, checked=checked) == patch
-    assert len(checks) == int(lifted and checked)
+    assert tree.attempt([], log, checked=checked) == (
+        patch if isinstance(patch, bytes) else Failure(command=patch, log=log)
+    )
+    assert len(checks) == int(lift_failure is None and checked)
     assert log.exists()
 
 
@@ -297,7 +314,7 @@ def test_an_attempt_returns_the_diff_only_where_every_step_passes(
     [param("repo:audit", False, id="failing-audit")],
     indirect = ["relocks"]
 )
-def test_a_write_failing_its_audit_returns_no_diff(
+def test_a_write_failing_its_audit_names_the_audit(
     fp          : FakeProcess,
     monkeypatch : MonkeyPatch,
     relocks     : list[list[str]],
@@ -306,14 +323,16 @@ def test_a_write_failing_its_audit_returns_no_diff(
 ):
     """
     Asserts that the unchecked attempt a bare `--write` makes returns no
-    diff where the relocked tree fails `repo:audit`, the last command it
-    runs and logs.
+    diff where the relocked tree fails `repo:audit`, naming it as the last
+    command it runs and logs.
     """
-
     monkeypatch.setattr(Tree, "clone", cloned)
     log = tree.logs / "write.log"
 
-    assert tree.attempt([], log, checked=False) is None
+    assert tree.attempt([], log, checked=False) == Failure(
+        command = "mise run repo:audit",
+        log     = log
+    )
     assert called(fp) == relocks
     assert log.read_text().splitlines()[-1] == f"$ mise -C {tree.root} run repo:audit"
 

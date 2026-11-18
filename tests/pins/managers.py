@@ -699,7 +699,6 @@ def test_the_npm_packages_lift_through_bun_with_the_advisories_they_clear(
         old = '"private"'
     )
     (sample.root / "docs" / "bun.lock").write_text("{}")
-    (sample.root / "docs" / "bunfig.toml").write_text("")
     (sample.root / ".github" / "workflows" / "deploy.yml").write_text(
         "jobs:\n  deploy:\n    runs-on: ubuntu-26.04\n    steps:\n"
         "      - name: Deploy\n"

@@ -1,4 +1,4 @@
-min_version = "2026.10.18"
+min_version = "2026.11.9"
 
 [doctor.checks.venv]
 description = "`.venv` exists and runs on the Python interpreter mise pins"
@@ -7,15 +7,18 @@ run         = 'test -d .venv && test "$(.venv/bin/python -c "import sys; print(s
 timeout     = "5s"
 
 [env]
-_.path              = ".mise/bin"
-AUDIT_IGNORE        = "GHSA-fc5q-39xc-vjpf"
-CARGO_TARGET_DIR    = "{{config_root}}/.cache/cargo"
-JITI_FS_CACHE       = "false"
-NODE_COMPILE_CACHE  = "{{config_root}}/.cache/node"
-PROSE_CACHE_DIR     = "{{config_root}}/.cache/prose"
-PYTHONPYCACHEPREFIX = "{{config_root}}/.cache/pycache"
-TESTMON_DATAFILE    = "{{config_root}}/.cache/testmon/data"
-UV_LOCKED           = "1"
+_.path                    = ".mise/bin"
+AUDIT_IGNORE              = "GHSA-fc5q-39xc-vjpf"
+BUN_INSTALL_CACHE_DIR     = "{{config_root}}/.cache/bun"
+CARGO_DENY_DB_PATH        = "{{config_root}}/.cache/cargo-deny"
+CARGO_TARGET_DIR          = "{{config_root}}/.cache/cargo"
+JITI_FS_CACHE             = "false"
+NODE_COMPILE_CACHE        = "{{config_root}}/.cache/node"
+NPM_CONFIG_IGNORE_SCRIPTS = "true"
+PROSE_CACHE_DIR           = "{{config_root}}/.cache/prose"
+PYTHONPYCACHEPREFIX       = "{{config_root}}/.cache/pycache"
+TESTMON_DATAFILE          = "{{config_root}}/.cache/testmon/data"
+UV_LOCKED                 = "1"
 
 [settings]
 auto_install = false
@@ -25,12 +28,12 @@ locked = true
 
 [tools]
 bun                                = "1.4.4"
+cargo-deny                         = { os = ["linux", "macos/arm64", "windows"], version = "0.21.0" }
 "github:wasm-bindgen/wasm-bindgen" = "0.2.130"
 jq                                 = "1.8.2"
 lychee                             = "0.24.2"
-node                               = "26.13.0"
-osv-scanner                        = "2.7.1"
+node                               = "26.13.1"
 python                             = "3.15.2"
 rust                               = { components = "clippy,rustfmt", profile = "minimal", targets = "wasm32-unknown-unknown", version = "1.100.0" }
-uv                                 = "0.13.7"
+uv                                 = "0.13.9"
 zizmor                             = "1.32.0"

@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick }                             from 'vue'
 
 import { RUN_TUNING, exampleOf, timelineAt } from '../../../../lib/methods/example.ts'
-import { METHODS_WIDGETS }                   from '../../../../theme/components/methods/index.ts'
 import { Run }                               from '../../../../theme/components/methods/run.ts'
 import { test }                              from '../../../common/clock.ts'
 import { reduceMotion }                      from '../../../common/motion.ts'
@@ -19,12 +18,6 @@ function mounted(): ReturnType<typeof mount<typeof Run>> {
 beforeEach(() => {
   const finished = { cancel: vi.fn<() => void>(), playState: 'finished' } as unknown as Animation
   vi.spyOn(Element.prototype, 'animate').mockImplementation(() => finished)
-})
-
-describe('METHODS_WIDGETS', () => {
-  it('places the widget under the name the Methods page gives it', () => {
-    expect(METHODS_WIDGETS).toEqual({ run: Run })
-  })
 })
 
 describe('Run as drawn', () => {

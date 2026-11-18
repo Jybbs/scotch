@@ -7,7 +7,7 @@ from collections.abc  import Callable
 from common.stand_ins import Affected, Scratch, StandIn
 from os               import pathsep
 from pathlib          import Path
-from pytest           import Config, MonkeyPatch, fixture
+from pytest           import Config, MonkeyPatch, TempPathFactory, fixture
 
 
 @fixture
@@ -35,37 +35,36 @@ def stand_in(monkeypatch: MonkeyPatch, tmp_path: Path) -> Callable[..., StandIn]
 
 
 @fixture
-def affected(
-    monkeypatch  : MonkeyPatch,
-    pytestconfig : Config,
-    tmp_path     : Path
-) -> Affected:
+def affected(pytestconfig: Config, tmp_path: Path) -> Affected:
     """
-    Builds an `Affected` checkout in `tmp_path` listing `fixture.txt` and
-    `module.py`, with a stand-in `git` first on `PATH` that prints the names
-    the checkout lists when called with the arguments `py:affected` passes
-    and exits one otherwise. It names the checkout in `MISE_PROJECT_ROOT`
-    and its data file in `TESTMON_DATAFILE`, as `mise run` sets each.
+    Lays out an `Affected` checkout in `tmp_path`, before any run of
+    `py:affected` has recorded its files.
     """
-    stand_ins = tmp_path / ".bin"
-    stand_ins.mkdir()
-    git = stand_ins / "git"
-    git.write_text(
-        "#!/bin/sh\n"
-        '[ "$*" = "ls-files --cached --deduplicate --exclude-standard --others" ]'
-        " || exit 1\n"
-        f'cat "{tmp_path / ".listed"}"\n'
-    )
-    git.chmod(0o755)
-    monkeypatch.setenv("MISE_PROJECT_ROOT", str(tmp_path))
-    monkeypatch.setenv(
-        "TESTMON_DATAFILE",
-        str(tmp_path / ".cache" / "testmon" / "data")
-    )
-    monkeypatch.setenv("PATH", str(stand_ins), prepend=pathsep)
+    return Affected.laid(pytestconfig.rootpath, tmp_path)
 
-    affected = Affected(project=pytestconfig.rootpath, root=tmp_path)
-    affected.write(**{"fixture.txt": "one", "module.py": "one"})
+
+@fixture(scope="session")
+def fingerprint(pytestconfig: Config, tmp_path_factory: TempPathFactory) -> str:
+    """
+    Runs `py:affected` once in a checkout `Affected.laid` lays out and
+    returns the files that full run records, which match what any checkout
+    laid out the same way records, since each line names a file by its path
+    inside the checkout.
+    """
+    affected = Affected.laid(pytestconfig.rootpath, tmp_path_factory.mktemp("full"))
+    affected.run()
+
+    return affected.recorded.read_text()
+
+
+@fixture
+def recorded(affected: Affected, fingerprint: str) -> Affected:
+    """
+    Gives the `affected` checkout the files a full run of `py:affected`
+    records, as it stands after one.
+    """
+    affected.recorded.parent.mkdir(parents=True)
+    affected.recorded.write_text(fingerprint)
 
     return affected
 

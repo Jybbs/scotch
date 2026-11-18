@@ -40,7 +40,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
-| `lock:audit` |  | Fail where an advisory database cannot be reached, or on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves other than one `AUDIT_IGNORE` lists while no release fixes it |
+| `lock:audit` |  | Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves other than one `AUDIT_IGNORE` lists while no release fixes it, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml` |
 | `lock:check` | `lockfile` | Verify every lockfile is in sync with its manifest |
 | `lock:lift` | `lift` | List every pin lagging its newest release, try the lift in a scratch clone under `--try`, and write it as one diff under `--write` |
 | `lock:sync` | `relock` | Re-resolve every lockfile against its manifest |
@@ -81,7 +81,7 @@ Every task the repository declares sits below beside its alias and its descripti
 | `site:affected` |  | Run the site's tests a change since the branch left `origin/main` reaches, or the whole suite where the Vitest config or `package.json` changed, passing any further arguments to Vitest |
 | `site:coverage` |  | Run the site's suite under coverage, failing where statements, branches, functions, or lines fall below the `fail_under` that `pyproject.toml` sets, writing the HTML report, and passing any further arguments to Vitest |
 | `site:cruft` | `cruft` | Report an unused file, export, or dependency in the site, and an import cycle, passing any further arguments to knip |
-| `site:draw` | `draw` | Draw the README's preview of the Viewer and its Where to Start cards from the site's own drawings into `docs/assets/readme` |
+| `site:draw` | `draw` | Draw the README's preview of the Viewer and its Where to Start cards from the site's own drawings into `.github/assets/readme` |
 | `site:install` |  | Install the site's packages from `docs/bun.lock`, pruning any it no longer names |
 | `site:links` | `links` | Check every link, asset, and heading fragment in the site `site:press` built, the README, and the contributor guide with no network, passing any further arguments to lychee |
 | `site:lint` | `lint` | Lint the site's TypeScript with Oxlint, as annotations under GitHub Actions, passing any further arguments to Oxlint |

@@ -24,24 +24,17 @@ vi.mock('../../theme/components/front/layer.ts', () => ({
 }))
 
 describe('Layout', () => {
-  it('sets the colophon beneath every page', () => {
-    expect(mount(Layout).find("[data-slot='layout-bottom'] #colophon").exists()).toBe(true)
-  })
-
-  it("sets beneath every page the slip a term's link opens", () => {
-    expect(mount(Layout).find("[data-slot='layout-bottom'] [role='tooltip']").exists()).toBe(true)
+  it.each([
+    ['sets the colophon beneath every page', 'layout-bottom', '#colophon'],
+    ["sets beneath every page the slip a term's link opens", 'layout-bottom', "[role='tooltip']"],
+    ['draws the layer the pour plays on before the hero', 'home-hero-before', '.layer'],
+    ['sets the motion switch at the end of the navigation bar', 'nav-bar-content-after', "[role='switch']"]
+  ])('%s', (_, slot, selector) => {
+    expect(mount(Layout).find(`[data-slot='${slot}'] ${selector}`).exists()).toBe(true)
   })
 
   it('sets beneath every page the component picking out a citation and its source', () => {
     expect(mount(Layout).findComponent(Notes).exists()).toBe(true)
-  })
-
-  it('draws the layer the pour plays on before the hero', () => {
-    expect(mount(Layout).find("[data-slot='home-hero-before'] .layer").exists()).toBe(true)
-  })
-
-  it('sets the motion switch at the end of the navigation bar', () => {
-    expect(mount(Layout).find("[data-slot='nav-bar-content-after'] [role='switch']").exists()).toBe(true)
   })
 
   it('sets the wordmark over the tagline in the hero', () => {

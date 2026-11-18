@@ -12,7 +12,7 @@ from datetime       import timedelta
 from hashlib        import sha256
 from pathlib        import Path
 from pydantic       import ValidationError
-from pytest         import mark, param, raises
+from pytest         import Subtests, mark, param, raises
 from re             import escape
 
 from scotch.games.schemas   import Origin
@@ -272,16 +272,13 @@ def test_sources_name_a_floor_for_a_section_no_row_declares():
         Sources(floors={"Events": 2500}, sources=[declare("A.zip")])
 
 
-def test_the_declared_files_are_pgn_mentor_s_sections_in_order():
+def test_the_declared_files_are_pgn_mentor_s_sections_in_order(declared: Sources):
     """
     Asserts that `sources.toml` declares PGN Mentor's Players archives, its
-    Events files, and its Openings archives, each under its folder and in
-    alphabetical order there, the sections in that order, with the Openings
-    alone held to a rating floor of 2500.
+    Events files, and its Openings archives, the sections in that order,
+    with the Openings alone held to a rating floor of 2500.
     """
-    declared = Sources.read()
     sections = [source.section for source in declared.sources]
-    suffixes = {"Events": ".pgn", "Openings": ".zip", "Players": ".zip"}
 
     assert {
         (source.provider, str(source.home)) for source in declared.sources
@@ -290,16 +287,34 @@ def test_the_declared_files_are_pgn_mentor_s_sections_in_order():
     assert sections == sorted(sections, key=["Players", "Events", "Openings"].index)
     assert declared.floors == {"Openings": 2500}
 
-    for section, suffix in suffixes.items():
-        files = [
-            source.file for source in declared.sources if source.section == section
-        ]
 
-        assert all(
-            file.startswith(f"{section.lower()}/") and file.endswith(suffix)
-            for file in files
-        )
-        assert files == sorted(files, key=str.casefold)
+@mark.parametrize(
+    ("section", "suffix"),
+    [
+        param("Events", ".pgn", id="events"),
+        param("Openings", ".zip", id="openings"),
+        param("Players", ".zip", id="players")
+    ]
+)
+def test_each_section_s_files_sit_under_its_folder_in_alphabetical_order(
+    declared : Sources,
+    section  : str,
+    subtests : Subtests,
+    suffix   : str
+):
+    """
+    Asserts that each file `sources.toml` declares under `section` sits
+    under the section's folder and ends on `suffix`, the files of the
+    section in alphabetical order.
+    """
+    files = [source.file for source in declared.sources if source.section == section]
+
+    for file in files:
+        with subtests.test(file=file):
+            assert file.startswith(f"{section.lower()}/")
+            assert file.endswith(suffix)
+
+    assert files == sorted(files, key=str.casefold)
 
 
 @mark.parametrize(

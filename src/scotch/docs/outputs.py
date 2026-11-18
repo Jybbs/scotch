@@ -137,8 +137,9 @@ class Figures(Output):
 
 class Footnotes(Output):
     """
-    The footnote definitions closing a Markdown file, one for each source of
-    `docs/references.bib` the file cites, in the order it first cites them.
+    The footnote definitions closing a Markdown file, one for each source
+    of `src/scotch/citations/references.bib` the file cites, in the order it
+    first cites them.
     """
 
     references: Callable[[], References]

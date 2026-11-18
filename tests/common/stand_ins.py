@@ -7,7 +7,7 @@ runs `py:affected` in.
 """
 
 from collections.abc import Sequence
-from os              import environ
+from os              import environ, pathsep
 from pathlib         import Path
 from pydantic        import BaseModel
 from stat            import S_IMODE
@@ -53,10 +53,33 @@ class Affected(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         """
         return self.root / ".cache" / "testmon" / "files"
 
+    @classmethod
+    def laid(cls, project: Path, root: Path) -> "Affected":
+        """
+        Lays out a checkout in `root` listing `fixture.txt` and `module.py`,
+        with a stand-in `git` that prints the names the checkout lists
+        when called with the arguments `py:affected` passes and exits one
+        otherwise.
+        """
+        (stand_ins := root / ".bin").mkdir()
+        (git := stand_ins / "git").write_text(
+            "#!/bin/sh\n"
+            '[ "$*" = "ls-files --cached --deduplicate --exclude-standard --others" ]'
+            " || exit 1\n"
+            f'cat "{root / ".listed"}"\n'
+        )
+        git.chmod(0o755)
+        affected = cls(project=project, root=root)
+        affected.write(**{"fixture.txt": "one", "module.py": "one"})
+
+        return affected
+
     def run(self, *arguments: str, status: int = 0) -> CompletedProcess[str]:
         """
         Runs `py:affected` from the checkout with `arguments`, against a
-        stand-in `pytest` exiting with `status`.
+        stand-in `pytest` exiting with `status`, naming the checkout in
+        `MISE_PROJECT_ROOT` and its data file in `TESTMON_DATAFILE`, as
+        `mise run` sets each, and putting the stand-ins first on `PATH`.
         """
         pytest = self.root / ".bin" / "pytest"
         pytest.write_text(
@@ -70,7 +93,13 @@ class Affected(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             capture_output = True,
             check          = False,
             cwd            = self.root,
-            text           = True
+            text           = True,
+            env            = {
+                **environ,
+                "MISE_PROJECT_ROOT" : str(self.root),
+                "PATH"              : f"{self.root / '.bin'}{pathsep}{environ['PATH']}",
+                "TESTMON_DATAFILE"  : str(self.root / ".cache" / "testmon" / "data")
+            }
         )
 
     def write(self, **files: str | None):
@@ -194,28 +223,28 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         *arguments : str,
         bun        : str = "exit 0",
         cargo      : str = "exit 0",
+        deny       : str = "exit 0",
         gh         : str = "exit 0",
         ignore     : str = "",
         mise       : str = "exit 0",
-        osv        : str = "exit 0",
         scotch     : str = "exit 0",
         uv         : str = "exit 0"
     ) -> CompletedProcess[str]:
         """
         Runs the `lock` task `task` names from the checkout with `arguments`
         and `AUDIT_IGNORE` set to `ignore`, against stand-in `bun`, `cargo`,
-        `gh`, `mise`, `osv-scanner`, `scotch`, and `uv` executables that
-        each log their call and then run the shell line `bun`, `cargo`,
-        `gh`, `mise`, `osv`, `scotch`, or `uv` holds.
+        `cargo-deny`, `gh`, `mise`, `scotch`, and `uv` executables that each
+        log their call and then run the shell line `bun`, `cargo`, `deny`,
+        `gh`, `mise`, `scotch`, or `uv` holds.
         """
         for name, line in {
-            "bun"         : bun,
-            "cargo"       : cargo,
-            "gh"          : gh,
-            "mise"        : mise,
-            "osv-scanner" : osv,
-            "scotch"      : scotch,
-            "uv"          : uv
+            "bun"        : bun,
+            "cargo"      : cargo,
+            "cargo-deny" : deny,
+            "gh"         : gh,
+            "mise"       : mise,
+            "scotch"     : scotch,
+            "uv"         : uv
         }.items():
             stand_in = self.stand_ins / name
             stand_in.write_text(

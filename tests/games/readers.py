@@ -26,7 +26,7 @@ from chess.polyglot import zobrist_hash
 from functools      import partial
 from io             import StringIO
 from pathlib        import Path
-from pytest         import mark, param
+from pytest         import Subtests, mark, param
 
 from scotch.games.readers import STANDARD, keys, read, scored, trails
 from scotch.games.schemas import Game
@@ -173,7 +173,11 @@ def test_scored_writes_a_null_move_and_stops_where_keys_stops(
 
 
 @mark.parametrize("name", ["demo", "stored", "viewer"])
-def test_each_known_answer_game_keys_as_python_chess_keys_it(known: Path, name: str):
+def test_each_known_answer_game_keys_as_python_chess_keys_it(
+    known    : Path,
+    name     : str,
+    subtests : Subtests
+):
     """
     Asserts that each game of a known-answer file takes, position by
     position, the key python-chess's `zobrist_hash` gives the board its own
@@ -182,8 +186,9 @@ def test_each_known_answer_game_keys_as_python_chess_keys_it(known: Path, name: 
     text   = (known / f"{name}.pgn").read_text(encoding="utf-8")
     handle = StringIO(text)
 
-    for _, _, keyed, _ in read(text):
-        assert keyed == hashed(read_game(handle))
+    for place, (_, _, keyed, _) in enumerate(read(text), start=1):
+        with subtests.test(game=place):
+            assert keyed == hashed(read_game(handle))
 
 
 def test_the_standard_names_are_the_aliases_python_chess_gives_standard_chess():

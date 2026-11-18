@@ -1,8 +1,8 @@
 import { defineConfig } from 'vitest/config'
 
-import { identityPlugin } from './lib/identity/sheet.ts'
-import { projectFacts }   from './lib/site/manifest.ts'
-import { cacheDir }       from './lib/site/paths.ts'
+import { identityPlugin } from '../lib/identity/sheet.ts'
+import { projectFacts }   from '../lib/site/manifest.ts'
+import { cacheDir }       from '../lib/site/paths.ts'
 
 const { gate } = projectFacts(import.meta.url)
 

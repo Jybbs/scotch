@@ -1,14 +1,14 @@
 import { defineConfig } from 'vitepress'
 
-import { writeCards }             from './lib/cards/write.ts'
-import * as chrome                from './lib/config/chrome.ts'
-import * as head                  from './lib/config/head.ts'
-import { buildNav, buildSidebar } from './lib/config/navigation.ts'
-import { pageData }               from './lib/config/page-data.ts'
-import { sitePlugins }            from './lib/config/plugins.ts'
-import { markdownRules }          from './lib/markdown/rules.ts'
-import * as manifest              from './lib/site/manifest.ts'
-import * as paths                 from './lib/site/paths.ts'
+import { writeCards }             from '../lib/cards/write.ts'
+import * as chrome                from '../lib/config/chrome.ts'
+import * as head                  from '../lib/config/head.ts'
+import { buildNav, buildSidebar } from '../lib/config/navigation.ts'
+import { pageData }               from '../lib/config/page-data.ts'
+import { sitePlugins }            from '../lib/config/plugins.ts'
+import { markdownRules }          from '../lib/markdown/rules.ts'
+import * as manifest              from '../lib/site/manifest.ts'
+import * as paths                 from '../lib/site/paths.ts'
 
 const TITLE     = 'Scotch'
 const commit    = manifest.commitOf(import.meta.url)
