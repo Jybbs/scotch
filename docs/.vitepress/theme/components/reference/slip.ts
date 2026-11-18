@@ -43,6 +43,33 @@ function useTermEvents(
 }
 
 /**
+ * The slip, fixed over the page and hidden until it opens, its margin above
+ * and below holding it open as the pointer crosses to it.
+ */
+const SLIP = [
+  'pointer-events-none invisible top-0 left-0 z-40 w-[min(19rem,calc(100vw-24px))] [position:fixed]',
+  'rounded-[5px] border border-rule bg-raised px-3 pt-[9px] pb-2 opacity-0',
+  'transition-[opacity,transform] duration-glide',
+  'data-open:pointer-events-auto data-open:visible data-open:opacity-100',
+  'before:absolute before:-inset-y-[9px] before:inset-x-0 before:-z-1'
+]
+
+/**
+ * Writes a term's name, its one sentence, and the link to the terms page.
+ */
+function said(term: Term): VNode[] {
+  return [
+    h('b', { class: 'block font-display text-[1rem]/[1.25] font-normal text-run normal-nums' }, term.name),
+    h('span', { class: 'mt-0.5 block font-body text-[0.875rem]/[1.4] font-normal text-ink normal-nums' }, term.sentence),
+    h('a', {
+      class    : 'mt-[3px] block font-code text-[0.66rem]/[1.4] font-medium text-quiet normal-nums',
+      href     : addressOf(term),
+      tabindex : -1
+    }, 'On the terms page')
+  ]
+}
+
+/**
  * The one slip every term's link on a page opens, under the pointer or the
  * keyboard's focus, holding the term's name, its one sentence, and the link to
  * the terms page, and gliding from term to term once it is open.
@@ -83,18 +110,12 @@ export const Slip = defineComponent({
     useTermEvents(open, close, target => slip.value?.contains(target) ?? false)
 
     return (): VNode => h('div', {
-      'class'     : 'sc-slip',
+      'class'     : SLIP,
       'data-open' : held.value ? '' : undefined,
       'id'        : id,
       'ref'       : slip,
       'role'      : 'tooltip',
       'style'     : { transform: `translate(${place.value.x}px, ${place.value.y}px)` }
-    }, term.value
-      ? [
-          h('b', term.value.name),
-          h('span', term.value.sentence),
-          h('a', { href: addressOf(term.value), tabindex: -1 }, 'On the terms page')
-        ]
-      : [])
+    }, term.value ? said(term.value) : [])
   }
 })

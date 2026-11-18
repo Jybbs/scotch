@@ -7,7 +7,7 @@ import { narrowAt, pickable }                from '../../../lib/reference/pick.t
 import * as moves                            from '../../../lib/reference/pieces.ts'
 import { type NodeRef, useBeats, useUnfold } from '../../../lib/reference/timeline.ts'
 import { type Piece, ringed, svgOf }         from '../../../lib/site/pieces.ts'
-import { stage }                             from './parts.ts'
+import { BED, BESIDE, stage }               from './parts.ts'
 
 /**
  * The piece on show, its square, and the squares it reaches, beside the call
@@ -32,7 +32,7 @@ const STEPS: Readonly<Record<string, readonly [number, number]>> = {
 }
 
 function drawing(piece: Piece): string {
-  return svgOf(ringed(piece, 'sc-ref-halo'))
+  return svgOf(ringed(piece, HALO))
 }
 
 function shade(file: number, rank: number): 'dark' | 'light' {
@@ -76,12 +76,23 @@ function useStanding(chart: NodeRef): Standing {
   return { lit: computed(() => new Set(moves.reach(piece.value, square.value))), pick, piece, square }
 }
 
+/**
+ * The pale ground a dark piece stands on, drawn beneath its outline.
+ */
+const HALO = '[&_*]:fill-[color-mix(in_oklab,var(--sc-light)_85%,transparent)]! '
+           + '[&_*]:stroke-[color-mix(in_oklab,var(--sc-light)_85%,transparent)]! [&_*]:[stroke-width:3.4]!'
+
+/**
+ * Sets a piece's drawing to fill the element holding it.
+ */
+const FILLED = '[&_svg]:block [&_svg]:size-full'
+
 function tile(index: number, { lit, square }: Standing): VNode {
   const [file, rank]     = moves.placeOf(index)
   const [atFile, atRank] = moves.placeOf(square.value)
   const on               = lit.value.has(index)
   return h('i', {
-    'class'    : 'sc-ref-tile',
+    'class'    : 'absolute grid size-[12.5%] place-items-center',
     'data-lit' : on ? '' : undefined,
     'style'    : {
       '--sc-ref-color' : COLORS[shade(file, rank) === 'dark' ? 'light' : 'dark'],
@@ -90,7 +101,13 @@ function tile(index: number, { lit, square }: Standing): VNode {
       'left'           : `${file * 12.5}%`,
       'top'            : `${rank * 12.5}%`
     }
-  }, h('i'))
+  }, h('i', {
+    class: [
+      'size-[34%] rounded-[1px] bg-(--sc-ref-color) opacity-0 [transform:scale(0.3)]',
+      'transition-[opacity,transform] delay-(--sc-ref-lag) duration-move',
+      'in-data-lit:opacity-100 in-data-lit:[transform:scale(1)]'
+    ]
+  }))
 }
 
 function board(state: Standing): VNode {
@@ -98,7 +115,11 @@ function board(state: Standing): VNode {
   const [file, rank]      = moves.placeOf(square.value)
   return h('div', {
     'aria-label' : `A board holding one piece, a press on any square standing it there, now on ${moves.squareName(square.value)}`,
-    'class'      : 'sc-ref-board',
+    'class'      : [
+      'relative aspect-square cursor-pointer touch-manipulation overflow-clip rounded-xs select-none',
+      '[box-shadow:0_0_0_1px_var(--sc-rule)]',
+      'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run'
+    ],
     'onClick'    : (event: PointerEvent) => {
       const { x, y } = pointerAt(event)
       const box      = (event.currentTarget as Element).getBoundingClientRect()
@@ -115,7 +136,7 @@ function board(state: Standing): VNode {
   }, [
     ...SQUARES.map(index => tile(index, state)),
     h('i', {
-      class     : 'sc-ref-stander',
+      class     : [FILLED, 'pointer-events-none absolute top-0 left-0 size-[12.5%] transition-[transform] duration-glide'],
       innerHTML : drawing(piece.value),
       style     : { transform: `translate(${file * 100}%, ${rank * 100}%)` }
     })
@@ -124,18 +145,30 @@ function board(state: Standing): VNode {
 
 function beside({ lit, pick, piece, square }: Standing): VNode {
   const at = moves.TYPES.indexOf(piece.value)
-  return h('div', { class: 'sc-ref-beside' }, [
-    h('div', { class: 'sc-ref-specimen' }, [
-      h('i', { innerHTML: drawing(piece.value), style: { background: COLORS.light } }),
-      h('i', { innerHTML: drawing(piece.value), style: { background: COLORS.dark } }),
-      h('div', [
-        h('h4', { class: 'sc-ref-name' }, moves.pieceName(piece.value)),
-        h('p', `${lit.value.size} squares from ${moves.squareName(square.value)} on an empty board`)
+  return h('div', { class: BESIDE }, [
+    h('div', { class: 'grid grid-cols-[62px_62px_minmax(0,1fr)] items-center' }, [
+      ...(['light', 'dark'] as const).map(ground => h('i', {
+        class     : [FILLED, 'aspect-square'],
+        innerHTML : drawing(piece.value),
+        style     : { background: COLORS[ground] }
+      })),
+      h('div', { class: 'ml-3 min-w-0' }, [
+        h('h4', {
+          class: 'm-0! border-0 p-0 font-display text-[1.05rem]/[1.2]! font-normal tracking-normal! text-ink normal-nums'
+        }, moves.pieceName(piece.value)),
+        h('p', {
+          class: 'font-code text-[0.66rem]/[1.4]! font-medium text-quiet normal-nums'
+        }, `${lit.value.size} squares from ${moves.squareName(square.value)} on an empty board`)
       ])
     ]),
-    h('div', { class: 'sc-ref-tray' }, moves.TYPES.map((name, index) => h('button', {
+    h('div', { class: 'grid grid-cols-6' }, moves.TYPES.map((name, index) => h('button', {
       ...pickable(index, at, moves.TYPES.length, pick),
       'aria-label' : moves.pieceName(name),
+      'class'      : [
+        'relative aspect-square aria-pressed:z-1',
+        'aria-pressed:[box-shadow:0_0_0_2px_var(--sc-page),0_0_0_3.5px_var(--sc-run)]',
+        FILLED
+      ],
       'innerHTML'  : drawing(name),
       'style'      : { background: COLORS[(index + (index > 5 ? 1 : 0)) % 2 ? 'dark' : 'light'] }
     })))
@@ -153,6 +186,6 @@ export const Pieces = defineComponent({
     const { chart, layout } = useChart(narrowAt)
     const state             = useStanding(chart)
 
-    return () => stage(chart, layout.value.narrow, [h('div', { class: 'sc-ref-bed' }, [board(state), beside(state)])])
+    return () => stage(chart, layout.value.narrow, [h('div', { class: BED }, [board(state), beside(state)])])
   }
 })

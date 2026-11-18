@@ -21,9 +21,9 @@ describe('Roles', () => {
     onScreen()
     const drawn = mount(Roles)
     clock.runAllTimers()
-    expect(drawn.findAll('.sc-ref-sheet').length).toBe(2)
-    expect(drawn.find('.sc-ref-sheet').attributes('style')).toContain(palette.colorOf('page', 'light'))
-    expect(drawn.find('.sc-ref-over .sc-ref-sheet').attributes('style'))
+    expect(drawn.findAll("[data-role='page']").length).toBe(2)
+    expect(drawn.find("[data-role='page']").attributes('style')).toContain(palette.colorOf('page', 'light'))
+    expect(drawn.findAll("[data-role='page']")[1]!.attributes('style'))
       .toContain(palette.colorOf('page', 'dark'))
   })
 
@@ -31,7 +31,7 @@ describe('Roles', () => {
     onScreen()
     const drawn = mount(Roles)
     clock.runAllTimers()
-    const card = drawn.find('.sc-ref > .sc-ref-stack > [data-at]')
+    const card = drawn.findAll('[data-at]').at(-1)!
     expect(card.find('b').text()).toBe('run')
     expect(card.text()).toContain(palette.colorOf('run', 'light'))
     expect(card.text()).toContain(palette.colorOf('run', 'dark'))
@@ -44,9 +44,9 @@ describe('Roles', () => {
     reduceMotion()
     const drawn = mount(Roles)
     clock.runAllTimers()
-    await drawn.findAll('.sc-ref-chip')[0]!.trigger('click')
+    await drawn.findAll('button[aria-label]')[0]!.trigger('click')
     await flushPromises()
-    expect(drawn.find('.sc-ref > .sc-ref-stack > [data-at]').text()).toContain('The page itself')
+    expect(drawn.findAll('[data-at]').at(-1)!.text()).toContain('The page itself')
   })
 })
 
@@ -56,9 +56,9 @@ describe('Roles, the seam', () => {
     reduceMotion()
     const drawn = mount(Roles)
     clock.runAllTimers()
-    const hold = drawn.find('.sc-ref-hold').element as HTMLElement
+    const hold = drawn.element.firstElementChild as HTMLElement
     vi.spyOn(hold, 'offsetWidth', 'get').mockReturnValue(600)
-    const seam = drawn.find('.sc-ref-seam')
+    const seam = drawn.find("[role='slider']")
     const key  = async (name: string): Promise<boolean> => {
       const answered = prevented(seam.element, name)
       await flushPromises()
@@ -77,10 +77,10 @@ describe('Roles, the seam', () => {
     reduceMotion()
     const drawn = mount(Roles)
     clock.runAllTimers()
-    const hold = drawn.find('.sc-ref-hold').element as HTMLElement
+    const hold = drawn.element.firstElementChild as HTMLElement
     vi.spyOn(hold, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 600 } as DOMRect)
     vi.spyOn(hold, 'offsetWidth', 'get').mockReturnValue(600)
-    const seam = drawn.find('.sc-ref-seam')
+    const seam = drawn.find("[role='slider']")
     Object.assign(seam.element, {
       hasPointerCapture : vi.fn<() => boolean>(() => false),
       setPointerCapture : vi.fn<() => void>()
@@ -102,7 +102,7 @@ describe('Roles, as the column or the unfold changes it', () => {
     reduceMotion()
     const drawn = mount(Roles)
     clock.runAllTimers()
-    const style = drawn.find('.sc-ref-outline').attributes('style')
+    const style = drawn.find('i[aria-hidden]').attributes('style')
     expect(style).toMatch(/transform: translate\(-?[\d.]+px, -?[\d.]+px\)/u)
     expect(style).not.toMatch(/(^|;\s*)(left|top):/u)
   })
@@ -114,10 +114,10 @@ describe('Roles, as the column or the unfold changes it', () => {
     clock.runAllTimers()
     resized(342)
     await flushPromises()
-    expect(drawn.find('.sc-ref').attributes('data-narrow')).toBeUndefined()
+    expect(drawn.attributes('data-narrow')).toBeUndefined()
     clock.advanceTimersToNextFrame()
     await flushPromises()
-    expect(drawn.find('.sc-ref').attributes('data-narrow')).toBe('')
+    expect(drawn.attributes('data-narrow')).toBe('')
   })
 
   test('opens the seam from the far edge and rings each role it unfolds through', async ({ clock }) => {
@@ -125,10 +125,10 @@ describe('Roles, as the column or the unfold changes it', () => {
     const drawn = mount(Roles)
     await show()
     await flushPromises()
-    expect(drawn.find('.sc-ref-outline').attributes('data-off')).toBe('')
+    expect(drawn.find('i[aria-hidden]').attributes('data-off')).toBe('')
     clock.advanceTimersByTime(1600)
     await flushPromises()
-    expect(drawn.find('.sc-ref-outline').attributes('data-off')).toBeUndefined()
+    expect(drawn.find('i[aria-hidden]').attributes('data-off')).toBeUndefined()
     expect(drawn.find('output [data-at]').text()).toContain('ink')
     clock.advanceTimersByTime(1500)
     await flushPromises()

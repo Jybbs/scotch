@@ -5,7 +5,7 @@ import { useChart }                          from '../../../lib/data/chart.ts'
 import { type Face, IDENTITY }               from '../../../lib/identity/tokens.ts'
 import { narrowAt }                          from '../../../lib/reference/pick.ts'
 import { type NodeRef, useBeats, useUnfold } from '../../../lib/reference/timeline.ts'
-import { stage }                             from './parts.ts'
+import { SMALL, stage }                      from './parts.ts'
 
 /**
  * The tint behind the picked row, the rows, the face a reader looks at, and how
@@ -102,14 +102,15 @@ function part(state: Sheet, index: number, words: VNode): VNode {
   const { face, strokes: [stroke, row, top] } = SLOTS[index]!
   const share = state.wiped.value[index]!
   return h('span', {
-    'class'     : 'sc-ref-part',
+    'class'     : 'relative block transition-[opacity] in-data-look:not-data-on:opacity-20',
     'data-face' : face,
     'data-on'   : state.look.value === index ? '' : undefined
   }, [
-    h('span', { class: 'sc-ref-words', style: share < 1 ? { clipPath: `inset(-2px ${(1 - share) * 100}% -2px 0)` } : undefined }, [words]),
+    h('span', { class: 'block', style: share < 1 ? { clipPath: `inset(-2px ${(1 - share) * 100}% -2px 0)` } : undefined }, [words]),
     share < 1
       ? h('i', {
         'aria-hidden' : 'true',
+        'class'       : 'pointer-events-none absolute inset-0',
         'style'       : {
           background : `repeating-linear-gradient(var(--sc-rule) 0 ${stroke}, transparent 0 ${row})`,
           clipPath   : `inset(0 0 0 ${share * 100}%)`,
@@ -123,40 +124,61 @@ function part(state: Sheet, index: number, words: VNode): VNode {
 function score(state: Sheet): VNode {
   return h('div', {
     'aria-label' : 'A score sheet set in the three faces',
-    'class'      : 'sc-ref-score',
+    'class'      : [
+      'grid grid-cols-2 gap-x-[22px] gap-y-0 rounded-[3px] border border-rule bg-raised px-4 py-3.5',
+      'in-data-narrow:grid-cols-1 in-data-narrow:gap-3 in-data-narrow:p-3'
+    ],
     'data-look'  : state.look.value < 0 ? undefined : '',
     'role'       : 'img'
   }, [
     h('div', [
-      part(state, 0, h('h5', 'The Longest Run')),
-      part(state, 1, h('p', 'Two games share a run where they reach the same positions one ply after another, and the longest such run names the closest game.'))
+      part(state, 0, h('h5', {
+        class: 'm-0 mb-1.5 font-display text-[1.5rem]/[1.2] font-normal! tracking-normal normal-nums'
+      }, 'The Longest Run')),
+      part(state, 1, h('p', { class: 'font-body text-[0.9375rem]/[1.6]! font-normal normal-nums' }, 'Two games share a run where they reach the same positions one ply after another, and the longest such run names the closest game.'))
     ]),
-    part(state, 2, h('div', { class: 'sc-ref-moves' }, MOVES.map(move =>
-      h('span', { class: move.number ? 'sc-ref-number' : undefined }, move.word))))
+    part(state, 2, h('div', {
+      class: 'grid grid-cols-[1.7rem_minmax(0,1fr)_minmax(0,1fr)] content-start font-code '
+           + 'text-[0.78rem]/[1.65] font-medium normal-nums'
+    }, MOVES.map(move => h('span', {
+      'class'       : 'border-b border-b-rule/55 pl-1 data-number:pl-0 data-number:text-quiet',
+      'data-number' : move.number ? '' : undefined
+    }, move.word))))
   ])
 }
 
 function rows({ block, facts, look, show }: Sheet): VNode {
-  return h('div', { class: 'sc-ref-facts', ref: facts }, [
+  return h('div', { class: 'relative grid', ref: facts }, [
     h('i', {
       'aria-hidden' : 'true',
-      'class'       : 'sc-ref-block',
+      'class'       : 'absolute inset-x-0 top-0 h-0 bg-tint transition-[transform,height] duration-glide',
       'style'       : { height: `${block.value.height}px`, transform: `translateY(${block.value.top}px)` }
     }),
     ...SLOTS.map(({ face, name }, index) => {
       const { family, license, package: installed, stack } = IDENTITY.faces[face]
       return h('button', {
         'aria-pressed' : String(look.value === index),
-        'class'        : 'sc-ref-fact',
+        'class'        : [
+          'relative z-1 grid min-w-0 grid-cols-[8.2rem_minmax(0,1fr)] gap-x-3 gap-y-px px-2 py-[7px]',
+          'text-left',
+          'in-data-narrow:grid-cols-1',
+          index === 0 ? '' : 'border-t border-t-rule/55'
+        ],
         'data-face'    : face,
         'onClick'      : () => {
           show(look.value === index ? -1 : index)
         },
         'type'         : 'button'
       }, [
-        h('div', [h('b', { style: { fontFamily: stack } }, family), h('small', name)]),
-        h('span', IDENTITY.meanings.faces[face]),
-        h('code', `${installed} · ${license}`)
+        h('div', { class: 'grid' }, [h('b', {
+          class : face === 'code' ? 'text-[0.84rem]/[1.25] font-normal' : 'text-[1rem]/[1.25] font-normal',
+          style : { fontFamily: stack }
+        }, family), h('small', { class: SMALL }, name)]),
+        h('span', { class: 'font-body text-[0.8125rem]/[1.4] font-normal normal-nums' }, IDENTITY.meanings.faces[face]),
+        h('code', {
+          class: 'col-2 bg-transparent! p-0! font-code text-[0.625rem]/[1.4]! font-medium wrap-anywhere text-quiet! '
+               + 'normal-nums in-data-narrow:col-1'
+        }, `${installed} · ${license}`)
       ])
     })
   ])

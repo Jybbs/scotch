@@ -29,7 +29,7 @@ describe('Layout', () => {
   })
 
   it("sets beneath every page the slip a term's link opens", () => {
-    expect(mount(Layout).find("[data-slot='layout-bottom'] .sc-slip").exists()).toBe(true)
+    expect(mount(Layout).find("[data-slot='layout-bottom'] [role='tooltip']").exists()).toBe(true)
   })
 
   it('sets beneath every page the component picking out a citation and its source', () => {
