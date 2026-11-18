@@ -9,7 +9,16 @@ from pytest         import fixture
 from responses      import RequestsMock
 
 from scotch.sources.fetchers import Fetcher
-from scotch.sources.schemas  import Source
+from scotch.sources.schemas  import Source, Sources
+
+
+@fixture(scope="module")
+def declared() -> Sources:
+    """
+    Reads the `sources.toml` the `scotch.sources` package ships once for
+    the module.
+    """
+    return Sources.read()
 
 
 @fixture

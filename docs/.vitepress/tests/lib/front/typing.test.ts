@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount }     from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
-import { defineComponent, h }       from 'vue'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
+import { defineComponent, h }   from 'vue'
 
-import * as typing      from '../../../lib/front/typing.ts'
+import * as typing                   from '../../../lib/front/typing.ts'
+import { test }                      from '../../common/clock.ts'
 import { pauseMotion, reduceMotion } from '../../common/motion.ts'
-import { onScreen }     from '../../common/unfold.ts'
+import { onScreen }                  from '../../common/unfold.ts'
 
 const TYPED: readonly typing.Typed[] = [{ command: 'scotch show store', out: ['Games 3', 'Files 2'] }]
 
@@ -44,18 +45,16 @@ describe('typing', () => {
     expect(typing.holdOf(TYPED, frame)).toBe(hold)
   })
 
-  it('plays once in view to its last frame, and a replay starts it over', async () => {
-    vi.useFakeTimers()
+  test('plays once in view to its last frame, and a replay starts it over', async ({ clock }) => {
     const show  = onScreen()
     const typed = mounted()
     expect(typed.at.value).toBe(typed.frames.length - 1)
     await show()
     expect([typed.at.value, typed.playing.value]).toEqual([0, true])
-    await vi.runAllTimersAsync()
+    await clock.runAllTimersAsync()
     expect([typed.at.value, typed.playing.value]).toEqual([typed.frames.length - 1, false])
     typed.play()
     expect(typed.at.value).toBe(0)
-    vi.useRealTimers()
     await flushPromises()
   })
 
@@ -69,14 +68,13 @@ describe('typing', () => {
 })
 
 describe('useTyping under a pause', () => {
-  it('jumps to its last frame once the reader pauses the drawings mid-play', async () => {
-    vi.useFakeTimers()
+  test('jumps to its last frame once the reader pauses the drawings mid-play', async ({ clock }) => {
     const show  = onScreen()
     const typed = mounted()
     await show()
     expect(typed.playing.value).toBe(true)
     await pauseMotion()
     expect([typed.at.value, typed.playing.value]).toEqual([typed.frames.length - 1, false])
-    vi.useRealTimers()
+    expect(clock.getTimerCount()).toBe(0)
   })
 })
