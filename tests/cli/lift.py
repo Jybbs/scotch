@@ -157,12 +157,43 @@ def test_a_failing_trial_holds_back_a_coupled_pair_once_as_one(
         f"The lift fails `mise run repo:ci`, logged in {logs / 'trial.log'}",
         "Held back `@vitest/coverage-v8` and `vitest`, whose trial fails "
         f"`mise run repo:ci`, logged in {logs / 'lift-@vitest-coverage-v8.log'}",
-        "The lift passes `mise ci`"
+        "The lifts not held back pass `mise ci`"
     ]
     assert attempts == [
         (("@vitest/coverage-v8", "vitest", "pluggy"), "trial.log", True),
         (("@vitest/coverage-v8", "vitest"), "lift-@vitest-coverage-v8.log", True),
         (("pluggy",), "lift-pluggy.log", True)
+    ]
+
+
+def test_a_held_lift_names_only_the_coupled_pins_the_table_lists(
+    capsys  : CaptureFixture[str],
+    lagging : Lagging,
+    sample  : Sample
+):
+    """
+    Asserts that a failing lift of `node`, which `repo:audit` holds to
+    `@types/node`, is held back naming `node` alone where `@types/node` lags
+    nowhere in the table, and that the lift left passes.
+    """
+    lagging(
+        (
+            Lift(
+                current = "26.11.1",
+                name    = "node",
+                newest  = "26.13.0",
+                path    = ".mise/config.toml"
+            ),
+            lagging_three()[1]
+        ),
+        breaking = {"node"}
+    )
+
+    assert invoke("lift", "pins", "--try") == 0
+    assert capsys.readouterr().out.splitlines()[-2:] == [
+        "Held back `node`, whose trial fails `mise run repo:ci`, logged in "
+        f"{sample.root / '.cache' / 'lift' / 'lift-node.log'}",
+        "The lifts not held back pass `mise ci`"
     ]
 
 

@@ -98,8 +98,9 @@ def pins(
 
             if isinstance(patch, Failure):
                 patch = settled(patch, held, tree)
-
-            print("The lift passes `mise ci`")
+                print("The lifts not held back pass `mise ci`")
+            else:
+                print("The lift passes `mise ci`")
 
         if write:
             if patch is None and isinstance(
