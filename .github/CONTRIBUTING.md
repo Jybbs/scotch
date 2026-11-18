@@ -31,7 +31,7 @@ A pull request runs `♟️ CI` wherever it changes a file outside the site's pa
 
 | **Check** | **Runs Locally** | **Fails When** |
 |---|---|---|
-| `♟️ CI / 🩺 Advisories` | `mise run lock:audit` | A package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves carries a published advisory, or an advisory database cannot be reached |
+| `♟️ CI / 🩺 Advisories` | `mise run lock:audit` | A package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves carries a published advisory, a crate breaks a rule of `rust/.cargo/deny.toml` on its license, its version, or its source, or an advisory database cannot be reached |
 | `♟️ CI / 🔐 Lockfiles` | `mise lockfile` | `uv.lock`, `.mise/mise.lock`, `rust/Cargo.lock`, `docs/bun.lock`, or the lockfile beside a task script drifts from its manifest |
 | `♟️ CI / 🪻 Prose` | `mise check` | *Prose* reports a rewrite or a lint finding, each shown as an annotation on the line it concerns |
 | `♟️ CI / ☂️ Coverage` | `mise coverage` | A test fails under coverage, or the suite covers less than 95% of the package |

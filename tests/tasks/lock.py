@@ -11,7 +11,7 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
 - The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
-with stand-in `bun`, `cargo`, `mise`, `mktemp`, `osv-scanner`, `scotch`, and
+with stand-in `bun`, `cargo`, `cargo-deny`, `mise`, `mktemp`, `scotch`, and
 `uv` executables first on `PATH`, so every file the task writes lands in a
 directory the case owns.
 """
@@ -20,6 +20,7 @@ from common.stand_ins import Scratch
 from pytest           import mark, param
 
 CARGO = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml"
+DENY  = "cargo-deny --locked --manifest-path rust/Cargo.toml check"
 
 
 def test_a_lockfile_matching_its_manifest_passes(scratch: Scratch):
@@ -173,14 +174,14 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     assert scratch.residue == scratch.pristine
 
 
-def test_audit_fails_on_an_advisory_for_the_crate(scratch: Scratch):
+def test_audit_fails_on_a_crate_breaking_a_rule_of_its_config(scratch: Scratch):
     """
-    Asserts that `lock:audit` exits with the status `osv-scanner` returns
-    for an advisory against a crate the crate's lockfile resolves, auditing
-    the site's lockfile no further.
+    Asserts that `lock:audit` exits with the status `cargo-deny` returns for
+    a crate breaking a rule of `rust/.cargo/deny.toml`, auditing the site's
+    lockfile no further.
     """
-    assert scratch.run("audit", osv="exit 1").returncode == 1
-    assert scratch.calls[-1] == "osv-scanner scan source --lockfile rust/Cargo.lock"
+    assert scratch.run("audit", deny="exit 1").returncode == 1
+    assert scratch.calls[-1] == DENY
 
 
 def test_audit_fails_on_an_advisory_for_the_site(scratch: Scratch):
@@ -197,8 +198,8 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     """
     Asserts that `lock:audit` runs `uv audit` over the project's lockfile
     and then over each task script declaring its own dependencies, each
-    under the preview flag `uv audit` takes, then `osv-scanner` over the
-    crate's lockfile, and then `bun audit` over the site's lockfile.
+    under the preview flag `uv audit` takes, then `cargo-deny` over the
+    crate, and then `bun audit` over the site's lockfile.
     """
     scratch.add_script()
 
@@ -206,7 +207,7 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     assert scratch.calls == [
         "uv audit --preview-features audit-command",
         f"uv audit --preview-features audit-command --script {scratch.script}",
-        "osv-scanner scan source --lockfile rust/Cargo.lock", "bun audit --cwd docs"
+        DENY, "bun audit --cwd docs"
     ]
 
 

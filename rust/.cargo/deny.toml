@@ -1,0 +1,25 @@
+[advisories]
+db-path      = "$CARGO_DENY_DB_PATH"
+unmaintained = "workspace"
+yanked       = "deny"
+
+[bans]
+multiple-versions = "deny"
+wildcards         = "deny"
+
+[graph]
+all-features = true
+
+[licenses]
+allow      = ["Apache-2.0", "MIT", "Unicode-3.0"]
+exceptions = [
+    { allow = ["Apache-2.0 WITH LLVM-exception"], crate = "target-lexicon" },
+    { allow = ["GPL-3.0-or-later"], crate = "shakmaty" }
+]
+
+[licenses.private]
+ignore = true
+
+[sources]
+unknown-git      = "deny"
+unknown-registry = "deny"

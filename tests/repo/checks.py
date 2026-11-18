@@ -922,6 +922,34 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         param(
             SitePinCheck,
             [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "optionalDependencies" : {"fsevents": ">=2.3.3"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`fsevents` is `>=2.3.3`, which is not one exact version"
+            )],
+            id = "loose-site-optional-dependency"
+        ),
+        param(
+            SitePinCheck,
+            [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "peerDependencies" : {"vue": "3.x"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`vue` is `3.x`, which is not one exact version"
+            )],
+            id = "loose-site-peer-dependency"
+        ),
+        param(
+            SitePinCheck,
+            [(
                 ".github/workflows/warm.yml",
                 "      - name: Install the tools and save their cache\n",
                 "        with:\n          wranglerVersion: ^4.149.0\n"
