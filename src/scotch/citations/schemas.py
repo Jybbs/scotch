@@ -142,6 +142,14 @@ class References(BaseModel, extra="forbid", frozen=True, use_attribute_docstring
         return "\n\n".join(self.references[key].definition for key in keys)
 
     @classmethod
+    def installed(cls) -> Self:
+        """
+        Reads the `references.bib` installed beside this module, which every
+        install of the package carries, wherever the command runs from.
+        """
+        return cls.read(Path(__file__).with_name("references.bib"))
+
+    @classmethod
     def read(cls, path: Path) -> Self:
         """
         Reads every source in the BibTeX file at `path`, decoding the LaTeX

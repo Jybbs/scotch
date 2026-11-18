@@ -9,7 +9,6 @@ from cyclopts import App, Parameter
 from typing   import Annotated
 
 from scotch.citations.schemas import References
-from scotch.cli.settings      import root
 
 
 def source(*keys: Annotated[str, Parameter(required=True)]):
@@ -28,7 +27,7 @@ def source(*keys: Annotated[str, Parameter(required=True)]):
         keys: The key of each source, such as `zobrist1970`.
     """
     try:
-        references = References.shipped(root())
+        references = References.installed()
     except ValueError as error:
         raise SystemExit(str(error))
 

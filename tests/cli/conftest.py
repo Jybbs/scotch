@@ -32,15 +32,17 @@ from scotch.sources.schemas   import Download, Manifest, Source, Sources
 @fixture
 def bibliography(bibtex: Path, monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
     """
-    Points the project's root `scotch cite source` reads at a directory
-    whose `src/scotch/citations/references.bib` holds the three sources
-    of `bibtex`.
+    Points the bibliography `scotch cite source` reads at a copy of
+    `bibtex`, holding its three sources.
     """
-    (path := tmp_path / References.file).parent.mkdir(parents=True)
-    copyfile(bibtex, path)
-    monkeypatch.setattr("scotch.cli.cite.root", lambda: tmp_path)
+    copyfile(bibtex, path := tmp_path / "references.bib")
+    monkeypatch.setattr(
+        References,
+        "installed",
+        classmethod(lambda cls: cls.read(path))
+    )
 
-    return tmp_path
+    return path
 
 
 @fixture(scope="module")

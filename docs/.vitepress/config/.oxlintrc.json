@@ -11,7 +11,7 @@
     "options"   : {"reportUnusedDisableDirectives": "deny"},
     "overrides" : [
         {
-            "files" : ["**/tests/**"],
+            "files" : ["**/.vitepress/tests/**"],
             "rules" : {"import/max-dependencies": "off", "max-lines": "off"}
         }
     ],

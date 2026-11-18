@@ -272,6 +272,16 @@ def test_cite_writes_each_definition_in_the_order_given(references: References):
     )
 
 
+def test_installed_reads_the_bibliography_the_checkout_ships():
+    """
+    Asserts that `installed` reads the same sources as the
+    `src/scotch/citations/references.bib` of the checkout the tests run in.
+    """
+    assert References.installed().references == (
+        References.shipped(Path(__file__).parents[2]).references
+    )
+
+
 def test_shipped_reads_the_bibliography_under_the_root(tmp_path: Path):
     """
     Asserts that `shipped` reads `src/scotch/citations/references.bib` under
