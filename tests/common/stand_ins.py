@@ -94,7 +94,8 @@ class Affected(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             check          = False,
             cwd            = self.root,
             text           = True,
-            env            = environ | {
+            env            = {
+                **environ,
                 "MISE_PROJECT_ROOT" : str(self.root),
                 "PATH"              : f"{self.root / '.bin'}{pathsep}{environ['PATH']}",
                 "TESTMON_DATAFILE"  : str(self.root / ".cache" / "testmon" / "data")
@@ -222,21 +223,24 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         *arguments : str,
         bun        : str = "exit 0",
         cargo      : str = "exit 0",
+        gh         : str = "exit 0",
+        ignore     : str = "",
         mise       : str = "exit 0",
         osv        : str = "exit 0",
         scotch     : str = "exit 0",
         uv         : str = "exit 0"
     ) -> CompletedProcess[str]:
         """
-        Runs the `lock` task `task` names from the checkout with
-        `arguments`, against stand-in `bun`, `cargo`, `mise`, `osv-scanner`,
-        `scotch`, and `uv` executables that each log their call and then
-        run the shell line `bun`, `cargo`, `mise`, `osv`, `scotch`, or `uv`
-        holds.
+        Runs the `lock` task `task` names from the checkout with `arguments`
+        and `AUDIT_IGNORE` set to `ignore`, against stand-in `bun`, `cargo`,
+        `gh`, `mise`, `osv-scanner`, `scotch`, and `uv` executables that
+        each log their call and then run the shell line `bun`, `cargo`,
+        `gh`, `mise`, `osv`, `scotch`, or `uv` holds.
         """
         for name, line in {
             "bun"         : bun,
             "cargo"       : cargo,
+            "gh"          : gh,
             "mise"        : mise,
             "osv-scanner" : osv,
             "scotch"      : scotch,
@@ -253,6 +257,7 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             capture_output = True,
             check          = False,
             cwd            = self.lockfile.parents[1],
+            env            = {**environ, "AUDIT_IGNORE": ignore},
             text           = True
         )
 

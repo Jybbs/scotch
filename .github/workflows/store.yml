@@ -12,7 +12,7 @@ jobs:
         uses: $/.github/actions/provision
         with:
           shared-key: scotch-python
-          tools: python rust uv
+          tools: jq python rust uv
       - name: Fetch the games
         run: mise run data:fetch
       - name: Build the index
