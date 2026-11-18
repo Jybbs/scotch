@@ -3,7 +3,8 @@
   --sc-data-below   : color-mix(in oklab, var(--sc-data-ink) 60%, var(--sc-data-page));
   --sc-data-repeat  : color-mix(in oklab, var(--sc-data-ink) 26%, var(--sc-data-page));
   --sc-data-unread  : color-mix(in oklab, var(--sc-data-ink) 78%, var(--sc-data-page));
-  --sc-data-variant : color-mix(in oklab, var(--sc-data-ink) 62%, var(--sc-data-page));
+  --sc-data-variant : repeating-linear-gradient(-45deg, var(--sc-data-ink) 0 1.5px, transparent 1.5px 5px)
+                      color-mix(in oklab, var(--sc-data-ink) 62%, var(--sc-data-page));
   display           : grid;
   gap               : 14px;
 }
@@ -65,6 +66,16 @@
   overflow    : hidden;
   padding     : 0 8px;
   white-space : nowrap;
+}
+
+.sc-data-ledger-segment[data-k='variant'] span {
+  width         : fit-content;
+  margin        : 5px auto;
+  padding       : 0 6px;
+  border-radius : 2px;
+  background    : var(--sc-data-repeat);
+  color         : var(--sc-data-ink);
+  line-height   : 16px;
 }
 
 @container (width < 12em) {

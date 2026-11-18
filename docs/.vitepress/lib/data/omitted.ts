@@ -125,7 +125,7 @@ export const KINDS = [
 export const floors: readonly number[] = OMISSIONS.floor.bins.filter(low => low >= LOWEST)
 /**
  * The marks the ledger carries in its corner, one per kind, each swatch taking
- * the color the ledger's stylesheet gives that kind.
+ * the background the ledger's stylesheet gives that kind's segment.
  */
 export const ledgerMarks: readonly CornerMark[] = KINDS.map(({ key, label }) => ({
   key   : key,
