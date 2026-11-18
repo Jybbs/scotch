@@ -1085,16 +1085,17 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                     "src/scotch/cli/run.py",
                     20,
                     "The comment carries `# prose: ignore[unsorted-positionals, "
-                    "step-narration]`, which silences Prose in place of a "
-                    "`[tool.prose.rules.unsorted-positionals]` table in "
+                    "step-narration]`, a suppression directive of Prose, in place "
+                    "of a `[tool.prose.rules.unsorted-positionals]` table in "
                     "`pyproject.toml`"
                 ),
                 (
                     "src/scotch/cli/run.py",
                     20,
                     "The comment carries `# prose: ignore[unsorted-positionals, "
-                    "step-narration]`, which silences Prose in place of a "
-                    "`[tool.prose.rules.step-narration]` table in `pyproject.toml`"
+                    "step-narration]`, a suppression directive of Prose, in place "
+                    "of a `[tool.prose.rules.step-narration]` table in "
+                    "`pyproject.toml`"
                 )
             ],
             id = "directive-naming-rules"
@@ -1108,10 +1109,26 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 "src/scotch/cli/run.py",
                 17,
-                "The comment carries `# prose: skip`, which silences Prose in place "
-                "of a `[tool.prose.rules.<rule>]` table in `pyproject.toml`"
+                "The comment carries `# prose: skip`, a suppression directive of "
+                "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                "`pyproject.toml`"
             )],
             id = "bare-directive"
+        ),
+        param(
+            SuppressionCheck,
+            [(
+                "src/scotch/cli/run.py", 'raise SystemExit(f"Cannot read {pgn}")',
+                'raise SystemExit(f"Cannot read {pgn}")  # prose: skip[reflow-calls]'
+            )],
+            [(
+                "src/scotch/cli/run.py",
+                17,
+                "The comment carries `# prose: skip[reflow-calls]`, a suppression "
+                "directive of Prose, in place of a "
+                "`[tool.prose.rules.reflow-calls]` table in `pyproject.toml`"
+            )],
+            id = "skip-naming-a-rule"
         ),
         param(
             SuppressionCheck,
@@ -1123,20 +1140,23 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 (
                     "src/scotch/cli/run.py",
                     6,
-                    "The comment carries `#prose:keep`, which silences Prose in "
-                    "place of a `[tool.prose.rules.<rule>]` table in `pyproject.toml`"
+                    "The comment carries `#prose:keep`, a suppression directive of "
+                    "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                    "`pyproject.toml`"
                 ),
                 (
                     "src/scotch/cli/run.py",
                     7,
-                    "The comment carries `# fmt: skip`, which silences Prose in place "
-                    "of a `[tool.prose.rules.<rule>]` table in `pyproject.toml`"
+                    "The comment carries `# fmt: skip`, a suppression directive of "
+                    "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                    "`pyproject.toml`"
                 ),
                 (
                     "src/scotch/cli/run.py",
                     7,
-                    "The comment carries `# yapf: enable`, which silences Prose in "
-                    "place of a `[tool.prose.rules.<rule>]` table in `pyproject.toml`"
+                    "The comment carries `# yapf: enable`, a suppression directive of "
+                    "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                    "`pyproject.toml`"
                 )
             ],
             id = "directives-sharing-a-comment"
@@ -1292,8 +1312,8 @@ def test_a_directive_in_a_task_script_or_a_test_fails(
 ):
     """
     Asserts that a directive in a Python file under `.mise/tasks` or
-    `tests`, which `mise check` formats beside `src`, draws a finding at
-    its line.
+    `tests`, which `mise check` reads beside `src`, draws a finding at its
+    line.
     """
     (file := sample.root / path).parent.mkdir(exist_ok=True, parents=True)
     file.write_text("# fmt: off\n")
@@ -1308,7 +1328,7 @@ def test_a_directive_outside_the_formatted_trees_passes(
 ):
     """
     Asserts that a directive in a Python file outside `.mise/tasks`, `src`,
-    and `tests`, which `mise check` leaves alone, draws no finding.
+    and `tests`, which `mise check` leaves out, draws no finding.
     """
     (sample.root / "rust" / "build.py").write_text("# fmt: off\n")
     sample.answer(fp)
@@ -1356,9 +1376,9 @@ def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
     sample.answer(fp)
 
     assert [message for _, _, message in scan(SuppressionCheck, sample)] == [
-        "The comment carries `# prose: ignore[step-narration, ]`, which silences "
-        "Prose in place of a `[tool.prose.rules.step-narration]` table in "
-        "`pyproject.toml`"
+        "The comment carries `# prose: ignore[step-narration, ]`, a suppression "
+        "directive of Prose, in place of a `[tool.prose.rules.step-narration]` "
+        "table in `pyproject.toml`"
     ]
 
 

@@ -913,8 +913,8 @@ class SuppressionCheck(Check):
                         yield Finding(
                             line    = token.start[0],
                             message = (
-                                f"The comment carries `{directive[0]}`, which "
-                                "silences Prose in place of a "
+                                f"The comment carries `{directive[0]}`, a "
+                                "suppression directive of Prose, in place of a "
                                 f"`[tool.prose.rules.{rule}]` table in "
                                 "`pyproject.toml`"
                             ),
