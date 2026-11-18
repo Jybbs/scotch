@@ -68,6 +68,16 @@
   white-space : nowrap;
 }
 
+.sc-data-ledger-segment[data-k='variant'] span {
+  width         : fit-content;
+  margin        : 5px auto;
+  padding       : 0 6px;
+  border-radius : 2px;
+  background    : var(--sc-data-repeat);
+  color         : var(--sc-data-ink);
+  line-height   : 16px;
+}
+
 @container (width < 12em) {
   .sc-data-ledger-segment span { visibility: hidden; }
 }
