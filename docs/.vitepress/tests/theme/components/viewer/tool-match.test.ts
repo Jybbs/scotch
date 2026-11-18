@@ -6,7 +6,7 @@ import { shallowRef }                          from 'vue'
 import { EXAMPLES }    from '../../../../lib/viewer/examples.ts'
 import { Matcher }     from '../../../../lib/viewer/matcher.ts'
 import { answered, oneApart } from '../../../common/matches.ts'
-import { mountedTool } from '../../../common/tool.ts'
+import { mountedTool }        from '../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({
   useData: () => ({ frontmatter: shallowRef({ stats: [{ label: 'Games', value: '435,321' }] }) })
@@ -25,26 +25,26 @@ describe('Tool matching a pasted game', () => {
     const tied        = [{ ...EXAMPLES.match, ties: 1 }, { ...oneApart(), ties: 1 }]
     const submitted   = vi.spyOn(Matcher.prototype, 'submit').mockResolvedValue({ matches: answered(...tied) })
     const { wrapper } = mountedTool()
-    const field       = wrapper.find('.sc-viewer-pgn-field')
+    const field       = wrapper.find('textarea[placeholder]')
     await field.setValue('1. Nf3 *')
     await field.trigger('keydown', { key: 'Enter' })
     await flushPromises()
     expect(submitted).toHaveBeenCalledWith('the pasted game', '1. Nf3 *')
-    expect([wrapper.find('.sc-viewer-source').text(), wrapper.find('.sc-viewer-count').text()])
+    expect([wrapper.find('[aria-label="The two games"] > span').text(), wrapper.find('b').text()])
       .toEqual(['the pasted game', String(length)])
-    await wrapper.find('.sc-viewer-rank-chip').trigger('click')
+    await wrapper.find('button[aria-pressed][title]:not([data-control])').trigger('click')
     await flushPromises()
-    expect([wrapper.find('.sc-viewer-source').text(), wrapper.find('.sc-viewer-count').text()])
+    expect([wrapper.find('[aria-label="The two games"] > span').text(), wrapper.find('b').text()])
       .toEqual(['the pasted game', '2'])
   })
 
   it('names the problem a pasted game carries under the intake', async () => {
     vi.spyOn(Matcher.prototype, 'submit').mockResolvedValue({ problem: 'Found no game in the pasted game' })
     const { wrapper } = mountedTool()
-    const field       = wrapper.find('.sc-viewer-pgn-field')
+    const field       = wrapper.find('textarea[placeholder]')
     await field.setValue('nothing')
     await field.trigger('keydown', { key: 'Enter' })
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-problem').text()).toBe('Found no game in the pasted game')
+    expect(wrapper.find('[role="alert"]').text()).toBe('Found no game in the pasted game')
   })
 })

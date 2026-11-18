@@ -33,17 +33,17 @@ function between(node: Element): boolean {
 function drawn(placement?: string): SVGSVGElement {
   const pieces = placement
     ? piecesAt(placement).map(({ markup, piece, square, transform }) =>
-        `<g class="sc-viewer-piece" data-piece="${piece}" data-square="${square}" opacity="1" `
+        `<g data-piece="${piece}" data-square="${square}" opacity="1" `
       + `transform="${transform}">${markup}</g>`)
     : []
   const squares = Array.from({ length: 64 }, (_, square) =>
-    `<rect class="sc-viewer-square" data-square="${square}"/>`)
+    `<rect data-square="${square}"/>`)
   const markup = [
     '<svg xmlns="http://www.w3.org/2000/svg">',
     `<g>${squares.join('')}</g>`,
-    '<rect class="sc-viewer-hop"/><rect class="sc-viewer-hop"/>',
-    `<g class="sc-viewer-pieces">${pieces.join('')}</g>`,
-    ...PARTIES.map(party => `<g class="sc-viewer-arrow" data-game="${party}"><path/><path/></g>`),
+    '<rect data-hop=""/><rect data-hop=""/>',
+    `<g data-pieces="">${pieces.join('')}</g>`,
+    ...PARTIES.map(party => `<g data-game="${party}"><path/><path/></g>`),
     '</svg>'
   ]
   const parsed = new DOMParser().parseFromString(markup.join(''), 'image/svg+xml').documentElement
@@ -57,7 +57,7 @@ function drawn(placement?: string): SVGSVGElement {
  */
 function lit(svg: SVGSVGElement): boolean[] {
   return PARTIES.map(party => {
-    const arrow = svg.querySelector<SVGGElement>(`.sc-viewer-arrow[data-game='${party}']`)!
+    const arrow = svg.querySelector<SVGGElement>(`g[data-game='${party}']`)!
     return 'on' in arrow.dataset
   })
 }
@@ -82,11 +82,11 @@ describe('GameBoard stepping', () => {
 
   test('takes over the pieces the build drew at rest, drawing no node for a piece already standing', () => {
     const svg   = drawn(submitted.placements[7])
-    const nodes = [...svg.querySelectorAll('.sc-viewer-piece')]
+    const nodes = [...svg.querySelectorAll('[data-piece]')]
     const board = new GameBoard(svg)
     board.load(submitted)
     board.go(7, 'jump')
-    expect([...svg.querySelectorAll('.sc-viewer-piece')]).toEqual(nodes)
+    expect([...svg.querySelectorAll('[data-piece]')]).toEqual(nodes)
     expect(board.checked).toBe(true)
   })
 
@@ -97,7 +97,7 @@ describe('GameBoard stepping', () => {
     board.go(0, 'jump')
     const took = board.go(1, 'glide')
     clock.advanceTimersByTime(took / 2)
-    expect([...svg.querySelectorAll('.sc-viewer-piece')].filter(node => between(node))).toHaveLength(1)
+    expect([...svg.querySelectorAll('[data-piece]')].filter(node => between(node))).toHaveLength(1)
     clock.advanceTimersByTime(took)
     expect([board.checked, board.breaks]).toEqual([true, 0])
   })
@@ -173,7 +173,7 @@ describe('GameBoard loading a game', () => {
     board.load(submitted)
     board.go(5, 'jump')
     board.load(null)
-    const shown = document.querySelectorAll('.sc-viewer-piece:not([display="none"])')
+    const shown = document.querySelectorAll('[data-piece]:not([display="none"])')
     expect([board.go(5, 'glide'), board.checked, shown.length]).toEqual([0, true, 0])
   })
 })
@@ -185,7 +185,7 @@ describe('GameBoard turning and marking', () => {
     board.go(0, 'jump')
     board.turn('white')
     board.turn('black')
-    const king = document.querySelector('.sc-viewer-piece[data-piece="K"]')!
+    const king = document.querySelector('[data-piece="K"]')!
     expect(placeOf(king)).toEqual(cornerOf(4, 'black'))
   })
 
@@ -197,14 +197,14 @@ describe('GameBoard turning and marking', () => {
     const board = new GameBoard(svg)
     board.turn(facing)
     board.mark(hop)
-    const marks = [...svg.querySelectorAll('.sc-viewer-hop')]
+    const marks = [...svg.querySelectorAll('[data-hop]')]
       .map(rect => ['opacity', 'x', 'y'].map(name => rect.getAttribute(name)))
     expect(marks).toEqual([hop.from, hop.to].map(square => {
       const { x, y } = cornerOf(square, facing)
       return ['1', String(x + 1.75), String(y + 1.75)]
     }))
     board.mark()
-    expect([...svg.querySelectorAll('.sc-viewer-hop')].map(rect => rect.getAttribute('opacity')))
+    expect([...svg.querySelectorAll('[data-hop]')].map(rect => rect.getAttribute('opacity')))
       .toEqual(['0', '0'])
   })
 
@@ -240,7 +240,7 @@ describe('GameBoard finishing', () => {
   test('marks the squares the two boards differ on, clearing every other square', () => {
     const svg    = drawn()
     const board  = new GameBoard(svg)
-    const marked = (): number[] => [...svg.querySelectorAll<SVGRectElement>('.sc-viewer-square[data-differ]')]
+    const marked = (): number[] => [...svg.querySelectorAll<SVGRectElement>('rect[data-differ]')]
       .map(rect => Number(rect.dataset.square))
     board.differ([12, 28])
     board.differ([28, 4])

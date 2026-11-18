@@ -48,10 +48,10 @@ describe('Tool opened from a link', () => {
     history.replaceState(null, '', '#sample=alone&ply=3&side=black')
     const { wrapper } = mountedTool()
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-status').text()).toBe('Nothing matched')
+    expect(wrapper.find('p:has(> button[title])').text()).toBe('Nothing matched')
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow')).toBe('3')
     expect(wrapper.find('[data-control="flip"]').attributes('aria-pressed')).toBe('true')
-    expect(wrapper.find('.sc-viewer-source').text()).toBe('demo.pgn')
+    expect(wrapper.find('[aria-label="The two games"] > span').text()).toBe('demo.pgn')
     clock.advanceTimersByTime(5000)
   })
 
@@ -60,7 +60,7 @@ describe('Tool opened from a link', () => {
     history.replaceState(null, '', `#match=${encoded}&ply=5`)
     const { root, wrapper } = mountedTool()
     await vi.waitFor(() => {
-      expect(wrapper.find('.sc-viewer-source').text()).toBe('A link')
+      expect(wrapper.find('[aria-label="The two games"] > span').text()).toBe('A link')
     })
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow')).toBe('5')
     await pressed(root, 'ArrowRight')
@@ -76,7 +76,7 @@ describe('Tool opened from a link', () => {
       expect(wrapper.find('[role="alert"]').text())
         .toBe('The link holds no match, or was cut short or altered')
     })
-    await wrapper.find('.sc-viewer-examples button').trigger('click')
+    await wrapper.find('[aria-label="Examples"] button').trigger('click')
     expect(wrapper.find('[role="alert"]').text()).toBe('')
   })
 
@@ -92,7 +92,7 @@ describe('Tool copying the match', () => {
   test('copies a link opening on the match where it stands', async () => {
     const written = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
     const { wrapper } = mountedTool()
-    await wrapper.find('.sc-viewer-seat button').trigger('click')
+    await wrapper.find('div:has(> [popover]) > button').trigger('click')
     await flushPromises()
     expect(written).toHaveBeenCalledWith(`${location.origin}${location.pathname}#sample=match&ply=${meet}`)
   })
@@ -100,7 +100,7 @@ describe('Tool copying the match', () => {
   test('copies the submitted game as PGN, the stored game’s moves as a variation', async () => {
     const written = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
     const { wrapper } = mountedTool()
-    await wrapper.findAll('.sc-viewer-seat button')[1]!.trigger('click')
+    await wrapper.findAll('div:has(> [popover]) > button')[1]!.trigger('click')
     await flushPromises()
     expect(written.mock.calls[0]![0]).toMatch(/^\[Event "The Viewer's example"\][^]+\( \{[^}]+\} /u)
   })
@@ -109,7 +109,7 @@ describe('Tool copying the match', () => {
     const written = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
     const { wrapper } = mountedTool()
     await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
-    await wrapper.find('.sc-viewer-seat button').trigger('click')
+    await wrapper.find('div:has(> [popover]) > button').trigger('click')
     const encoded = await encodedOf(EXAMPLES.alone)
     await vi.waitFor(() => {
       expect(written).toHaveBeenCalledWith(`${location.origin}${location.pathname}#match=${encoded}&ply=0`)

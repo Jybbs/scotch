@@ -29,12 +29,13 @@ describe('Tool as the build renders it', () => {
   it('draws both boards, the sheets, and the band at the first position the two share', async () => {
     const html = await renderToString(createSSRApp(Tool))
     const host = Object.assign(document.createElement('div'), { innerHTML: html })
-    expect(host.querySelectorAll('.sc-viewer-piece')).toHaveLength(64)
-    expect([...host.querySelectorAll('[aria-current="step"] .sc-viewer-san')].map(move => move.textContent))
+    expect(host.querySelectorAll('[data-piece]')).toHaveLength(64)
+    expect([...host.querySelectorAll('[aria-current="step"] > span:first-child')]
+      .map(move => move.textContent))
       .toEqual([EXAMPLES.match.submitted.moves[meet - 1], EXAMPLES.match.stored!.moves[meet - 1]])
-    expect(host.querySelector('.sc-viewer-count')?.textContent).toBe(String(length))
-    expect(host.querySelector('.sc-viewer-status')?.textContent).toBe(`Same position · 1 of ${length}`)
-    expect(host.querySelector('.sc-viewer-stats')?.textContent).toBe('Games435,321')
+    expect(host.querySelector('b')?.textContent).toBe(String(length))
+    expect(host.querySelector('p:has(> button[title])')?.textContent).toBe(`Same position · 1 of ${length}`)
+    expect(host.querySelector('dl')?.textContent).toBe('Games435,321')
   })
 
   it('hydrates the rendered markup at that position with nothing moved', async () => {
@@ -51,18 +52,20 @@ describe('Tool as the build renders it', () => {
 describe('Tool, its legend', () => {
   it('names each game in its color in the corner, the submitted game first', async () => {
     const { wrapper } = mountedTool()
-    const marks       = wrapper.findAll('.sc-viewer-legend .sc-data-legend-mark')
+    const marks       = wrapper.findAll('.sc-data-legend-mark')
     expect(marks.map(mark => [mark.attributes('aria-label'), mark.attributes('style')])).toEqual([
       ['Your game', '--sc-data-tone: var(--sc-submitted);'],
       ['The stored game', '--sc-data-tone: var(--sc-stored);']
     ])
     await marks[1]!.trigger('pointerenter')
-    expect(wrapper.find('.sc-viewer-legend .sc-data-legend-caption').text()).toBe('The stored game')
+    expect(wrapper.find('.sc-data-legend-caption').text()).toBe('The stored game')
   })
 
   it('opens the line beneath the boards', () => {
     const { wrapper } = mountedTool()
-    expect(wrapper.find('.sc-viewer-under').element.firstElementChild?.classList).toContain('sc-viewer-legend')
+    const under       = wrapper.find('.sc-data').element.parentElement!
+    expect([under.firstElementChild?.classList.contains('sc-data'), under.querySelector('canvas') !== null])
+      .toEqual([true, true])
   })
 })
 
@@ -70,10 +73,10 @@ describe('Tool as a reader steps it', () => {
   test('steps on the controls’ keys, marking whether the boards share a position', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
     expect(await pressed(root, 'ArrowRight')).toBe(true)
-    expect(wrapper.find('.sc-viewer-status').text()).toBe(`Same position · 2 of ${length}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 2 of ${length}`)
     expect(root.style.getPropertyValue('--sc-viewer-step')).not.toBe('0ms')
     expect(await pressed(root, 'Home')).toBe(true)
-    expect([wrapper.find('.sc-viewer-status').text(), root.dataset.shared])
+    expect([wrapper.find('p:has(> button[title])').text(), root.dataset.shared])
       .toEqual([`Different · meet at ply ${meet}`, 'no'])
     expect(await pressed(root, 'Home')).toBe(false)
     clock.advanceTimersByTime(5000)
@@ -81,11 +84,12 @@ describe('Tool as a reader steps it', () => {
 
   test('captions each board with the start mark at the starting position and with a move after it', async () => {
     const { root, wrapper } = mountedTool()
-    const captions          = (): string[] => wrapper.findAll('.sc-viewer-caption-move').map(move => move.text())
+    const captions          = (): string[] => wrapper.findAll('figcaption > span:last-child')
+      .map(move => move.text())
     expect(captions().every(move => /^\d+\./u.test(move))).toBe(true)
     await pressed(root, 'Home')
     expect(captions()).toEqual(['Start', 'Start'])
-    expect(wrapper.findAll('.sc-viewer-caption-move .sc-start-glyph')).toHaveLength(2)
+    expect(wrapper.findAll('figcaption > span:last-child .sc-start-glyph')).toHaveLength(2)
   })
 
   test('turns both boards on F, pressing the flip', async ({ clock }) => {
@@ -103,7 +107,7 @@ describe('Tool as a reader steps it', () => {
   ] as const)('leaves a key pressed %s to the page', async ([, key, held]) => {
     const { root, wrapper } = mountedTool()
     expect(await pressed(root, key, held)).toBe(false)
-    expect(wrapper.find('.sc-viewer-status').text()).toBe(`Same position · 1 of ${length}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 1 of ${length}`)
   })
 
   test('leaves a key pressed inside a field to the field', async () => {
@@ -119,7 +123,7 @@ describe('Tool answering Up and Down', () => {
     expect(await pressed(root, 'ArrowDown')).toBe(true)
     expect(slider.attributes('aria-valuenow')).toBe(String(EXAMPLES.match.submitted.moves.length))
     expect(await pressed(root, 'ArrowUp')).toBe(true)
-    expect(wrapper.find('.sc-viewer-status').text()).toBe(`Different · meet at ply ${meet}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Different · meet at ply ${meet}`)
     clock.advanceTimersByTime(5000)
   })
 
@@ -145,8 +149,9 @@ describe('Tool answering Up and Down', () => {
 describe('Tool as a reader moves through it', () => {
   test('moves the cursor to a move pressed in the sheets and to a control pressed', async ({ clock }) => {
     const { wrapper } = mountedTool()
-    await wrapper.findAll('.sc-viewer-move[data-party="submitted"]')[19]!.trigger('click')
-    expect(wrapper.find('.sc-viewer-status').text()).toBe(`Same position · ${20 - meet + 1} of ${length}`)
+    await wrapper.findAll('button[data-party][data-party="submitted"]')[19]!.trigger('click')
+    expect(wrapper.find('p:has(> button[title])').text())
+      .toBe(`Same position · ${20 - meet + 1} of ${length}`)
     await wrapper.find('[data-control="end"]').trigger('click')
     await flushPromises()
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow'))
@@ -158,7 +163,7 @@ describe('Tool as a reader moves through it', () => {
     const { wrapper } = mountedTool()
     await wrapper.find('[data-control="flip"]').trigger('click')
     await flushPromises()
-    const king = wrapper.find('[data-game="submitted"] .sc-viewer-piece[data-piece="K"]').element
+    const king = wrapper.find('figure[data-game="submitted"] [data-piece="K"]').element
     expect(wrapper.find('[data-control="flip"]').attributes('aria-pressed')).toBe('true')
     expect(king.getAttribute('transform')).toMatch(/^matrix\(1 0 0 1 \d+ 0\)$/u)
     clock.advanceTimersByTime(5000)
@@ -166,7 +171,7 @@ describe('Tool as a reader moves through it', () => {
 
   test('marks the root as matched or not with each example loaded', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    const [match, alone]    = wrapper.findAll('.sc-viewer-examples button')
+    const [match, alone]    = wrapper.findAll('[aria-label="Examples"] button')
     await alone!.trigger('click')
     await flushPromises()
     expect(root.dataset.matched).toBe('no')
@@ -188,13 +193,13 @@ describe('Tool as a reader moves through it', () => {
 describe('Tool showing the squares the boards differ on', () => {
   test('washes the squares once the games part while their count holds the pointer', async ({ clock }) => {
     const { wrapper } = mountedTool()
-    const count       = wrapper.find('.sc-viewer-differing').element as HTMLButtonElement
-    const washed      = (): number => wrapper.findAll('.sc-viewer-square[data-differ]').length
+    const count       = wrapper.find('p > button[title]').element as HTMLButtonElement
+    const washed      = (): number => wrapper.findAll('rect[data-differ]').length
     expect(count.hidden).toBe(true)
     await wrapper.find('[data-control="part"]').trigger('click')
     await wrapper.find('[data-control="next"]').trigger('click')
     await flushPromises()
-    expect([wrapper.find('.sc-viewer-status').text(), count.hidden])
+    expect([wrapper.find('p:has(> button[title])').text(), count.hidden])
       .toEqual([`Parted at ply ${meet + length} · 4 squares differ`, false])
     count.dispatchEvent(new PointerEvent('pointerenter'))
     await flushPromises()
@@ -210,10 +215,10 @@ describe('Tool showing the squares the boards differ on', () => {
     const { root, wrapper } = mountedTool()
     const stored            = EXAMPLES.match.stored!.moves.length
     const washed            = (): number => wrapper.findAll('[data-game="submitted"] [data-differ]').length
-    await wrapper.findAll('.sc-viewer-move[data-party="submitted"]')[stored]!.trigger('click')
+    await wrapper.findAll('button[data-party][data-party="submitted"]')[stored]!.trigger('click')
     await flushPromises()
     clock.advanceTimersByTime(5000)
-    const count = wrapper.find('.sc-viewer-differing')
+    const count = wrapper.find('p > button[title]')
     await count.trigger('focus')
     clock.advanceTimersByTime(10)
     expect(washed()).toBe(0)
@@ -222,6 +227,6 @@ describe('Tool showing the squares the boards differ on', () => {
     expect([washed(), count.text()]).toEqual([19, '19 squares differ'])
     await count.trigger('blur')
     clock.advanceTimersByTime(10)
-    expect(wrapper.findAll('.sc-viewer-square[data-differ]')).toHaveLength(0)
+    expect(wrapper.findAll('rect[data-differ]')).toHaveLength(0)
   })
 })

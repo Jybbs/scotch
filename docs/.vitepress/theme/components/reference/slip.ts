@@ -49,7 +49,7 @@ function useTermEvents(
 const SLIP = [
   'pointer-events-none invisible top-0 left-0 z-40 w-[min(19rem,calc(100vw-24px))] [position:fixed]',
   'rounded-[5px] border border-rule bg-raised px-3 pt-[9px] pb-2 opacity-0',
-  'transition-[opacity,transform] duration-glide',
+  'transition-[opacity,transform] duration-[var(--sc-duration-fade),var(--sc-duration-glide)]',
   'data-open:pointer-events-auto data-open:visible data-open:opacity-100',
   'before:absolute before:-inset-y-[9px] before:inset-x-0 before:-z-1'
 ]

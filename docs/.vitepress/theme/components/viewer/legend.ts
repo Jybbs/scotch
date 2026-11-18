@@ -9,5 +9,5 @@ import { Corner }     from '../data/corner.ts'
  * moves take.
  */
 export function gameLegend(): VNode {
-  return h('div', { class: 'sc-data sc-viewer-legend' }, h(Corner, { items: GAME_MARKS }))
+  return h('div', { class: 'sc-data mb-1.5' }, h(Corner, { items: GAME_MARKS }))
 }

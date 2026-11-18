@@ -3,6 +3,18 @@ import { type PropType, type VNode, defineComponent, h, shallowRef, useId } from
 import { EXAMPLES, type Match, SAMPLES, type Sample } from '../../../lib/viewer/examples.ts'
 import { movesOf }                                    from '../../../lib/viewer/pgn.ts'
 import { ICONS }                                      from './icons.ts'
+import { CHIP, KICKER }                               from './parts.ts'
+
+/**
+ * The PGN entry, one dashed line of the code face that turns solid in the
+ * run's color while it holds focus.
+ */
+const FIELD = [
+  'm-0 block h-10 w-full resize-none overflow-hidden rounded-lg border border-dashed border-rule bg-page',
+  'px-3.5 py-0 font-code text-[0.78rem]/[38px] font-normal text-ellipsis whitespace-nowrap text-ink',
+  'placeholder:text-[color-mix(in_srgb,var(--sc-quiet)_70%,transparent)]',
+  'focus-visible:border-solid focus-visible:border-run focus-visible:outline-none'
+]
 
 /**
  * The line the PGN entry shows in place of a game, the opening of the example
@@ -19,14 +31,14 @@ function entry(id: string, submit: (text: string) => void): VNode {
   const send = (field: HTMLTextAreaElement): void => {
     if (field.value.trim()) submit(field.value)
   }
-  return h('div', { class: 'sc-viewer-pgn' }, [
-    h('label', { class: 'sc-viewer-kicker', for: `${id}-pgn` }, [
+  return h('div', { class: 'grid min-w-0 gap-[7px]' }, [
+    h('label', { class: KICKER, for: `${id}-pgn` }, [
       h('span', { innerHTML: ICONS.paste }),
       h('span', 'Paste or drop a game in PGN')
     ]),
-    h('div', { class: 'sc-viewer-pgn-box' }, [
+    h('div', { class: 'relative min-w-0' }, [
       h('textarea', {
-        'class'       : 'sc-viewer-pgn-field',
+        'class'       : FIELD,
         'id'          : `${id}-pgn`,
         'placeholder' : placeholder,
         'rows'        : 1,
@@ -71,28 +83,36 @@ export const Intake = defineComponent({
     const id    = useId()
     const input = shallowRef<HTMLInputElement | null>(null)
 
-    return () => h('div', { class: 'sc-viewer-intake' }, [
+    return () => h('div', {
+      class: 'grid min-w-0 gap-2.5 border-l border-rule pl-10 max-lg:border-t max-lg:border-l-0 max-lg:pt-4 '
+           + 'max-lg:pl-0'
+    }, [
       entry(id, text => emit('pgn', text)),
-      h('div', { class: 'sc-viewer-actions' }, [
-        h('div', { 'aria-label': 'Examples', 'class': 'sc-viewer-examples', 'role': 'group' }, SAMPLES.map(
+      h('div', { class: 'flex flex-wrap items-center gap-2' }, [
+        h('div', { 'aria-label': 'Examples', 'class': 'flex gap-1.5', 'role': 'group' }, SAMPLES.map(
           sample => h('button', {
             'aria-pressed' : String(props.sample === sample.name),
-            'class'        : 'sc-viewer-chip',
+            'class'        : CHIP,
             'onClick'      : () => emit('load', EXAMPLES[sample.name], sample.source, sample.name),
             'type'         : 'button'
           }, sample.label)
         )),
-        h('button', { class: 'sc-viewer-chip', onClick: () => input.value!.click(), type: 'button' }, [
+        h('button', { class: CHIP, onClick: () => input.value!.click(), type: 'button' }, [
           h('span', { innerHTML: ICONS.file }),
           h('span', 'Open a match or a game')
         ]),
-        h('span', { class: 'sc-viewer-drop' }, 'or drop one here')
+        h('span', {
+          class: 'font-body text-[0.86rem]/[20px] font-normal whitespace-nowrap text-quiet italic'
+        }, 'or drop one here')
       ]),
-      h('p', { class: 'sc-viewer-problem', role: 'alert' }, props.problem),
+      h('p', {
+        class : 'font-code text-[0.7rem]/[18px] font-medium whitespace-pre-line text-alert empty:hidden',
+        role  : 'alert'
+      }, props.problem),
       h('input', {
         'accept'      : '.json,.pgn,application/json,application/x-chess-pgn',
         'aria-hidden' : 'true',
-        'class'       : 'sc-viewer-hidden',
+        'class'       : 'sr-only',
         'onChange'    : () => {
           const file = input.value!.files?.[0]
           if (file) emit('file', file)

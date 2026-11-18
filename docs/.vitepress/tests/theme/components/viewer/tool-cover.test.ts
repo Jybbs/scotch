@@ -30,14 +30,14 @@ afterEach(() => {
  * and the band's stored move as a reader hears it and as it is marked.
  */
 function parted(wrapper: VueWrapper): unknown[] {
-  const named = wrapper.get('.sc-viewer-details [data-game="stored"]')
+  const named = wrapper.get('[aria-label="The match and your game"] p + p [data-game="stored"]')
   const drawn = (party: string): number =>
-    wrapper.findAll(`.sc-viewer-arrow[data-game="${party}"][data-on]`).length
+    wrapper.findAll(`svg g[data-game="${party}"][data-on]`).length
   return [
     said(wrapper)[1]!.includes(`the stored game played ${parting} next`),
     drawn('stored'),
     drawn('submitted'),
-    named.find('.sc-viewer-hidden').exists() ? named.get('.sc-viewer-hidden').text() : named.text(),
+    named.find('.sr-only').exists() ? named.get('.sr-only').text() : named.text(),
     named.find('[aria-hidden="true"]').exists(),
     named.attributes('data-covered')
   ]
@@ -49,7 +49,7 @@ function parted(wrapper: VueWrapper): unknown[] {
  * standing in for the page's.
  */
 function point(wrapper: VueWrapper, square: number, type: 'pointerdown' | 'pointerup'): void {
-  const board  = wrapper.find('[data-game="stored"] .sc-viewer-board').element
+  const board  = wrapper.find('figure[data-game="stored"] svg').element
   const [x, y] = square < 0 ? [400, 20] : [(square % 8) * 45 + 20, (7 - (square >> 3)) * 45 + 20]
   board.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1 }))
 }
@@ -58,8 +58,8 @@ function point(wrapper: VueWrapper, square: number, type: 'pointerdown' | 'point
  * Types text into the field taking a move and offers it.
  */
 async function typed(wrapper: VueWrapper, text: string): Promise<void> {
-  await wrapper.find('.sc-viewer-guess-field').setValue(text)
-  await wrapper.find('.sc-viewer-guess').trigger('submit')
+  await wrapper.find('#sc-viewer-guess-field').setValue(text)
+  await wrapper.find('form').trigger('submit')
   await flushPromises()
 }
 
@@ -68,7 +68,8 @@ async function typed(wrapper: VueWrapper, text: string): Promise<void> {
  * moves offered that match.
  */
 function said(wrapper: VueWrapper): string[] {
-  return ['.sc-viewer-status', 'p[role=status]', '.sc-viewer-guess-note'].map(name => wrapper.get(name).text())
+  return ['p:has(> button[title])', 'p[role=status]', '#sc-viewer-guess-note']
+    .map(name => wrapper.get(name).text())
 }
 
 describe('Tool covering the stored game', () => {
@@ -76,19 +77,19 @@ describe('Tool covering the stored game', () => {
     clock
   }) => {
     const { root, wrapper } = mountedTool()
-    const covered           = (): number => wrapper.findAll('.sc-viewer-move[data-covered]').length
-    const entry             = wrapper.find('.sc-viewer-guess').element as HTMLFormElement
+    const covered           = (): number => wrapper.findAll('button[data-party][data-covered]').length
+    const entry             = wrapper.find('form').element as HTMLFormElement
     expect([covered(), entry.inert]).toEqual([0, true])
     expect(await pressed(root, 'c')).toBe(true)
     await flushPromises()
     expect([covered(), entry.inert, wrapper.find('[data-control="cover"]').attributes('aria-pressed')])
       .toEqual([stored.moves.length - meet, false, 'true'])
-    expect(wrapper.find('.sc-viewer-move[data-covered]').attributes('aria-label')).toBe('A covered move')
-    expect(wrapper.find('.sc-viewer-details [data-covered]').exists()).toBe(true)
+    expect(wrapper.find('button[data-party][data-covered]').attributes('aria-label')).toBe('A covered move')
+    expect(wrapper.find('[aria-label="The match and your game"] p + p [data-covered]').exists()).toBe(true)
     await pressed(root, 'C')
     await flushPromises()
-    expect([covered(), entry.inert, wrapper.find('.sc-viewer-details [data-covered]').exists()])
-      .toEqual([0, true, false])
+    const marked = wrapper.find('[aria-label="The match and your game"] p + p [data-covered]')
+    expect([covered(), entry.inert, marked.exists()]).toEqual([0, true, false])
     clock.advanceTimersByTime(5000)
   })
 
@@ -109,7 +110,7 @@ describe('Tool covering the stored game', () => {
 
   test('takes no cover from the control or its key where no game is stored', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    await wrapper.findAll('.sc-viewer-examples button')[1]!.trigger('click')
+    await wrapper.findAll('[aria-label="Examples"] button')[1]!.trigger('click')
     await pressed(root, 'c')
     await flushPromises()
     const control = wrapper.find('[data-control="cover"]')
@@ -143,7 +144,7 @@ describe('Tool covering where the two games part', () => {
     const { root, wrapper } = mountedTool()
     await pressed(root, 'c')
     await typed(wrapper, 'Bb4')
-    await wrapper.findAll('.sc-viewer-examples button')[0]!.trigger('click')
+    await wrapper.findAll('[aria-label="Examples"] button')[0]!.trigger('click')
     await flushPromises()
     expect([said(wrapper)[2], wrapper.find('[data-control="cover"]').attributes('aria-pressed')])
       .toEqual(['0 of 0 offered match', 'true'])
@@ -183,7 +184,7 @@ describe('Tool taking a move made on the stored board', () => {
 
   test('outlines a piece tapped on the stored board until a second tap lets it go', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    const mark              = (): boolean => wrapper.find('.sc-viewer-picked').exists()
+    const mark              = (): boolean => wrapper.find('[data-picked]').exists()
     await pressed(root, 'c')
     await flushPromises()
     point(wrapper, 61, 'pointerdown')
@@ -203,7 +204,7 @@ describe('Tool taking a move made on the stored board', () => {
     point(wrapper, -1, 'pointerdown')
     point(wrapper, 34, 'pointerup')
     await flushPromises()
-    expect([wrapper.find('.sc-viewer-picked').exists(), said(wrapper)[2]])
+    expect([wrapper.find('[data-picked]').exists(), said(wrapper)[2]])
       .toEqual([false, '0 of 0 offered match'])
     clock.advanceTimersByTime(5000)
   })
@@ -219,7 +220,7 @@ describe('Tool stepping on with a piece picked', () => {
     await flushPromises()
     await pressed(root, 'ArrowRight')
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-picked').exists()).toBe(false)
+    expect(wrapper.find('[data-picked]').exists()).toBe(false)
     point(wrapper, 34, 'pointerdown')
     point(wrapper, 34, 'pointerup')
     await flushPromises()
@@ -231,7 +232,7 @@ describe('Tool stepping on with a piece picked', () => {
 describe('Tool taking a move while covered at the edges of the stored game', () => {
   test('clears the field once it takes a move, keeping text it cannot take', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    const input             = wrapper.find('.sc-viewer-guess-field').element as HTMLInputElement
+    const input             = wrapper.find('#sc-viewer-guess-field').element as HTMLInputElement
     const field             = (): string => input.value
     await pressed(root, 'c')
     await typed(wrapper, 'hello')
@@ -245,7 +246,7 @@ describe('Tool taking a move while covered at the edges of the stored game', () 
     const { root, wrapper } = mountedTool()
     await pressed(root, 'c')
     await typed(wrapper, 'hello')
-    expect([wrapper.find('.sc-viewer-guess-field').attributes('aria-invalid'), said(wrapper)[2]])
+    expect([wrapper.find('#sc-viewer-guess-field').attributes('aria-invalid'), said(wrapper)[2]])
       .toEqual(['true', 'Not a move in SAN'])
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow')).toBe(String(meet))
     clock.advanceTimersByTime(5000)
@@ -266,8 +267,8 @@ describe('Tool taking a move while covered at the edges of the stored game', () 
     await pressed(root, 'c')
     await pressed(root, 'ArrowDown')
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-guess-field').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('[data-game="stored"] .sc-viewer-board').attributes('data-taking')).toBeUndefined()
+    expect(wrapper.find('#sc-viewer-guess-field').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('figure[data-game="stored"] svg').attributes('data-taking')).toBeUndefined()
     clock.advanceTimersByTime(5000)
   })
 })

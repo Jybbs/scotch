@@ -45,14 +45,14 @@ afterEach(() => {
 describe('Band naming the match', () => {
   it('counts the positions the two share beside the stored game’s players', () => {
     const wrapper = mounted()
-    expect(wrapper.find('.sc-viewer-count').text()).toBe(String(loaded.shared!.length))
-    expect(wrapper.find('.sc-viewer-name').text()).toBe(games.nameOf(EXAMPLES.match.stored!))
+    expect(wrapper.find('b').text()).toBe(String(loaded.shared!.length))
+    expect(wrapper.find('b + span > span:last-child').text()).toBe(games.nameOf(EXAMPLES.match.stored!))
   })
 
   it('names where the stored game was played, the run’s plies, and the two moves where they part', () => {
     const { last, meet } = loaded.shared!
     const where          = games.whereOf(EXAMPLES.match.stored!)
-    expect(mounted().find('.sc-viewer-details').text())
+    expect(mounted().find('p + p').text())
       .toBe(`${where} · plies ${meet} to ${last} · then ${loaded.leaving} against ${loaded.parting}`)
   })
 
@@ -62,12 +62,13 @@ describe('Band naming the match', () => {
   ])('names how many stored games tie with %i others over %i positions', (ties, length, phrase) => {
     const span = { ...EXAMPLES.match.span!, length }
     const tied = new Loaded({ ...EXAMPLES.match, span, ties } as Match)
-    expect(mounted(tied).find('.sc-viewer-details').text()).toContain(phrase)
+    expect(mounted(tied).find('p + p').text()).toContain(phrase)
   })
 
   it('names no stored game where none shares a position', () => {
     const wrapper = mounted(new Loaded(EXAMPLES.alone), 'alone')
-    expect(['count', 'name', 'details'].map(part => wrapper.find(`.sc-viewer-${part}`).text()))
+    expect([wrapper.find('b'), wrapper.find('b + span > span:last-child'), wrapper.find('p + p')]
+      .map(part => part.text()))
       .toEqual(['0', 'no stored game', 'No stored game shares a position with this game'])
   })
 
@@ -76,15 +77,15 @@ describe('Band naming the match', () => {
     const ended          = endedAt(last, 'stored')
     const headers        = { ...ended.stored!.headers, Date: '????.??.??', Event: '?' }
     const unknown        = { ...ended.stored!, headers }
-    expect(mounted(new Loaded({ ...ended, stored: unknown })).find('.sc-viewer-details').text())
+    expect(mounted(new Loaded({ ...ended, stored: unknown })).find('p + p').text())
       .toBe(`Unknown event · plies ${meet} to ${last}`)
   })
 
   it('draws the match afresh for each match it loads', async () => {
     const wrapper = mounted()
-    const was     = wrapper.find('.sc-viewer-match').element
+    const was     = wrapper.find('section > div').element
     await wrapper.setProps({ loaded: new Loaded(EXAMPLES.match) })
-    expect(wrapper.find('.sc-viewer-match').element).not.toBe(was)
+    expect(wrapper.find('section > div').element).not.toBe(was)
   })
 })
 
@@ -96,9 +97,9 @@ describe('Band tallying the tied games', () => {
       props    : { at: 1, link: () => Promise.resolve(''), loaded: new Loaded({ ...EXAMPLES.match, ties: 2 } as Match),
                    problem: '', ties }
     })
-    expect(wrapper.find('.sc-viewer-details').text()).not.toContain('stored games sharing')
-    expect(wrapper.find('.sc-viewer-tally-kicker').text()).toContain(`3 games tied on ${loaded.shared!.length}`)
-    await wrapper.findAll('.sc-viewer-rank-chip')[0]!.trigger('click')
+    expect(wrapper.find('p + p').text()).not.toContain('stored games sharing')
+    expect(wrapper.find('p + p + div > p').text()).toContain(`3 games tied on ${loaded.shared!.length}`)
+    await wrapper.findAll('button[aria-pressed][title]')[0]!.trigger('click')
     expect(wrapper.emitted('show')).toEqual([[0]])
   })
 
@@ -110,7 +111,7 @@ describe('Band tallying the tied games', () => {
       attachTo : document.body,
       props    : { link: () => Promise.resolve(''), loaded: new Loaded(match), problem: '', ties }
     })
-    expect(wrapper.find('.sc-viewer-tally').exists()).toBe(false)
+    expect(wrapper.find('button[aria-pressed][title]').exists()).toBe(false)
   })
 })
 
@@ -120,17 +121,17 @@ describe('Band taking a match', () => {
     ['match', EXAMPLES.match, 'viewer.pgn', 1]
   ] as const)('loads the %s example its chip names', async (name, match, source, chip) => {
     const wrapper = mounted(loaded, null)
-    await wrapper.find(`.sc-viewer-examples button:nth-child(${chip})`).trigger('click')
+    await wrapper.find(`[aria-label="Examples"] button:nth-child(${chip})`).trigger('click')
     expect(wrapper.emitted('load')).toEqual([[match, source, name]])
   })
 
   it('shows the opening of the example match’s own moves in the PGN entry', () => {
-    expect(mounted().find('.sc-viewer-pgn-field').attributes('placeholder'))
+    expect(mounted().find('textarea[placeholder]').attributes('placeholder'))
       .toBe('1. Nf3 Nf6 2. c4 e6 3. Nc3 d5 4. d4 Bb4 5. cxd5 exd5 …')
   })
 
   it('presses the chip of the example it shows', () => {
-    expect(mounted().findAll('.sc-viewer-examples button').map(chip => chip.attributes('aria-pressed')))
+    expect(mounted().findAll('[aria-label="Examples"] button').map(chip => chip.attributes('aria-pressed')))
       .toEqual(['true', 'false'])
   })
 })
@@ -139,7 +140,7 @@ describe('Band taking a file', () => {
   it('opens the file picker from its chip', async () => {
     const opened  = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {})
     const wrapper = mounted()
-    await wrapper.find('.sc-viewer-actions > button').trigger('click')
+    await wrapper.find('[aria-label="Examples"] + button').trigger('click')
     expect(opened).toHaveBeenCalledOnce()
   })
 
@@ -167,7 +168,7 @@ describe('Band taking a file', () => {
 describe('Band taking a game in PGN', () => {
   it('sends a game typed into the entry once Enter is pressed', async () => {
     const wrapper = mounted()
-    const field   = wrapper.find('.sc-viewer-pgn-field')
+    const field   = wrapper.find('textarea[placeholder]')
     await field.setValue('1. e4 *')
     await field.trigger('keydown', { key: 'Enter' })
     expect(wrapper.emitted('pgn')).toEqual([['1. e4 *', 'the pasted game']])
@@ -180,7 +181,7 @@ describe('Band taking a game in PGN', () => {
     ['Enter on an empty entry', '  ', { key: 'Enter' }]
   ])('sends nothing for %s', async (_, text, key) => {
     const wrapper = mounted()
-    const field   = wrapper.find('.sc-viewer-pgn-field')
+    const field   = wrapper.find('textarea[placeholder]')
     await field.setValue(text)
     await field.trigger('keydown', key)
     expect(wrapper.emitted('pgn')).toBeUndefined()
@@ -188,7 +189,7 @@ describe('Band taking a game in PGN', () => {
 
   it('sends a game pasted into the entry once the paste lands', async () => {
     const wrapper = mounted()
-    const field   = wrapper.find('.sc-viewer-pgn-field')
+    const field   = wrapper.find('textarea[placeholder]')
     await field.setValue('1. d4 *')
     await field.trigger('input', { inputType: 'insertFromPaste' })
     expect(wrapper.emitted('pgn')).toEqual([['1. d4 *', 'the pasted game']])
@@ -196,7 +197,7 @@ describe('Band taking a game in PGN', () => {
 
   it('sends nothing for text typed into the entry', async () => {
     const wrapper = mounted()
-    const field   = wrapper.find('.sc-viewer-pgn-field')
+    const field   = wrapper.find('textarea[placeholder]')
     await field.setValue('1. d4 *')
     await field.trigger('input', { inputType: 'insertText' })
     expect(wrapper.emitted('pgn')).toBeUndefined()
@@ -212,7 +213,7 @@ describe('Band taking a game in PGN', () => {
 describe('Band taking a dropped file', () => {
   it('marks itself while a file is dragged over it and loads the file dropped', async () => {
     const wrapper = mounted()
-    const band    = wrapper.find('.sc-viewer-band').element as HTMLElement
+    const band    = wrapper.element as HTMLElement
     const file    = fileOf(JSON.stringify(EXAMPLES.alone), 'dropped.json')
     band.dispatchEvent(dragged('dragenter', [file]))
     await flushPromises()
@@ -227,7 +228,7 @@ describe('Band taking a dropped file', () => {
 
   it('leaves a drag carrying no file to the page', async () => {
     const wrapper = mounted()
-    const band    = wrapper.find('.sc-viewer-band').element as HTMLElement
+    const band    = wrapper.element as HTMLElement
     const over    = dragged('dragover', [])
     band.dispatchEvent(dragged('dragenter', []))
     band.dispatchEvent(over)
@@ -239,7 +240,7 @@ describe('Band taking a dropped file', () => {
 
   it('unmarks itself once a drag leaves it', async () => {
     const wrapper = mounted()
-    const band    = wrapper.find('.sc-viewer-band').element as HTMLElement
+    const band    = wrapper.element as HTMLElement
     const file    = fileOf('{}')
     band.dispatchEvent(dragged('dragenter', [file]))
     band.dispatchEvent(dragged('dragleave', [file]))

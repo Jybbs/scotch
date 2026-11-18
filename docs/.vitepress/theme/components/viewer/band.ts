@@ -11,6 +11,26 @@ import { Seat }                          from './seat.ts'
 import { Tally }                         from './tally.ts'
 
 /**
+ * The band, the match beside the intake over a rule, one over the other on a
+ * narrow screen, washed in the tint while a file is dragged over it.
+ */
+const BAND = 'grid min-w-0 grid-cols-2 items-center gap-x-10 border-b border-rule pb-[18px] [&_p]:m-0 '
+           + '[&_p]:max-w-none data-drag:bg-tint data-drag:[box-shadow:0_0_0_2px_var(--sc-run)] '
+           + 'max-lg:col-span-full max-lg:grid-cols-1 max-lg:gap-y-4'
+/**
+ * The details under the match's headline in the body face.
+ */
+const DETAILS = 'font-body text-base/[22px] font-normal text-quiet max-sm:text-[0.86rem]/[20px]'
+/**
+ * One of the two moves where the games part, underlined in its game's color,
+ * or covered by a bar of the rule's color while the stored game's move is
+ * covered.
+ */
+const NAMED = 'pb-px font-code text-[0.84rem]/none font-medium whitespace-nowrap text-ink '
+            + '[box-shadow:inset_0_-2px_0_var(--sc-viewer-game)] data-covered:bg-rule '
+            + 'data-covered:text-transparent'
+
+/**
  * Reads whether a drag carries files, as one carrying a match file does.
  */
 function carriesFiles(event: DragEvent): boolean {
@@ -25,9 +45,9 @@ function carriesFiles(event: DragEvent): boolean {
  */
 function details(covering: boolean, loaded: Loaded, tallied: boolean): VNode {
   const stored = loaded.match.stored
-  if (!stored || !loaded.shared) return h('p', { class: 'sc-viewer-details' }, NOTHING)
+  if (!stored || !loaded.shared) return h('p', { class: DETAILS }, NOTHING)
   const { last, meet } = loaded.shared
-  return h('p', { class: 'sc-viewer-details' }, [
+  return h('p', { class: DETAILS }, [
     games.whereOf(stored) || 'Unknown event',
     dot(),
     `plies ${meet} to ${last}`,
@@ -36,16 +56,16 @@ function details(covering: boolean, loaded: Loaded, tallied: boolean): VNode {
       ? h('span', [
           dot(),
           'then ',
-          h('span', { 'class': 'sc-viewer-move-named', 'data-game': 'submitted' }, loaded.leaving),
+          h('span', { 'class': NAMED, 'data-game': 'submitted' }, loaded.leaving),
           ' against ',
           h('span', {
-            'class'        : 'sc-viewer-move-named',
+            'class'        : NAMED,
             'data-covered' : covering ? '' : undefined,
             'data-game'    : 'stored'
           }, covering
             ? [
                 h('span', { 'aria-hidden': 'true' }, loaded.parting),
-                h('span', { class: 'sc-viewer-hidden' }, COVERED)
+                h('span', { class: 'sr-only' }, COVERED)
               ]
             : loaded.parting)
         ])
@@ -57,7 +77,7 @@ function details(covering: boolean, loaded: Loaded, tallied: boolean): VNode {
  * Draws the middle dot setting one part of the details apart from the next.
  */
 function dot(): VNode {
-  return h('span', { class: 'sc-viewer-dot' }, ' · ')
+  return h('span', { class: 'text-quiet' }, ' · ')
 }
 
 /**
@@ -83,13 +103,13 @@ function drawMatch(
   tied     : { at: number, show: (at: number) => void, ties: readonly Tied[] }
 ): VNode {
   const tallied = tied.ties.length > 1 && !!loaded.shared
-  return h('div', { class: 'sc-viewer-match', key }, [
+  return h('div', { class: 'grid min-w-0 gap-2.5', key }, [
     headline(loaded),
     details(covering, loaded, tallied),
     tallied
       ? h(Tally, { at: tied.at, length: loaded.shared!.length, onShow: tied.show, ties: tied.ties })
       : null,
-    h('div', { class: 'sc-viewer-tags' }, [
+    h('div', { class: 'flex flex-wrap items-center gap-x-[22px] gap-y-2.5' }, [
       h(Seat, {
         done  : 'Link copied',
         icon  : 'link',
@@ -134,11 +154,18 @@ function dropOn(drag: Ref<number>, read: (file: File) => void): Record<string, (
 
 function headline(loaded: Loaded): VNode {
   const stored = loaded.match.stored
-  return h('p', { class: 'sc-viewer-headline' }, [
-    h('b', { class: 'sc-viewer-count' }, String(loaded.shared?.length ?? 0)),
+  return h('p', { class: 'flex items-center gap-[18px] text-ink max-sm:gap-3' }, [
+    h('b', {
+      class: 'font-display text-[4.8rem]/[70px] font-normal lining-nums tabular-nums text-run '
+           + 'max-lg:text-[3.8rem]/[56px] max-sm:text-[3rem]/[44px]'
+    }, String(loaded.shared?.length ?? 0)),
     h('span', [
-      h('span', { class: 'sc-viewer-pre' }, 'positions shared with '),
-      h('span', { class: 'sc-viewer-name' }, stored ? games.nameOf(stored) : 'no stored game')
+      h('span', {
+        class: 'block font-body text-[1.05rem]/[22px] font-normal text-quiet italic'
+      }, 'positions shared with '),
+      h('span', {
+        class: 'block font-display text-[1.7rem]/[32px] font-normal max-sm:text-[1.3rem]/[26px]'
+      }, stored ? games.nameOf(stored) : 'no stored game')
     ])
   ])
 }
@@ -211,7 +238,7 @@ export const Band = defineComponent({
 
     return () => h('section', {
       'aria-label' : 'The match and your game',
-      'class'      : 'sc-viewer-band',
+      'class'      : BAND,
       'data-drag'  : drag.value > 0 ? '' : undefined,
       ...on
     }, [

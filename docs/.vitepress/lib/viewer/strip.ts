@@ -124,7 +124,7 @@ export class TrackStrip {
     if (!this.#loaded) return
     const x  = track.columnOf(cursor, this.#loaded)
     const at = `translate(${x}px, 0px)`
-    head.classList.toggle('sc-viewer-gliding', glide)
+    head.toggleAttribute('data-gliding', glide)
     if (head.style.transform !== at) head.style.transform = at
     if (!this.#view) return
     const end = Math.max(0, track.trackWidth(this.#loaded) - this.#view)
