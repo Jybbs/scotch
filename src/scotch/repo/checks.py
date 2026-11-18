@@ -20,13 +20,15 @@ from ast             import (
     walk
 )
 from collections.abc import Iterator
+from io              import StringIO
 from itertools       import combinations
 from math            import dist
 from more_itertools  import duplicates_everseen, unique_everseen
 from pathlib         import Path
 from pydantic        import BaseModel, ValidationError
-from re              import findall, search, sub
+from re              import findall, finditer, search, sub
 from statistics      import mode
+from tokenize        import COMMENT, generate_tokens
 from typing          import ClassVar
 
 from scotch.docs.stops    import Stops
@@ -864,6 +866,60 @@ class SummaryCheck(Check):
                     message = "A step of the composite action writes the step summary",
                     path    = action.path
                 )
+
+
+class SuppressionCheck(Check):
+    """
+    Fails on a comment in the Python under `.mise/tasks`, `src`, or `tests`
+    carrying one of the suppression directives Prose documents, meaning:
+
+    - `# prose: off`, `skip`, `ignore`, or `keep`, bare or with a bracketed
+      rule list
+    - `# fmt: off`, `on`, or `skip`, or `# yapf: disable` or `enable`, which
+      Prose reads as the same suppression
+    """
+
+    directive: ClassVar[str] = (
+        r"#\s*(?:prose:\s*(?:off|skip|ignore|keep)(?:\[(?P<rules>[^\]]*)\])?"
+        r"|fmt:\s*(?:off|on|skip)|yapf:\s*(?:disable|enable))(?![\w-])"
+    )
+
+    trees: ClassVar[tuple[str, ...]] = (
+        ".mise/tasks/**/*.py", "src/**/*.py", "tests/**/*.py"
+    )
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at the line of each directive a comment token
+        carries, one for each rule a bracketed list names. A directive
+        inside a string sits in no comment token, so it passes.
+        """
+        root = self.checkout.root
+
+        for path in self.checkout.tracked:
+            if not any(map(path.full_match, self.trees)):
+                continue
+
+            source = StringIO((root / path).read_text(encoding="utf-8"))
+
+            for token in generate_tokens(source.readline):
+                if token.type != COMMENT:
+                    continue
+
+                for directive in finditer(self.directive, token.string):
+                    rules = findall(r"[^\s,]+", directive["rules"] or "")
+
+                    for rule in rules or ["<rule>"]:
+                        yield Finding(
+                            line    = token.start[0],
+                            message = (
+                                f"The comment carries `{directive[0]}`, which "
+                                "silences Prose in place of a "
+                                f"`[tool.prose.rules.{rule}]` table in "
+                                "`pyproject.toml`"
+                            ),
+                            path = root / path
+                        )
 
 
 class TaskCheck(Check):
