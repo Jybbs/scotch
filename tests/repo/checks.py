@@ -39,6 +39,7 @@ from scotch.repo.checks  import (
     SitePinCheck,
     StopCheck,
     SummaryCheck,
+    SuppressionCheck,
     TaskCheck,
     VitestCheck,
     WarmCheck,
@@ -922,6 +923,48 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         param(
             SitePinCheck,
             [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "optionalDependencies" : {"fsevents": ">=2.3.3"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`fsevents` is `>=2.3.3`, which is not one exact version"
+            )],
+            id = "loose-site-optional-dependency"
+        ),
+        param(
+            SitePinCheck,
+            [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "peerDependencies" : {"vue": "3.x"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`vue` is `3.x`, which is not one exact version"
+            )],
+            id = "loose-site-peer-dependency"
+        ),
+        param(
+            SitePinCheck,
+            [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "resolutions"     : {"picomatch": "^4.0.8"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`picomatch` is `^4.0.8`, which is not one exact version"
+            )],
+            id = "loose-site-resolution"
+        ),
+        param(
+            SitePinCheck,
+            [(
                 ".github/workflows/warm.yml",
                 "      - name: Install the tools and save their cache\n",
                 "        with:\n          wranglerVersion: ^4.149.0\n"
@@ -1072,6 +1115,125 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             id = "summary-writer-in-the-composite"
         ),
         param(
+            SuppressionCheck,
+            [(
+                "src/scotch/cli/run.py",
+                "def opened(error: OSError):",
+                "def opened(error: OSError):  "
+                "# prose: ignore[unsorted-positionals, step-narration]"
+            )],
+            [
+                (
+                    "src/scotch/cli/run.py",
+                    20,
+                    "The comment carries `# prose: ignore[unsorted-positionals, "
+                    "step-narration]`, a suppression directive of Prose, in place "
+                    "of a `[tool.prose.rules.unsorted-positionals]` table in "
+                    "`pyproject.toml`"
+                ),
+                (
+                    "src/scotch/cli/run.py",
+                    20,
+                    "The comment carries `# prose: ignore[unsorted-positionals, "
+                    "step-narration]`, a suppression directive of Prose, in place "
+                    "of a `[tool.prose.rules.step-narration]` table in "
+                    "`pyproject.toml`"
+                )
+            ],
+            id = "directive-naming-rules"
+        ),
+        param(
+            SuppressionCheck,
+            [(
+                "src/scotch/cli/run.py", 'raise SystemExit(f"Cannot read {pgn}")',
+                'raise SystemExit(f"Cannot read {pgn}")  # prose: skip'
+            )],
+            [(
+                "src/scotch/cli/run.py",
+                17,
+                "The comment carries `# prose: skip`, a suppression directive of "
+                "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                "`pyproject.toml`"
+            )],
+            id = "bare-directive"
+        ),
+        param(
+            SuppressionCheck,
+            [(
+                "src/scotch/cli/run.py", 'raise SystemExit(f"Cannot read {pgn}")',
+                'raise SystemExit(f"Cannot read {pgn}")  # prose: skip[reflow-calls]'
+            )],
+            [(
+                "src/scotch/cli/run.py",
+                17,
+                "The comment carries `# prose: skip[reflow-calls]`, a suppression "
+                "directive of Prose, in place of a "
+                "`[tool.prose.rules.reflow-calls]` table in `pyproject.toml`"
+            )],
+            id = "skip-naming-a-rule"
+        ),
+        param(
+            SuppressionCheck,
+            [(
+                "src/scotch/cli/run.py", "\ndef game(",
+                "\n#prose:keep\n# noqa # fmt: skip # yapf: enable\ndef game("
+            )],
+            [
+                (
+                    "src/scotch/cli/run.py",
+                    6,
+                    "The comment carries `#prose:keep`, a suppression directive of "
+                    "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                    "`pyproject.toml`"
+                ),
+                (
+                    "src/scotch/cli/run.py",
+                    7,
+                    "The comment carries `# fmt: skip`, a suppression directive of "
+                    "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                    "`pyproject.toml`"
+                ),
+                (
+                    "src/scotch/cli/run.py",
+                    7,
+                    "The comment carries `# yapf: enable`, a suppression directive of "
+                    "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
+                    "`pyproject.toml`"
+                )
+            ],
+            id = "directives-sharing-a-comment"
+        ),
+        param(
+            SuppressionCheck,
+            [
+                (
+                    "src/scotch/cli/run.py", '"Cannot read {pgn}"',
+                    '"Cannot read {pgn} # prose: skip"'
+                ),
+                (
+                    "src/scotch/cli/run.py", "Holds the messages",
+                    "Holds the `# fmt: off` messages"
+                )
+            ],
+            [],
+            id = "directive-in-a-string"
+        ),
+        param(
+            SuppressionCheck,
+            [(
+                "src/scotch/cli/run.py", "\ndef game(",
+                "\n# prose: offset # fmt: skipped\ndef game("
+            )],
+            [],
+            id = "word-opening-on-a-directive"
+        ),
+        param(
+            SuppressionCheck,
+            [(".mise/tasks/gha/scoresheet", "# ///\n", "# ///\n# fmt: off\n")],
+            [],
+            id = "directive-outside-a-python-file"
+        ),
+        param(
             VitestCheck,
             [(
                 "docs/package.json", '"@vitest/coverage-v8" : "5.0.5"',
@@ -1178,6 +1340,90 @@ def test_a_departure_draws_the_checks_findings(
     ) for path, line, message in findings]
 
 
+@mark.parametrize(
+    "path",
+    [
+        param(".mise/tasks/gha/order.py", id="task-script"),
+        param("tests/repo/checks.py", id="test")
+    ]
+)
+def test_a_directive_in_a_task_script_or_a_test_fails(
+    fp     : FakeProcess,
+    path   : str,
+    sample : Sample
+):
+    """
+    Asserts that a directive in a Python file under `.mise/tasks` or
+    `tests`, which `mise check` reads beside `src`, draws a finding at its
+    line.
+    """
+    (file := sample.root / path).parent.mkdir(exist_ok=True, parents=True)
+    file.write_text("# fmt: off\n")
+    sample.answer(fp)
+
+    assert [line for _, line, _ in scan(SuppressionCheck, sample)] == [1]
+
+
+def test_a_directive_outside_the_formatted_trees_passes(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a directive in a Python file outside `.mise/tasks`, `src`,
+    and `tests`, which `mise check` leaves out, draws no finding.
+    """
+    (sample.root / "rust" / "build.py").write_text("# fmt: off\n")
+    sample.answer(fp)
+
+    assert scan(SuppressionCheck, sample) == []
+
+
+@mark.parametrize(
+    "directive",
+    [
+        "# prose: off", "# prose: skip", "# prose: ignore",
+        "# prose: keep", "# fmt: off", "# fmt: on",
+        "# fmt: skip", "# yapf: disable", "# yapf: enable"
+    ]
+)
+def test_each_listed_directive_fails(
+    directive : str,
+    fp        : FakeProcess,
+    sample    : Sample
+):
+    """
+    Asserts that each directive the Prose reference lists draws one finding
+    naming it at its line.
+    """
+    (sample.root / "src" / "scotch" / "listed.py").write_text(f"\n{directive}\n")
+    sample.answer(fp)
+
+    assert [
+        (line, message.split("`")[1])
+        for _, line, message in scan(SuppressionCheck, sample)
+    ] == [(2, directive)]
+
+
+def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a bracketed rule list ending on a comma draws one finding
+    for each rule it names and none for the empty entry after the comma.
+    """
+    (sample.root / "src" / "scotch" / "listed.py").write_text(
+        "# prose: ignore[step-narration, ]\n"
+    )
+    sample.answer(fp)
+
+    assert [message for _, _, message in scan(SuppressionCheck, sample)] == [
+        "The comment carries `# prose: ignore[step-narration, ]`, a suppression "
+        "directive of Prose, in place of a `[tool.prose.rules.step-narration]` "
+        "table in `pyproject.toml`"
+    ]
+
+
 def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
     """
     Asserts that a wrapper that is a symlink draws a finding naming it as
@@ -1255,14 +1501,17 @@ def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
     (sample.root / "cited.md").write_text("A claim.[^doe2020]\n")
     (sample.root / "broken.md").write_text("<!-- table -->\n")
 
+    unread = (
+        "Line 3 of src/scotch/citations/references.bib holds a block "
+        "bibtexparser could not read"
+    )
+
     def unreadable() -> References:
         """
         Raises the error `References.read` raises for a block it could not
         read.
         """
-        raise ValueError(
-            "Line 3 of docs/references.bib holds a block bibtexparser could not read"
-        )
+        raise ValueError(unread)
     monkeypatch.setattr(
         Checkout,
         "outputs",
@@ -1295,9 +1544,5 @@ def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
             "holds other than one <!-- table --> followed by one "
             "<!-- /table -->"
         ),
-        (
-            Path("cited.md"),
-            None,
-            "Line 3 of docs/references.bib holds a block bibtexparser could not read"
-        )
+        (Path("cited.md"), None, unread)
     ]

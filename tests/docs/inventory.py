@@ -12,7 +12,7 @@ from common.app       import invoke
 from common.games     import line
 from json             import loads
 from pathlib          import Path
-from pytest           import CaptureFixture, MonkeyPatch, mark, param
+from pytest           import CaptureFixture, MonkeyPatch, Subtests, mark, param
 from syrupy.assertion import SnapshotAssertion
 from tomllib          import loads as from_toml
 
@@ -51,6 +51,7 @@ def test_an_index_adds_the_files_written_from_it(
     scanned     : Callable[[Iterable[Game]], PositionIndex],
     snapshot    : SnapshotAssertion,
     stored      : list[Game],
+    subtests    : Subtests,
     tally       : Tally,
     tmp_path    : Path
 ):
@@ -195,11 +196,14 @@ def test_an_index_adds_the_files_written_from_it(
         "headers"
     ]["White"] == "Kasparov, Gary"
     assert "<!-- link -->1,766<!-- /link -->" in text["reference/match.md"]
-    assert all(
-        f"<!-- run-{run} -->\n```bash\nscotch {run.replace('-', ' ', 1)}"
-        in text["reference/commands.md"]
-        for run in RUNS
-    )
+
+    for run in RUNS:
+        with subtests.test(run=run):
+            assert (
+                f"<!-- run-{run} -->\n```bash\nscotch {run.replace('-', ' ', 1)}"
+                in text["reference/commands.md"]
+            )
+
     assert "Indexed 3 games into .cache/data/index\n" in text["reference/commands.md"]
     assert '\n[White "Kasparov, Gary"]\n' in text["reference/commands.md"]
     assert "The index holds 3 games and" in text["reference/commands.md"]
@@ -215,12 +219,13 @@ def test_an_index_adds_the_files_written_from_it(
             "<!-- /gloss -->"
         )[0].splitlines()[1:]
     ] == [str(number) for number in range(1, len(Outputs.glosses) + 1)]
-    assert all(
-        text["reference/commands.md"].split(f"<!-- run-{run} -->")[1].split(
-            f"<!-- /run-{run} -->"
-        )[0] in text["guide/studying.md"]
-        for run in RUNS[1:]
-    )
+
+    for run in RUNS[1:]:
+        with subtests.test(studied=run):
+            assert text["reference/commands.md"].split(f"<!-- run-{run} -->")[1].split(
+                f"<!-- /run-{run} -->"
+            )[0] in text["guide/studying.md"]
+
     assert (
         f"scotch match game docs/public/games/demo.pgn --plies {Outputs.plies}\n"
         in text["guide/studying.md"]
@@ -236,7 +241,8 @@ def test_an_index_adds_the_files_written_from_it(
 
 def test_every_declared_output_renders_and_then_holds_its_rendering(
     checkout : Callable[..., Path],
-    snapshot : SnapshotAssertion
+    snapshot : SnapshotAssertion,
+    subtests : Subtests
 ):
     """
     Asserts that each output declared without an index writes into a fresh
@@ -309,11 +315,17 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
             mode         = "json"
         )]
     }
-    assert all(
-        f"<!-- command-{verb}-{noun} -->\n{Commands(app=app).section(verb, noun)}\n"
-        in (citing if verb == "cite" else pages)
-        for verb, noun in commands(app)
-    )
+
+    sections = Commands(app=app)
+
+    for verb, noun in commands(app):
+        with subtests.test(command=f"{verb} {noun}"):
+            section = sections.section(verb, noun)
+
+            assert f"<!-- command-{verb}-{noun} -->\n{section}\n" in (
+                citing if verb == "cite" else pages
+            )
+
     assert "```text\n[^zobrist1970]: Zobrist, Albert L. 1970." in citing
     assert pages.count("Fetched https://www.pgnmentor.com/") == 4
     assert loads(
@@ -322,15 +334,18 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     assert Project.installed().badges(Path(".github/README.md")) in (
         root / ".github/README.md"
     ).read_text()
-    assert [
-        (root / "docs/assets" / f"lockup-{scheme}.svg").read_text().count(hexed)
-        for scheme, hexed in (
-            ("dark", "#e3c3a3"),
-            ("dark", "#a1a09e"),
-            ("light", "#764017"),
-            ("light", "#4f4e4e")
-        )
-    ] == [1, 1, 1, 1]
+
+    for scheme, hexed in (
+        ("dark", "#e3c3a3"),
+        ("dark", "#a1a09e"),
+        ("light", "#764017"),
+        ("light", "#4f4e4e")
+    ):
+        with subtests.test(color=hexed, scheme=scheme):
+            assert (root / ".github/assets" / f"lockup-{scheme}.svg").read_text().count(
+                hexed
+            ) == 1
+
     assert loads((root / "docs/.vitepress/lib/rendered/identity.json").read_text())[
         "tagline"
     ] == "Find the grandmaster game closest to yours."
@@ -538,8 +553,8 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/ratings.json"),
         (Document, "docs/.vitepress/lib/rendered/terms.json"),
         (Document, "docs/public/favicon.svg"),
-        (Document, "docs/assets/lockup-dark.svg"),
-        (Document, "docs/assets/lockup-light.svg"),
+        (Document, ".github/assets/lockup-dark.svg"),
+        (Document, ".github/assets/lockup-light.svg"),
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
         *[(Region, "docs/pages/guide/setup.md")] * 3,

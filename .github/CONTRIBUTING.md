@@ -21,7 +21,7 @@ A change to `.github/labels.toml`, a ruleset under `.github/rulesets/`, or `.git
 
 ## 🪻 Code Style
 
-[*Prose*](https://pypi.org/project/prose-formatter/) settles the form of the Python under `.mise/tasks`, `src`, and `tests` from the `[tool.prose]` table in `pyproject.toml`. `mise format` rewrites the source to that form, and `mise check` reports every rewrite the formatter would make beside every lint finding. A lint finding is fixed in the source, or set aside for the whole repository where its rule does not fit the codebase, through a `[tool.prose.rules.<rule>]` table that turns the rule off or narrows what it reports. No line under `.mise/tasks`, `src`, or `tests` carries a marker silencing *Prose*.
+[*Prose*](https://pypi.org/project/prose-formatter/) settles the form of the Python under `.mise/tasks`, `src`, and `tests` from the `[tool.prose]` table in `pyproject.toml`. `mise format` rewrites the source to that form, and `mise check` reports every rewrite the formatter would make beside every lint finding. A lint finding is fixed in the source, or set aside for the whole repository where its rule does not fit the codebase, through a `[tool.prose.rules.<rule>]` table that turns the rule off or narrows what it reports. No comment under `.mise/tasks`, `src`, or `tests` carries a marker silencing *Prose*, and `mise audit` fails at the file and line of each comment that does.
 
 [rustfmt](https://rust-lang.github.io/rustfmt/) settles the form of the crate under `rust/` from its defaults. `mise run rs:format` rewrites the crate to that form, and `mise run rs:check` reports every rewrite rustfmt would make beside every lint [Clippy](https://doc.rust-lang.org/clippy/) reports under each of the crate's features, its pedantic group included.
 
@@ -31,11 +31,11 @@ A pull request runs `♟️ CI` wherever it changes a file outside the site's pa
 
 | **Check** | **Runs Locally** | **Fails When** |
 |---|---|---|
-| `♟️ CI / 🩺 Advisories` | `mise run lock:audit` | A package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves carries a published advisory, or an advisory database cannot be reached |
+| `♟️ CI / 🩺 Advisories` | `mise run lock:audit` | A package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves carries a published advisory other than one `AUDIT_IGNORE` lists while no release fixes it, a crate breaks a rule of `rust/.cargo/deny.toml` on its license, its version, or its source, or an advisory database cannot be reached |
 | `♟️ CI / 🔐 Lockfiles` | `mise lockfile` | `uv.lock`, `.mise/mise.lock`, `rust/Cargo.lock`, `docs/bun.lock`, or the lockfile beside a task script drifts from its manifest |
 | `♟️ CI / 🪻 Prose` | `mise check` | *Prose* reports a rewrite or a lint finding, each shown as an annotation on the line it concerns |
 | `♟️ CI / ☂️ Coverage` | `mise coverage` | A test fails under coverage, or the suite covers less than 95% of the package |
-| `♟️ CI / 📋 Audit` | `mise audit` | A check under `src/scotch/repo/` finds a file stating a fact otherwise than its source does, such as a pin, a label, a ruleset's required check, or a row of this table |
+| `♟️ CI / 📋 Audit` | `mise audit` | A check under `src/scotch/repo/` finds a comment in the Python carrying a marker silencing *Prose*, or a file stating a fact otherwise than its source does, such as a pin, a label, a ruleset's required check, or a row of this table |
 | `♟️ CI / 🔦 Workflows` | `mise run repo:lint` | [zizmor](https://docs.zizmor.sh/) reports a finding in a workflow or in the composite action |
 | `♟️ CI / 📎 Clippy` | `mise run rs:check` | rustfmt reports a rewrite in the crate under `rust/`, or [Clippy](https://doc.rust-lang.org/clippy/) reports a lint under any of its features |
 | `♟️ CI / 🦀 Crate` | `mise run rs:test` | A test of the crate under `rust/` fails |

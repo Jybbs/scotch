@@ -1,10 +1,30 @@
 import { createMarkdownRenderer } from 'vitepress'
 import { describe, expect, it }   from 'vitest'
+import { compileTemplate }        from 'vue/compiler-sfc'
 
-import { FIGURE }        from '../../../lib/markdown/placements.ts'
-import { markdownRules } from '../../../lib/markdown/rules.ts'
+import { FIGURE }               from '../../../lib/markdown/placements.ts'
+import { markdownRules }        from '../../../lib/markdown/rules.ts'
+import { builtPages, pageText } from '../../common/pages.ts'
 
-const md = await createMarkdownRenderer('/tmp', { config: markdownRules })
+const md      = await createMarkdownRenderer('/tmp', { config: markdownRules })
+const COMMENT = /<!--[^]*?-->/gu
+
+/**
+ * Compiles a page's HTML as VitePress hands it to Vue, its comments kept or
+ * dropped, and returns the render code with every comment taken out, so the two
+ * differ only where Vue condenses whitespace differently beside a comment.
+ */
+function compiled(html: string, comments: boolean): string {
+  const { code } = compileTemplate({
+    compilerOptions : { comments },
+    filename        : 'page.md',
+    id              : 'page',
+    source          : `<div>${html}</div>`,
+    ssr             : true,
+    ssrCssVars      : []
+  })
+  return code.replaceAll(COMMENT, '')
+}
 
 describe('markdownRules', () => {
   it('numbers a citation by its source', () => {
@@ -22,5 +42,10 @@ describe('markdownRules', () => {
   it('places the widgets the placements name', () => {
     const page = '# Runs\n\n## Stepping Through a Match\n\nThe line.\n'
     expect(md.render(page, { relativePath: 'methods/runs.md' })).toContain(`<${FIGURE} name="run" />`)
+  })
+
+  it.each(builtPages())('reads %s the same with its comments kept as with them dropped', { timeout: 30_000 }, page => {
+    const html = md.render(pageText(page), { cleanUrls: true, relativePath: page })
+    expect(compiled(html, true)).toBe(compiled(html, false))
   })
 })

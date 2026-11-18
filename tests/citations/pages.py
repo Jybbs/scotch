@@ -244,8 +244,9 @@ def test_two_changes_to_the_blank_lines_are_two_mismatches(references: Reference
     [
         param(
             Mismatch(key="doe2020", line=3),
-            "The doe2020 footnote differs from its entry in docs/references.bib or"
-            " sits out of the order the file first cites it in",
+            "The doe2020 footnote differs from its entry in"
+            " src/scotch/citations/references.bib or sits out of the order the file"
+            " first cites it in",
             id = "source"
         ),
         param(

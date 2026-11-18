@@ -18,27 +18,31 @@ from sys             import executable
 from types           import SimpleNamespace
 from typing          import Self
 
-from scotch.cli.settings    import Settings
-from scotch.docs.inventory  import Outputs
-from scotch.docs.outputs    import Document
-from scotch.games.schemas   import Game, Origin
-from scotch.index.tables    import PositionIndex
-from scotch.pins.schemas    import Lift
-from scotch.pins.trees      import Tree
-from scotch.sources.schemas import Download, Manifest, Source, Sources
+from scotch.citations.schemas import References
+from scotch.cli.settings      import Settings
+from scotch.docs.inventory    import Outputs
+from scotch.docs.outputs      import Document
+from scotch.games.schemas     import Game, Origin
+from scotch.index.tables      import PositionIndex
+from scotch.pins.schemas      import Failure, Lift
+from scotch.pins.trees        import Tree
+from scotch.sources.schemas   import Download, Manifest, Source, Sources
 
 
 @fixture
 def bibliography(bibtex: Path, monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
     """
-    Points the project's root `scotch cite source` reads at a directory
-    whose `docs/references.bib` holds the three sources of `bibtex`.
+    Points the bibliography `scotch cite source` reads at a copy of
+    `bibtex`, holding its three sources.
     """
-    (tmp_path / "docs").mkdir()
-    copyfile(bibtex, tmp_path / "docs" / "references.bib")
-    monkeypatch.setattr("scotch.cli.cite.root", lambda: tmp_path)
+    copyfile(bibtex, path := tmp_path / "references.bib")
+    monkeypatch.setattr(
+        References,
+        "installed",
+        classmethod(lambda cls: cls.read(path))
+    )
 
-    return tmp_path
+    return path
 
 
 @fixture(scope="module")
@@ -246,11 +250,12 @@ def lagging(
 ) -> Callable[..., tuple[list[tuple[tuple[str, ...], str, bool]], list[bytes]]]:
     """
     Builds a function that makes `scotch lift pins`, its root pointed at the
-    sample checkout, read the lifts it is given on 2026-10-23, and stands in
-    for each attempt at a lift, which fails where it lifts a pin `breaking`
-    names and otherwise returns the names it lifts as its diff. The function
-    returns the attempts made, each as the names lifted, the log's name, and
-    whether it was checked, beside each diff applied to the checkout.
+    sample checkout, read the lifts it is given on 2026-10-23, and stands
+    in for each attempt at a lift, which fails on `mise run repo:ci` where
+    it lifts a pin `breaking` names and otherwise returns the names it lifts
+    as its diff. The function returns the attempts made, each as the names
+    lifted, the log's name, and whether it was checked, beside each diff
+    applied to the checkout.
     """
 
     def lag(
@@ -269,15 +274,18 @@ def lagging(
             log     : Path,
             *,
             checked : bool
-        ) -> bytes | None:
+        ) -> bytes | Failure:
             """
             Records the attempt and returns the names it lifts as its diff,
-            or `None` where it lifts a breaking pin.
+            or a failing `mise run repo:ci` where it lifts a breaking pin.
             """
             names = tuple(lift.name for lift in lifted)
             attempts.append((names, log.name, checked))
 
-            return None if set(names) & set(breaking) else ",".join(names).encode()
+            if set(names) & set(breaking):
+                return Failure(command="mise run repo:ci", log=log)
+
+            return ",".join(names).encode()
 
         def apply(self: Tree, patch: bytes) -> tuple[str, ...]:
             """

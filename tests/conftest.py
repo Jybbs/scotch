@@ -5,7 +5,7 @@ across the suite share, each described where it is defined.
 
 from collections.abc  import Callable, Iterable, Iterator
 from common.games     import FIXTURES
-from common.isolation import CLEARED
+from common.isolation import CLEARED, PINNED
 from common.sample    import Sample
 from os               import environ
 from pathlib          import Path
@@ -27,10 +27,10 @@ pytest_plugins = ["common.isolation"]
 @fixture(autouse=True)
 def environment(monkeypatch: MonkeyPatch, tmp_path_factory: TempPathFactory):
     """
-    Points `HOME` at an empty directory and clears each variable `CLEARED`
-    names beside each one `Settings` reads, whose name opens on its
-    `env_prefix` in any case, since pydantic-settings matches a name without
-    regard to case.
+    Points `HOME` at an empty directory, sets each variable `PINNED` names
+    to its value, and clears each variable `CLEARED` names beside each one
+    `Settings` reads, whose name opens on its `env_prefix` in any case,
+    since pydantic-settings matches a name without regard to case.
     """
     prefix = Settings.model_config["env_prefix"].casefold()
 
@@ -43,7 +43,8 @@ def environment(monkeypatch: MonkeyPatch, tmp_path_factory: TempPathFactory):
     ):
         monkeypatch.delenv(name, raising=False)
 
-    monkeypatch.setenv("HOME", str(tmp_path_factory.mktemp("home")))
+    for name, value in {**PINNED, "HOME": str(tmp_path_factory.mktemp("home"))}.items():
+        monkeypatch.setenv(name, value)
 
 
 @fixture

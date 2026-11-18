@@ -1,0 +1,17 @@
+{
+  "ghsa_id": "GHSA-7w2g-9mf9-324m",
+  "cve_id": "CVE-2026-63481",
+  "html_url": "https://github.com/advisories/GHSA-7w2g-9mf9-324m",
+  "summary": "Hurl: Cookies in Cookies section leak when redirecting to a different host",
+  "severity": "medium",
+  "vulnerabilities": [
+    {
+      "package": {
+        "ecosystem": "rust",
+        "name": "hurl"
+      },
+      "vulnerable_version_range": "<= 8.0.1",
+      "first_patched_version": null
+    }
+  ]
+}

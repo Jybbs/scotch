@@ -133,10 +133,10 @@ when     = "The server answers with an error status, a request fails once every 
 clears   = "Pass the key an entry's `@` line opens on, or add the entry"
 commands = ["cite source"]
 message  = "<key> names no entry in <file>"
-when     = "No entry of `docs/references.bib` holds the key"
+when     = "No entry of `src/scotch/citations/references.bib` holds the key"
 
 [[stops]]
 clears   = "Correct the block the line opens"
 commands = ["cite source"]
 message  = "Line <line> of <file> holds a block bibtexparser could not read: <reason>"
-when     = "A block of `docs/references.bib` cannot be read"
+when     = "A block of `src/scotch/citations/references.bib` cannot be read"

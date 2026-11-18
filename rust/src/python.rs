@@ -160,7 +160,6 @@ impl Held {
     /// Lays the stored games out from their columns, numbering each game by
     /// its place in them.
     #[staticmethod]
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn build(
         moves: Vec<PyBackedBytes>,
         plies: Vec<u16>,
@@ -191,13 +190,11 @@ impl Held {
 
     /// Maps the file at `path` into memory.
     #[staticmethod]
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn read(path: PathBuf) -> PyResult<Self> {
         Ok(Self(crate::Positions::read(&path).map_err(raised)?))
     }
 
     /// Writes the file to `path`.
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn write(&self, path: PathBuf) -> PyResult<()> {
         self.0.write(&path).map_err(raised)
     }
@@ -246,7 +243,6 @@ impl Held {
 
     /// Writes the head of a file holding these key pieces and game pieces
     /// of the bytes `sizes` lists in order.
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn rehead<'py>(&self, py: Python<'py>, sizes: Vec<u64>) -> PyResult<Bound<'py, PyBytes>> {
         Ok(PyBytes::new(py, &self.0.rehead(&sizes).map_err(raised)?))
     }
@@ -259,7 +255,6 @@ impl Held {
     /// Finds at most `top` stored games at their longest runs with a game
     /// reaching `keys`, as columns beside the count of other stored games
     /// sharing a run as long as the first's.
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn best(&self, keys: Vec<u64>, top: usize) -> (Columns, usize) {
         let (runs, ties) = self.0.best(&keys, top);
 
@@ -268,13 +263,11 @@ impl Held {
 
     /// Finds every run a stored game shares with a game reaching `keys`, as
     /// columns.
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn runs(&self, keys: Vec<u64>) -> Columns {
         columns(&self.0.runs(&keys))
     }
 
     /// Counts the stored games reaching each of `keys`.
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn reach(&self, keys: Vec<u64>) -> Vec<u32> {
         self.0.reach(&keys)
     }
@@ -284,7 +277,6 @@ impl Held {
     /// `groups` names standing at each ply in a position another stored game
     /// reaches, and each count of games reaching a key beside its keys, per
     /// `Positions::sharing`.
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn sharing(&self, groups: Vec<u16>) -> Shared {
         let Sharing {
             alone,
@@ -306,7 +298,6 @@ impl Held {
     /// UCI notation from the position `fen` names or the standard starting
     /// position, as each move beside its outcomes, the outcomes of the games
     /// ending there, and at most `top` games.
-    #[expect(clippy::needless_pass_by_value, reason = "PyO3 extracts owned values")]
     fn tally(&self, moves: Vec<String>, fen: Option<&str>, top: usize) -> PyResult<Tallied> {
         let Tally {
             moves,

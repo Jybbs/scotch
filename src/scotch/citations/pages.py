@@ -1,11 +1,11 @@
 """
 Holds `Page`, one Markdown file parsed the way the site parses a page, which
 finds each source the file cites and each footnote definition it carries
-and rebuilds the file's text with the definition of every cited source
-taken from `docs/references.bib`, beside the `Mismatch` naming a line where
-a page differs from that text. `scotch render docs` runs it over every
-tracked Markdown file, so a page types only the footnote's marker, such as
-`[^zobrist1970]`, and the command writes its definition.
+and rebuilds the file's text with the definition of every cited source taken
+from `src/scotch/citations/references.bib`, beside the `Mismatch` naming a
+line where a page differs from that text. `scotch render docs` runs it over
+every tracked Markdown file, so a page types only the footnote's marker,
+such as `[^zobrist1970]`, and the command writes its definition.
 """
 
 from difflib           import SequenceMatcher

@@ -144,21 +144,56 @@ def test_a_failing_trial_holds_back_a_coupled_pair_once_as_one(
     sample  : Sample
 ):
     """
-    Asserts that a failing trial holds back `vitest` and
-    `@vitest/coverage-v8` together in one attempt, named for the first in
-    the table's order, and says that holding the two back passes.
+    Asserts that a failing trial tries `vitest` and `@vitest/coverage-v8`
+    together in one attempt, named for the first in the table's order, holds
+    the two back together where it fails, naming the command and the log,
+    and passes on the lift left.
     """
     attempts, _ = lagging(coupled_pair(), breaking={"vitest"})
+    logs        = sample.root / ".cache" / "lift"
 
-    assert invoke("lift", "pins", "--try") == (
-        f"The lift fails its trial, logged under {sample.root / '.cache' / 'lift'}"
-    )
-    assert capsys.readouterr().out.splitlines()[-1] == (
-        "Holding back `@vitest/coverage-v8` and `vitest` passes"
-    )
+    assert invoke("lift", "pins", "--try") == 0
+    assert capsys.readouterr().out.splitlines()[-3:] == [
+        f"The lift fails `mise run repo:ci`, logged in {logs / 'trial.log'}",
+        "Held back `@vitest/coverage-v8` and `vitest`, whose trial fails "
+        f"`mise run repo:ci`, logged in {logs / 'lift-@vitest-coverage-v8.log'}",
+        "The lifts not held back pass `mise ci`"
+    ]
     assert attempts == [
         (("@vitest/coverage-v8", "vitest", "pluggy"), "trial.log", True),
-        (("pluggy",), "held-@vitest-coverage-v8.log", True)
+        (("@vitest/coverage-v8", "vitest"), "lift-@vitest-coverage-v8.log", True),
+        (("pluggy",), "lift-pluggy.log", True)
+    ]
+
+
+def test_a_held_lift_names_only_the_coupled_pins_the_table_lists(
+    capsys  : CaptureFixture[str],
+    lagging : Lagging,
+    sample  : Sample
+):
+    """
+    Asserts that a failing lift of `node`, which `repo:audit` holds to
+    `@types/node`, is held back naming `node` alone where `@types/node` lags
+    nowhere in the table, and that the lift left passes.
+    """
+    lagging(
+        (
+            Lift(
+                current = "26.11.1",
+                name    = "node",
+                newest  = "26.13.0",
+                path    = ".mise/config.toml"
+            ),
+            lagging_three()[1]
+        ),
+        breaking = {"node"}
+    )
+
+    assert invoke("lift", "pins", "--try") == 0
+    assert capsys.readouterr().out.splitlines()[-2:] == [
+        "Held back `node`, whose trial fails `mise run repo:ci`, logged in "
+        f"{sample.root / '.cache' / 'lift' / 'lift-node.log'}",
+        "The lifts not held back pass `mise ci`"
     ]
 
 
@@ -232,53 +267,103 @@ def test_a_lift_no_longer_applying_exits_naming_the_apply(
 
 
 @mark.parametrize(
-    ("hold", "reruns", "verdicts"),
+    ("hold", "breaking", "reruns", "held", "written"),
     [
         param(
             (),
+            {"polars"},
             [
-                (("pluggy", "polars"), "held-actions-checkout.log", True),
-                (("actions/checkout", "pluggy"), "held-polars.log", True)
+                (("actions/checkout",), "lift-actions-checkout.log", True),
+                (("actions/checkout", "pluggy"), "lift-pluggy.log", True)
+            ],
+            [("polars", "trial.log")],
+            b"actions/checkout,pluggy",
+            id = "one-failing"
+        ),
+        param(
+            (),
+            {"actions/checkout", "polars"},
+            [
+                (("actions/checkout",), "lift-actions-checkout.log", True),
+                (("pluggy",), "lift-pluggy.log", True),
+                (("pluggy", "polars"), "lift-polars.log", True)
             ],
             [
-                "Holding back `actions/checkout` still fails",
-                "Holding back `polars` passes"
+                ("actions/checkout", "lift-actions-checkout.log"),
+                ("polars", "lift-polars.log")
             ],
-            id = "every-major"
+            b"pluggy",
+            id = "two-failing"
         ),
         param(
             ("--hold", "actions/checkout"),
-            [(("pluggy",), "held-polars.log", True)],
-            ["Holding back `polars` passes"],
-            id = "a-major-held"
+            {"polars"},
+            [(("pluggy",), "lift-pluggy.log", True)],
+            [("polars", "trial.log")],
+            b"pluggy",
+            id = "one-held"
         )
     ]
 )
-def test_a_failing_trial_tries_again_holding_back_each_major_in_turn(
+def test_a_failing_trial_tries_each_lift_in_turn_and_writes_those_passing(
+    breaking : set[str],
     capsys   : CaptureFixture[str],
+    held     : list[tuple[str, str]],
     hold     : tuple[str, ...],
     lagging  : Lagging,
-    reruns   : list[tuple[tuple[str, ...], str, bool]],
+    reruns   : list[Attempt],
     sample   : Sample,
-    verdicts : list[str]
+    written  : bytes
 ):
     """
-    Asserts that a trial failing with every pin lifted runs again holding
-    back each major lift the reader did not hold, in the table's order
-    and each under a log named for it, says whether each passes, and exits
-    naming the folder the logs land in.
+    Asserts that a trial failing with every pin lifted runs again for each
+    lift the reader did not hold, in the table's order and each under a log
+    named for it, on top of the lifts already passing, prints one line for
+    each lift it holds back naming the failing command and the log, the last
+    lift tried with none held before it taking the first trial's log rather
+    than running that trial again, and writes the last passing trial's diff.
     """
-    attempts, applied = lagging(lagging_three(), breaking={"polars"})
+    attempts, applied = lagging(lagging_three(), breaking=breaking)
     lifted            = tuple(
         name for name in ("actions/checkout", "pluggy", "polars") if name not in hold
     )
+    logs = sample.root / ".cache" / "lift"
 
-    assert invoke("lift", "pins", "--try", "--write", *hold) == (
-        f"The lift fails its trial, logged under {sample.root / '.cache' / 'lift'}"
-    )
-    assert capsys.readouterr().out.splitlines()[-len(verdicts):] == verdicts
+    assert invoke("lift", "pins", "--try", "--write", *hold) == 0
+    assert [
+        line
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith("Held back")
+    ] == [
+        f"Held back `{name}`, whose trial fails `mise run repo:ci`, logged in "
+        f"{logs / log}"
+        for name, log in held
+    ]
     assert attempts == [(lifted, "trial.log", True), *reruns]
-    assert applied == []
+    assert applied == [written]
+
+
+def test_a_lone_failing_lift_is_held_back_without_a_second_trial(
+    capsys  : CaptureFixture[str],
+    lagging : Lagging,
+    sample  : Sample
+):
+    """
+    Asserts that a trial failing on its one lift holds that lift back on
+    the trial's own failure, running no second attempt, and exits naming the
+    folder the logs land in.
+    """
+    attempts, applied = lagging(lagging_three()[:1], breaking={"polars"})
+    logs              = sample.root / ".cache" / "lift"
+
+    assert invoke("lift", "pins", "--try", "--write") == (
+        f"No lift passes its trial, logged under {logs}"
+    )
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        "Held back `polars`, whose trial fails `mise run repo:ci`, logged in "
+        f"{logs / 'trial.log'}"
+    )
+    assert (attempts, applied) == ([(("polars",), "trial.log", True)], [])
 
 
 @mark.parametrize(
@@ -375,6 +460,25 @@ def test_a_tool_answer_failing_its_record_exits_naming_it(
     )
 
     assert invoke("lift", "pins").startswith("2 validation errors for Lift\n")
+
+
+def test_a_trial_no_lift_passes_exits_writing_nothing(
+    lagging : Lagging,
+    sample  : Sample
+):
+    """
+    Asserts that a trial where every lift fails on its own exits naming the
+    folder the logs land in and writes nothing.
+    """
+    _, applied = lagging(
+        lagging_three(),
+        breaking = {"actions/checkout", "pluggy", "polars"}
+    )
+
+    assert invoke("lift", "pins", "--try", "--write") == (
+        f"No lift passes its trial, logged under {sample.root / '.cache' / 'lift'}"
+    )
+    assert applied == []
 
 
 def test_the_command_prints_the_table_of_every_lagging_pin(

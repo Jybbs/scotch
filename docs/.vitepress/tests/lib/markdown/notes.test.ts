@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { citeMark }                                            from '../../../lib/markdown/citing.ts'
 import { CITED, PICKED, anchored, citationOf, clauseOf, pick } from '../../../lib/markdown/notes.ts'
 
-const md   = await createMarkdownRenderer('/tmp', { config: citeMark })
+const md   = await createMarkdownRenderer('/tmp', { config: citeMark, highlight: () => '' })
 const PAGE = [
   'Keys hash a board.[^zobrist1970] Two games share a run, and the rule reads it.[^gusfield1997][^fide2023]',
   '',

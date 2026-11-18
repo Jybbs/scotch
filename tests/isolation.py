@@ -1,12 +1,13 @@
 """
 Pins the isolation the suite keeps from the machine running it, covering
-the shell variables each test starts without, the home directory it reads,
-the block that stops a test without the `network` mark from opening a
-connection, and the mark that lets a `network` test open one.
+the shell variables each test starts without, the terminal's type and width
+it starts with, the home directory it reads, the block that stops a test
+without the `network` mark from opening a connection, and the mark that lets
+a `network` test open one.
 """
 
 from collections.abc  import Iterator
-from common.isolation import CLEARED, pytest_collection_modifyitems
+from common.isolation import CLEARED, PINNED, pytest_collection_modifyitems
 from os               import environ
 from pathlib          import Path
 from pytest           import FixtureRequest, MonkeyPatch, fixture, mark, raises, warns
@@ -38,12 +39,33 @@ def test_a_socket_stays_closed_outside_the_network_mark():
         create_connection(("blocked.invalid", 80))
 
 
+@fixture(params=PINNED, scope="module")
+def pinned(request: FixtureRequest) -> Iterator[str]:
+    """
+    Sets the variable `request.param` names to a value other than its pin
+    and yields that name, at module scope so the variable differs from
+    its pin on every machine, one already at the pin included, before the
+    function-scoped `environment` fixture sets it.
+    """
+    with MonkeyPatch.context() as patch:
+        patch.setenv(request.param, "unpinned")
+        yield request.param
+
+
 def test_home_is_an_empty_directory():
     """
     Asserts that `~` resolves to an empty directory, so no test reads a
     dotfile from the developer's home.
     """
     assert list(Path.home().iterdir()) == []
+
+
+def test_the_shell_carries_no_variable_that_changes_a_result(name: str):
+    """
+    Asserts that no variable `CLEARED` names, and no variable `Settings`
+    reads in either case, reaches a test.
+    """
+    assert name not in environ
 
 
 @fixture(
@@ -69,9 +91,10 @@ def name(request: FixtureRequest) -> Iterator[str]:
         yield request.param
 
 
-def test_the_shell_carries_no_variable_that_changes_a_result(name: str):
+def test_the_terminal_type_and_width_are_pinned(pinned: str):
     """
-    Asserts that no variable `CLEARED` names, and no variable `Settings`
-    reads in either case, reaches a test.
+    Asserts that the variable `pinned` names reaches every test set to the
+    value `PINNED` gives it, so output a terminal's type or width shapes
+    compares byte for byte on any machine.
     """
-    assert name not in environ
+    assert environ[pinned] == PINNED[pinned]

@@ -713,6 +713,12 @@ class Site(ConfigFile):
     name.
     """
 
+    optional: dict[str, str] = Field({}, validation_alias="optionalDependencies")
+    """
+    The version each package the site installs only where its platform
+    allows is pinned to, keyed by its name.
+    """
+
     overrides: dict[str, str] = {}
     """
     The version each package the site's packages depend on is held to in
@@ -725,18 +731,34 @@ class Site(ConfigFile):
     keyed by its name.
     """
 
+    peers: dict[str, str] = Field({}, validation_alias="peerDependencies")
+    """
+    The version each package the site expects beside it is pinned to, keyed
+    by its name.
+    """
+
+    resolutions: dict[str, str] = {}
+    """
+    The version each package the site's packages depend on is held to through
+    the `resolutions` table Bun reads beside `overrides`, keyed by its name.
+    """
+
     @property
     def loose(self) -> tuple[tuple[str, str], ...]:
         """
-        Lists the name and the version of each dependency, each package, and
-        each override not pinned to one exact version.
+        Lists the name and the version of each dependency, each optional and
+        each peer dependency, each package, and each override and resolution
+        not pinned to one exact version.
         """
         return tuple(
             (name, version)
             for name, version in (
                 *self.dependencies.items(),
+                *self.optional.items(),
                 *self.packages.items(),
-                *self.overrides.items()
+                *self.peers.items(),
+                *self.overrides.items(),
+                *self.resolutions.items()
             )
             if not exact(version)
         )

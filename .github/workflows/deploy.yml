@@ -51,7 +51,7 @@ jobs:
         with:
           ref: ${{ needs.order.outputs.commit }}
           shared-key: scotch-python
-          tools: python rust uv
+          tools: jq python rust uv
       - name: Run the suite under coverage
         if: ${{ steps.reuse.outputs.found != 'true' }}
         run: mise run py:coverage
@@ -89,7 +89,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_TOKEN }}
           command: pages deploy --branch=main --project-name=scotch docs/.vitepress/dist
-          wranglerVersion: 4.160.0
+          wranglerVersion: 4.164.0
     timeout-minutes: 10
   order:
     name: ⏳ Order
