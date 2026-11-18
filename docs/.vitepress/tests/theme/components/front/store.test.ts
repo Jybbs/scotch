@@ -29,25 +29,25 @@ describe('Store', () => {
     vi.mocked(fillsOf).mockReturnValueOnce([])
     const store = mount(Store)
     await flushPromises()
-    expect(store.findAll('.sc-front-store > span')).toHaveLength(SQUARES)
-    expect(store.findAll('.sc-front-store i')).toHaveLength(0)
+    expect(store.findAll('[data-shade]')).toHaveLength(SQUARES)
+    expect(store.findAll('[data-shade] i')).toHaveLength(0)
   })
 
   test('draws the store as one board of 64 squares, a row per decade beside it', async () => {
     const store = mount(Store)
     await flushPromises()
-    expect(store.findAll('.sc-front-store > span')).toHaveLength(SQUARES)
-    expect(store.findAll('.sc-front-eras > div')).toHaveLength(decades.length)
+    expect(store.findAll('[data-shade]')).toHaveLength(SQUARES)
+    expect(store.findAll('[data-eras] > div')).toHaveLength(decades.length)
   })
 
   test('starts over on the earliest decade, its games drawn full on the board', async () => {
     const store = mount(Store)
     await flushPromises()
     await homed(store)
-    expect(store.find('.sc-front-spoken').text()).toBe(counted(decades[0]!.games))
-    expect(store.findAll('.sc-front-store i[data-on]').length).toBeGreaterThan(0)
-    expect(store.find('.sc-front-unit').text()).toBe('games')
-    expect(store.find('.sc-front-say').text()).toContain(`Played ${decades[0]!.when}`)
+    expect(store.find('[data-spoken]').text()).toBe(counted(decades[0]!.games))
+    expect(store.findAll('[data-shade] i[data-on]').length).toBeGreaterThan(0)
+    expect(store.find('[data-unit]').text()).toBe('games')
+    expect(store.find('[data-say]').text()).toContain(`Played ${decades[0]!.when}`)
   })
 
   test('plays the decades on the clock', async ({ clock }) => {
@@ -56,13 +56,13 @@ describe('Store', () => {
     await homed(store)
     clock.advanceTimersByTime(1300)
     await flushPromises()
-    expect(store.find('.sc-front-eras > div[data-on]').text()).toContain(decades[1]!.short)
+    expect(store.find('[data-eras] > div[data-on]').text()).toContain(decades[1]!.short)
   })
 
   test('moves to a decade its row is pressed on', async () => {
     const store = mount(Store)
     await flushPromises()
-    await store.findAll('.sc-front-eras > div')[2]!.trigger('click')
+    await store.findAll('[data-eras] > div')[2]!.trigger('click')
     expect(store.find('[role=slider]').attributes('aria-valuetext')).toBe(decades[2]!.name)
   })
 

@@ -7,6 +7,15 @@ import { squareAt }               from '../../../lib/methods/squares.ts'
 import { drawPiece, drawSquares } from '../methods/board.ts'
 
 /**
+ * The ring each game's board takes once the boards part, the stored game's
+ * pieces dimmed beneath its cover.
+ */
+const APART = {
+  stored    : 'in-data-apart:[box-shadow:0_0_0_1px_var(--sc-rule),0_0_0_3px_var(--sc-stored)]',
+  submitted : 'in-data-apart:[box-shadow:0_0_0_1px_var(--sc-rule),0_0_0_3px_var(--sc-submitted)]'
+} as const
+
+/**
  * What a board of the split exposes, the call that moves its pieces to a
  * position.
  */
@@ -40,17 +49,28 @@ export const Half = defineComponent({
       const to = props.position.to
       return h('div', {
         'aria-label' : props.label,
-        'class'      : 'sc-front-board',
         'data-game'  : props.game,
         'ref'        : node,
-        'role'       : 'img'
+        'role'       : 'img',
+        'class'      : [
+          'relative aspect-[1] w-full overflow-hidden rounded-[3px] transition-[box-shadow] duration-settle',
+          '[box-shadow:0_0_0_1px_var(--sc-rule),0_0_0_3px_var(--sc-entry)]',
+          APART[props.game as keyof typeof APART]
+        ]
       }, [
         drawSquares(),
         h('i', {
-          class : 'sc-front-landed',
-          style : to === null ? { opacity: '0' } : { opacity: '1', transform: squareAt(to) }
+          'class'       : 'absolute top-0 left-0 size-[12.5%] bg-(--sc-entry)/42 '
+                        + 'will-change-[transform,opacity]',
+          'data-landed' : '',
+          'style'       : to === null ? { opacity: '0' } : { opacity: '1', transform: squareAt(to) }
         }),
-        h('div', { class: 'sc-run-layer' }, Array.from(placedOf(props.position), ([id, placed]) =>
+        h('div', {
+          class: [
+            'sc-run-layer transition-[opacity] duration-settle',
+            props.game === 'stored' ? 'in-data-apart:opacity-28' : ''
+          ]
+        }, Array.from(placedOf(props.position), ([id, placed]) =>
           drawPiece(id, placed)))
       ])
     }

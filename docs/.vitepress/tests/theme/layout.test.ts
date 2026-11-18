@@ -17,7 +17,7 @@ vi.mock('vitepress/theme-without-fonts', () => ({
   }
 }))
 vi.mock('../../theme/components/colophon.ts', () => ({
-  Colophon: defineComponent({ setup: () => () => h('footer', { class: 'sc-colophon' }) })
+  Colophon: defineComponent({ setup: () => () => h('footer', { id: 'colophon' }) })
 }))
 vi.mock('../../theme/components/front/layer.ts', () => ({
   Layer: defineComponent({ setup: () => () => h('i', { class: 'layer' }) })
@@ -25,7 +25,7 @@ vi.mock('../../theme/components/front/layer.ts', () => ({
 
 describe('Layout', () => {
   it('sets the colophon beneath every page', () => {
-    expect(mount(Layout).find("[data-slot='layout-bottom'] .sc-colophon").exists()).toBe(true)
+    expect(mount(Layout).find("[data-slot='layout-bottom'] #colophon").exists()).toBe(true)
   })
 
   it("sets beneath every page the slip a term's link opens", () => {
@@ -45,9 +45,9 @@ describe('Layout', () => {
   })
 
   it('sets the wordmark over the tagline in the hero', () => {
-    const lockup = mount(Layout).find("[data-slot='home-hero-info'] .sc-lockup")
-    expect(lockup.find('.sc-wordmark svg').exists()).toBe(true)
-    expect(lockup.find('.sc-tagline').text()).toBe(IDENTITY.tagline)
+    const lockup = mount(Layout).find("[data-slot='home-hero-info'] > div")
+    expect(lockup.find('span > svg').exists()).toBe(true)
+    expect(lockup.find('p').text()).toBe(IDENTITY.tagline)
   })
 
   it("sets the mark beside the site's title, hidden from a screen reader", () => {

@@ -24,7 +24,7 @@ const PAGE = [
 
 describe('frontPage', () => {
   const html    = md.render(PAGE, { relativePath: FRONT })
-  const entries = [...html.matchAll(/<section class="sc-entry" style="([^"]+)">([^]*?)<\/section>/gu)]
+  const entries = [...html.matchAll(/<section class="[^"]+" data-entry style="([^"]+)">([^]*?)<\/section>/gu)]
 
   it('drops the heading and the tagline, which the hero draws', () => {
     expect(html).not.toContain('<h1')
@@ -57,8 +57,8 @@ describe('frontPage', () => {
     const section = SECTIONS.find(each => each.label === label) as { question: string, slug: string }
     const entry   = entries[index]![2]!
     const asked   = section.question
-    expect(entry).toContain(`<span aria-hidden="true" class="sc-entry-numeral">${numeral}</span>`)
-    expect(entry).toContain(`<a class="sc-entry-kicker" href="/${section.slug}/"><span>${label}</span></a>`)
+    expect(entry).toMatch(new RegExp(`<span aria-hidden="true" class="[^"]+">${numeral}</span>`, 'u'))
+    expect(entry).toMatch(new RegExp(`<a class="[^"]+" href="/${section.slug}/"><span>${label}</span></a>`, 'u'))
     expect(entry).toMatch(new RegExp(`<h2[^>]*>${RegExp.escape(asked)}`, 'u'))
   })
 

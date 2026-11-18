@@ -15,8 +15,8 @@ function boardAt(ply: number, line = submitted): HTMLElement {
   const board = document.createElement('div')
   const layer = document.createElement('div')
   const mark  = document.createElement('i')
-  layer.className = 'sc-run-layer'
-  mark.className  = 'sc-front-landed'
+  layer.className     = 'sc-run-layer'
+  mark.dataset.landed = ''
   for (const { id, piece, square } of line[ply]!.standing) {
     const node = document.createElement('span')
     Object.assign(node.dataset, { id: String(id), piece })
@@ -63,7 +63,7 @@ describe('SplitBoard', () => {
   it('marks the square the last move landed on, and none at the start', () => {
     const board  = boardAt(0)
     const driver = new SplitBoard(board)
-    const landed = board.querySelector<HTMLElement>('.sc-front-landed')!
+    const landed = board.querySelector<HTMLElement>('[data-landed]')!
     driver.show(submitted[1]!)
     expect(landed.style.transform).toBe(squares.squareAt(submitted[1]!.to!))
     driver.show(submitted[0]!)

@@ -19,7 +19,7 @@ describe('Session', () => {
   test('opens on the whole session, its figure at its true value before any motion', async () => {
     const session = mount(Session)
     await flushPromises()
-    expect(session.find('.sc-front-spoken').text()).toBe('6')
+    expect(session.find('[data-spoken]').text()).toBe('6')
     expect(session.findAll('pre > div').at(-1)!.text()).toBe('❯')
   })
 
@@ -31,7 +31,7 @@ describe('Session', () => {
     clock.advanceTimersByTime(220)
     await flushPromises()
     expect(session.find('pre').text()).toBe('❯ scotch')
-    expect(session.find('.sc-front-count .sc-front-wait').exists()).toBe(true)
+    expect(session.find('[data-wait]').exists()).toBe(true)
   })
 
   test('prints what each command leaves, then a fresh prompt once the last is done', async () => {
@@ -42,10 +42,10 @@ describe('Session', () => {
     expect(lines[0]).toBe('❯ scotch fetch games')
     expect(lines.at(-2)).toMatch(/^Shares 6 positions, /u)
     expect(lines.at(-1)).toBe('❯')
-    expect(session.findAll('.sc-front-cursor')).toHaveLength(1)
-    expect(session.find('.sc-front-spoken').text()).toBe('6')
-    expect(session.find('.sc-front-unit').text()).toBe('positions shared')
-    expect(session.find('.sc-front-say').text())
+    expect(session.findAll('[data-cursor]')).toHaveLength(1)
+    expect(session.find('[data-spoken]').text()).toBe('6')
+    expect(session.find('[data-unit]').text()).toBe('positions shared')
+    expect(session.find('[data-say]').text())
       .toBe('Step III of III, from scotch match game docs/public/games/front.pgn')
   })
 

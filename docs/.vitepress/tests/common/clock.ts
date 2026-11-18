@@ -20,6 +20,6 @@ export const test = base.extend<{ clock: typeof vi }>({
  * Home key on its clock line, since each widget opens on its last.
  */
 export async function homed(widget: VueWrapper): Promise<void> {
-  await widget.find('.sc-front-clock').trigger('keydown', { key: 'Home' })
+  await widget.find("[role='slider']").trigger('keydown', { key: 'Home' })
   await flushPromises()
 }

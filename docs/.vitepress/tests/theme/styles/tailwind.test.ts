@@ -66,6 +66,8 @@ it('maps every token, role, face, curve, and duration the identity serves, and n
     ...curves.map(curve => `--ease-${curve} var(--sc-curve-${curve})`),
     ...durations.map(name => `--transition-duration-${name} var(--sc-duration-${name})`),
     ...durations.map(name => `--transition-delay-${name} var(--sc-duration-${name})`),
+    '--animate-blink sc-front-blink 1s steps(1) infinite',
+    '--animate-wait sc-front-wait 1.2s var(--sc-curve-sway) infinite alternate',
     '--default-transition-duration var(--sc-duration-fade)',
     '--default-transition-timing-function var(--sc-curve-glide)'
   ].toSorted())

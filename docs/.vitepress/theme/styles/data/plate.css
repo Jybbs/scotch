@@ -19,6 +19,12 @@
   color                 : var(--sc-data-ink);
 }
 
+.VPHome [data-entry] .sc-data-plate { background: transparent; }
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .VPHome [data-entry] .sc-data-plate { background: var(--sc-page); }
+}
+
 .sc-data-head {
   display               : grid;
   grid-template-columns : auto minmax(0, 1fr);

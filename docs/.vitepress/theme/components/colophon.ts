@@ -67,21 +67,39 @@ function wellOf(credit: chrome.Credit, index: number, choice: Choice, shown: num
     choice.stop.value  = index
   }
   return h('div', {
-    class          : ['sc-colophon-well', { 'is-shown': shown === index }],
-    onPointerenter : () => { choice.hover.value = index },
-    onPointerleave : () => { choice.hover.value = null }
+    'data-shown'     : shown === index ? '' : undefined,
+    'onPointerenter' : () => { choice.hover.value = index },
+    'onPointerleave' : () => { choice.hover.value = null },
+    'class'          : [
+      'grid min-w-0 [align-content:start] justify-items-center gap-1 px-0.5 py-3 text-center',
+      'transition-[background-color] data-shown:bg-run/7',
+      'not-first:border-l not-first:border-l-rule/55',
+      'max-[34rem]:nth-4:border-l-0 max-[34rem]:nth-[n+4]:border-t max-[34rem]:nth-[n+4]:border-t-rule/55'
+    ]
   }, [
     h('button', {
       'aria-label' : `${credit.name}, ${credit.part.toLowerCase()}, ${credit.short}`,
-      'class'      : 'sc-colophon-piece',
+      'class'      : [
+        'mb-0.5 grid size-11 cursor-pointer place-items-center rounded-md',
+        '[-webkit-tap-highlight-color:transparent]',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run',
+        '[&_svg]:size-8 [&_svg]:transition-[translate,filter] [&_svg]:duration-glide',
+        '[&_svg]:[filter:drop-shadow(0_1px_0_color-mix(in_oklab,var(--sc-ink)_20%,transparent))]',
+        'in-data-shown:[&_svg]:-translate-y-[7px]',
+        'in-data-shown:[&_svg]:[filter:drop-shadow(0_7px_4px_color-mix(in_oklab,var(--sc-ink)_35%,transparent))]'
+      ],
       'innerHTML'  : svgOf(ringed(credit.piece, '')),
       'onClick'    : choose,
       'onFocus'    : choose,
       'tabindex'   : choice.stop.value === index ? 0 : -1,
       'type'       : 'button'
     }),
-    h('span', { class: 'sc-colophon-part' }, credit.part),
-    h('b', { class: 'sc-colophon-short' }, slashed(credit.short))
+    h('span', {
+      class: 'font-code text-[0.54rem]/[1.4] font-semibold tracking-[0.12em] text-quiet uppercase'
+    }, credit.part),
+    h('b', {
+      class: 'font-code text-[length:min(0.7rem,2.875vw)]/[1.4] font-medium text-ink wrap-anywhere'
+    }, slashed(credit.short))
   ])
 }
 
@@ -108,14 +126,33 @@ export const Colophon = defineComponent({
     return (): VNode => {
       const { credits, rest } = theme.value.colophon
       const line              = credits[shown.value ?? -1]?.full ?? rest
-      return h('footer', { class: 'sc-colophon', id: 'colophon', onFocusout: left }, [
+      return h('footer', {
+        id         : 'colophon',
+        onFocusout : left,
+        class      : [
+          'relative z-(--vp-z-index-footer) border-t border-t-rule bg-page px-6 py-8 md:p-8',
+          'lg:[.VPContent.has-sidebar~&]:pl-[calc(var(--vp-sidebar-width)+32px)]',
+          'font-body text-[0.9rem]/[1.5] text-quiet'
+        ]
+      }, [
         h('div', {
           'aria-label' : 'The set, each piece over one fact',
-          'class'      : 'sc-colophon-tray',
+          'class'      : [
+            'mx-auto grid w-[min(100%,688px)] grid-flow-col grid-cols-[repeat(auto-fit,minmax(0,1fr))]',
+            'max-[34rem]:grid-flow-row max-[34rem]:grid-cols-3',
+            'rounded-md border border-rule bg-[color-mix(in_oklab,var(--sc-ink)_3%,var(--sc-page))]'
+          ],
           'onKeydown'  : (event: KeyboardEvent) => { roved(event, choice, credits.length) },
           'role'       : 'group'
         }, credits.map((credit, index) => wellOf(credit, index, choice, shown.value))),
-        h('p', { 'aria-live': 'polite', 'class': 'sc-colophon-line' }, line.map(run => runOf(run)))
+        h('p', {
+          'aria-live' : 'polite',
+          'class'     : [
+            'mx-auto mt-3.5 mb-0 min-h-[3em] max-w-[688px] text-center text-balance text-ink',
+            '[&_a]:text-run [&_a]:underline [&_a]:underline-offset-2',
+            '[&_code]:font-code [&_code]:text-[0.8rem]/none [&_code]:font-medium'
+          ]
+        }, line.map(run => runOf(run)))
       ])
     }
   }

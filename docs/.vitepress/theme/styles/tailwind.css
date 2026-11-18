@@ -5,12 +5,29 @@
 
 @source not inline('{container,fixed,outline}');
 
+@custom-variant opaque {
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    @slot;
+  }
+}
+
+@custom-variant playing (:root[data-motion='playing'] &);
+
+@utility veil {
+  mask-image     : linear-gradient(90deg, transparent, #000 64px, #000 calc(100% - 64px), transparent),
+                   linear-gradient(transparent, #000 56px, #000 calc(100% - 56px), transparent);
+  mask-composite : intersect;
+}
+
 @theme inline {
   --color-*      : initial;
   --font-*       : initial;
   --breakpoint-* : initial;
   --ease-*       : initial;
   --animate-*    : initial;
+
+  --animate-blink : sc-front-blink 1s steps(1) infinite;
+  --animate-wait  : sc-front-wait 1.2s var(--sc-curve-sway) infinite alternate;
 
   --color-critical : var(--sc-critical);
   --color-dark     : var(--sc-dark);
@@ -74,4 +91,13 @@
   --breakpoint-sm : 40rem;
   --breakpoint-md : 48rem;
   --breakpoint-lg : 60rem;
+
+  @keyframes sc-front-blink {
+    50% { opacity: 0; }
+  }
+
+  @keyframes sc-front-wait {
+    from { opacity: 0.35; }
+    to   { opacity: 1; }
+  }
 }

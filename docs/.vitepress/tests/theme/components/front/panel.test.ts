@@ -27,10 +27,10 @@ function paneled(): { drive: Drive, panel: ReturnType<typeof mount> } {
 describe('Panel', () => {
   it("sets the drawing and the clock line on the Data widgets' plate", () => {
     const { panel } = paneled()
-    expect(panel.find('.sc-data-plate .sc-front-figure .sc-front-spoken').text()).toBe('42')
-    expect(panel.find('.sc-front-figure .sc-front-unit').text()).toBe('games')
-    expect(panel.find('.sc-front-say').text()).toBe('Shared by both')
-    expect(panel.find('.sc-front-draw svg.drawn').exists()).toBe(true)
+    expect(panel.find('.sc-data-plate [data-spoken]').text()).toBe('42')
+    expect(panel.find('[data-unit]').text()).toBe('games')
+    expect(panel.find('[data-say]').text()).toBe('Shared by both')
+    expect(panel.find('svg.drawn').exists()).toBe(true)
     expect(panel.find('[role=slider]').attributes('aria-valuetext')).toBe('Two')
     expect(panel.find('.sc-data-read dd').text()).toContain('Value')
   })
