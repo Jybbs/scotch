@@ -5,6 +5,8 @@
 
 @source not inline('{container,fixed,outline}');
 
+@custom-variant dark (:root.dark &);
+
 @custom-variant opaque {
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
     @slot;
@@ -26,8 +28,10 @@
   --ease-*       : initial;
   --animate-*    : initial;
 
-  --animate-blink : sc-front-blink 1s steps(1) infinite;
-  --animate-wait  : sc-front-wait 1.2s var(--sc-curve-sway) infinite alternate;
+  --animate-blink  : sc-front-blink 1s steps(1) infinite;
+  --animate-rise   : sc-data-rise var(--sc-duration-settle) var(--sc-curve-glide) backwards;
+  --animate-unfold : sc-refused-in var(--sc-duration-fade) var(--sc-curve-glide);
+  --animate-wait   : sc-front-wait 1.2s var(--sc-curve-sway) infinite alternate;
 
   --color-critical : var(--sc-critical);
   --color-dark     : var(--sc-dark);
@@ -92,8 +96,19 @@
   --breakpoint-md : 48rem;
   --breakpoint-lg : 60rem;
 
+  @keyframes sc-data-rise {
+    from {
+      opacity   : 0;
+      transform : translateY(var(--sc-data-from, 12px)) scale(0.4);
+    }
+  }
+
   @keyframes sc-front-blink {
     50% { opacity: 0; }
+  }
+
+  @keyframes sc-refused-in {
+    from { opacity: 0; }
   }
 
   @keyframes sc-front-wait {

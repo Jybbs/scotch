@@ -113,19 +113,20 @@ describe('Tool as the build renders it', () => {
 describe('Tool, its legend', () => {
   it('names each game in its color in the corner, the submitted game first', async () => {
     const { wrapper } = mountedTool()
-    const marks       = wrapper.findAll('.sc-data-legend-mark')
+    const marks       = wrapper.findAll('[role=listitem]')
     expect(marks.map(mark => [mark.attributes('aria-label'), mark.attributes('style')])).toEqual([
       ['Your game', '--sc-data-tone: var(--sc-submitted);'],
       ['The stored game', '--sc-data-tone: var(--sc-stored);']
     ])
     await marks[1]!.trigger('pointerenter')
-    expect(wrapper.find('.sc-data-legend-caption').text()).toBe('The stored game')
+    expect(wrapper.find('[role=list] + p').text()).toBe('The stored game')
   })
 
   it('opens the line beneath the boards', () => {
     const { wrapper } = mountedTool()
-    const under       = wrapper.find('.sc-data').element.parentElement!
-    expect([under.firstElementChild?.classList.contains('sc-data'), under.querySelector('canvas') !== null])
+    const legend      = wrapper.get('[role=list]').element.parentElement!.parentElement!
+    const under       = legend.parentElement!
+    expect([under.firstElementChild === legend, under.querySelector('canvas') !== null])
       .toEqual([true, true])
   })
 })

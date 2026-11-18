@@ -2,6 +2,7 @@ import { type VNode, h } from 'vue'
 
 import { GAME_MARKS } from '../../../lib/viewer/loaded.ts'
 import { Corner }     from '../data/corner.ts'
+import { DATA }       from '../data/parts.ts'
 
 /**
  * Draws the Viewer's legend in the corner over its track, naming the submitted
@@ -9,5 +10,5 @@ import { Corner }     from '../data/corner.ts'
  * moves take.
  */
 export function gameLegend(): VNode {
-  return h('div', { class: 'sc-data mb-1.5' }, h(Corner, { items: GAME_MARKS }))
+  return h('div', { class: [DATA, 'mb-1.5'] }, h(Corner, { items: GAME_MARKS }))
 }

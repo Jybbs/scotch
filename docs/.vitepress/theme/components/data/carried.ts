@@ -4,7 +4,13 @@ import { dimmed }   from '../../../lib/data/corner.ts'
 import * as numbers from '../../../lib/data/numbers.ts'
 import * as tags    from '../../../lib/data/tags.ts'
 import { Corner }   from './corner.ts'
+import * as parts   from './parts.ts'
 import { Plate }    from './plate.ts'
+
+/**
+ * A label of the grid, a tag's name or a decade's, in the quiet code face.
+ */
+const LABEL = 'font-code text-[0.56rem]/none font-medium whitespace-nowrap text-(--sc-data-quiet)'
 
 /**
  * Draws one cell of the grid, shaded by the share of its column missing its
@@ -20,11 +26,17 @@ function cell(
   const share = tags.missingShare(at)
   const kind  = tags.isGap(at) ? 'gap' : 'carried'
   return h('div', {
-    'class'          : ['sc-data-carried-cell', dimmed(kind, lit), {
-      'sc-data-all' : at.column === tags.COLUMNS.length - 1,
-      'sc-data-on'  : at.column === picked.column && at.tag === picked.tag
-    }],
+    'class'          : [
+      'grid h-[22px] cursor-pointer place-items-center rounded-xs bg-(--sc-data-held) font-code',
+      'text-[0.54rem]/none',
+      'font-semibold text-(--sc-data-page) transition-opacity duration-settle ease-glide data-off:opacity-22',
+      'data-on:[box-shadow:0_0_0_2px_var(--sc-data-page),0_0_0_3.5px_var(--sc-data-ink)]',
+      'data-[k=gap]:bg-[color-mix(in_oklab,var(--sc-data-link)_calc(var(--sc-data-level)*75%+25%),var(--sc-data-page))]',
+      { 'ml-1.5': at.column === tags.COLUMNS.length - 1 }
+    ],
     'data-k'         : kind,
+    'data-off'       : dimmed(kind, lit),
+    'data-on'        : at.column === picked.column && at.tag === picked.tag ? '' : undefined,
     'onClick'        : () => { pick(at) },
     'onPointerenter' : () => { pick(at) },
     'role'           : 'gridcell',
@@ -40,7 +52,7 @@ function files(picked: tags.Carried): VNode | null {
   const held = tags.gapOf(picked).files
   if (held.length === 0) return null
   const rows = held.map(file => h('li', [h('span', file.path), h('b', numbers.counted(file.count))]))
-  return h('ol', { class: 'sc-data-drawer-files' }, rows)
+  return h('ol', { class: parts.FILES }, rows)
 }
 
 /**
@@ -50,12 +62,15 @@ function files(picked: tags.Carried): VNode | null {
 function grid(lit: string | null, picked: tags.Carried, pick: (to: tags.Carried) => void): VNode[] {
   return [
     ...tags.TAGS.names.flatMap((name, tag) => [
-      h('span', { class: ['sc-data-carried-tag', { 'sc-data-on': tag === picked.tag }] }, name),
+      h('span', {
+        'class'   : [LABEL, 'self-center pr-1.5 text-right data-on:font-bold data-on:text-(--sc-data-ink)'],
+        'data-on' : tag === picked.tag ? '' : undefined
+      }, name),
       ...tags.COLUMNS.map((_, column) => cell({ column, tag }, lit, picked, pick))
     ]),
     h('span'),
     ...tags.COLUMNS.map((column, at) => h('span', {
-      class: ['sc-data-carried-decade', { 'sc-data-all': at === tags.COLUMNS.length - 1 }]
+      class: [LABEL, 'pt-1.5 text-center', { 'ml-1.5': at === tags.COLUMNS.length - 1 }]
     }, at === tags.COLUMNS.length - 1 ? 'All' : at % 2 ? column.name.slice(0, 4) : ''))
   ]
 }
@@ -93,7 +108,10 @@ export const TagGaps = defineComponent({
           ['Missing', numbers.counted(gap.missing)]
         ],
         say: tags.carriedSentence(picked.value)
-      }, () => h('div', { class: 'sc-data-carried' }, [
+      }, () => h('div', {
+        class: 'grid gap-2.5 '
+             + '[--sc-data-held:color-mix(in_oklab,var(--sc-data-quiet)_10%,var(--sc-data-page))]'
+      }, [
         h(Corner, {
           'items'        : tags.CARRIED_MARKS,
           'lit'          : lit.value,
@@ -101,7 +119,8 @@ export const TagGaps = defineComponent({
         }),
         h('div', {
           'aria-label' : 'The share of each decade’s games leaving each tag without a value',
-          'class'      : 'sc-data-carried-grid',
+          'class'      : 'grid grid-cols-[4.6rem_repeat(var(--sc-data-columns),minmax(0,1fr))] items-stretch '
+                       + 'gap-0.5 outline-offset-4',
           'onKeydown'  : keyed,
           'role'       : 'grid',
           'style'      : { '--sc-data-columns': String(tags.COLUMNS.length) },

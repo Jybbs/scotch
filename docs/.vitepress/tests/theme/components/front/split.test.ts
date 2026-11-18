@@ -54,7 +54,7 @@ describe('Split', () => {
     expect(split.find('[data-unit]').text()).toBe('position shared')
     expect(split.find('[data-say]').text())
       .toBe('Two orders of moves reach one position, a transposition.')
-    expect(split.findAll('.sc-data-read dd').map(value => value.text())).toEqual(['4. d4', 'Its own order'])
+    expect(split.findAll('dl dd').map(value => value.text())).toEqual(['4. d4', 'Its own order'])
   })
 
   test('splits in two where the games part, the stored board under its cover', async () => {
@@ -67,7 +67,7 @@ describe('Split', () => {
     expect(split.find('[data-say]').text())
       .toBe('Your game parted at 7. O-O. '
           + 'The link scotch match game --link prints opens both games in the Viewer.')
-    expect(split.findAll('.sc-data-read dd').map(value => value.text())).toEqual(['9...e5', 'Hidden'])
+    expect(split.findAll('dl dd').map(value => value.text())).toEqual(['9...e5', 'Hidden'])
   })
 
 })

@@ -42,7 +42,7 @@ describe('Prints', () => {
     await flushPromises()
     await prints.findAll('div[data-game]')[1]!.findAll('span[title]')[7]!.trigger('click')
     expect(prints.find('[role=slider]').attributes('aria-valuetext')).toBe('Ply 7')
-    expect(prints.findAll('.sc-data-read dd').map(value => value.text()).at(-1)).toBe('Equal')
+    expect(prints.findAll('dl dd').map(value => value.text()).at(-1)).toBe('Equal')
   })
 
   test('steps a ply at a time on the clock', async ({ clock }) => {
@@ -52,6 +52,6 @@ describe('Prints', () => {
     clock.advanceTimersByTime(650)
     await flushPromises()
     expect(prints.find('[role=slider]').attributes('aria-valuetext')).toBe('Ply 1')
-    expect(prints.findAll('.sc-data-read dd').map(value => value.text()).at(-1)).toBe('Differ')
+    expect(prints.findAll('dl dd').map(value => value.text()).at(-1)).toBe('Differ')
   })
 })

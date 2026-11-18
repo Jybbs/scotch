@@ -20,6 +20,7 @@ vi.mock('@vueuse/core', async original => ({
 const layout  = lengths.sharesLayout(600)
 const endings = lengths.endingsOf()
 const middle  = lengths.moveX(layout, 30)
+const bar     = numbers.tenth(Math.max(1, layout.plot / lengths.CHART.plotted - 1))
 
 /**
  * Mounts the chart on the move the charts open on and finds its slider.
@@ -50,19 +51,19 @@ function thumbAt(kind: number): string {
 describe('Results', () => {
   it('draws a named band per result over a bar per move, reading the move the charts share', () => {
     const { results, slider } = mounted()
-    expect(results.findAll('path.sc-data-band').length).toBe(3)
-    expect(results.findAll('.sc-data-band-name').map(label => label.text()))
+    expect(results.findAll('g[data-k] > path').length).toBe(3)
+    expect(results.findAll('svg g:not([data-k]) > text').map(label => label.text()))
       .toEqual(lengths.OUTCOMES.map(outcome => outcome.name))
-    expect(results.findAll('rect.sc-data-count').length).toBe(lengths.CHART.plotted)
+    expect(results.findAll(`svg > rect[width="${bar}"]`).length).toBe(lengths.CHART.plotted)
     expect(slider.attributes('aria-valuenow')).toBe(String(lengths.CHART.opening))
-    expect(results.findAll('.sc-data-read dd').map(value => value.text())).toEqual(
+    expect(results.findAll('dd').map(value => value.text())).toEqual(
       lengths.sharesReading(endings, lengths.CHART.opening).map(reading => reading.slice(1).join(' ')))
   })
 
   it('sets the share of the short games drawn beside the sentence comparing it with the long ones', () => {
     const { results } = mounted()
-    expect(results.find('.sc-data-big').text()).toBe(numbers.percent(lengths.drawnShares(endings).short))
-    expect(results.find('.sc-data-say').text()).toBe(lengths.sharesSummary(endings))
+    expect(results.find('span').text()).toBe(numbers.percent(lengths.drawnShares(endings).short))
+    expect(results.find('p').text()).toBe(lengths.sharesSummary(endings))
   })
 })
 
@@ -70,13 +71,13 @@ describe('Results, its bars and gridlines', () => {
   it('draws each bar as tall as the games ending at its move against the move most games end at', () => {
     const totals = endings.slice(1, lengths.CHART.plotted + 1).map(counts => numbers.summed(counts))
     const peak   = Math.max(...totals)
-    const bars   = mounted().results.findAll('rect.sc-data-count')
-      .map(bar => Number(bar.attributes('height')))
+    const bars   = mounted().results.findAll(`svg > rect[width="${bar}"]`)
+      .map(drawn => Number(drawn.attributes('height')))
     expect(bars).toEqual(totals.map(games => Math.max(1, Math.round(games / peak * layout.bars.height))))
   })
 
   it('names a gridline at each quarter of the games', () => {
-    const names = mounted().results.findAll('text.sc-data-axis').map(label => label.text())
+    const names = mounted().results.findAll('svg > text').map(label => label.text())
     expect(names).toEqual(expect.arrayContaining(['25%', '50%', '75%']))
   })
 })
@@ -135,17 +136,17 @@ describe('Results, from the keyboard and the pointer', () => {
 describe('Results, one result at a time', () => {
   it('lights one result through its corner mark, and every result again once the pointer leaves', async () => {
     const { results } = mounted()
-    const drawn       = results.findAll('.sc-data-legend-mark')[1]!
+    const drawn       = results.findAll('[role=listitem]')[1]!
     await drawn.trigger('pointerenter')
-    expect([drawn.classes('is-on'), results.findAll('.sc-data-off').length]).toEqual([true, 2])
-    expect(results.find('svg').classes()).toContain('sc-data-isolated')
-    expect(results.find('.sc-data-legend-caption').text()).toBe('Drawn')
+    expect([drawn.attributes('data-on'), results.findAll('[data-off]').length]).toEqual(['', 2])
+    expect(results.find('svg g:not([data-k])').classes()).toContain('opacity-30')
+    expect(results.find('[role=list] + p').text()).toBe('Drawn')
     await drawn.trigger('pointerleave')
-    expect([drawn.classes('is-on'), results.findAll('.sc-data-off').length]).toEqual([false, 0])
+    expect([drawn.attributes('data-on'), results.findAll('[data-off]').length]).toEqual([undefined, 0])
   })
 
   it('names each result in its corner in the tone its band takes, in the order the bands stack', () => {
-    expect(mounted().results.findAll('.sc-data-legend-mark').map(mark => [mark.attributes('aria-label'), mark.attributes('style')]))
+    expect(mounted().results.findAll('[role=listitem]').map(mark => [mark.attributes('aria-label'), mark.attributes('style')]))
       .toEqual(lengths.OUTCOMES.map(({ key, name }) => [name, `--sc-data-tone: var(--sc-data-band-${key});`]))
   })
 })
@@ -168,9 +169,9 @@ describe('Results, sized', () => {
 describe('Results, its markers', () => {
   it('stands the thumb at the middle of the drawn band, and of the band a corner mark lights', async () => {
     const { results } = mounted()
-    expect(standing(results, '.sc-data-thumb')).toBe(thumbAt(lengths.bandOf('d')))
-    await results.findAll('.sc-data-legend-mark')[0]!.trigger('pointerenter')
-    expect(standing(results, '.sc-data-thumb')).toBe(thumbAt(lengths.bandOf('w')))
+    expect(standing(results, '[role=slider] > i:not([data-mover])')).toBe(thumbAt(lengths.bandOf('d')))
+    await results.findAll('[role=listitem]')[0]!.trigger('pointerenter')
+    expect(standing(results, '[role=slider] > i:not([data-mover])')).toBe(thumbAt(lengths.bandOf('w')))
   })
 
   it('moves the line straight to the move a key picks under reduced motion', async () => {

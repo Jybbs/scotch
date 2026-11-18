@@ -27,12 +27,12 @@ function paneled(): { drive: Drive, panel: ReturnType<typeof mount> } {
 describe('Panel', () => {
   it("sets the drawing and the clock line on the Data widgets' plate", () => {
     const { panel } = paneled()
-    expect(panel.find('.sc-data-plate [data-spoken]').text()).toBe('42')
+    expect(panel.find('[data-spoken]').text()).toBe('42')
     expect(panel.find('[data-unit]').text()).toBe('games')
     expect(panel.find('[data-say]').text()).toBe('Shared by both')
     expect(panel.find('svg.drawn').exists()).toBe(true)
     expect(panel.find('[role=slider]').attributes('aria-valuetext')).toBe('Two')
-    expect(panel.find('.sc-data-read dd').text()).toContain('Value')
+    expect(panel.find('dl dd').text()).toContain('Value')
   })
 
   it.each([

@@ -1,18 +1,15 @@
 import { readFileSync, readdirSync } from 'node:fs'
-import { readFile }                  from 'node:fs/promises'
 import { createRequire }             from 'node:module'
 import { dirname, resolve }          from 'node:path'
-import { fileURLToPath }             from 'node:url'
 
-import { compile }              from 'tailwindcss'
 import { describe, expect, it } from 'vitest'
 
 import { ROLES }                from '../../../lib/identity/roles.ts'
 import { IDENTITY, propertyOf } from '../../../lib/identity/tokens.ts'
 import * as timing              from '../../../lib/motion/timing.ts'
+import * as tailwind            from '../../common/tailwind.ts'
 
 const CLASS_NAMES = /\sclass="([^"]+)"|'([\w -]+)'/gu
-const SHEET       = fileURLToPath(new URL('../../../theme/styles/tailwind.css', import.meta.url))
 /**
  * The name each color takes after its utility's prefix, such as `series-1`
  * for the `series_1` token and `data-black` for the `data_black` role.
@@ -23,7 +20,7 @@ const curves    = Object.keys(timing.CURVES)
 const durations = Object.keys(timing.DURATIONS)
 const faces     = Object.keys(IDENTITY.faces)
 const require   = createRequire(import.meta.url)
-const source    = readFileSync(SHEET, 'utf8')
+const source    = readFileSync(tailwind.SHEET, 'utf8')
 const templates = resolve(dirname(require.resolve('vitepress')), '../client/theme-default')
 
 /**
@@ -45,16 +42,9 @@ const built = async (candidate?: string): Promise<string> =>
   (await compiled()).build(candidate === undefined ? [] : [candidate])
 
 /**
- * Compiles the entry sheet afresh, since a compiler keeps every class it has
- * built and writes them all again on each later build.
+ * Compiles the entry sheet afresh.
  */
-const compiled = (): ReturnType<typeof compile> => compile(source, {
-  base           : dirname(SHEET),
-  loadStylesheet : async (id, base) => {
-    const path = id.startsWith('.') ? resolve(base, id) : require.resolve(id)
-    return { base: dirname(path), content: await readFile(path, 'utf8'), path }
-  }
-})
+const compiled = (): ReturnType<typeof tailwind.compiled> => tailwind.compiled(source)
 
 it('maps every token, role, face, curve, and duration the identity serves, and nothing else', () => {
   const mapped = [...source.matchAll(/^ {2}(--[a-z0-9-]+) +: ([^;]+);$/gmu)]
@@ -67,6 +57,8 @@ it('maps every token, role, face, curve, and duration the identity serves, and n
     ...durations.map(name => `--transition-duration-${name} var(--sc-duration-${name})`),
     ...durations.map(name => `--transition-delay-${name} var(--sc-duration-${name})`),
     '--animate-blink sc-front-blink 1s steps(1) infinite',
+    '--animate-rise sc-data-rise var(--sc-duration-settle) var(--sc-curve-glide) backwards',
+    '--animate-unfold sc-refused-in var(--sc-duration-fade) var(--sc-curve-glide)',
     '--animate-wait sc-front-wait 1.2s var(--sc-curve-sway) infinite alternate',
     '--default-transition-duration var(--sc-duration-fade)',
     '--default-transition-timing-function var(--sc-curve-glide)'
@@ -96,6 +88,21 @@ describe('the identity’s utilities', () => {
     expect(css).toContain('transition-duration: var(--tw-duration, var(--sc-duration-fade));')
     expect(css).toContain('transition-timing-function: var(--tw-ease, var(--sc-curve-glide));')
   })
+
+  it('reads the dark scheme from the class the site’s switch sets on the root, not the system scheme', async () => {
+    const css = await built('dark:block')
+    expect(css).toContain(':root.dark .dark\\:block')
+    expect(css).not.toContain('prefers-color-scheme')
+  })
+
+  it.each([['rise', 'sc-data-rise'], ['unfold', 'sc-refused-in']])(
+    'draws the %s animation from the %s keyframes the sheet declares',
+    async (name, frames) => {
+      const css = await built(`animate-${name}`)
+      expect(css).toContain(`animation: ${frames} `)
+      expect(css).toContain(`@keyframes ${frames}`)
+    }
+  )
 })
 
 describe('Tailwind’s defaults', () => {
@@ -129,7 +136,7 @@ describe('Tailwind’s defaults', () => {
 
 describe('the class scan', () => {
   it('reads every module under docs/.vitepress, two folders above the entry sheet', async () => {
-    expect((await compiled()).root).toStrictEqual({ base: dirname(SHEET), pattern: '../..' })
+    expect((await compiled()).root).toStrictEqual({ base: dirname(tailwind.SHEET), pattern: '../..' })
   })
 
   it('builds nothing for a class the default theme writes, so no utility restyles its markup', async () => {

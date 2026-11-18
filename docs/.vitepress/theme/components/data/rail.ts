@@ -7,10 +7,60 @@ import { useMotion }   from '../../../lib/motion/control.ts'
 import * as timing     from '../../../lib/motion/timing.ts'
 
 /**
- * Draws a section's name beside a dot in its hue.
+ * The card, railed at its left in the hue of the file's section.
  */
-function stamp(section: files.Section): VNode {
-  return h('span', { class: 'sc-data-stamp', style: { '--sc-data-hue': files.HUES[section] } }, section)
+const CARD = 'relative grid min-w-0 gap-[9px] overflow-hidden rounded-[8px_8px_8px_0] border '
+           + 'border-(--sc-data-rule) bg-raised py-[13px] pr-4 pl-5 before:absolute before:inset-y-0 '
+           + 'before:right-auto before:left-0 before:w-1 before:bg-(--sc-data-hue) '
+           + 'before:transition-[background-color] before:duration-settle '
+           + "before:ease-glide before:content-['']"
+/**
+ * The row of a file's decades, a cell per decade shaded by its games and
+ * recoloring left to right.
+ */
+const CELLS = 'grid h-4 grid-cols-[repeat(var(--sc-data-n),minmax(0,1fr))] gap-0.5 *:rounded-xs '
+            + '[--sc-data-empty:color-mix(in_oklab,var(--sc-data-rule)_45%,transparent)] '
+            + '*:bg-[color-mix(in_oklab,var(--sc-data-hue)_calc(var(--sc-data-v,0)*100%),var(--sc-data-empty))] '
+            + '*:transition-[background-color] *:delay-[calc(var(--sc-data-k,0)*14ms)] *:duration-settle '
+            + '*:ease-glide'
+/**
+ * A file's path or an opening's move on the card, in the code face.
+ */
+const CODE = 'min-w-0 bg-transparent bg-none p-0 font-code font-medium text-(--sc-data-ink)'
+/**
+ * A label of the scale beneath the cells, at its point of the scale.
+ */
+const SCALE = 'absolute top-0 whitespace-nowrap transition-[left] duration-glide ease-glide'
+/**
+ * Where each label of the scale stands against its point.
+ */
+const SIDES = {
+  after  : '[transform:none]',
+  before : '[transform:translateX(-100%)]',
+  middle : '[transform:translateX(-50%)]'
+} as const
+/**
+ * The tab beneath the card naming the file's other section.
+ */
+const TAB = 'flex max-w-[calc(100%-16px)] min-w-0 items-center gap-2 justify-self-start overflow-hidden '
+          + 'rounded-b-md border border-(--sc-data-rule) [border-top:0] bg-(--sc-data-page) px-3 pt-1.5 '
+          + 'pb-[7px] font-body text-[0.78rem]/none font-normal whitespace-nowrap text-(--sc-data-quiet)'
+
+/**
+ * Draws an opening's moves, or a cell for each of `count` decades shaded by the
+ * games of that decade.
+ */
+function cells(card: files.Card, count: number, entry: files.Entry): VNode {
+  if (entry.section === 'Openings') {
+    return h('div', { class: 'flex h-4 items-stretch gap-1' }, card.moves.map(move => h('code', {
+      class: [
+        CODE, 'inline-grid place-items-center overflow-visible rounded-xs px-1.5 text-[0.68rem]/none',
+        'bg-[color-mix(in_oklab,var(--sc-data-hue)_22%,transparent)] text-ellipsis whitespace-nowrap'
+      ]
+    }, move)))
+  }
+  return h('div', { class: CELLS, style: { '--sc-data-n': count } }, card.cells.map((value, place) =>
+    h('i', { style: { '--sc-data-k': place, '--sc-data-v': value } })))
 }
 
 /**
@@ -21,13 +71,94 @@ function stamp(section: files.Section): VNode {
  */
 function scaleOf(card: files.Card, entry: files.Entry, width: number): VNode[] {
   if (entry.section === 'Openings') {
-    return [h('span', { class: 'sc-data-rank' }, `No. ${card.rank + 1} of ${card.of} by games held`)]
+    return [h('span', {
+      'class'     : [SCALE, SIDES.after, 'left-0'],
+      'data-side' : 'after'
+    }, `No. ${card.rank + 1} of ${card.of} by games held`)]
   }
   const close = card.scale.length > 1 && card.scale[1]![1] - card.scale[0]![1] < 3
-  return card.scale.map(([label, at], place) => h('span', {
-    class : { 'sc-data-after': close && place === 1, 'sc-data-before': close && place === 0 },
-    style : { left: `${(at + 0.5) / width * 100}%` }
-  }, label))
+  return card.scale.map(([label, at], place) => {
+    const side = close && place < 2 ? (['before', 'after'] as const)[place]! : 'middle'
+    return h('span', {
+      'class'     : [SCALE, SIDES[side]],
+      'data-side' : side,
+      'style'     : { left: `${(at + 0.5) / width * 100}%` }
+    }, label)
+  })
+}
+
+/**
+ * Draws a section's name beside a dot in its hue.
+ */
+function stamp(section: files.Section): VNode {
+  return h('span', {
+    class : 'inline-flex items-center gap-[5px] font-code text-[0.62rem]/none font-semibold '
+          + 'tracking-[0.08em] whitespace-nowrap text-(--sc-data-quiet) uppercase before:size-[7px] '
+          + 'before:rounded-full '
+          + "before:bg-(--sc-data-hue) before:content-['']",
+    style : { '--sc-data-hue': files.HUES[section] }
+  }, section)
+}
+
+/**
+ * Draws the line under the file's name: its section, its path, and its decades
+ * or its heading.
+ */
+function subLine(entry: files.Entry, settled: (node: unknown) => void): VNode {
+  return h('div', {
+    class : 'flex min-w-0 items-center gap-2.5 overflow-hidden font-body text-[0.8rem]/[1.2] font-normal '
+          + 'whitespace-nowrap text-(--sc-data-quiet)',
+    ref   : settled
+  }, [
+    stamp(entry.section),
+    h('code', { class: [CODE, 'overflow-hidden text-[0.72rem]/none text-ellipsis whitespace-nowrap'] },
+      entry.listed.file),
+    h('span', files.heading(entry))
+  ])
+}
+
+/**
+ * Draws the tab beneath the card naming the same file name under another
+ * section, or the one section it stands under.
+ */
+function tab(entry: files.Entry, other: files.Entry | null, settled: (node: unknown) => void): VNode {
+  return h('div', { class: TAB, ref: settled }, [
+    h('span', { class: 'font-code text-[0.6rem]/[1.3] font-semibold tracking-[0.09em] uppercase' },
+      other ? 'Also under' : 'Only under'),
+    ...other
+      ? [
+          stamp(other.section),
+          h('code', {
+            class: [CODE, 'flex-none overflow-hidden text-[0.72rem]/none text-ellipsis whitespace-nowrap']
+          }, other.listed.file),
+          h('span', {
+            class: 'font-code text-[0.72rem]/none font-medium text-(--sc-data-quiet) tabular-nums '
+                 + 'max-sm:hidden'
+          }, `${counted(other.listed.games)} held`)
+        ]
+      : [stamp(entry.section)]
+  ])
+}
+
+/**
+ * Draws the file's name beside the `games` the store holds from it.
+ */
+function titleRow(entry: files.Entry, games: number, settled: (node: unknown) => void): VNode {
+  return h('div', { class: 'grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3' }, [
+    h('p', {
+      class : 'm-0! min-w-0 overflow-hidden font-display text-[1.32rem]/[1.15]! font-normal text-ellipsis '
+            + 'whitespace-nowrap',
+      ref   : settled,
+      title : entry.listed.title
+    }, entry.listed.title),
+    h('b', { class: 'text-right font-code text-[0.9rem]/none font-medium tabular-nums' }, [
+      counted(games),
+      h('small', {
+        class: 'ml-1.5 font-code text-[0.62rem]/none font-medium tracking-[0.06em] text-(--sc-data-quiet) '
+             + 'normal-nums uppercase'
+      }, 'held')
+    ])
+  ])
 }
 
 /**
@@ -84,35 +215,16 @@ export const Rail = defineComponent({
     })
     const settling   = useSettle(() => props.entry)
 
-    return (): VNode => {
-      const { entry } = props
-      const opening   = entry.section === 'Openings'
-      const other     = twin.value
-
-      return h('div', { 'aria-live': 'polite', class: 'sc-data-rail' }, [
-        h('div', { class: 'sc-data-rail-card', style: { '--sc-data-hue': files.HUES[entry.section] } }, [
-          h('div', { class: 'sc-data-rail-top' }, [
-            h('p', { class: 'sc-data-rail-name', ref: settling(0), title: entry.listed.title },
-              entry.listed.title),
-            h('b', [counted(Math.round(shown.value)), h('small', 'held')])
-          ]),
-          h('div', { class: 'sc-data-rail-sub', ref: settling(1) }, [
-            stamp(entry.section),
-            h('code', entry.listed.file),
-            h('span', files.heading(entry))
-          ]),
-          opening
-            ? h('div', { class: 'sc-data-rail-moves' }, card.value.moves.map(move => h('code', move)))
-            : h('div', { class: 'sc-data-rail-cells', style: { '--sc-data-n': props.decades.length } },
-                card.value.cells.map((value, place) =>
-                  h('i', { style: { '--sc-data-k': place, '--sc-data-v': value } }))),
-          h('div', { class: 'sc-data-rail-scale' }, scaleOf(card.value, entry, props.decades.length))
-        ]),
-        h('div', { class: 'sc-data-rail-tab', ref: settling(2) }, other
-          ? [h('span', 'Also under'), stamp(other.section), h('code', other.listed.file),
-             h('span', { class: 'sc-data-rail-twin' }, `${counted(other.listed.games)} held`)]
-          : [h('span', 'Only under'), stamp(entry.section)])
-      ])
-    }
+    return (): VNode => h('div', { 'aria-live': 'polite', 'class': 'grid min-w-0' }, [
+      h('div', { class: CARD, style: { '--sc-data-hue': files.HUES[props.entry.section] } }, [
+        titleRow(props.entry, Math.round(shown.value), settling(0)),
+        subLine(props.entry, settling(1)),
+        cells(card.value, props.decades.length, props.entry),
+        h('div', {
+          class: 'relative h-3 font-code text-[0.6rem]/none font-medium text-(--sc-data-quiet) tabular-nums'
+        }, scaleOf(card.value, props.entry, props.decades.length))
+      ]),
+      tab(props.entry, twin.value, settling(2))
+    ])
   }
 })

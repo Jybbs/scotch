@@ -14,40 +14,40 @@ const ITEMS: readonly CornerMark[] = [
 describe('Corner', () => {
   it('draws a square per item in its color or its glyph, labeled, over an empty caption', () => {
     const legend = mount(Corner, { props: { column: true, items: ITEMS } })
-    expect(legend.find('.sc-data-legend-list').classes()).toContain('is-column')
-    expect(legend.findAll('.sc-data-legend-mark').map(mark => [
+    expect(legend.get('[role=list]').classes()).toContain('flex-col')
+    expect(legend.findAll('[role=listitem]').map(mark => [
       mark.attributes('style'), mark.attributes('aria-label'), mark.text()
     ])).toEqual([
       ['--sc-data-tone: var(--sc-data-link);', 'Clears it', ''],
       ['--sc-data-tone: var(--sc-data-ink);', 'A color alone', '=']
     ])
-    expect(legend.find('.sc-data-legend-caption').text()).toBe('')
+    expect(legend.find('p').text()).toBe('')
   })
 
   it('lights the square under the pointer or the focus, naming it until it leaves', async () => {
     const legend          = mount(Corner, { props: { items: ITEMS, lit: 'up' } })
-    const [first, second] = legend.findAll('.sc-data-legend-mark')
-    expect(first!.classes()).toContain('is-on')
+    const [first, second] = legend.findAll('[role=listitem]')
+    expect([first!.attributes('data-on'), second!.attributes('data-on')]).toEqual(['', undefined])
     await first!.trigger('pointerenter')
-    expect(legend.find('.sc-data-legend-caption').text()).toBe('Clears it')
+    expect(legend.find('p').text()).toBe('Clears it')
     await first!.trigger('pointerleave')
     await second!.trigger('focus')
-    expect(legend.find('.sc-data-legend-caption').text()).toBe('A color alone')
+    expect(legend.find('p').text()).toBe('A color alone')
     await second!.trigger('keydown', { key: 'Escape' })
-    expect(legend.find('.sc-data-legend-caption').text()).toBe('')
+    expect(legend.find('p').text()).toBe('')
     await second!.trigger('blur')
     expect(legend.emitted('update:lit')).toEqual([['up'], [null], [null], [null], [null]])
   })
 
   it('names on the caption the part its chart holds pressed while no square is lit', async () => {
     const chart = mount({
-      setup: () => () => h('div', { class: 'sc-data-chart' }, [
+      setup: () => () => h('div', { 'data-chart': '' }, [
         h('button', { 'aria-pressed': 'true', 'data-k': 'up' }),
         h(Corner, { items: ITEMS })
       ])
     }, { attachTo: document.body })
     await nextTick()
-    expect(chart.find('.sc-data-legend-caption').text()).toBe('Clears it')
+    expect(chart.find('p').text()).toBe('Clears it')
     chart.unmount()
   })
 })

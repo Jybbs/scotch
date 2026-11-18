@@ -11,27 +11,26 @@ describe('Plate', () => {
       props : { big: '51%', say: 'Half end by move 40.' },
       slots : { default: () => h('svg', { class: 'chart' }), tools: () => h('button', 'Show one') }
     })
-    expect(plate.find('.sc-data-big').text()).toBe('51%')
-    expect(plate.find('.sc-data-say').text()).toBe('Half end by move 40.')
-    expect(plate.find('.sc-data-tools button').text()).toBe('Show one')
+    expect(plate.find('span').text()).toBe('51%')
+    expect(plate.find('p').text()).toBe('Half end by move 40.')
+    expect(plate.find('div > div:nth-child(2) > button').text()).toBe('Show one')
     expect(plate.find('svg.chart').exists()).toBe(true)
   })
 
   it('reads each value under its label, the first in the display face and any count beside its value', () => {
     const plate    = mount(Plate, { props: { readings: [['Move', '40'], ['Drawn', '35%', '1,200']] } })
-    const readings = plate.findAll('.sc-data-read > div')
+    const readings = plate.findAll('dl > div')
     expect(readings.map(reading => [reading.find('dt').text(), reading.find('dd').text()])).toEqual([
       ['Move', '40'], ['Drawn', '35% 1,200']
     ])
     expect([readings[0]!.find('dd b').text(), readings[1]!.find('dd small').text()]).toEqual(['40', '1,200'])
-    expect(plate.find('.sc-data-line').exists()).toBe(false)
+    expect(plate.find('p').exists()).toBe(false)
   })
 
   it('reads one line where it holds no readings, and sets no head with neither figure nor sentence', () => {
     const plate = mount(Plate, { props: { line: 'Read from 1,465 files' } })
-    expect(plate.find('.sc-data-line').text()).toBe('Read from 1,465 files')
-    expect(plate.find('.sc-data-line').attributes('aria-live')).toBe('polite')
-    expect(plate.find('.sc-data-head').exists()).toBe(false)
-    expect(plate.find('.sc-data-tools').exists()).toBe(false)
+    expect(plate.find('p').text()).toBe('Read from 1,465 files')
+    expect(plate.find('p').attributes('aria-live')).toBe('polite')
+    expect(plate.element.children).toHaveLength(1)
   })
 })

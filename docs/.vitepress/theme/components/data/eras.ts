@@ -6,7 +6,27 @@ import { stepped }                     from '../../../lib/data/keys.ts'
 import * as lengths                    from '../../../lib/data/lengths.ts'
 import { useGlide, useMove }           from '../../../lib/data/move.ts'
 import * as ridges                     from '../../../lib/data/ridges.ts'
+import * as parts                      from './parts.ts'
 import { Plate, moveTicks, moverLine } from './plate.ts'
+
+/**
+ * The ground of a ridge, deepened while its era is picked.
+ */
+const FILL = 'fill-[color-mix(in_oklab,var(--sc-data-link)_9%,var(--sc-data-page))] '
+           + 'group-data-on/ridge:fill-[color-mix(in_oklab,var(--sc-data-link)_30%,var(--sc-data-page))]'
+/**
+ * The edge of a ridge, inked and thickened while its era is picked.
+ */
+const LINE = 'fill-none stroke-[color-mix(in_oklab,var(--sc-data-ink)_55%,var(--sc-data-page))] stroke-[1.2] '
+           + 'group-data-on/ridge:stroke-(--sc-data-ink) group-data-on/ridge:stroke-[1.8]'
+/**
+ * A ridge, risen into place in its row's turn and lifted while its era is
+ * picked.
+ */
+const RIDGE = [
+  'group/ridge animate-rise transition-transform duration-settle ease-glide',
+  '[animation-delay:calc(var(--sc-data-row)*var(--sc-duration-lag))] data-on:[transform:translate(0,-3px)]'
+]
 
 /**
  * Draws one ridge as an option of the list: its fill, its line, the rule at its
@@ -25,33 +45,26 @@ function ridgeDrawing(
   return h('g', {
     'aria-label'    : `${ridge.name}, half ending by move ${median}`,
     'aria-selected' : row === picked,
-    class           : ['sc-data-ridge', { 'sc-data-on': row === picked }],
-    id              : `${id}-${row}`,
-    role            : 'option',
-    style           : { '--sc-data-row': row }
+    'class'         : RIDGE,
+    'data-on'       : row === picked ? '' : undefined,
+    'id'            : `${id}-${row}`,
+    'role'          : 'option',
+    'style'         : { '--sc-data-row': row }
   }, [
-    h('path', {
-      'aria-hidden' : 'true',
-      class         : 'sc-data-ridge-fill',
-      d             : ridges.ridgePath(ridge, layout, row, true)
-    }),
-    h('path', {
-      'aria-hidden' : 'true',
-      class         : 'sc-data-ridge-line',
-      d             : ridges.ridgePath(ridge, layout, row)
-    }),
+    h('path', { 'aria-hidden': 'true', 'class': FILL, 'd': ridges.ridgePath(ridge, layout, row, true) }),
+    h('path', { 'aria-hidden': 'true', 'class': LINE, 'd': ridges.ridgePath(ridge, layout, row) }),
     h('rect', {
       'aria-hidden' : 'true',
-      class         : 'sc-data-median',
-      width         : 1.5,
+      'class'       : 'fill-(--sc-data-link)',
+      'width'       : 1.5,
       ...ridges.medianRule(ridge, layout, row)
     }),
     h('text', {
       'aria-hidden' : 'true',
-      class         : 'sc-data-axis sc-data-ridge-name',
+      'class'       : [parts.AXIS, 'group-data-on/ridge:fill-(--sc-data-ink) group-data-on/ridge:font-bold'],
       'text-anchor' : 'end',
-      x             : layout.left - 10,
-      y             : base - 3
+      'x'           : layout.left - 10,
+      'y'           : base - 3
     }, ridge.label)
   ])
 }
@@ -67,11 +80,11 @@ function ridgesSvg(
 ): VNode {
   const { height, left, plot, width } = layout
 
-  return h('svg', { class: 'sc-data-svg', height, viewBox: `0 0 ${width} ${height}`, width }, [
+  return h('svg', { class: parts.SVG, height, viewBox: `0 0 ${width} ${height}`, width }, [
     ...all.map((ridge, row) => ridgeDrawing(id, layout, picked, ridge, row)),
     h('rect', {
       'aria-hidden' : 'true',
-      class         : 'sc-data-base',
+      class         : 'fill-(--sc-data-ink)',
       height        : 1,
       width         : plot,
       x             : left,
@@ -125,7 +138,7 @@ export const Eras = defineComponent({
     }, () => h('div', {
       'aria-activedescendant' : `${id}-${picked.value}`,
       'aria-label'            : 'Decades. Up and Down pick a decade, Left and Right move along the moves.',
-      class                   : 'sc-data-chart sc-data-eras',
+      class                   : [parts.CHART, 'cursor-crosshair touch-pan-y'],
       onKeydown               : keyed,
       onPointerdown           : pointed,
       onPointermove           : pointed,

@@ -19,7 +19,7 @@ describe('Sieve', () => {
     await clock.runAllTimersAsync()
     expect(rail.attributes('aria-valuenow')).toBe(String(sieve.STEPS.length))
     const gone = sieve.SQUARES.filter(kind => kind !== 'stored')
-    expect(drawn.findAll('.sc-sieve-cell[data-gone]')).toHaveLength(gone.length)
+    expect(drawn.findAll('g[data-gone]')).toHaveLength(gone.length)
   })
 
   test('holds still on the step the reader moves to, by the keys or the pointer', async ({ clock }) => {
