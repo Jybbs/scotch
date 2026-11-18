@@ -39,14 +39,17 @@ def test_a_socket_stays_closed_outside_the_network_mark():
         create_connection(("blocked.invalid", 80))
 
 
-@mark.parametrize(("name", "value"), PINNED.items())
-def test_the_terminal_type_and_width_are_pinned(name: str, value: str):
+@fixture(params=PINNED, scope="module")
+def pinned(request: FixtureRequest) -> Iterator[str]:
     """
-    Asserts that the variable `name` reaches every test set to `value`, so
-    output a terminal's type or width shapes compares byte for byte on any
-    machine.
+    Sets the variable `request.param` names to a value other than its pin
+    and yields that name, at module scope so the variable differs from
+    its pin on every machine, one already at the pin included, before the
+    function-scoped `environment` fixture sets it.
     """
-    assert environ[name] == value
+    with MonkeyPatch.context() as patch:
+        patch.setenv(request.param, "unpinned")
+        yield request.param
 
 
 def test_home_is_an_empty_directory():
@@ -55,6 +58,14 @@ def test_home_is_an_empty_directory():
     dotfile from the developer's home.
     """
     assert list(Path.home().iterdir()) == []
+
+
+def test_the_shell_carries_no_variable_that_changes_a_result(name: str):
+    """
+    Asserts that no variable `CLEARED` names, and no variable `Settings`
+    reads in either case, reaches a test.
+    """
+    assert name not in environ
 
 
 @fixture(
@@ -80,9 +91,10 @@ def name(request: FixtureRequest) -> Iterator[str]:
         yield request.param
 
 
-def test_the_shell_carries_no_variable_that_changes_a_result(name: str):
+def test_the_terminal_type_and_width_are_pinned(pinned: str):
     """
-    Asserts that no variable `CLEARED` names, and no variable `Settings`
-    reads in either case, reaches a test.
+    Asserts that the variable `pinned` names reaches every test set to the
+    value `PINNED` gives it, so output a terminal's type or width shapes
+    compares byte for byte on any machine.
     """
-    assert name not in environ
+    assert environ[pinned] == PINNED[pinned]

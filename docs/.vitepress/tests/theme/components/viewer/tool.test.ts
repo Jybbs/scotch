@@ -6,7 +6,6 @@ import { renderToString }                                         from 'vue/serv
 
 import { EXAMPLES }       from '../../../../lib/viewer/examples.ts'
 import * as links         from '../../../../lib/viewer/link.ts'
-import { Loaded }         from '../../../../lib/viewer/loaded.ts'
 import { Matcher }        from '../../../../lib/viewer/matcher.ts'
 import { Tool }           from '../../../../theme/components/viewer/tool.ts'
 import { test }           from '../../../common/clock.ts'
@@ -21,7 +20,7 @@ vi.mock('vitepress', () => ({
 }))
 
 const length  = EXAMPLES.match.span!.length
-const parting = new Loaded(EXAMPLES.match).parting!
+const parting = matches.loaded.parting!
 const stored  = EXAMPLES.match.stored!
 
 enableAutoUnmount(afterEach)
