@@ -77,7 +77,7 @@ jobs:
           - name: 📋 Audit
             shared-key: scotch-python
             task: repo:audit
-            tools: python rust uv
+            tools: jq python rust uv
           - name: ✂️ Knip
             shared-key: scotch-wasm
             task: site:cruft

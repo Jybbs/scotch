@@ -38,9 +38,12 @@ describe('moveNode', () => {
     expect(running).toEqual([])
   })
 
-  it('starts nothing for a node already at its target', () => {
-    const { animate, node } = nodeAt('translate(0%, 0%)', '1')
-    motion.moveNode(node, 'glide', [], { opacity: 1, transform: 'translate(0%, 0%)' })
+  it.each([
+    ['for a node already at its target', 'translate(0%, 0%)', 'translate(0%, 0%)'],
+    ['for a shown node that holds no transform yet', '', 'translate(100%, 0%)']
+  ])('glides nothing %s', (_, transform, target) => {
+    const { animate, node } = nodeAt(transform, '1')
+    motion.moveNode(node, 'glide', [], { opacity: 1, transform: target })
     expect(animate).not.toHaveBeenCalled()
   })
 
@@ -61,28 +64,24 @@ describe('moveNode', () => {
 })
 
 describe('moveNode across plies', () => {
-  it('fades a hidden node in at its new square, gliding nothing a reader could not see', () => {
-    const { animate, node } = nodeAt('translate(0%, 0%)', '0')
-    motion.moveNode(node, 'glide', [], { opacity: 1, transform: 'translate(100%, 0%)' })
-    expect(animate.mock.calls.map(([frames]) => frames)).toEqual([[{ opacity: 0 }, { opacity: 1 }]])
-  })
-
-  it('glides nothing for a shown node that holds no transform yet', () => {
-    const { animate, node } = nodeAt('', '1')
-    motion.moveNode(node, 'glide', [], { opacity: 1, transform: 'translate(100%, 0%)' })
-    expect(animate).not.toHaveBeenCalled()
-  })
-
-  it('fades a node holding no transform yet in place, with no stop across', () => {
-    const { animate, node } = nodeAt('', '0')
-    motion.moveNode(node, 'fade', [], { opacity: 1, transform: 'translate(100%, 0%)' })
-    expect(animate.mock.calls.map(([frames]) => frames)).toEqual([[{ opacity: 0 }, { opacity: 1 }]])
-  })
-
-  it('glides a node it never showed to its square without sliding it from nowhere', () => {
-    const { animate, node } = nodeAt('', '')
-    motion.moveNode(node, 'glide', [], { opacity: 1, transform: 'translate(100%, 0%)' })
-    expect(animate.mock.calls.map(([frames]) => frames)).toEqual([[{ opacity: 0 }, { opacity: 1 }]])
+  it.each([
+    [
+      'fades a hidden node in at its new square, gliding nothing a reader could not see',
+      'translate(0%, 0%)', '0', 'glide', { opacity: 1, transform: 'translate(100%, 0%)' }, 1
+    ],
+    [
+      'fades a node holding no transform yet in place, with no stop across',
+      '', '0', 'fade', { opacity: 1, transform: 'translate(100%, 0%)' }, 1
+    ],
+    [
+      'glides a node it never showed to its square without sliding it from nowhere',
+      '', '', 'glide', { opacity: 1, transform: 'translate(100%, 0%)' }, 1
+    ],
+    ['fades a node that keeps its place by its opacity alone', '', '1', 'fade', { opacity: 0 }, 0]
+  ] as const)('%s', (_, transform, opacity, how, target, to) => {
+    const { animate, node } = nodeAt(transform, opacity)
+    motion.moveNode(node, how, [], target)
+    expect(animate.mock.calls.map(([frames]) => frames)).toEqual([[{ opacity: 1 - to }, { opacity: to }]])
   })
 
   it('fades a node out, across while hidden, and back in along the sway', () => {
@@ -97,12 +96,6 @@ describe('moveNode across plies', () => {
       ],
       { duration: DURATIONS.settle, easing: `cubic-bezier(${CURVES.sway.join(', ')})` }
     ]])
-  })
-
-  it('fades a node that keeps its place by its opacity alone', () => {
-    const { animate, node } = nodeAt('', '1')
-    motion.moveNode(node, 'fade', [], { opacity: 0 })
-    expect(animate.mock.calls.map(([frames]) => frames)).toEqual([[{ opacity: 1 }, { opacity: 0 }]])
   })
 })
 

@@ -27,4 +27,5 @@ codegen-units = 1
 lto           = true
 
 [lints.clippy]
-pedantic = { level = "deny", priority = -1 }
+needless_pass_by_value = "allow"
+pedantic               = { level = "deny", priority = -1 }
