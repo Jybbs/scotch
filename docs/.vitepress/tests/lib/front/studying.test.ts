@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
-import { describe, expect, it, vi } from 'vitest'
-import { effectScope }              from 'vue'
+import { describe, expect, it } from 'vitest'
+import { effectScope }          from 'vue'
 
 import * as studying                 from '../../../lib/front/studying.ts'
+import { test }                      from '../../common/clock.ts'
 import { pauseMotion, reduceMotion } from '../../common/motion.ts'
 
 describe('studying', () => {
@@ -22,17 +23,15 @@ describe('studying', () => {
     expect(frames.at(-1)).toEqual({ done: true, shown: run.lines.length, typed: run.command.length })
   })
 
-  it('restarts the typing on a pick and plays it through to its last frame', () => {
-    vi.useFakeTimers()
+  test('restarts the typing on a pick and plays it through to its last frame', ({ clock }) => {
     const scope = effectScope()
     const term  = scope.run(() => studying.useConsole(10))!
     expect(term.frame.value.done).toBe(true)
     term.pick(2)
     expect([term.picked.value, term.frame.value]).toEqual([2, { done: false, shown: 0, typed: 0 }])
-    vi.advanceTimersByTime(60_000)
+    clock.advanceTimersByTime(60_000)
     expect(term.frame.value.shown).toBe(studying.RUNS[2]!.lines.length)
     scope.stop()
-    vi.useRealTimers()
   })
 
   it('prints a picked run whole at once while the site’s drawings hold still', () => {
@@ -46,16 +45,15 @@ describe('studying', () => {
 })
 
 describe('useConsole under a pause', () => {
-  it('prints the run whole once the reader pauses the drawings mid-play', async () => {
-    vi.useFakeTimers()
+  test('prints the run whole once the reader pauses the drawings mid-play', async ({ clock }) => {
     const scope = effectScope()
     const term  = scope.run(() => studying.useConsole(10))!
     term.pick(1)
     expect(term.frame.value.done).toBe(false)
     await pauseMotion()
     expect(term.frame.value.shown).toBe(studying.RUNS[1]!.lines.length)
+    expect(clock.getTimerCount()).toBe(0)
     scope.stop()
-    vi.useRealTimers()
   })
 })
 

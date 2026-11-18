@@ -8,18 +8,28 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
 - The commands `lock:check`, `lock:audit`, and `lock:sync` run for each
   task script declaring its own dependencies, for the crate's
   `rust/Cargo.lock`, and for the site's `docs/bun.lock`
+- The advisories `lock:audit` sets aside from `bun audit` while no
+  release fixes them, and its failure once a release fixes one, its
+  stand-in `gh` running the task's own `--jq` filter through `jq` over
+  the advisories saved under `fixtures/advisories/`
 - The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
-with stand-in `bun`, `cargo`, `mise`, `mktemp`, `osv-scanner`, `scotch`, and
-`uv` executables first on `PATH`, so every file the task writes lands in a
-directory the case owns.
+with stand-in `bun`, `cargo`, `cargo-deny`, `gh`, `mise`, `mktemp`,
+`scotch`, and `uv` executables first on `PATH`, so every file the task
+writes lands in a directory the case owns.
 """
 
 from common.stand_ins import Scratch
+from json             import loads
+from pathlib          import Path
 from pytest           import mark, param
 
+ADVISORIES = Path(__file__).parent / "fixtures" / "advisories"
+ADVISORY   = "GHSA-fc5q-39xc-vjpf"
 CARGO = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml"
+DENY  = "cargo-deny --locked --manifest-path rust/Cargo.toml check"
+GH    = f'jq -r "$3" "{ADVISORIES}/${{4##*/}}.json"'
 
 
 def test_a_lockfile_matching_its_manifest_passes(scratch: Scratch):
@@ -173,14 +183,14 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     assert scratch.residue == scratch.pristine
 
 
-def test_audit_fails_on_an_advisory_for_the_crate(scratch: Scratch):
+def test_audit_fails_on_a_crate_breaking_a_rule_of_its_config(scratch: Scratch):
     """
-    Asserts that `lock:audit` exits with the status `osv-scanner` returns
-    for an advisory against a crate the crate's lockfile resolves, auditing
-    the site's lockfile no further.
+    Asserts that `lock:audit` exits with the status `cargo-deny` returns for
+    a crate breaking a rule of `rust/.cargo/deny.toml`, auditing the site's
+    lockfile no further.
     """
-    assert scratch.run("audit", osv="exit 1").returncode == 1
-    assert scratch.calls[-1] == "osv-scanner scan source --lockfile rust/Cargo.lock"
+    assert scratch.run("audit", deny="exit 1").returncode == 1
+    assert scratch.calls[-1] == DENY
 
 
 def test_audit_fails_on_an_advisory_for_the_site(scratch: Scratch):
@@ -193,12 +203,98 @@ def test_audit_fails_on_an_advisory_for_the_site(scratch: Scratch):
     assert scratch.calls[-1] == "bun audit --cwd docs"
 
 
+@mark.parametrize(
+    ("ignore", "bun"),
+    [
+        param("", "bun audit --cwd docs", id="empty"),
+        param(ADVISORY, f"bun audit --cwd docs --ignore={ADVISORY}", id="unpatched"),
+        param(
+            f"{ADVISORY} GHSA-7w2g-9mf9-324m",
+            f"bun audit --cwd docs --ignore={ADVISORY} --ignore=GHSA-7w2g-9mf9-324m",
+            id = "two-unpatched"
+        )
+    ]
+)
+def test_audit_sets_aside_each_advisory_no_release_fixes(
+    bun     : str,
+    ignore  : str,
+    scratch : Scratch
+):
+    """
+    Asserts that `lock:audit` passes `--ignore` to `bun audit` for each
+    id `AUDIT_IGNORE` lists whose saved advisory names no patched version,
+    printing the advisory's summary after reading each advisory once in the
+    order the list gives, and runs the plain `bun audit` without calling
+    `gh` where the list is empty.
+    """
+    result = scratch.run("audit", gh=GH, ignore=ignore)
+
+    assert result.returncode == 0
+    assert scratch.calls[-1] == bun
+    assert result.stderr.splitlines() == [
+        f"Setting {advisory} aside while no release fixes it: "
+        + loads((ADVISORIES / f"{advisory}.json").read_text())["summary"]
+        for advisory in ignore.split()
+    ]
+    assert [call.split()[-1] for call in scratch.calls if "/advisories/" in call] == [
+        f"/advisories/{advisory}" for advisory in ignore.split()
+    ]
+
+
+@mark.parametrize(
+    ("ignore", "gh", "stderr"),
+    [
+        param(
+            "GHSA-r9jc-w898-3fv6",
+            GH,
+            "GHSA-r9jc-w898-3fv6 is fixed in nuxt 4.6.4, so delete it",
+            id = "patched"
+        ),
+        param(
+            "GHSA-4528-x5fx-h6hg",
+            GH,
+            "GHSA-4528-x5fx-h6hg is fixed in joi 17.13.9, joi 18.3.1, so delete it",
+            id = "partly-patched"
+        ),
+        param(
+            ADVISORY,
+            "echo 'HTTP 404: Not Found' >&2; exit 1",
+            "HTTP 404",
+            id = "unreadable"
+        ),
+        param(
+            ADVISORY,
+            "echo 'error connecting to api.github.com' >&2; exit 1",
+            "error connecting to api.github.com",
+            id = "unreachable"
+        )
+    ]
+)
+def test_audit_fails_once_a_release_fixes_an_advisory_or_it_cannot_be_read(
+    gh      : str,
+    ignore  : str,
+    scratch : Scratch,
+    stderr  : str
+):
+    """
+    Asserts that `lock:audit` exits one without running `bun audit` where a
+    saved advisory `AUDIT_IGNORE` lists names a patched version for any of
+    its packages, naming the entry to delete and each release to lift to,
+    and where `gh` cannot read the advisory.
+    """
+    result = scratch.run("audit", gh=gh, ignore=ignore)
+
+    assert result.returncode == 1
+    assert not any(call.startswith("bun ") for call in scratch.calls)
+    assert stderr in result.stderr
+
+
 def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     """
     Asserts that `lock:audit` runs `uv audit` over the project's lockfile
     and then over each task script declaring its own dependencies, each
-    under the preview flag `uv audit` takes, then `osv-scanner` over the
-    crate's lockfile, and then `bun audit` over the site's lockfile.
+    under the preview flag `uv audit` takes, then `cargo-deny` over the
+    crate, and then `bun audit` over the site's lockfile.
     """
     scratch.add_script()
 
@@ -206,7 +302,7 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     assert scratch.calls == [
         "uv audit --preview-features audit-command",
         f"uv audit --preview-features audit-command --script {scratch.script}",
-        "osv-scanner scan source --lockfile rust/Cargo.lock", "bun audit --cwd docs"
+        DENY, "bun audit --cwd docs"
     ]
 
 

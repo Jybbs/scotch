@@ -1,11 +1,10 @@
-import { assert, asyncProperty, constantFrom, integer } from 'fast-check'
-import { describe, expect, it }                         from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { EXAMPLES, type Match, SAMPLES, type Sample } from '../../../lib/viewer/examples.ts'
-import * as links                                     from '../../../lib/viewer/link.ts'
-import { Loaded }                                     from '../../../lib/viewer/loaded.ts'
-import { useViewer }                                  from '../../../lib/viewer/state.ts'
-import type { Facing }                                from '../../../lib/viewer/trail.ts'
+import { EXAMPLES, type Match, SAMPLES } from '../../../lib/viewer/examples.ts'
+import * as links                        from '../../../lib/viewer/link.ts'
+import { Loaded }                        from '../../../lib/viewer/loaded.ts'
+import { useViewer }                     from '../../../lib/viewer/state.ts'
+import type { Facing }                   from '../../../lib/viewer/trail.ts'
 
 /**
  * Flips one character of a link's carried text, as a link altered in transit
@@ -15,6 +14,25 @@ function altered(text: string): string {
   const at = Math.floor(text.length / 2)
   return text.slice(0, at) + (text[at] === 'A' ? 'B' : 'A') + text.slice(at + 1)
 }
+
+/**
+ * Lists, for each example and side, the plies just inside and just outside each
+ * end of the range its loaded match spans, and plies far past either end, each
+ * beside the ply the cursor is clamped to there.
+ */
+const CLAMPED = SAMPLES.flatMap(({ name }) => {
+  const { first, last } = new Loaded(EXAMPLES[name])
+  return (['black', 'white'] as const).flatMap(side => ([
+    ['far before the first', first - 1000, first],
+    ['one before the first', first - 1, first],
+    ['at the first', first, first],
+    ['one past the first', first + 1, first + 1],
+    ['one before the last', last - 1, last - 1],
+    ['at the last', last, last],
+    ['one past the last', last + 1, last],
+    ['far past the last', last + 1000, last]
+  ] as const).map(([at, ply, held]) => ({ at, held, name, ply, side })))
+})
 
 /**
  * Reads the side a fragment carries, which it leaves out while the boards face
@@ -32,25 +50,19 @@ function facingOf(reading: links.Place): Facing {
 }
 
 describe('fromLink', () => {
-  it('reads any example back with its ply and side, the ply held to the range once loaded', async () => {
-    const encoded = { alone: links.encodedOf(EXAMPLES.alone), match: links.encodedOf(EXAMPLES.match) }
-    await assert(asyncProperty(
-      constantFrom<Sample>('alone', 'match'),
-      integer({ max: 1000, min: -1000 }),
-      constantFrom<Facing>('black', 'white'),
-      async (name, ply, side) => {
-        const fragment = links.fragmentOf({ encoded: await encoded[name] }, { ply, side })
-        const reading  = await links.fromLink(fragment) as links.Place & links.Reading
-        const loaded   = new Loaded(EXAMPLES[name])
-        const viewer   = useViewer()
-        expect(reading).toEqual({ match: EXAMPLES[name], ply, ...carried(side) })
-        viewer.load(EXAMPLES[name], 'A link', undefined, reading.ply)
-        viewer.turn(facingOf(reading))
-        expect(viewer.cursor.value).toBe(Math.min(Math.max(ply, loaded.first), loaded.last))
-        expect(viewer.facing.value).toBe(side)
-      }
-    ), { numRuns: 200 })
-  })
+  it.each(CLAMPED)(
+    'reads the $name example back facing $side $at, at $ply, the cursor held to $held once loaded',
+    async ({ held, name, ply, side }) => {
+      const fragment = links.fragmentOf({ encoded: await links.encodedOf(EXAMPLES[name]) }, { ply, side })
+      const reading  = await links.fromLink(fragment) as links.Place & links.Reading
+      const viewer   = useViewer()
+      expect(reading).toEqual({ match: EXAMPLES[name], ply, ...carried(side) })
+      viewer.load(EXAMPLES[name], 'A link', undefined, reading.ply)
+      viewer.turn(facingOf(reading))
+      expect(viewer.cursor.value).toBe(held)
+      expect(viewer.facing.value).toBe(side)
+    }
+  )
 
   it.each(SAMPLES.map(({ name }) => name))('reads the %s example back by name', async sample => {
     expect(await links.fromLink(links.fragmentOf({ sample }, {})))
