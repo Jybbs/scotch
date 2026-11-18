@@ -3,7 +3,8 @@
   --sc-data-below   : color-mix(in oklab, var(--sc-data-ink) 60%, var(--sc-data-page));
   --sc-data-repeat  : color-mix(in oklab, var(--sc-data-ink) 26%, var(--sc-data-page));
   --sc-data-unread  : color-mix(in oklab, var(--sc-data-ink) 78%, var(--sc-data-page));
-  --sc-data-variant : color-mix(in oklab, var(--sc-data-ink) 62%, var(--sc-data-page));
+  --sc-data-variant : repeating-linear-gradient(-45deg, var(--sc-data-ink) 0 1.5px, transparent 1.5px 5px)
+                      color-mix(in oklab, var(--sc-data-ink) 62%, var(--sc-data-page));
   display           : grid;
   gap               : 14px;
 }
