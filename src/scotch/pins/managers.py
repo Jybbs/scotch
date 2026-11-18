@@ -172,7 +172,7 @@ class BunPins(Pins):
             copy = Path(scratch) / self.tree.relative(self.folder)
             copy.mkdir()
 
-            for name in ("bun.lock", "bunfig.toml", "package.json"):
+            for name in ("bun.lock", "package.json"):
                 copy2(self.folder / name, copy / name)
 
             for lift in lifts:

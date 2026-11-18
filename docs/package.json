@@ -28,6 +28,12 @@
         "vitest"     : "5.1.0",
         "vue"        : "3.5.45"
     },
+    "knip"            : {
+        "ignoreDependencies" : ["oxlint", "@fontsource/.+"],
+        "rules"              : { "cycles": "error" },
+        "typescript"         : { "config": [".vitepress/tsconfig.json"] },
+        "vitest"             : { "config": [".vitepress/config/vitest.config.ts"] }
+    },
     "overrides"       : {
         "fflate"    : "0.8.3",
         "glob"      : "14.0.4",
