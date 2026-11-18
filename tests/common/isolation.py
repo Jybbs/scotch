@@ -1,18 +1,21 @@
 """
 Holds the isolation every test keeps from the machine running it, meaning
 `CLEARED`, the shell variables the root `conftest.py` clears before each
-test, and the collection hook that lets a test open a network connection
-only when it carries the `network` mark, a pytest plugin the root
-`conftest.py` registers through `pytest_plugins`.
+test, `PINNED`, the terminal's type and width it sets, and the collection
+hook that lets a test open a network connection only when it carries the
+`network` mark, a pytest plugin the root `conftest.py` registers through
+`pytest_plugins`.
 """
 
 from pytest import Item, mark
 
 CLEARED = (
-    "CLICOLOR", "COLORTERM", "COLUMNS", "FORCE_COLOR", "GITHUB_OUTPUT",
+    "CLICOLOR", "COLORTERM", "FORCE_COLOR", "GITHUB_OUTPUT",
     "GITHUB_STEP_SUMMARY", "LINES", "NO_COLOR", "TTY_COMPATIBLE",
     "TTY_INTERACTIVE", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"
 )
+
+PINNED = {"COLUMNS": "80", "TERM": "dumb"}
 
 
 def pytest_collection_modifyitems(items: list[Item]):
