@@ -17,7 +17,7 @@ from typing     import Annotated
 from scotch.cli           import app
 from scotch.cli.settings  import root
 from scotch.pins.managers import Pins
-from scotch.pins.schemas  import Report, coupled
+from scotch.pins.schemas  import Failure, Report, coupled
 from scotch.pins.trees    import Tree
 from scotch.repo.checkout import Checkout
 
@@ -57,20 +57,21 @@ def pins(
     `--hold` names and of each pin `repo:audit` holds to one of them, such
     as `@types/node` beside `node`, into a scratch clone of the checkout,
     carrying its uncommitted and untracked files, and runs `mise ci` there.
-    Where that fails, the trial runs again holding back each major lift in
-    turn together with the pins `repo:audit` holds to it, printing whether
-    each passes, and the log of each attempt lands under `.cache/lift/`.
-    Under `--write`, relocks the lift in a scratch clone and, once `mise
-    audit` passes there, writes it into the checkout as one diff, after a
-    passing trial where `--try` is given as well.
+    Where that fails, the trial runs again for each lift in turn, together
+    with the pins `repo:audit` holds to it, on top of the lifts already
+    passing, holding back each lift whose trial still fails and printing
+    the command it fails and the log of its attempt, each log landing under
+    `.cache/lift/`. Under `--write`, writes the lifts the trial passes into
+    the checkout as one diff, or, where `--try` is not given, relocks the
+    lift in a scratch clone and writes it once `mise audit` passes there.
 
     Exits with status 2 where `--hold` names a pin the table lists nowhere,
-    and with status 1 naming the problem where a trial fails, where the
-    lift's relock or the `mise audit` after it fails, where a file of the
-    checkout or a tool's answer fails to read as its record, naming the
-    file or the record, or where a command the run starts fails, such as one
-    reading a pin's newest release or the `git apply` writing the lift into
-    a checkout whose files changed while the trial ran.
+    and with status 1 naming the problem where no lift passes its trial,
+    where the lift's relock or the `mise audit` after it fails, where a file
+    of the checkout or a tool's answer fails to read as its record, naming
+    the file or the record, or where a command the run starts fails, such as
+    one reading a pin's newest release or the `git apply` writing the lift
+    into a checkout whose files changed while the trial ran.
     """
     try:
         tree   = Tree.scrubbed(Checkout(app=app, root=root()), environ)
@@ -95,26 +96,20 @@ def pins(
         if trial:
             patch = tree.attempt(held.rows, tree.logs / "trial.log", checked=True)
 
-            if patch is None:
-                for name in held.majors:
-                    passes = tree.attempt(
-                        held.without({name}).rows,
-                        tree.logs / f"held-{name.replace('/', '-')}.log",
-                        checked = True
-                    ) is not None
-                    named = " and ".join(f"`{pin}`" for pin in sorted(coupled(name)))
-                    print(
-                        f"Holding back {named} {'passes' if passes else 'still fails'}"
-                    )
-
-                raise SystemExit(f"The lift fails its trial, logged under {tree.logs}")
+            if isinstance(patch, Failure):
+                patch = settled(patch, held, tree)
 
             print("The lift passes `mise ci`")
 
         if write:
-            if patch is None and (
-                patch := tree.attempt(held.rows, tree.logs / "write.log", checked=False)
-            ) is None:
+            if patch is None and isinstance(
+                patch := tree.attempt(
+                    held.rows,
+                    tree.logs / "write.log",
+                    checked = False
+                ),
+                Failure
+            ):
                 raise SystemExit(
                     "The lift fails to relock or to pass `mise audit`, logged under "
                     f"{tree.logs}"
@@ -131,6 +126,51 @@ def pins(
         )
     except ValidationError as error:
         raise SystemExit(str(error)) from None
+
+
+def settled(failure: Failure, report: Report, tree: Tree) -> bytes:
+    """
+    Tries each lift of `report` in turn, together with the pins `repo:audit`
+    holds to it, on top of the lifts already passing, once the trial of them
+    all stopped on `failure`, holding back each lift whose trial still fails
+    and printing the command it fails and the log of its attempt. Where no
+    lift before the last is held back, the last is held back on `failure`
+    without a second trial, since that trial is the one that failed.
+
+    Returns:
+        The diff of the last trial that passed, which writes every lift not
+        held back.
+
+    Raises:
+        SystemExit: Where no lift passes its trial.
+    """
+    print(f"The lift fails `{failure.command}`, logged in {failure.log}")
+    failing : list[str]    = []
+    patch   : bytes | None = None
+
+    for index, name in enumerate(leads := report.leads):
+        rest    = {*failing, *leads[index + 1:]}
+        outcome = tree.attempt(
+            report.without(rest).rows,
+            tree.logs / f"lift-{name.replace('/', '-')}.log",
+            checked = True
+        ) if rest else failure
+
+        if isinstance(outcome, bytes):
+            patch = outcome
+            continue
+
+        failing.append(name)
+        named = " and ".join(f"`{pin}`" for pin in sorted(report.names & coupled(name)))
+        print(
+            f"Held back {named}, whose trial fails `{outcome.command}`, logged in "
+            f"{outcome.log}"
+        )
+
+    if patch is None:
+        raise SystemExit(f"No lift passes its trial, logged under {tree.logs}")
+
+    return patch
 
 
 lift_group = App(name="lift")
