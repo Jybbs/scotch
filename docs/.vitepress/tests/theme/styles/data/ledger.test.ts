@@ -2,7 +2,7 @@
 import fs   from 'node:fs'
 import path from 'node:path'
 
-import { type VueWrapper, mount }                          from '@vue/test-utils'
+import { type VueWrapper, mount }                        from '@vue/test-utils'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { Omissions } from '../../../../lib/data/omitted.ts'
@@ -54,5 +54,10 @@ describe('the ledger stylesheet', () => {
     expect(tone('.sc-data-ledger', '--sc-data-repeat'))
       .toBe('color-mix(in oklab, rgb(0, 0, 0) 26%, rgb(255, 255, 255))')
     expect(tone(CHIP, 'color')).toBe('rgb(0, 0, 0)')
+    expect(tone(CHIP, 'width')).toBe('fit-content')
+    expect(tone(CHIP, 'margin')).toBe('5px auto')
+    expect(tone(CHIP, 'padding')).toBe('0px 6px')
+    expect(tone(CHIP, 'border-radius')).toBe('2px')
+    expect(tone(CHIP, 'line-height')).toBe('16px')
   })
 })
