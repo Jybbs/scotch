@@ -47,13 +47,13 @@ function placeOf(viewer: Viewer): links.Place {
  * or a shared link opens there, and opens the Viewer on the match a link's
  * fragment carries where the page was reached through one. It writes nothing
  * before the Viewer opens, so a page reached without a fragment keeps a bare
- * address until the reader steps.
+ * address until the reader steps, and nothing once the Viewer leaves the page.
  */
 export function useAddress(viewer: Viewer): Address {
   const problem = shallowRef('')
   const carried = shallowRef<Carried>()
-  let left      = false
   let opened    = false
+  let unmounted = false
   let writing   : ReturnType<typeof setTimeout> | undefined
 
   const write = (): void => {
@@ -61,7 +61,7 @@ export function useAddress(viewer: Viewer): Address {
     history.replaceState(history.state, '', `#${links.fragmentOf(carried.value, placeOf(viewer))}`)
   }
   onBeforeUnmount(() => {
-    left = true
+    unmounted = true
     clearTimeout(writing)
   })
 
@@ -73,7 +73,7 @@ export function useAddress(viewer: Viewer): Address {
       carried.value = sample ? { sample } : undefined
       if (sample) return
       const encoded = await links.encodedOf(loaded.match)
-      if (left || viewer.loaded.value !== loaded) return
+      if (unmounted || viewer.loaded.value !== loaded) return
       carried.value = { encoded }
       write()
     },

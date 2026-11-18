@@ -307,8 +307,8 @@ describe('Tool and the page’s address', () => {
   })
 
   test('writes a loaded file’s match into the address once it is encoded', async ({ clock }) => {
-    const encoded  = await links.encodedOf(EXAMPLES.alone)
-    const encoding = vi.spyOn(links, 'encodedOf')
+    const encoded     = await links.encodedOf(EXAMPLES.alone)
+    const encoding    = vi.spyOn(links, 'encodedOf')
     const { wrapper } = mountedTool()
     await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
     await settled(encoding)
