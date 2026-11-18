@@ -35,7 +35,7 @@ describe('Run as drawn', () => {
   })
 
   it('draws the timeline in lanes that join through the run, a column per ply', () => {
-    const drawn = mounted().findAll('.sc-run-cell').map(cell => cell.element as HTMLElement)
+    const drawn = mounted().findAll('i[data-cell]').map(cell => cell.element as HTMLElement)
     const cells = drawn.map(cell => `${cell.dataset.cell} ${cell.style.gridRow}`)
     expect(cells.filter(cell => cell === 'run 1 / -1')).toHaveLength(11)
     expect(cells.filter(cell => cell === 'stored 2')).toHaveLength(7)
@@ -45,11 +45,11 @@ describe('Run as drawn', () => {
   })
 
   it('labels the ruler where the two games start, meet, and part, the last ending at its column', () => {
-    const marks = mounted().findAll('.sc-run-ruler span')
-    expect(marks.map(mark => [mark.text(), mark.attributes('style'), mark.attributes('data-end')])).toEqual([
-      ['Start', 'grid-column: 1;', undefined],
-      ['Meets', 'grid-column: 8;', undefined],
-      ['Parts', 'grid-column: 19;', '']
+    const marks = [...mounted().get('[data-end]').element.parentElement!.children] as HTMLElement[]
+    expect(marks.map(mark => [mark.textContent, mark.style.gridColumn, mark.dataset.end])).toEqual([
+      ['Start', '1', undefined],
+      ['Meets', '8', undefined],
+      ['Parts', '19', '']
     ])
   })
 
@@ -62,15 +62,15 @@ describe('Run as drawn', () => {
       submitted : full.submitted.slice(0, 9)
     }
     const wrapper = mount(Run, { props: { example, tuning: { gap: 1, interval: 100 } } })
-    expect(wrapper.find('.sc-run').attributes('style')).toBe('--sc-run-cells: 9; --sc-run-gap: 1px;')
-    await wrapper.findAll('.sc-run-button')[2]!.trigger('click')
+    expect(wrapper.attributes('style')).toBe('--sc-run-cells: 9; --sc-run-gap: 1px;')
+    await wrapper.findAll('button')[2]!.trigger('click')
     clock.advanceTimersByTime(100)
     await nextTick()
-    expect(wrapper.find('.sc-run-status').text()).toBe('Ply 1 · the positions differ')
+    expect(wrapper.find('[role=status]').text()).toBe('Ply 1 · the positions differ')
   })
 
   it('sets the note next to the key as prose', () => {
-    expect(mounted().find('.sc-run-note').text()).toReadAsProse()
+    expect(mounted().find('p').text()).toReadAsProse()
   })
 })
 
@@ -78,26 +78,27 @@ describe('Run to a screen reader', () => {
   it('hides the board, its key, and the timeline from a screen reader, which reads the list', () => {
     const wrapper = mounted()
     const parts   = [
-      '.sc-run-board', '.sc-run-cells', '.sc-run-heads', '.sc-run-key', '.sc-run-lanes', '.sc-run-ruler'
-    ]
-    expect(parts.map(part => wrapper.get(part).attributes('aria-hidden'))).toAllEqual('true')
+      '[data-layer]', 'i[data-cell]', 'span[data-kind]', '[data-end]', '[role=status] + div > span'
+    ].map(part => wrapper.get(part).element.parentElement!)
+    const heads   = wrapper.get('[role=listbox]').element.previousElementSibling!
+    expect([...parts, heads].map(part => part.getAttribute('aria-hidden'))).toAllEqual('true')
   })
 })
 
 describe('Run as stepped', () => {
   it('steps with the buttons', async () => {
     const wrapper          = mounted()
-    const [previous, next] = wrapper.findAll('.sc-run-button')
+    const [previous, next] = wrapper.findAll('button')
     await next!.trigger('click')
-    expect(wrapper.find('.sc-run-status').text()).toBe('Ply 7 · one position')
+    expect(wrapper.find('[role=status]').text()).toBe('Ply 7 · one position')
     await previous!.trigger('click')
-    expect(wrapper.find('.sc-run-status').text()).toBe('Ply 6 · the positions differ')
+    expect(wrapper.find('[role=status]').text()).toBe('Ply 6 · the positions differ')
   })
 
   it.each([['0', 0], ['18', 1]])('disables the button pointing past ply %s', async (ply, button) => {
     const wrapper = mounted()
     await wrapper.find(`[id$='-ply-${ply}']`).trigger('click')
-    expect(wrapper.findAll('.sc-run-button')[button]!.attributes('disabled')).toBe('')
+    expect(wrapper.findAll('button')[button]!.attributes('disabled')).toBe('')
   })
 
   it('steps to a ply the reader picks from the list and keys through it from the tab order', async () => {
@@ -106,30 +107,30 @@ describe('Run as stepped', () => {
     expect(wrapper.find('[role=listbox]').attributes('tabindex')).toBe('0')
     expect(wrapper.find('[role=listbox]').attributes('aria-activedescendant')).toMatch(/-ply-12$/u)
     await wrapper.find('[role=listbox]').trigger('keydown', { key: 'Home' })
-    expect(wrapper.find('.sc-run-status').text()).toBe('Both open on the starting position')
+    expect(wrapper.find('[role=status]').text()).toBe('Both open on the starting position')
   })
 
   test('plays the line through from the start', async ({ clock }) => {
     const wrapper = mounted()
-    const play    = wrapper.findAll('.sc-run-button')[2]!
+    const play    = wrapper.findAll('button')[2]!
     await play.trigger('click')
     expect(play.attributes('aria-pressed')).toBe('true')
     clock.advanceTimersByTime(RUN_TUNING.interval * 19)
     await nextTick()
-    expect([wrapper.find('.sc-run-status').text(), play.attributes('aria-pressed')])
+    expect([wrapper.find('[role=status]').text(), play.attributes('aria-pressed')])
       .toEqual(['Ply 18 · parted', 'false'])
   })
 
   it('moves the board to the ply in view', async () => {
     const wrapper = mounted()
-    await wrapper.findAll('.sc-run-button')[1]!.trigger('click')
-    expect((wrapper.find('.sc-run-stamp').element as HTMLElement).style.opacity).toBe('1')
+    await wrapper.findAll('button')[1]!.trigger('click')
+    expect((wrapper.find('[data-stamp]').element as HTMLElement).style.opacity).toBe('1')
   })
 
   it('moves the timeline marker to the ply in view', async () => {
     const wrapper = mounted()
-    await wrapper.findAll('.sc-run-button')[1]!.trigger('click')
-    expect((wrapper.find('.sc-run-head').element as HTMLElement).style.transform)
+    await wrapper.findAll('button')[1]!.trigger('click')
+    expect((wrapper.find('i[data-cell] ~ span').element as HTMLElement).style.transform)
       .toBe('translate(calc(700% + 21px), 0)')
   })
 })
@@ -139,7 +140,7 @@ describe('Run, its list', () => {
     const wrapper = mounted()
     expect(wrapper.findAll('[role=option]')).toHaveLength(19)
     expect(wrapper.findAll("[role=option][data-cell='run']")).toHaveLength(11)
-    const marks = wrapper.findAll('.sc-run-mark')
+    const marks = wrapper.findAll('[role=option] [data-game] > span:not(.sc-start)')
       .map(mark => [mark.text(), mark.element.closest('[role=option]')?.id.replace(/^.*-ply-/u, '')])
     expect(marks).toEqual([['meets', '7'], ['parts', '18']])
   })
@@ -163,7 +164,7 @@ describe('Run, its list', () => {
     vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockReturnValue(400)
     vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(20)
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(200)
-    await mounted().findAll('.sc-run-button')[1]!.trigger('click')
+    await mounted().findAll('button')[1]!.trigger('click')
     expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ top: 400 - (200 - 20) / 2 }))
   })
 })
@@ -173,9 +174,9 @@ describe('Run in motion', () => {
     vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
     const wrapper = mounted()
     const cancel  = vi.fn<() => void>()
-    const head    = wrapper.find('.sc-run-head').element as HTMLElement
+    const head    = wrapper.find('i[data-cell] ~ span').element as HTMLElement
     head.animate  = vi.fn<() => Animation>(() => ({ cancel, playState: 'finished' }) as unknown as Animation)
-    const next    = wrapper.findAll('.sc-run-button')[1]!
+    const next    = wrapper.findAll('button')[1]!
     await next.trigger('click')
     expect(cancel).not.toHaveBeenCalled()
     await next.trigger('click')
@@ -185,10 +186,10 @@ describe('Run in motion', () => {
   it('glides the timeline marker from the ply it opens on', async () => {
     vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
     const wrapper    = mounted()
-    const head       = wrapper.find('.sc-run-head').element
+    const head       = wrapper.find('i[data-cell] ~ span').element
     const animate    = vi.mocked(Element.prototype.animate)
     const [from, to] = [6, 7].map(ply => ({ transform: timelineAt(RUN_TUNING.gap, ply) }))
-    await wrapper.findAll('.sc-run-button')[1]!.trigger('click')
+    await wrapper.findAll('button')[1]!.trigger('click')
     const glides = animate.mock.calls.filter((_, call) => animate.mock.contexts[call] === head)
     expect(glides.map(([frames]) => frames)).toEqual([[from, to]])
   })
@@ -200,14 +201,14 @@ describe('Run in motion', () => {
     vi.mocked(Element.prototype.animate).mockClear()
     await wrapper.find("[id$='-ply-18']").trigger('click')
     expect(Element.prototype.animate).not.toHaveBeenCalled()
-    expect(wrapper.find('.sc-run-status').text()).toBe('Ply 18 · parted')
+    expect(wrapper.find('[role=status]').text()).toBe('Ply 18 · parted')
     expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'auto' }))
   })
 
   it('animates a step for a reader who does not', async () => {
     const scrolled = vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
     const wrapper  = mounted()
-    await wrapper.findAll('.sc-run-button')[1]!.trigger('click')
+    await wrapper.findAll('button')[1]!.trigger('click')
     expect(Element.prototype.animate).toHaveBeenCalled()
     expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'smooth' }))
   })

@@ -68,8 +68,7 @@
   font          : 400 0.95rem/1 var(--sc-face-body);
 }
 
-.sc-data-plate,
-.sc-run {
+.sc-data-plate {
   padding       : 16px;
   border        : 1px solid var(--sc-rule);
   border-radius : 6px;

@@ -30,7 +30,6 @@ import './styles/data/position.css'
 import './styles/data/rail.css'
 import './styles/data/results.css'
 import './styles/data/tie.css'
-import './styles/methods/run.css'
 
 import { FIGURE } from '../lib/markdown/placements.ts'
 import { VIEWER } from '../lib/viewer/page.ts'

@@ -78,7 +78,7 @@ describe('Split past the run', () => {
     const split  = mount(Split)
     await flushPromises()
     const pieces = (game: string): string[] => split
-      .findAll(`[role='img'][data-game='${game}'] .sc-run-piece`)
+      .findAll(`[role='img'][data-game='${game}'] [data-piece]`)
       .filter(node => (node.element as HTMLElement).style.opacity === '1')
       .map(node => `${node.attributes('data-id')} ${(node.element as HTMLElement).style.transform}`)
       .toSorted()

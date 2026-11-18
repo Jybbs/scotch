@@ -6,6 +6,7 @@ import { type Stepping, useStepping } from '../../../lib/methods/stepping.ts'
 import { useMotion }                  from '../../../lib/motion/control.ts'
 import { startMark }                  from '../start.ts'
 import { RunBoard }                   from './board.ts'
+import * as parts                     from './parts.ts'
 
 interface Drawn {
   example  : example.Example
@@ -26,20 +27,20 @@ const NOTE = 'The lanes carry their names beside the timeline, and the list name
  */
 function cell(kind: string, ply: number, rows: string): VNode {
   return h('i', {
-    'class'     : 'sc-run-cell',
+    'class'     : parts.CELL,
     'data-cell' : kind,
     'style'     : { gridColumn: String(ply + 1), gridRow: rows }
   })
 }
 
 function cells(drawn: Drawn, head: Ref<HTMLElement | null>, headStyle: Record<string, string>): VNode {
-  return h('div', { 'aria-hidden': 'true', 'class': 'sc-run-cells' }, [
+  return h('div', { 'aria-hidden': 'true', 'class': parts.CELLS }, [
     ...drawn.example.submitted.flatMap((_, ply) => {
       const kind = example.cellOf(drawn.example, ply)
       if (kind !== 'apart') return [cell(kind, ply, '1 / -1')]
       return [cell('submitted', ply, '1'), cell('stored', ply, '2')]
     }),
-    h('span', { class: 'sc-run-head', ref: head, style: headStyle })
+    h('span', { class: parts.HEAD, ref: head, style: headStyle })
   ])
 }
 
@@ -55,22 +56,22 @@ function centerRow(how: motion.How | undefined, list: HTMLElement, ply: number):
 
 function controls({ last, stepping }: Drawn): VNode {
   const { go, play, playing, ply } = stepping
-  return h('div', { class: 'sc-run-controls' }, [
+  return h('div', { class: parts.CONTROLS }, [
     h('button', {
-      class    : 'sc-run-button',
+      class    : parts.BUTTON,
       disabled : ply.value === 0,
       onClick  : () => go(ply.value - 1),
       type     : 'button'
     }, 'Previous'),
     h('button', {
-      class    : 'sc-run-button',
+      class    : parts.BUTTON,
       disabled : ply.value === last,
       onClick  : () => go(ply.value + 1),
       type     : 'button'
     }, 'Next'),
     h('button', {
       'aria-pressed' : String(playing.value),
-      'class'        : 'sc-run-button',
+      'class'        : parts.BUTTON,
       'onClick'      : play,
       'type'         : 'button'
     }, 'Play')
@@ -88,33 +89,33 @@ function option(drawn: Drawn, ply: number): VNode {
   return h('div', {
     'aria-label'    : label,
     'aria-selected' : String(at),
-    'class'         : 'sc-run-option',
+    'class'         : parts.OPTION,
     'data-at'       : at ? '' : undefined,
     'data-cell'     : example.cellOf(drawn.example, ply),
     'id'            : `${drawn.id}-ply-${ply}`,
     'onClick'       : () => drawn.stepping.go(ply),
     'role'          : 'option'
   }, [
-    h('span', { class: 'sc-run-ply' }, String(ply)),
-    h('span', { 'class': 'sc-run-move', 'data-game': 'submitted' }, [
+    h('span', { class: parts.PLY }, String(ply)),
+    h('span', { 'class': parts.MOVE, 'data-game': 'submitted' }, [
       submitted,
-      mark ? h('span', { class: 'sc-run-mark' }, mark) : null
+      mark ? h('span', { class: parts.MARK }, mark) : null
     ]),
-    h('span', { 'class': 'sc-run-move', 'data-game': 'stored' }, stored)
+    h('span', { 'class': parts.MOVE, 'data-game': 'stored' }, stored)
   ])
 }
 
 function plies(drawn: Drawn, list: Ref<HTMLElement | null>): VNode {
-  return h('div', { class: 'sc-run-plies' }, [
-    h('div', { 'aria-hidden': 'true', 'class': 'sc-run-heads' }, [
-      h('span', 'Ply'),
-      h('span', { 'data-game': 'submitted' }, 'Submitted'),
-      h('span', { 'data-game': 'stored' }, 'Stored')
+  return h('div', { class: parts.PLIES }, [
+    h('div', { 'aria-hidden': 'true', 'class': parts.HEADS }, [
+      h('span', { class: parts.PLY_HEAD }, 'Ply'),
+      h('span', { 'class': parts.GAME_HEAD, 'data-game': 'submitted' }, 'Submitted'),
+      h('span', { 'class': parts.GAME_HEAD, 'data-game': 'stored' }, 'Stored')
     ]),
     h('div', {
       'aria-activedescendant' : `${drawn.id}-ply-${drawn.stepping.ply.value}`,
       'aria-label'            : 'Plies of the two games',
-      'class'                 : 'sc-run-list',
+      'class'                 : parts.LIST,
       'onKeydown'             : drawn.stepping.answer,
       'ref'                   : list,
       'role'                  : 'listbox',
@@ -124,7 +125,7 @@ function plies(drawn: Drawn, list: Ref<HTMLElement | null>): VNode {
 }
 
 function ruler({ example: shown, last }: Drawn): VNode {
-  return h('div', { 'aria-hidden': 'true', 'class': 'sc-run-ruler' }, [
+  return h('div', { 'aria-hidden': 'true', 'class': parts.RULER }, [
     rulerMark(0, 'Start'),
     rulerMark(shown.run.start, 'Meets'),
     rulerMark(Math.min(example.partOf(shown), last), 'Parts', true)
@@ -183,21 +184,21 @@ export const Run = defineComponent({
     })
 
     return () => h('div', {
-      class : 'sc-run',
+      class : parts.CARD,
       style : { '--sc-run-cells': String(last + 1), '--sc-run-gap': `${props.tuning.gap}px` }
     }, [
       controls(drawn),
-      h('span', { class: 'sc-run-status', role: 'status' },
+      h('span', { class: parts.STATUS, role: 'status' },
         example.statusAt(props.example, drawn.stepping.ply.value)),
-      h('div', { 'aria-hidden': 'true', 'class': 'sc-run-lanes' }, [
-        h('span', { 'data-game': 'submitted' }, 'Submitted'),
-        h('span', { 'data-game': 'stored' }, 'Stored')
+      h('div', { 'aria-hidden': 'true', 'class': parts.LANES }, [
+        h('span', { 'class': parts.LANE, 'data-game': 'submitted' }, 'Submitted'),
+        h('span', { 'class': parts.LANE, 'data-game': 'stored' }, 'Stored')
       ]),
       cells(drawn, head, headStyle),
       ruler(drawn),
       h(RunBoard, { example: props.example, opening, ref: board }),
       plies(drawn, list),
-      h('p', { class: 'sc-run-note' }, NOTE)
+      h('p', { class: parts.NOTE }, NOTE)
     ])
   }
 })

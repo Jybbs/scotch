@@ -1,10 +1,10 @@
 import { type PropType, type VNode, defineComponent, h, onMounted, shallowRef } from 'vue'
 
-import { SplitBoard, placedOf }   from '../../../lib/front/split.ts'
-import type { Position }          from '../../../lib/methods/example.ts'
-import type { How }               from '../../../lib/methods/motion.ts'
-import { squareAt }               from '../../../lib/methods/squares.ts'
-import { drawPiece, drawSquares } from '../methods/board.ts'
+import { SplitBoard, placedOf }          from '../../../lib/front/split.ts'
+import type { Position }                 from '../../../lib/methods/example.ts'
+import type { How }                      from '../../../lib/methods/motion.ts'
+import { squareAt }                      from '../../../lib/methods/squares.ts'
+import { LAYER, drawPiece, drawSquares } from '../methods/board.ts'
 
 /**
  * The ring each game's board takes once the boards part, the stored game's
@@ -66,10 +66,12 @@ export const Half = defineComponent({
           'style'       : to === null ? { opacity: '0' } : { opacity: '1', transform: squareAt(to) }
         }),
         h('div', {
-          class: [
-            'sc-run-layer transition-[opacity] duration-settle',
+          'class'      : [
+            LAYER,
+            'transition-[opacity] duration-settle',
             props.game === 'stored' ? 'in-data-apart:opacity-28' : ''
-          ]
+          ],
+          'data-layer' : ''
         }, Array.from(placedOf(props.position), ([id, placed]) =>
           drawPiece(id, placed)))
       ])

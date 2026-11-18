@@ -46,13 +46,13 @@ describe('pieceMarkup', () => {
   })
 
   it.each(['P', 'N', 'B', 'R', 'Q', 'K'] as Piece[])('draws the white %s once, with no ring', piece => {
-    expect(squares.pieceMarkup(piece)).not.toContain('sc-run-halo')
+    expect(squares.pieceMarkup(piece)).not.toContain(squares.HALO)
   })
 
   it.each(['p', 'n', 'b', 'r', 'q', 'k'] as Piece[])('draws the black %s over a ringed copy', piece => {
     const markup = squares.pieceMarkup(piece)
     const inner  = pieces[piece].replace(/ id="[^"]*"/u, '')
-    expect(markup).toContain(`<g class="sc-run-halo">${inner}</g>${inner}</svg>`)
+    expect(markup).toContain(`<g class="${squares.HALO}">${inner}</g>${inner}</svg>`)
   })
 })
 
