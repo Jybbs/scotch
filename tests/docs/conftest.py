@@ -136,12 +136,9 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
         (tmp_path / ".github" / "README.md").write_text(
             "<!-- badges -->\n<!-- /badges -->\n\n<!-- install -->\n<!-- /install -->\n"
         )
-        copyfile(Path(__file__).parents[2] / References.file, docs / "references.bib")
-        (tmp_path / ".mise").mkdir()
-        copyfile(
-            Path(__file__).parents[2] / ".mise/config.toml",
-            tmp_path / ".mise/config.toml"
-        )
+        for tracked in (References.file, Path(".mise/config.toml")):
+            (path := tmp_path / tracked).parent.mkdir(parents=True)
+            copyfile(Path(__file__).parents[2] / tracked, path)
         (docs / "public" / "games").mkdir(parents=True)
 
         for name in ("demo", "front", "methods", "viewer"):

@@ -323,7 +323,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
         root / ".github/README.md"
     ).read_text()
     assert [
-        (root / "docs/assets" / f"lockup-{scheme}.svg").read_text().count(hexed)
+        (root / ".github/assets" / f"lockup-{scheme}.svg").read_text().count(hexed)
         for scheme, hexed in (
             ("dark", "#e3c3a3"),
             ("dark", "#a1a09e"),
@@ -538,8 +538,8 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/ratings.json"),
         (Document, "docs/.vitepress/lib/rendered/terms.json"),
         (Document, "docs/public/favicon.svg"),
-        (Document, "docs/assets/lockup-dark.svg"),
-        (Document, "docs/assets/lockup-light.svg"),
+        (Document, ".github/assets/lockup-dark.svg"),
+        (Document, ".github/assets/lockup-light.svg"),
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
         *[(Region, "docs/pages/guide/setup.md")] * 3,

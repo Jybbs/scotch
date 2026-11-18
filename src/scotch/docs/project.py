@@ -100,7 +100,7 @@ class Project(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         its logo's path relative to the README at `readme`.
         """
         lead   = Identity().palette.primary.hex.removeprefix("#")
-        logos  = Path("docs/assets/badges").relative_to(readme.parent, walk_up=True)
+        logos  = Path(".github/assets/badges").relative_to(readme.parent, walk_up=True)
         shield = "https://img.shields.io/badge"
 
         return "\n".join(

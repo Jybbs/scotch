@@ -1,8 +1,8 @@
 """
 Holds the `scotch cite` commands, which print the footnote definition of
-a source `docs/references.bib` holds, for pasting into an issue or a pull
-request. `cite_group` registers them as the group the app imports by its
-path.
+a source `src/scotch/citations/references.bib` holds, for pasting into an
+issue or a pull request. `cite_group` registers them as the group the app
+imports by its path.
 """
 
 from cyclopts import App, Parameter
@@ -15,10 +15,10 @@ from scotch.cli.settings      import root
 def source(*keys: Annotated[str, Parameter(required=True)]):
     """
     Prints the footnote definition citing each source named by its key in
-    `docs/references.bib`, in the order given, each on one line with a blank
-    line between two of them, ready to paste beneath the text of an issue
-    or a pull request citing it, since a page takes its own from `scotch
-    render docs`.
+    `src/scotch/citations/references.bib`, in the order given, each on one
+    line with a blank line between two of them, ready to paste beneath the
+    text of an issue or a pull request citing it, since a page takes its own
+    from `scotch render docs`.
 
     Exits nonzero without printing any definition, naming each key no entry
     in the file holds, or naming each block or entry that cannot be read

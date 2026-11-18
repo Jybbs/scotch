@@ -18,24 +18,26 @@ from sys             import executable
 from types           import SimpleNamespace
 from typing          import Self
 
-from scotch.cli.settings    import Settings
-from scotch.docs.inventory  import Outputs
-from scotch.docs.outputs    import Document
-from scotch.games.schemas   import Game, Origin
-from scotch.index.tables    import PositionIndex
-from scotch.pins.schemas    import Lift
-from scotch.pins.trees      import Tree
-from scotch.sources.schemas import Download, Manifest, Source, Sources
+from scotch.citations.schemas import References
+from scotch.cli.settings      import Settings
+from scotch.docs.inventory    import Outputs
+from scotch.docs.outputs      import Document
+from scotch.games.schemas     import Game, Origin
+from scotch.index.tables      import PositionIndex
+from scotch.pins.schemas      import Lift
+from scotch.pins.trees        import Tree
+from scotch.sources.schemas   import Download, Manifest, Source, Sources
 
 
 @fixture
 def bibliography(bibtex: Path, monkeypatch: MonkeyPatch, tmp_path: Path) -> Path:
     """
     Points the project's root `scotch cite source` reads at a directory
-    whose `docs/references.bib` holds the three sources of `bibtex`.
+    whose `src/scotch/citations/references.bib` holds the three sources
+    of `bibtex`.
     """
-    (tmp_path / "docs").mkdir()
-    copyfile(bibtex, tmp_path / "docs" / "references.bib")
+    (path := tmp_path / References.file).parent.mkdir(parents=True)
+    copyfile(bibtex, path)
     monkeypatch.setattr("scotch.cli.cite.root", lambda: tmp_path)
 
     return tmp_path

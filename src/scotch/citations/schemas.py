@@ -1,9 +1,10 @@
 """
-Holds `Reference`, one source in `docs/references.bib` and the footnote
-definition citing it, beside `References`, every source the file holds.
-`scotch render docs` writes each tracked Markdown file's definitions through
-them, and `scotch cite source` prints a definition for an issue or a pull
-request through them, so the form a citation takes is written once, here.
+Holds `Reference`, one source in `src/scotch/citations/references.bib`
+and the footnote definition citing it, beside `References`, every source
+the file holds. `scotch render docs` writes each tracked Markdown file's
+definitions through them, and `scotch cite source` prints a definition for
+an issue or a pull request through them, so the form a citation takes is
+written once, here.
 """
 
 from bibtexparser             import parse_file
@@ -17,8 +18,8 @@ from typing   import ClassVar, Self
 
 class Reference(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
     """
-    One source's entry in `docs/references.bib`, holding the fields its
-    footnote definition reads.
+    One source's entry in `src/scotch/citations/references.bib`, holding the
+    fields its footnote definition reads.
     """
 
     form: ClassVar[str] = r"[a-z0-9]+[0-9]{4}[a-z]?"
@@ -122,11 +123,11 @@ class Reference(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings
 
 class References(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    Every source `docs/references.bib` holds, under the key a footnote cites
-    it by.
+    Every source `src/scotch/citations/references.bib` holds, under the key
+    a footnote cites it by.
     """
 
-    file: ClassVar[Path] = Path("docs", "references.bib")
+    file: ClassVar[Path] = Path("src/scotch/citations/references.bib")
 
     references: dict[str, Reference]
     """
@@ -179,7 +180,8 @@ class References(BaseModel, extra="forbid", frozen=True, use_attribute_docstring
     @classmethod
     def shipped(cls, root: Path) -> Self:
         """
-        Reads `docs/references.bib` under the repository's root at `root`.
+        Reads `src/scotch/citations/references.bib` under the repository's
+        root at `root`.
         """
         return cls.read(root / cls.file)
 

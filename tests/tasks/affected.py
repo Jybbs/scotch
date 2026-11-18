@@ -155,5 +155,5 @@ def test_the_site_selects_against_main(
     assert result.returncode == 0
     assert vitest.arguments == [
         "run", "--changed", "origin/main",
-        "--config", ".vitepress/vitest.config.ts", "--bail=1"
+        "--config", ".vitepress/config/vitest.config.ts", "--bail=1"
     ]

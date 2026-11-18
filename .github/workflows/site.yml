@@ -57,7 +57,7 @@ jobs:
         id: report
         if: ${{ !cancelled() && matrix.task == 'site:coverage' }}
         run: |
-          node --eval "const { default: config } = await import('./docs/.vitepress/vitest.config.ts'); console.log('path=' + config.test.coverage.reportsDirectory)" --input-type=module >> "$GITHUB_OUTPUT"
+          node --eval "const { default: config } = await import('./docs/.vitepress/config/vitest.config.ts'); console.log('path=' + config.test.coverage.reportsDirectory)" --input-type=module >> "$GITHUB_OUTPUT"
       - name: Attach the coverage report
         id: coverage
         if: ${{ !cancelled() && steps.report.outputs.path }}
@@ -116,6 +116,7 @@ on:
       - .github/CONTRIBUTING.md
       - .github/README.md
       - .github/actions/provision/action.yml
+      - .github/assets/**
       - .github/scripts/summaries/**
       - .github/workflows/site.yml
       - .mise/config.toml
