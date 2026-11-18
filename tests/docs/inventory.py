@@ -342,7 +342,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
         ("light", "#4f4e4e")
     ):
         with subtests.test(color=hexed, scheme=scheme):
-            assert (root / "docs/assets" / f"lockup-{scheme}.svg").read_text().count(
+            assert (root / ".github/assets" / f"lockup-{scheme}.svg").read_text().count(
                 hexed
             ) == 1
 
@@ -553,8 +553,8 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/ratings.json"),
         (Document, "docs/.vitepress/lib/rendered/terms.json"),
         (Document, "docs/public/favicon.svg"),
-        (Document, "docs/assets/lockup-dark.svg"),
-        (Document, "docs/assets/lockup-light.svg"),
+        (Document, ".github/assets/lockup-dark.svg"),
+        (Document, ".github/assets/lockup-light.svg"),
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
         *[(Region, "docs/pages/guide/setup.md")] * 3,

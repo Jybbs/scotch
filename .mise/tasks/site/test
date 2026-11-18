@@ -3,4 +3,4 @@
 #MISE description = "Run the site's suite, passing any further arguments to Vitest"
 #MISE dir         = "docs"
 
-node_modules/.bin/vitest run --config .vitepress/vitest.config.ts "$@"
+node_modules/.bin/vitest run --config .vitepress/config/vitest.config.ts "$@"

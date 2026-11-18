@@ -392,7 +392,7 @@ class Outputs(RootModel[list[Output]]):
                 ),
                 *(
                     Document(
-                        path   = Path(f"docs/assets/lockup-{scheme}.svg"),
+                        path   = Path(f".github/assets/lockup-{scheme}.svg"),
                         render = lambda scheme=scheme: identity.filled(
                             scheme,
                             (root / "docs/assets/lockup.svg").read_text(

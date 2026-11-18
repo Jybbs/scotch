@@ -1,6 +1,6 @@
 """
 Pins what `scotch cite source` prints for the keys it is given, read from
-the bibliography under the project's root, and the status it exits with.
+the bibliography installed beside the package, and the status it exits with.
 """
 
 from common.app import invoke
@@ -19,11 +19,14 @@ def test_cite_against_a_bibliography_it_cannot_read_exits_naming_the_block(
     bibtexparser aborts on, exits nonzero naming the block's line and why it
     could not be read, rather than raising.
     """
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "references.bib").write_text(
+    (path := tmp_path / "references.bib").write_text(
         "@misc{doe2020, title = {T}, year = 2020\n@misc{roe2021, title = {U}}\n"
     )
-    monkeypatch.setattr("scotch.cli.cite.root", lambda: tmp_path)
+    monkeypatch.setattr(
+        References,
+        "installed",
+        classmethod(lambda cls: cls.read(path))
+    )
     exited = invoke("cite", "source", "doe2020")
 
     assert exited.startswith("Line 1 of ")
@@ -40,7 +43,7 @@ def test_cite_exits_naming_each_unknown_key_and_prints_no_definition(
     known key's.
     """
     assert invoke("cite", "source", "doe2020", "roe2021") == (
-        "roe2021 names no entry in docs/references.bib"
+        "roe2021 names no entry in src/scotch/citations/references.bib"
     )
     assert capsys.readouterr().out == ""
 

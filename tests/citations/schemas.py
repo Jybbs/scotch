@@ -272,13 +272,23 @@ def test_cite_writes_each_definition_in_the_order_given(references: References):
     )
 
 
+def test_installed_reads_the_bibliography_the_checkout_ships():
+    """
+    Asserts that `installed` reads the same sources as the
+    `src/scotch/citations/references.bib` of the checkout the tests run in.
+    """
+    assert References.installed().references == (
+        References.shipped(Path(__file__).parents[2]).references
+    )
+
+
 def test_shipped_reads_the_bibliography_under_the_root(tmp_path: Path):
     """
-    Asserts that `shipped` reads `docs/references.bib` under the root it
-    is given.
+    Asserts that `shipped` reads `src/scotch/citations/references.bib` under
+    the root it is given.
     """
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "references.bib").write_text(
+    (path := tmp_path / References.file).parent.mkdir(parents=True)
+    path.write_text(
         "@misc{doe2020,\n  author = {Doe, Jane},\n  title = {T},\n  year = {2020},\n"
         "  url = {https://example.com/},\n  annote = {A.}\n}\n"
     )
@@ -294,8 +304,8 @@ def test_unknown_names_each_key_no_entry_holds_in_the_order_given(
     entry for, in the order given, and none for a key it holds.
     """
     assert references.unknown("roe2021", "doe2020", "poe1845") == [
-        "roe2021 names no entry in docs/references.bib",
-        "poe1845 names no entry in docs/references.bib"
+        "roe2021 names no entry in src/scotch/citations/references.bib",
+        "poe1845 names no entry in src/scotch/citations/references.bib"
     ]
 
 
