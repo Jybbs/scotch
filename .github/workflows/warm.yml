@@ -17,8 +17,8 @@ jobs:
         tools:
           - bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - bun cargo-deny python rust uv
+          - jq python rust uv
           - python rust
-          - python rust uv
           - python uv
           - zizmor
     timeout-minutes: 10
@@ -47,7 +47,7 @@ jobs:
             tools: python rust
           - command: mise x -- uv sync
             shared-key: scotch-python
-            tools: python rust uv
+            tools: jq python rust uv
           - command: mise run rs:wasm
             shared-key: scotch-wasm
             tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust

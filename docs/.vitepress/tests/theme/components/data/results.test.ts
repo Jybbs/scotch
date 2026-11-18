@@ -6,6 +6,8 @@ import * as lengths         from '../../../../lib/data/lengths.ts'
 import { useMove }          from '../../../../lib/data/move.ts'
 import * as numbers         from '../../../../lib/data/numbers.ts'
 import { Results }          from '../../../../theme/components/data/results.ts'
+import { test }             from '../../../common/clock.ts'
+import * as glide           from '../../../common/glide.ts'
 import { prevented }        from '../../../common/keys.ts'
 import { reduceMotion }     from '../../../common/motion.ts'
 import { resized, unsized } from '../../../common/size.ts'
@@ -175,8 +177,8 @@ describe('Results, its markers', () => {
     reduceMotion()
     const { results, slider } = mounted()
     await slider.trigger('keydown', { key: 'ArrowRight' })
-    expect(standing(results, '.sc-data-mover'))
-      .toBe(`translate3d(${numbers.tenth(lengths.moveX(layout, lengths.CHART.opening + 1))}px, 0, 0)`)
+    expect(glide.mover(results))
+      .toBe(`translate3d(${glide.moverAt(layout, lengths.CHART.opening + 1)}, 0, 0)`)
   })
 
   it('steps as a slider across the moves the chart draws from the tab order', () => {
@@ -192,4 +194,22 @@ describe('Results, its markers', () => {
     const games      = numbers.counted(numbers.summed(endings[lengths.CHART.opening]!))
     expect(slider.attributes('aria-valuetext')).toBe(`move ${lengths.CHART.opening}, ${games} games end here`)
   })
+})
+
+describe('Results, its glide', () => {
+  test.for([
+    ['pointermove', { clientX: lengths.moveX(layout, 30) }, true],
+    ['keydown', { key: 'End' }, false]
+  ] as const)(
+    'keeps the pointer glide for a later pointer and takes the longer one again for a key, here a %s',
+    async ([type, init, reached], { clock }) => {
+      const { results, slider } = mounted()
+      await slider.trigger('pointermove', { clientX: lengths.moveX(layout, 20) })
+      await glide.glided(clock)
+      await slider.trigger(type, init)
+      await glide.glided(clock)
+      const at = glide.moverAt(layout, Number(slider.attributes('aria-valuenow')))
+      expect(glide.mover(results).startsWith(`translate3d(${at}`)).toBe(reached)
+    }
+  )
 })

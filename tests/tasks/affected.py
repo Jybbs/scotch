@@ -36,18 +36,17 @@ def test_a_full_run_with_failures_records_the_files(affected: Affected):
         )
     ]
 )
-def test_a_change_testmon_traces_selects(files: dict[str, str], affected: Affected):
+def test_a_change_testmon_traces_selects(files: dict[str, str], recorded: Affected):
     """
     Asserts that a run after a full one selects under
     `--testmon-forceselect`, which keeps the `-m` the suite's `addopts`
     passes, wherever every file outside the Python matches what the full
     run recorded.
     """
-    affected.run()
-    affected.write(**files)
+    recorded.write(**files)
 
-    assert affected.run("-x").returncode == 0
-    assert affected.flags == ["--testmon-forceselect", "-x"]
+    assert recorded.run("-x").returncode == 0
+    assert recorded.flags == ["--testmon-forceselect", "-x"]
 
 
 @mark.parametrize(
@@ -75,7 +74,7 @@ def test_a_change_testmon_traces_selects(files: dict[str, str], affected: Affect
 def test_a_change_testmon_cannot_trace_runs_every_test(
     changed  : str,
     files    : dict[str, str | None],
-    affected : Affected
+    recorded : Affected
 ):
     """
     Asserts that a run after a full one runs the whole suite under
@@ -85,15 +84,30 @@ def test_a_change_testmon_cannot_trace_runs_every_test(
     the help snapshots read, changed, was added, or was deleted, and that
     the run after it selects again.
     """
-    affected.run()
-    affected.write(**files)
-    result = affected.run()
+    recorded.write(**files)
+    result = recorded.run()
 
     assert result.returncode == 0
     assert result.stderr.splitlines()[1:] == [changed]
-    assert affected.flags == ["--testmon-noselect"]
-    assert affected.run().returncode == 0
-    assert affected.flags == ["--testmon-forceselect"]
+    assert recorded.flags == ["--testmon-noselect"]
+    assert recorded.run().returncode == 0
+    assert recorded.flags == ["--testmon-forceselect"]
+
+
+def test_the_first_run_runs_every_test_and_records_the_files(affected: Affected):
+    """
+    Asserts that a run finding no recorded files runs the whole suite under
+    `--testmon-noselect`, saying no full run has recorded them, keeps the
+    data file under the checkout's `.cache/testmon`, and records the files
+    so the next run selects.
+    """
+    result = affected.run()
+
+    assert result.returncode == 0
+    assert "no full run has recorded" in result.stderr
+    assert affected.calls == [f"{affected.root}/.cache/testmon/data --testmon-noselect"]
+    assert "fixture.txt" in affected.recorded.read_text()
+    assert "module.py" not in affected.recorded.read_text()
 
 
 @mark.parametrize(
@@ -111,28 +125,11 @@ def test_a_partial_full_run_records_nothing(
     """
     Asserts that a full run narrowed by an argument or ending on a status
     above one, the status pytest gives an interrupted run, exits with
-    pytest's status and records nothing, so the next run is full again.
+    pytest's status and records nothing, so the next run is full again, as
+    the first run is.
     """
     assert affected.run(*arguments, status=status).returncode == status
     assert not affected.recorded.exists()
-    assert affected.run().returncode == 0
-    assert affected.flags == ["--testmon-noselect"]
-
-
-def test_the_first_run_runs_every_test_and_records_the_files(affected: Affected):
-    """
-    Asserts that a run finding no recorded files runs the whole suite under
-    `--testmon-noselect`, saying no full run has recorded them, keeps the
-    data file under the checkout's `.cache/testmon`, and records the files
-    so the next run selects.
-    """
-    result = affected.run()
-
-    assert result.returncode == 0
-    assert "no full run has recorded" in result.stderr
-    assert affected.calls == [f"{affected.root}/.cache/testmon/data --testmon-noselect"]
-    assert "fixture.txt" in affected.recorded.read_text()
-    assert "module.py" not in affected.recorded.read_text()
 
 
 def test_the_site_selects_against_main(

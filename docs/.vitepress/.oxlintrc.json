@@ -8,8 +8,14 @@
         "suspicious"  : "deny"
     },
 
-    "options" : {"reportUnusedDisableDirectives": "deny"},
-    "plugins" : ["import", "oxc", "promise", "typescript", "unicorn", "vitest", "vue"],
+    "options"   : {"reportUnusedDisableDirectives": "deny"},
+    "overrides" : [
+        {
+            "files" : ["tests/**"],
+            "rules" : {"import/max-dependencies": "off", "max-lines": "off"}
+        }
+    ],
+    "plugins"   : ["import", "oxc", "promise", "typescript", "unicorn", "vitest", "vue"],
 
     "rules": {
         "import/extensions"           : ["error", "always", {"ignorePackages": true}],

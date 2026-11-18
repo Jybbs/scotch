@@ -35,14 +35,20 @@ describe('frontPage', () => {
     expect(html).toMatch(/^<p>An opening paragraph\.<\/p>\n<section /u)
   })
 
-  it('drops a tagline written as a paragraph as well', () => {
-    expect(md.render('# Scotch\n\nFind it.\n\nAn opening paragraph.\n', { relativePath: FRONT }))
-      .toBe('<p>An opening paragraph.</p>\n')
-  })
-
-  it('leaves nothing of a page ending on its tagline', () => {
-    expect(md.render('# Scotch\n\n<!-- tagline -->Find it.<!-- /tagline -->\n', { relativePath: FRONT }))
-      .toBe('')
+  it.each([
+    [
+      'drops a tagline written as a paragraph as well',
+      '# Scotch\n\nFind it.\n\nAn opening paragraph.\n',
+      '<p>An opening paragraph.</p>\n'
+    ],
+    [
+      'leaves nothing of a page ending on its tagline',
+      '# Scotch\n\n<!-- tagline -->Find it.<!-- /tagline -->\n',
+      ''
+    ],
+    ['keeps a front page opening on no heading whole', 'Just a line.\n', '<p>Just a line.</p>\n']
+  ])('%s', (_, page, rendered) => {
+    expect(md.render(page, { relativePath: FRONT })).toBe(rendered)
   })
 
   it("sets each section whole inside an entry in its section's color, in order", () => {
@@ -68,10 +74,6 @@ describe('frontPage on other pages', () => {
   it('raises on a heading naming no section the front page opens', () => {
     expect(() => md.render('## Reference\n\nText.\n', { relativePath: FRONT }))
       .toThrow("the front page's heading Reference names no section it opens")
-  })
-
-  it('keeps a front page opening on no heading whole', () => {
-    expect(md.render('Just a line.\n', { relativePath: FRONT })).toBe('<p>Just a line.</p>\n')
   })
 
   it('leaves every other page as it stands', () => {

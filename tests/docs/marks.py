@@ -6,7 +6,7 @@ identity page sets beneath them.
 """
 
 from pathlib import Path
-from pytest  import MonkeyPatch, fixture, mark, param
+from pytest  import MonkeyPatch, Subtests, fixture, mark, param
 
 from scotch.docs.marks       import Box, Drawing, Marks, subpaths
 from scotch.identity.schemas import Card, Identity
@@ -89,14 +89,16 @@ def test_each_length_is_measured_from_the_marks_subpaths(marks: Marks):
     ]
 
 
-def test_guides_name_subpaths_the_mark_holds(marks: Marks):
+def test_guides_name_subpaths_the_mark_holds(marks: Marks, subtests: Subtests):
     """
     Asserts that each guide of the mark names at least one subpath of the
     five it holds, the kings' reach naming the cross and the lower opening.
     """
-    assert all(
-        guide.owners and set(guide.owners) <= set(range(5)) for guide in marks.guides
-    )
+    for place, guide in enumerate(marks.guides):
+        with subtests.test(guide=place):
+            assert guide.owners
+            assert set(guide.owners) <= set(range(5))
+
     assert marks.guides[4].owners == (4, 2)
 
 
