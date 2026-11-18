@@ -950,6 +950,20 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         param(
             SitePinCheck,
             [(
+                "docs/package.json",
+                '    "private"         : true,\n',
+                '    "private"         : true,\n'
+                '    "resolutions"     : {"picomatch": "^4.0.8"},\n'
+            )],
+            [(
+                "docs/package.json", None,
+                "`picomatch` is `^4.0.8`, which is not one exact version"
+            )],
+            id = "loose-site-resolution"
+        ),
+        param(
+            SitePinCheck,
+            [(
                 ".github/workflows/warm.yml",
                 "      - name: Install the tools and save their cache\n",
                 "        with:\n          wranglerVersion: ^4.149.0\n"

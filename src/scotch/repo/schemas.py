@@ -737,12 +737,18 @@ class Site(ConfigFile):
     by its name.
     """
 
+    resolutions: dict[str, str] = {}
+    """
+    The version each package the site's packages depend on is held to through
+    the `resolutions` table Bun reads beside `overrides`, keyed by its name.
+    """
+
     @property
     def loose(self) -> tuple[tuple[str, str], ...]:
         """
         Lists the name and the version of each dependency, each optional and
-        each peer dependency, each package, and each override not pinned to
-        one exact version.
+        each peer dependency, each package, and each override and resolution
+        not pinned to one exact version.
         """
         return tuple(
             (name, version)
@@ -751,7 +757,8 @@ class Site(ConfigFile):
                 *self.optional.items(),
                 *self.packages.items(),
                 *self.peers.items(),
-                *self.overrides.items()
+                *self.overrides.items(),
+                *self.resolutions.items()
             )
             if not exact(version)
         )
