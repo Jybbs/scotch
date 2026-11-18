@@ -195,9 +195,9 @@ def test_a_lift_counts_its_age_in_days_up_to_today():
 
 def test_a_report_names_its_pins_and_holds_every_lift_of_a_held_name():
     """
-    Asserts that a report names each pin once, lists each major lift's name
-    once in the table's order, and leaves out every lift of a name it is
-    told to hold, whichever file declares it.
+    Asserts that a report names each pin once, lists each lift's name once
+    in the table's order, and leaves out every lift of a name it is told to
+    hold, whichever file declares it.
     """
     report = Report(
         lifts = (
@@ -224,7 +224,7 @@ def test_a_report_names_its_pins_and_holds_every_lift_of_a_held_name():
     )
 
     assert report.names == {"minijinja", "pluggy", "polars"}
-    assert report.majors == ("minijinja", "polars")
+    assert report.leads == ("minijinja", "pluggy", "polars")
     assert [
         (str(held.path), held.name) for held in report.without({"minijinja"}).rows
     ] == [("pyproject.toml", "pluggy"), ("uv.lock", "polars")]
@@ -246,8 +246,8 @@ def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
     """
     Asserts that holding either pin of a pair `NodeTypesCheck` or
     `VitestCheck` holds together leaves out the lifts of both, and that the
-    report lists one major lift for each such pair, so a failing trial holds
-    the pair back once.
+    report lists one name for each such pair, so a failing trial tries the
+    pair once.
     """
     report = Report(
         lifts = (
@@ -279,7 +279,7 @@ def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
         )
     )
 
-    assert report.majors == ("node", "@vitest/coverage-v8")
+    assert report.leads == ("node", "@vitest/coverage-v8", "pluggy")
     assert tuple(held.name for held in report.without({hold}).rows) == left
 
 

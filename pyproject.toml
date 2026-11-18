@@ -132,4 +132,4 @@ cache-keys                    = [
 ]
 python-downloads              = "never"
 python-preference             = "only-system"
-required-version              = "==0.13.7"
+required-version              = "==0.13.9"

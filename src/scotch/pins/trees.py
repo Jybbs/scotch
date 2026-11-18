@@ -16,7 +16,7 @@ from subprocess      import CompletedProcess, STDOUT, run
 from tempfile        import TemporaryDirectory
 from typing          import Self, TextIO
 
-from scotch.pins.schemas  import Lift
+from scotch.pins.schemas  import Failure, Lift
 from scotch.repo.checkout import Checkout
 
 
@@ -97,23 +97,27 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         log     : Path,
         *,
         checked : bool
-    ) -> bytes | None:
+    ) -> bytes | Failure:
         """
         Writes `lifts` into a scratch clone of the tree and audits it, then
         runs `mise ci` there where `checked` is set, writing every command
         and what it prints to the file at `log`.
 
         Returns:
-            The diff the lift writes into the clone, or `None` where a
-            command failed.
+            The diff the lift writes into the clone, or the command that
+            failed beside `log`.
         """
         log.parent.mkdir(exist_ok=True, parents=True)
 
         with self.clone() as clone, log.open("w", encoding="utf-8") as handle:
-            if clone.lift(handle, lifts) and (not checked or clone.check(handle)):
+            failed = clone.lift(handle, lifts) or (
+                clone.check(handle) if checked else None
+            )
+
+            if failed is None:
                 return clone.git("diff", "--binary")
 
-        return None
+        return Failure(command=failed, log=log)
 
     def audit(self, *command: str | Path) -> str:
         """
@@ -134,15 +138,15 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
 
         return audit.stdout
 
-    def check(self, handle: TextIO) -> bool:
+    def check(self, handle: TextIO) -> str | None:
         """
         Runs `repo:ci`, every check a pull request runs, writing what it
         prints to `handle`.
 
         Returns:
-            Whether every check passed.
+            The command as `steps` names it where a check failed, or `None`.
         """
-        return self.log(handle, "mise", "-C", self.root, "run", "repo:ci")
+        return self.steps(handle, ("run", "repo:ci"))
 
     @contextmanager
     def clone(self) -> Iterator[Self]:
@@ -210,7 +214,7 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             input          = patch
         ).stdout
 
-    def lift(self, handle: TextIO, lifts: Collection[Lift]) -> bool:
+    def lift(self, handle: TextIO, lifts: Collection[Lift]) -> str | None:
         """
         Writes each of `lifts` into the tree, relocks every lockfile through
         its own manager, and audits the result, writing each command and
@@ -223,16 +227,19 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
            lift names
         4. Runs `lock:sync`, which relocks `uv.lock`, each task script's
            lockfile, and `docs/bun.lock` against the rewritten manifests
-        5. Runs `docs:render`, which rewrites each file restating a pin,
+        5. Upgrades each version `docs/bun.lock` resolves within the range
+           `docs/package.json` gives it through `bun update --lockfile-only`,
+           since `lock:sync` keeps each locked version its range still admits
+        6. Runs `docs:render`, which rewrites each file restating a pin,
            such as the README's Python badge, on an environment the wrapper
            builds on the lifted interpreter
-        6. Runs `repo:audit`, which fails where the lifted tree restates a
+        7. Runs `repo:audit`, which fails where the lifted tree restates a
            pin two ways, such as `vitest` and `@vitest/coverage-v8` on two
            versions
 
         Returns:
-            Whether every command passed, the steps stopping at the first
-            that fails.
+            The step that failed as `steps` names it, or `None` where every
+            step passed.
         """
         for lift in lifts:
             lift.write(self.root)
@@ -242,15 +249,17 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             for lift in lifts
             if lift.upgraded
         ]
-        steps = [
+
+        return self.steps(
+            handle,
             ("lock",),
             ("install",),
             ("exec", "--", "uv", "lock", "--no-locked", *upgrades),
             ("run", "lock:sync"),
+            ("exec", "--", "bun", "update", "--cwd=docs", "--lockfile-only"),
             ("run", "docs:render"),
             ("run", "repo:audit")
-        ]
-        return all(self.log(handle, "mise", "-C", self.root, *step) for step in steps)
+        )
 
     def log(self, handle: TextIO, *command: str | Path) -> bool:
         """
@@ -340,6 +349,26 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
                     if not Path(folder).resolve().is_relative_to(root)
                 )
             }
+        )
+
+    def steps(self, handle: TextIO, *steps: tuple[str, ...]) -> str | None:
+        """
+        Runs each of `steps` through mise from the root in turn, stopping
+        at the first that fails, writing each command and what it prints
+        to `handle`.
+
+        Returns:
+            The step that failed as the `mise` command a reader runs from
+            the root, such as `mise run repo:ci`, or `None` where every step
+            passed.
+        """
+        return next(
+            (
+                join(("mise", *step))
+                for step in steps
+                if not self.log(handle, "mise", "-C", self.root, *step)
+            ),
+            None
         )
 
     def tool(self, *command: str | Path, check: bool = True) -> CompletedProcess[str]:
