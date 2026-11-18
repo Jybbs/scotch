@@ -305,6 +305,28 @@ describe('Tool and the page’s address', () => {
     clock.advanceTimersByTime(5000)
     expect(location.hash).toBe('')
   })
+
+  test('writes a loaded file’s match into the address once it is encoded', async ({ clock }) => {
+    const encoded  = await links.encodedOf(EXAMPLES.alone)
+    const encoding = vi.spyOn(links, 'encodedOf')
+    const { wrapper } = mountedTool()
+    await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
+    await settled(encoding)
+    expect(location.hash).toBe(`#match=${encoded}&ply=0`)
+    clock.advanceTimersByTime(5000)
+  })
+
+  it('writes nothing once the Viewer leaves the page before a loaded file’s match is encoded', async () => {
+    const encoded = await links.encodedOf(EXAMPLES.alone)
+    const held    = Promise.withResolvers<string>()
+    vi.spyOn(links, 'encodedOf').mockReturnValue(held.promise)
+    const { wrapper } = mountedTool()
+    await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
+    wrapper.unmount()
+    held.resolve(encoded)
+    await flushPromises()
+    expect(location.hash).toBe('')
+  })
 })
 
 describe('Tool opened from a link', () => {

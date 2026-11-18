@@ -52,6 +52,7 @@ function placeOf(viewer: Viewer): links.Place {
 export function useAddress(viewer: Viewer): Address {
   const problem = shallowRef('')
   const carried = shallowRef<Carried>()
+  let left      = false
   let opened    = false
   let writing   : ReturnType<typeof setTimeout> | undefined
 
@@ -59,7 +60,10 @@ export function useAddress(viewer: Viewer): Address {
     if (!carried.value) return
     history.replaceState(history.state, '', `#${links.fragmentOf(carried.value, placeOf(viewer))}`)
   }
-  onBeforeUnmount(() => clearTimeout(writing))
+  onBeforeUnmount(() => {
+    left = true
+    clearTimeout(writing)
+  })
 
   return {
     problem: problem,
@@ -69,7 +73,7 @@ export function useAddress(viewer: Viewer): Address {
       carried.value = sample ? { sample } : undefined
       if (sample) return
       const encoded = await links.encodedOf(loaded.match)
-      if (viewer.loaded.value !== loaded) return
+      if (left || viewer.loaded.value !== loaded) return
       carried.value = { encoded }
       write()
     },
