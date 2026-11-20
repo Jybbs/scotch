@@ -1594,6 +1594,35 @@ def test_a_marker_that_silences_nothing_passes(
 
 
 @mark.parametrize(
+    ("listed", "lines"),
+    [param(False, [], id="untracked"), param(True, [1], id="tracked")]
+)
+def test_a_marker_counts_only_in_a_file_git_tracks(
+    fp     : FakeProcess,
+    lines  : list[int],
+    listed : bool,
+    sample : Sample
+):
+    """
+    Asserts that a marker in a file `git ls-files` leaves out,
+    as with the `wasm-bindgen` module `rs:wasm` writes under
+    `docs/.vitepress/lib/games/crate/`, draws no finding, while the same
+    file once listed draws one at its line. `answer` registers the listing
+    as the copy stands, so a file written after it stays out of the listing.
+    """
+    file = sample.root / "docs/.vitepress/lib/games/crate/scotch.d.ts"
+
+    if not listed:
+        sample.answer(fp)
+    file.parent.mkdir(exist_ok=True, parents=True)
+    file.write_text("/* eslint-disable */\n")
+    if listed:
+        sample.answer(fp)
+
+    assert [found for _, found, _ in scan(SuppressionCheck, sample)] == lines
+
+
+@mark.parametrize(
     "source",
     [
         param(
@@ -1662,6 +1691,16 @@ def test_a_prose_directive_beside_a_filed_issue_passes(
             "x = 1  # yapf: disable https://github.com/Jybbs/prose/issues/12\n",
             1,
             id = "yapf-directive"
+        ),
+        param(
+            "x = 1  # prose: skip https://github.com/Jybbs/prose/issues/12abc\n",
+            1,
+            id = "issue-number-running-on"
+        ),
+        param(
+            "x = 1  # prose: skip https://githubXcom/Jybbs/prose/issues/12\n",
+            1,
+            id = "tracker-dot-as-any-character"
         )
     ]
 )
