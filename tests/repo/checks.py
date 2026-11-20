@@ -1129,7 +1129,8 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                     "The comment carries `# prose: ignore[unsorted-positionals, "
                     "step-narration]`, a suppression directive of Prose, in place "
                     "of a `[tool.prose.rules.unsorted-positionals]` table in "
-                    "`pyproject.toml`"
+                    "`pyproject.toml`, or the URL of an issue at "
+                    "`https://github.com/Jybbs/prose/issues` beside it"
                 ),
                 (
                     "src/scotch/cli/run.py",
@@ -1137,7 +1138,8 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                     "The comment carries `# prose: ignore[unsorted-positionals, "
                     "step-narration]`, a suppression directive of Prose, in place "
                     "of a `[tool.prose.rules.step-narration]` table in "
-                    "`pyproject.toml`"
+                    "`pyproject.toml`, or the URL of an issue at "
+                    "`https://github.com/Jybbs/prose/issues` beside it"
                 )
             ],
             id = "directive-naming-rules"
@@ -1153,7 +1155,8 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 17,
                 "The comment carries `# prose: skip`, a suppression directive of "
                 "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
-                "`pyproject.toml`"
+                "`pyproject.toml`, or the URL of an issue at "
+                "`https://github.com/Jybbs/prose/issues` beside it"
             )],
             id = "bare-directive"
         ),
@@ -1168,7 +1171,9 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 17,
                 "The comment carries `# prose: skip[reflow-calls]`, a suppression "
                 "directive of Prose, in place of a "
-                "`[tool.prose.rules.reflow-calls]` table in `pyproject.toml`"
+                "`[tool.prose.rules.reflow-calls]` table in `pyproject.toml`, or "
+                "the URL of an issue at `https://github.com/Jybbs/prose/issues` "
+                "beside it"
             )],
             id = "skip-naming-a-rule"
         ),
@@ -1184,7 +1189,8 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                     6,
                     "The comment carries `#prose:keep`, a suppression directive of "
                     "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
-                    "`pyproject.toml`"
+                    "`pyproject.toml`, or the URL of an issue at "
+                    "`https://github.com/Jybbs/prose/issues` beside it"
                 ),
                 (
                     "src/scotch/cli/run.py",
@@ -1344,38 +1350,24 @@ def test_a_departure_draws_the_checks_findings(
     "path",
     [
         param(".mise/tasks/gha/order.py", id="task-script"),
+        param("rust/build.py", id="outside-the-formatted-trees"),
         param("tests/repo/checks.py", id="test")
     ]
 )
-def test_a_directive_in_a_task_script_or_a_test_fails(
+def test_a_directive_in_any_tracked_python_file_fails(
     fp     : FakeProcess,
     path   : str,
     sample : Sample
 ):
     """
-    Asserts that a directive in a Python file under `.mise/tasks` or
-    `tests`, which `mise check` reads beside `src`, draws a finding at its
-    line.
+    Asserts that a directive in a tracked Python file draws a finding at its
+    line, whether or not `mise check` formats the file.
     """
     (file := sample.root / path).parent.mkdir(exist_ok=True, parents=True)
     file.write_text("# fmt: off\n")
     sample.answer(fp)
 
     assert [line for _, line, _ in scan(SuppressionCheck, sample)] == [1]
-
-
-def test_a_directive_outside_the_formatted_trees_passes(
-    fp     : FakeProcess,
-    sample : Sample
-):
-    """
-    Asserts that a directive in a Python file outside `.mise/tasks`, `src`,
-    and `tests`, which `mise check` leaves out, draws no finding.
-    """
-    (sample.root / "rust" / "build.py").write_text("# fmt: off\n")
-    sample.answer(fp)
-
-    assert scan(SuppressionCheck, sample) == []
 
 
 @mark.parametrize(
@@ -1420,8 +1412,129 @@ def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
     assert [message for _, _, message in scan(SuppressionCheck, sample)] == [
         "The comment carries `# prose: ignore[step-narration, ]`, a suppression "
         "directive of Prose, in place of a `[tool.prose.rules.step-narration]` "
-        "table in `pyproject.toml`"
+        "table in `pyproject.toml`, or the URL of an issue at "
+        "`https://github.com/Jybbs/prose/issues` beside it"
     ]
+
+
+@mark.parametrize(
+    ("path", "text", "marker", "place"),
+    [
+        param(
+            "rust/src/boards.rs",
+            "#[allow(dead_code)]",
+            "#[allow(",
+            "a lint level in the `[lints]` table of `rust/Cargo.toml`",
+            id = "allow"
+        ),
+        param(
+            "rust/src/boards.rs",
+            "#![allow(clippy::pedantic)]",
+            "#![allow(",
+            "a lint level in the `[lints]` table of `rust/Cargo.toml`",
+            id = "inner-allow"
+        ),
+        param(
+            "rust/src/boards.rs",
+            "#[expect(unused)]",
+            "#[expect(",
+            "a lint level in the `[lints]` table of `rust/Cargo.toml`",
+            id = "expect"
+        ),
+        param(
+            "rust/src/boards.rs",
+            "#![expect(unused)]",
+            "#![expect(",
+            "a lint level in the `[lints]` table of `rust/Cargo.toml`",
+            id = "inner-expect"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "/* eslint-disable */",
+            "eslint-disable",
+            "a rule level in `docs/.vitepress/config/.oxlintrc.json`",
+            id = "eslint-disable"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "const n = 1 // eslint-disable-line",
+            "eslint-disable-line",
+            "a rule level in `docs/.vitepress/config/.oxlintrc.json`",
+            id = "eslint-disable-line"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "// eslint-disable-next-line no-console",
+            "eslint-disable-next-line",
+            "a rule level in `docs/.vitepress/config/.oxlintrc.json`",
+            id = "eslint-disable-next-line"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "/* oxlint-disable */",
+            "oxlint-disable",
+            "a rule level in `docs/.vitepress/config/.oxlintrc.json`",
+            id = "oxlint-disable"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "// oxlint-disable-next-line no-console",
+            "oxlint-disable-next-line",
+            "a rule level in `docs/.vitepress/config/.oxlintrc.json`",
+            id = "oxlint-disable-next-line"
+        ),
+        param(
+            "docs/.vitepress/theme/Listed.vue",
+            "<!-- eslint-disable-next-line vue/no-v-html -->",
+            "eslint-disable-next-line",
+            "a rule level in `docs/.vitepress/config/.oxlintrc.json`",
+            id = "vue-template-comment"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "// @ts-ignore",
+            "@ts-ignore",
+            "a compiler option in `docs/.vitepress/tsconfig.json`",
+            id = "ts-ignore"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "// @ts-expect-error",
+            "@ts-expect-error",
+            "a compiler option in `docs/.vitepress/tsconfig.json`",
+            id = "ts-expect-error"
+        ),
+        param(
+            "docs/.vitepress/lib/listed.ts",
+            "// @ts-nocheck",
+            "@ts-nocheck",
+            "a compiler option in `docs/.vitepress/tsconfig.json`",
+            id = "ts-nocheck"
+        )
+    ]
+)
+def test_each_listed_marker_fails(
+    fp     : FakeProcess,
+    marker : str,
+    path   : str,
+    place  : str,
+    sample : Sample,
+    text   : str
+):
+    """
+    Asserts that each Rust attribute and site comment the check lists draws
+    one finding at its line naming the marker and the configuration that
+    turns the check off in its place.
+    """
+    (file := sample.root / path).parent.mkdir(exist_ok=True, parents=True)
+    file.write_text(f"\n{text}\n")
+    sample.answer(fp)
+
+    assert scan(SuppressionCheck, sample) == [(
+        Path(path),
+        2,
+        f"The line carries `{marker}`, which silences a check in place of {place}"
+    )]
 
 
 def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
@@ -1436,6 +1549,137 @@ def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
     assert scan(WrapperCheck, sample) == [
         (Path(".mise/bin/pytest"), None, "The wrapper is a symlink rather than a copy")
     ]
+
+
+@mark.parametrize(
+    ("path", "text"),
+    [
+        param("rust/src/boards.rs", "#[warn(missing_docs)]", id="warn"),
+        param("rust/src/boards.rs", "#![deny(unsafe_code)]", id="deny"),
+        param("docs/.vitepress/lib/listed.ts", "// @ts-check", id="ts-check"),
+        param("docs/.vitepress/lib/listed.ts", "/* eslint-enable */", id="enable"),
+        param(
+            "docs/.vitepress/lib/listed.css",
+            "/* eslint-disable */",
+            id = "unlisted-suffix"
+        ),
+        param(
+            "docs/pages/listed.md",
+            "`#[allow(dead_code)]` and `// @ts-ignore`",
+            id = "markdown"
+        ),
+        param(
+            "src/scotch/listed.py",
+            'marker = "#[allow(dead_code)] // @ts-ignore"',
+            id = "python-string"
+        )
+    ]
+)
+def test_a_marker_that_silences_nothing_passes(
+    fp     : FakeProcess,
+    path   : str,
+    sample : Sample,
+    text   : str
+):
+    """
+    Asserts that a lint attribute other than `allow` and `expect`, a site
+    comment that silences nothing, and a marker in a file of a suffix the
+    check does not read for it draw no finding.
+    """
+    (file := sample.root / path).parent.mkdir(exist_ok=True, parents=True)
+    file.write_text(f"\n{text}\n")
+    sample.answer(fp)
+
+    assert scan(SuppressionCheck, sample) == []
+
+
+@mark.parametrize(
+    "source",
+    [
+        param(
+            "x = 1  # prose: skip https://github.com/Jybbs/prose/issues/12\n",
+            id = "in-its-comment"
+        ),
+        param(
+            "# https://github.com/Jybbs/prose/issues/12\nx = 1  # prose: keep\n",
+            id = "on-the-line-above"
+        ),
+        param(
+            "# prose: ignore[step-narration] https://github.com/Jybbs/prose/issues/7\n",
+            id = "beside-a-rule-list"
+        )
+    ]
+)
+def test_a_prose_directive_beside_a_filed_issue_passes(
+    fp     : FakeProcess,
+    sample : Sample,
+    source : str
+):
+    """
+    Asserts that a Prose directive whose comment, or the comment on the line
+    above, carries the URL of an issue on Prose's tracker draws no finding.
+    """
+    (sample.root / "src" / "scotch" / "listed.py").write_text(source)
+    sample.answer(fp)
+
+    assert scan(SuppressionCheck, sample) == []
+
+
+@mark.parametrize(
+    ("source", "line"),
+    [
+        param(
+            "# https://github.com/Jybbs/prose/issues/12\n\nx = 1  # prose: skip\n",
+            3,
+            id = "two-lines-above"
+        ),
+        param(
+            "x = 1  # prose: skip\n# https://github.com/Jybbs/prose/issues/12\n",
+            1,
+            id = "on-the-line-below"
+        ),
+        param(
+            "x = 1  # prose: skip https://github.com/Jybbs/prose/issues\n",
+            1,
+            id = "tracker-with-no-issue"
+        ),
+        param(
+            "x = 1  # prose: skip https://github.com/Jybbs/scotch/issues/12\n",
+            1,
+            id = "another-tracker"
+        ),
+        param(
+            'url = "https://github.com/Jybbs/prose/issues/12"\nx = 1  # prose: skip\n',
+            2,
+            id = "in-a-string-above"
+        ),
+        param(
+            "x = 1  # fmt: skip https://github.com/Jybbs/prose/issues/12\n",
+            1,
+            id = "formatter-directive"
+        ),
+        param(
+            "x = 1  # yapf: disable https://github.com/Jybbs/prose/issues/12\n",
+            1,
+            id = "yapf-directive"
+        )
+    ]
+)
+def test_a_directive_with_no_filed_prose_issue_beside_it_fails(
+    fp     : FakeProcess,
+    line   : int,
+    sample : Sample,
+    source : str
+):
+    """
+    Asserts that a Prose directive with no URL of an issue on Prose's
+    tracker in its comment or the comment on the line above, and a formatter
+    directive beside any URL, draw a finding at the directive's line.
+    """
+    (sample.root / "src" / "scotch" / "listed.py").write_text(source)
+    sample.answer(fp)
+
+    assert [found for _, found, _ in scan(SuppressionCheck, sample)] == [line]
 
 
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
@@ -1545,4 +1789,25 @@ def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
             "<!-- /table -->"
         ),
         (Path("cited.md"), None, unread)
+    ]
+
+
+def test_markers_sharing_a_line_each_fail(fp: FakeProcess, sample: Sample):
+    """
+    Asserts that a line carrying both a lint comment and a compiler
+    directive draws one finding for each, in the order the check lists its
+    markers.
+    """
+    (file := sample.root / "docs" / ".vitepress" / "lib" / "listed.ts").parent.mkdir(
+        exist_ok = True,
+        parents  = True
+    )
+    file.write_text("// @ts-ignore eslint-disable-line\n")
+    sample.answer(fp)
+
+    assert [message.split("`")[1] for _, _, message in scan(
+        check  = SuppressionCheck,
+        sample = sample
+    )] == [
+        "eslint-disable-line", "@ts-ignore"
     ]
