@@ -39,10 +39,10 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     @property
     def homes(self) -> dict[str, str]:
         """
-        Maps each variable naming a folder mise, rustup, or Cargo writes
-        into to that folder under the root's `.cache/mise/`, which outlives
-        each clone, so a second trial installs only the versions the first
-        did not. The variables are:
+        Points each variable naming a folder mise, rustup, or Cargo writes
+        into at a folder of its own under the root's `.cache/mise/`,
+        which outlives each clone and holds every version an earlier trial
+        installed. The variables are:
 
         - `MISE_CACHE_DIR`, `MISE_DATA_DIR`, and `MISE_STATE_DIR`, holding
           the versions each tool lists, each installed tool and its shims,

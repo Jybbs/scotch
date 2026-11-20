@@ -1,8 +1,9 @@
 """
 Pins what a `Tree` runs, meaning the environment a scrubbed tree starts each
-command with, the audit statuses it reads as a report, the log each command
-writes, the steps a lift runs in turn, the clone a trial runs in, the diff
-an attempt returns, and the files an applied patch changes.
+command with, the folders each clone installs into, the audit statuses it
+reads as a report, the log each command writes, the steps a lift runs in
+turn, the clone a trial runs in, the diff an attempt returns, and the files
+an applied patch changes.
 """
 
 from collections.abc import Iterator
@@ -222,11 +223,15 @@ def test_a_check_runs_every_check_a_pull_request_runs(
         assert tree.check(handle) == failed
 
 
-@mark.parametrize("changes", [param(b"diff", id="changed"), param(b"", id="clean")])
+@mark.parametrize(
+    ("changes", "credential"),
+    [param(b"diff", "gh auth token", id="changed"), param(b"", "", id="clean")]
+)
 def test_a_clone_carries_the_working_tree_and_stages_it(
-    changes : bytes,
-    fp      : FakeProcess,
-    tree    : Tree
+    changes    : bytes,
+    credential : str,
+    fp         : FakeProcess,
+    tree       : Tree
 ):
     """
     Asserts that a clone shares the tree's objects, applies each change
@@ -235,7 +240,8 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
     once the block ends, keeping the tree's environment while pointing the
     mise, rustup, and Cargo folders under the tree's own `.cache/mise/`,
     carrying the GitHub credential command the tree's mise settings give,
-    and adding its own root to the mise configs the tree already trusts.
+    empty where they give none, and adding its own root to the mise configs
+    the tree already trusts.
     """
     tree = tree.model_copy(
         update = {
@@ -246,7 +252,7 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
     (tree.root / "notes" / "draft.txt").write_text("draft")
     fp.register(
         ["mise", "-C", tree.root, "settings", "get", "github.credential_command"],
-        stdout = "gh auth token\n"
+        stdout = f"{credential}\n"
     )
     fp.register(["git", "diff", "--binary", "HEAD"], stdout=changes)
     fp.register(
@@ -267,7 +273,7 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
         assert clone.environment == {
             **tree.environment,
             **tree.homes,
-            "MISE_GITHUB_CREDENTIAL_COMMAND" : "gh auth token",
+            "MISE_GITHUB_CREDENTIAL_COMMAND" : credential,
             "MISE_TRUSTED_CONFIG_PATHS"      : f"/trusted{pathsep}{clone.root}"
         }
 
