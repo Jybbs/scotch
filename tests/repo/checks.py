@@ -370,6 +370,39 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         param(
             DraftCheck,
             [(
+                ".github/workflows/site.yml",
+                "  press:\n    if: ${{ !github.event.pull_request.draft }}\n",
+                (
+                    "  press:\n    if: ${{ always() && "
+                    "!github.event.pull_request.draft }}\n"
+                )
+            )],
+            [(
+                ".github/workflows/site.yml",
+                None,
+                "The job `press` does not skip a draft under "
+                "`!github.event.pull_request.draft`"
+            )],
+            id = "row-guard-joined-to-always"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml",
+                "  check:\n    if: ${{ !github.event.pull_request.draft }}\n",
+                "  check:\n"
+            )],
+            [(
+                ".github/workflows/ci.yml",
+                None,
+                "The job `check` does not skip a draft under "
+                "`!github.event.pull_request.draft`"
+            )],
+            id = "unguarded-first-row"
+        ),
+        param(
+            DraftCheck,
+            [(
                 ".github/workflows/ci.yml",
                 "if: ${{ always() && !github.event.pull_request.draft }}",
                 "if: always()"
