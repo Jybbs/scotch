@@ -29,7 +29,7 @@ const KIND = [
  */
 const NAME = [
   'absolute left-[calc(var(--sc-sieve-i)/3*100%)] m-0! grid font-code text-[0.75rem]/[20px] font-medium',
-  'tracking-[0.1em] whitespace-nowrap text-(--sc-data-quiet) uppercase transition-colors duration-fade',
+  'tracking-[0.1em] whitespace-nowrap! text-(--sc-data-quiet) uppercase transition-colors duration-fade',
   'ease-glide data-on:text-(--sc-data-ink)'
 ]
 /**
