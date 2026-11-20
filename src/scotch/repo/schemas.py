@@ -301,6 +301,12 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
     The patterns naming each path whose change never fires the event.
     """
 
+    types: tuple[str, ...] = ()
+    """
+    The activity types the event fires on, empty where it fires on the
+    types GitHub fires it on by default.
+    """
+
     def fires(self, path: Path) -> bool:
         """
         Reads whether a change to `path` fires the event, as it does
@@ -983,13 +989,20 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
     The steps the job runs.
     """
 
+    draft: ClassVar[str] = "!github.event.pull_request.draft"
+    """
+    The condition skipping a job on a draft pull request, which holds on an
+    event carrying no pull request, since the absent property reads as an
+    empty string.
+    """
+
     @property
     def always(self) -> bool:
         """
-        Reads whether the job runs under `always()`, whether or not its
-        condition is wrapped in `${{ }}`.
+        Reads whether the job runs under `always()`, alone or joined to
+        `draft`.
         """
-        return self.condition.strip("${} ") == "always()"
+        return self.expression in {"always()", f"always() && {self.draft}"}
 
     @property
     def checks(self) -> tuple[tuple[str, str], ...]:
@@ -1007,12 +1020,28 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
         )
 
     @property
+    def expression(self) -> str:
+        """
+        Reads the job's condition with any `${{ }}` around it taken off.
+        """
+        return self.condition.strip("${} ")
+
+    @property
     def gate(self) -> bool:
         """
         Reads whether the job runs `gha:scoresheet`, the task the `🖋️
         Scoresheet` gate runs.
         """
         return "gha:scoresheet" in self.tasks
+
+    @property
+    def guard(self) -> str:
+        """
+        Reads the condition the job takes in a pull-request workflow,
+        `draft` joined to `always()` on a gate, so a failing job still runs
+        it, and `draft` alone on any other job.
+        """
+        return f"always() && {self.draft}" if self.gate else self.draft
 
     @property
     def instances(self) -> tuple[Step, ...]:

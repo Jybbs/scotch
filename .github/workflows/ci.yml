@@ -3,6 +3,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   check:
+    if: ${{ !github.event.pull_request.draft }}
     name: ${{ matrix.name }}
     outputs:
       coverage: ${{ steps.coverage.outputs.artifact-url }}
@@ -72,7 +73,7 @@ jobs:
             tools: python rust
     timeout-minutes: 15
   scoresheet:
-    if: always()
+    if: ${{ always() && !github.event.pull_request.draft }}
     name: 🖋️ Scoresheet
     needs: check
     runs-on: ubuntu-26.04
@@ -95,6 +96,11 @@ on:
       - '!docs/.vitepress/**'
       - '!docs/pages/**'
       - '!docs/public/**'
+    types:
+      - opened
+      - ready_for_review
+      - reopened
+      - synchronize
   workflow_dispatch:
 permissions:
   contents: read

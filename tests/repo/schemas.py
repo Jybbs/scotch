@@ -179,6 +179,27 @@ def test_a_job_pairs_each_legs_check_name_with_its_tasks():
     assert "gha:total" in job.tasks
 
 
+@mark.parametrize(
+    ("task", "guard"),
+    [
+        param(
+            "gha:scoresheet",
+            "always() && !github.event.pull_request.draft",
+            id = "gate"
+        ),
+        param("py:test", "!github.event.pull_request.draft", id="row")
+    ]
+)
+def test_a_job_reads_the_draft_guard_its_kind_takes(guard: str, task: str):
+    """
+    Asserts that a gate takes the draft guard joined to `always()` and any
+    other job takes the guard alone.
+    """
+    assert Job.model_validate(
+        {"id": "job", "runs-on": "ubuntu-26.04", "steps": [{"run": f"mise run {task}"}]}
+    ).guard == guard
+
+
 def test_a_job_reads_one_need_as_a_list():
     """
     Asserts that a job's `needs` reads a single job as a list of one.
@@ -474,14 +495,21 @@ def test_a_job_expands_its_matrix_into_legs(
     [
         param("always()", True, id="bare"),
         param("${{ always() }}", True, id="wrapped"),
+        param(
+            "${{ always() && !github.event.pull_request.draft }}",
+            True,
+            id = "guarded"
+        ),
+        param("${{ always() && !cancelled() }}", False, id="joined-otherwise"),
         param("${{ !cancelled() }}", False, id="other"),
         param("", False, id="none")
     ]
 )
 def test_a_job_reads_whether_it_runs_always(always: bool, condition: str):
     """
-    Asserts that a job runs under `always()` whether or not its condition is
-    wrapped in `${{ }}`, and under no other condition.
+    Asserts that a job runs under `always()` whether or not its condition
+    is wrapped in `${{ }}`, alone or joined to the draft guard, and under no
+    other condition.
     """
     assert Job.model_validate(
         {"id": "scoresheet", "if": condition, "runs-on": "ubuntu-26.04"}
@@ -637,6 +665,9 @@ def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
     workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
 
     assert set(workflow.triggers) == {"pull_request", "workflow_dispatch"}
+    assert workflow.triggers["pull_request"].types == (
+        "opened", "ready_for_review", "reopened", "synchronize"
+    )
     assert workflow.name == "CI"
     assert workflow.requests
     assert [job.id for job in workflow.jobs] == ["check", "scoresheet"]

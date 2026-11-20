@@ -195,6 +195,50 @@ class ContributingCheck(Check):
             )
 
 
+class DraftCheck(Check):
+    """
+    Fails on a workflow firing on `pull_request` that leaves out an activity
+    type `types` lists, or that carries a job whose condition is not the
+    draft guard `Job.guard` reads, so a draft runs no job until it is marked
+    ready for review.
+    """
+
+    types: ClassVar[frozenset[str]] = frozenset(
+        {"opened", "ready_for_review", "reopened", "synchronize"}
+    )
+    """
+    The activity types every pull-request workflow fires on, GitHub's three
+    defaults and the one marking a draft ready for review.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at each pull-request workflow for each activity
+        type its trigger leaves out and each job missing the guard.
+        """
+        for workflow in self.checkout.requested:
+            trigger = workflow.triggers["pull_request"]
+
+            for kind in sorted(self.types.difference(trigger.types if trigger else ())):
+                yield Finding(
+                    message = (
+                        f"The `pull_request` trigger leaves out the `{kind}` "
+                        "activity type"
+                    ),
+                    path = workflow.path
+                )
+
+            for job in workflow.jobs:
+                if job.expression != job.guard:
+                    yield Finding(
+                        message = (
+                            f"The job `{job.id}` runs on a draft, its condition "
+                            f"not being `{job.guard}`"
+                        ),
+                        path = workflow.path
+                    )
+
+
 class ExactPinCheck(Check):
     """
     Fails on a build requirement in `[build-system]` or a build constraint
@@ -269,7 +313,8 @@ class GateCheck(Check):
     """
     Fails on a workflow that ends on no gate, or whose gate sets no name,
     takes a name the other gates do not, runs under any condition but
-    `always()`, or leaves a job out of its `needs`.
+    `always()` alone or joined to the draft guard, or leaves a job out of
+    its `needs`.
     """
 
     def scan(self) -> Iterator[Finding]:
