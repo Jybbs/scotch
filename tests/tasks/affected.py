@@ -13,14 +13,24 @@ with stand-in executables first on `PATH` that log each call they receive.
 from collections.abc  import Callable
 from common.stand_ins import Affected, StandIn
 from pytest           import Config, mark, param
+from subprocess       import check_output
 
 
-def test_a_full_run_with_failures_records_the_files(affected: Affected):
+def test_a_fingerprint_shasum_recorded_still_selects(affected: Affected):
     """
-    Asserts that a full run whose tests fail exits one and still records the
-    files, since pytest-testmon reruns each failed test on the next run.
+    Asserts that a run selects under `--testmon-forceselect` where the last
+    full run's files were recorded by `shasum -a 256`, each digest line the
+    task prints matching the one `shasum` prints.
     """
-    assert affected.run(status=1).returncode == 1
+    affected.recorded.parent.mkdir(parents=True)
+    affected.recorded.write_text(
+        check_output(
+            ["shasum", "-a", "256", "fixture.txt"],
+            cwd  = affected.root,
+            text = True
+        )
+    )
+
     assert affected.run().returncode == 0
     assert affected.flags == ["--testmon-forceselect"]
 
@@ -47,6 +57,16 @@ def test_a_change_testmon_traces_selects(files: dict[str, str], recorded: Affect
 
     assert recorded.run("-x").returncode == 0
     assert recorded.flags == ["--testmon-forceselect", "-x"]
+
+
+def test_a_full_run_with_failures_records_the_files(affected: Affected):
+    """
+    Asserts that a full run whose tests fail exits one and still records the
+    files, since pytest-testmon reruns each failed test on the next run.
+    """
+    assert affected.run(status=1).returncode == 1
+    assert affected.run().returncode == 0
+    assert affected.flags == ["--testmon-forceselect"]
 
 
 @mark.parametrize(
