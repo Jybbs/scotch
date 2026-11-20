@@ -38,9 +38,9 @@ const SEGMENT = [
 ]
 /**
  * The count a segment names, set in the ink on a chip of the repeats' tone over
- * the hatch of the variants, and hidden on every segment narrower than 13.6em,
- * the width of the widest label and chip the ledger draws rounded up to a tenth
- * of an em, each glyph taking 0.66em and each label its padding.
+ * the hatch of the variants. A segment hides its count while narrower than the
+ * widest label and chip the ledger draws, each glyph taking 0.66em and each
+ * label its padding, with that width rounded up to a tenth of an em.
  */
 const SPAN = 'block overflow-hidden whitespace-nowrap @max-[13.6em]:invisible'
 
