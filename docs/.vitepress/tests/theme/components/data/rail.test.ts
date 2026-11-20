@@ -36,6 +36,10 @@ describe('Rail', () => {
     expect(rail.element.lastElementChild!.textContent).toBe('Also underOpeningsopenings/Bird.zip40 held')
   })
 
+  it('keeps a file’s title on one line, clipped at an ellipsis, over the doc column’s text-wrap', () => {
+    expect(railed('players/Bird.zip').get('p').classes()).toContain('whitespace-nowrap!')
+  })
+
   it('sets the first decade left of its cell and the last right of its where the two sit close', () => {
     const rail = railed('players/Carlsen.zip')
     expect(rail.findAll('span[data-side]').map(span => span.attributes('data-side'))).toEqual(['before', 'after'])

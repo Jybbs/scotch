@@ -43,4 +43,10 @@ describe('Count', () => {
     expect(count.find("[aria-hidden='true']").exists()).toBe(false)
     expect(count.text()).toBe('')
   })
+
+  it('pulses the bar only while the drawings play', () => {
+    const wait = mount(Count, { props: { figure: '' } }).get('[data-wait]')
+    expect(wait.classes()).toContain('playing:animate-wait')
+    expect(wait.classes()).not.toContain('animate-wait')
+  })
 })

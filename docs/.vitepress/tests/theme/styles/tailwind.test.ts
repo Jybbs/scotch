@@ -106,6 +106,11 @@ describe('the identity’s utilities', () => {
 })
 
 describe('the sheet’s own variants and utilities', () => {
+  it('limits a loop to the drawings that play, through the playing variant on the root', async () => {
+    expect(await built('playing:animate-blink'))
+      .toContain(":root[data-motion='playing'] .playing\\:animate-blink")
+  })
+
   it('rings a control in the run’s color while it holds keyboard focus', async () => {
     const css = await built('focus-ring')
     expect(css).toContain('.focus-ring:focus-visible {')

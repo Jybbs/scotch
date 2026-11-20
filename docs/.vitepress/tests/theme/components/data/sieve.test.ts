@@ -42,6 +42,11 @@ describe('Sieve', () => {
     expect(rail.attributes('aria-valuetext')).toBe(`${sieve.STEPS[2]!.name}: ${sieve.STEPS[2]!.say}`)
   })
 
+  it('keeps each step’s name on one line over the text-wrap the doc column sets on a list item', () => {
+    const names = mount(Sieve).findAll('ol[aria-hidden] > li')
+    expect(names.map(name => name.classes('whitespace-nowrap!'))).toEqual(sieve.STEPS.map(() => true))
+  })
+
   it('rests on the stored games while the site’s drawings hold still', () => {
     reduceMotion()
     expect(mount(Sieve).find('[role="slider"]').attributes('aria-valuenow')).toBe(String(sieve.STEPS.length))
