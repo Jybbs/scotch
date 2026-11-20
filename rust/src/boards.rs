@@ -61,20 +61,21 @@ impl Board {
 
     /// Writes the position in FEN as python-chess's `Board.fen` does, its
     /// castling rights in X-FEN and its en passant square only where a
-    /// legal capture reaches it.
-    pub fn fen(&self) -> String {
+    /// legal capture reaches it, or returns the message Python's `str` raises
+    /// for a clock past the digits it writes.
+    pub fn fen(&self) -> Result<String, String> {
         let pos = &self.position;
         let castling = fens::castling(pos);
         let ep = pos
             .ep_square(EnPassantMode::Legal)
             .map_or_else(|| "-".to_owned(), |square| square.to_string());
 
-        format!(
+        Ok(format!(
             "{} {} {castling} {ep} {}",
             pos.board(),
             pos.turn().char(),
-            self.clocks.written(pos)
-        )
+            self.clocks.written(pos)?
+        ))
     }
 
     /// Sets up the position a mainline starts from, under the rules its
@@ -246,7 +247,7 @@ mod tests {
     use super::*;
 
     fn set_up(fen: &str) -> Result<String, String> {
-        Board::set_up(Some(fen), Rules::Standard).map(|board| board.fen())
+        Board::set_up(Some(fen), Rules::Standard).and_then(|board| board.fen())
     }
 
     #[test]
@@ -293,7 +294,10 @@ mod tests {
             ("e1e2", "1 9223372036854775810"),
         ] {
             assert!(board.take(board.named(uci).unwrap()), "{uci}");
-            assert!(board.fen().ends_with(&format!(" {clocks}")), "{uci}");
+            assert!(
+                board.fen().unwrap().ends_with(&format!(" {clocks}")),
+                "{uci}"
+            );
         }
     }
 
@@ -356,13 +360,13 @@ mod tests {
 
         assert!(board.pass());
         assert_eq!(
-            board.fen(),
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 1 1"
+            board.fen().as_deref(),
+            Ok("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 1 1")
         );
         assert!(board.pass());
         assert_eq!(
-            board.fen(),
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 2 2"
+            board.fen().as_deref(),
+            Ok("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 2 2")
         );
     }
 
@@ -404,8 +408,8 @@ mod tests {
         assert!(matches!(board.named("0000"), Some(Turn::Null)));
         assert!(board.take(board.named("e2e4").unwrap()));
         assert_eq!(
-            board.fen(),
-            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+            board.fen().as_deref(),
+            Ok("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1")
         );
     }
 

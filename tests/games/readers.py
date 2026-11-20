@@ -313,6 +313,16 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
             '[FEN "4k3/8/8/8/8/8/8/4K3 w - - '
             f'{"0" * (get_int_max_str_digits() + 1)} 1"]\n\n1. Ke2 *\n',
             id = "clock-past-the-digits-int-reads"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 w - - '
+            f'{"9" * get_int_max_str_digits()} 1"]\n\n1. Ke2 Kd7 2. Ka1 *\n',
+            id = "half-move-clock-growing-past-the-digits-str-writes"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 b - - 0 '
+            f'{"9" * get_int_max_str_digits()}"]\n\n1... Kd7 2. Ka1 *\n',
+            id = "fullmove-number-growing-past-the-digits-str-writes"
         )
     ]
 )

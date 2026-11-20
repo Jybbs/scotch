@@ -53,8 +53,9 @@ impl Clocks {
     /// Writes the half-move clock and fullmove number of `pos` as
     /// python-chess's `Board.fen` writes them, where `pos` was reached from
     /// the position these clocks belong to and its own clocks started at
-    /// zero and one.
-    pub fn written(&self, pos: &Chess) -> String {
+    /// zero and one, or returns the message Python's `str` raises for a clock
+    /// past `DIGITS` digits.
+    pub fn written(&self, pos: &Chess) -> Result<String, String> {
         let turns = pos.fullmoves().get() - 1;
         let plies = 2 * turns + u32::from(pos.turn().is_black()) - u32::from(self.turn.is_black());
         let halfmoves = if pos.halfmoves() == plies {
@@ -62,8 +63,16 @@ impl Clocks {
         } else {
             pos.halfmoves().to_string()
         };
+        let fullmoves = plus(&self.fullmoves, turns);
 
-        format!("{halfmoves} {}", plus(&self.fullmoves, turns))
+        if halfmoves.len().max(fullmoves.len()) > DIGITS {
+            Err(format!(
+                "Exceeds the limit ({DIGITS} digits) for integer string conversion; \
+                 use sys.set_int_max_str_digits() to increase the limit"
+            ))
+        } else {
+            Ok(format!("{halfmoves} {fullmoves}"))
+        }
     }
 }
 
@@ -425,6 +434,8 @@ mod tests {
             (&zeros, None),
             ("½", None),
             ("²", None),
+            (":", None),
+            ("\u{19da}", None),
             ("", None),
             ("+", None),
             ("-", None),
@@ -446,6 +457,7 @@ mod tests {
             ("0", 0, "0"),
             ("4294967295", 2, "4294967297"),
             ("9999999999999999999", 1, "10000000000000000000"),
+            ("10000000000000000000", 1, "10000000000000000001"),
             ("9223372036854775808", 2, "9223372036854775810"),
             (
                 "99999999999999999999999999999999999999",
