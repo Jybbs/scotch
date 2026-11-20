@@ -151,7 +151,7 @@ describe('Tool as a reader steps it', () => {
     expect(captions().every(move => /^\d+\./u.test(move))).toBe(true)
     await pressed(root, 'Home')
     expect(captions()).toEqual(['Start', 'Start'])
-    expect(wrapper.findAll('figcaption > span:last-child .sc-start-glyph')).toHaveLength(2)
+    expect(wrapper.findAll('figcaption > span:last-child [data-start] svg')).toHaveLength(2)
   })
 
   test('turns both boards on F, pressing the flip', async ({ clock }) => {

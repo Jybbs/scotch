@@ -12,7 +12,6 @@ import './styles/roles.css'
 import './styles/tailwind.css'
 import './styles/page.css'
 import './styles/notes.css'
-import './styles/start.css'
 
 import { FIGURE } from '../lib/markdown/placements.ts'
 import { VIEWER } from '../lib/viewer/page.ts'

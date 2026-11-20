@@ -78,7 +78,7 @@ export const MARK = 'ml-auto rounded-[999px] px-1.5 text-[0.48rem]/[14px] tracki
  * starting position.
  */
 export const MOVE = 'flex items-center gap-2 border-b border-[color-mix(in_oklab,var(--sc-rule)_60%,transparent)] '
-                  + 'pr-2 pl-3 tabular-nums whitespace-nowrap [&_.sc-start]:text-(--sc-run-game) '
+                  + 'pr-2 pl-3 tabular-nums whitespace-nowrap [&_[data-start]]:text-(--sc-run-game) '
                   + 'not-in-data-[cell=start]:[box-shadow:inset_3px_0_0_var(--sc-run-game)]'
 /**
  * The sentence next to the key.

@@ -54,7 +54,7 @@ describe('Rails', () => {
     const wrapper = mount(Rails)
     const band    = (): ReturnType<typeof wrapper.find> => wrapper.find('svg[role=img] > rect:first-child')
     await point(wrapper, 'pointermove', 0)
-    expect(wrapper.find('p[aria-live] .sc-start').exists()).toBe(true)
+    expect(wrapper.find('p[aria-live] [data-start]').exists()).toBe(true)
     expect(wrapper.find('rect[data-lit]').attributes('data-game')).toBe('submitted')
     expect(band().attributes('data-on')).toBe('')
     await point(wrapper, 'pointerdown', 0.5)

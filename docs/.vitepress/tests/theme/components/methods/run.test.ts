@@ -133,7 +133,7 @@ describe('Run, its list', () => {
     const wrapper = mounted()
     expect(wrapper.findAll('[role=option]')).toHaveLength(19)
     expect(wrapper.findAll("[role=option][data-cell='run']")).toHaveLength(11)
-    const marks = wrapper.findAll('[role=option] [data-game] > span:not(.sc-start)')
+    const marks = wrapper.findAll('[role=option] [data-game] > span:not([data-start])')
       .map(mark => [mark.text(), mark.element.closest('[role=option]')?.id.replace(/^.*-ply-/u, '')])
     expect(marks).toEqual([['meets', '7'], ['parts', '18']])
   })
@@ -149,7 +149,7 @@ describe('Run, its list', () => {
 
   it('sets the start mark in both games’ columns of the starting position alone', () => {
     const wrapper = mounted()
-    expect([0, 1].map(ply => wrapper.find(`[id$='-ply-${ply}']`).findAll('.sc-start').length)).toEqual([2, 0])
+    expect([0, 1].map(ply => wrapper.find(`[id$='-ply-${ply}']`).findAll('[data-start]').length)).toEqual([2, 0])
   })
 
   it('centers the row of the ply in view in the list', async () => {
