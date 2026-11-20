@@ -336,16 +336,13 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         ),
         param(
             DraftCheck,
-            [
-                (
-                    ".github/workflows/ci.yml",
-                    "".join(
-                        f"      - {kind}\n" for kind in sorted(DraftCheck.types)
-                    ),
-                    ""
+            [(
+                ".github/workflows/ci.yml",
+                "    types:\n" + "".join(
+                    f"      - {kind}\n" for kind in sorted(DraftCheck.types)
                 ),
-                (".github/workflows/ci.yml", "    types:\n", "")
-            ],
+                ""
+            )],
             [
                 (
                     ".github/workflows/ci.yml", None,
@@ -358,21 +355,6 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
         param(
             DraftCheck,
             [(
-                ".github/workflows/site.yml", "  pull_request:\n    paths:\n",
-                "  pull_request:\n  pull_request_target:\n    paths:\n"
-            )],
-            [
-                (
-                    ".github/workflows/site.yml", None,
-                    f"The `pull_request` trigger leaves out the `{kind}` activity type"
-                )
-                for kind in sorted(DraftCheck.types)
-            ],
-            id = "bare-trigger"
-        ),
-        param(
-            DraftCheck,
-            [(
                 ".github/workflows/site.yml",
                 "  press:\n    if: ${{ !github.event.pull_request.draft }}\n",
                 "  press:\n"
@@ -380,7 +362,7 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 ".github/workflows/site.yml",
                 None,
-                "The job `press` runs on a draft, its condition not being "
+                "The job `press` does not skip a draft under "
                 "`!github.event.pull_request.draft`"
             )],
             id = "unguarded-row"
@@ -395,10 +377,29 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
             [(
                 ".github/workflows/ci.yml",
                 None,
-                "The job `scoresheet` runs on a draft, its condition not being "
+                "The job `scoresheet` does not skip a draft under "
                 "`always() && !github.event.pull_request.draft`"
             )],
             id = "gate-on-always-alone"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml", "      - synchronize\n",
+                "      - synchronize\n      - labeled\n"
+            )],
+            [],
+            id = "extra-type-kept"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml",
+                "if: ${{ always() && !github.event.pull_request.draft }}",
+                "if: always() && !github.event.pull_request.draft"
+            )],
+            [],
+            id = "unwrapped-gate-guard-kept"
         ),
         param(
             ContributingCheck,

@@ -217,9 +217,9 @@ class DraftCheck(Check):
         type its trigger leaves out and each job missing the guard.
         """
         for workflow in self.checkout.requested:
-            trigger = workflow.triggers["pull_request"]
-
-            for kind in sorted(self.types.difference(trigger.types if trigger else ())):
+            for kind in sorted(
+                self.types.difference(workflow.triggers["pull_request"].types)
+            ):
                 yield Finding(
                     message = (
                         f"The `pull_request` trigger leaves out the `{kind}` "
@@ -232,8 +232,8 @@ class DraftCheck(Check):
                 if job.expression != job.guard:
                     yield Finding(
                         message = (
-                            f"The job `{job.id}` runs on a draft, its condition "
-                            f"not being `{job.guard}`"
+                            f"The job `{job.id}` does not skip a draft under "
+                            f"`{job.guard}`"
                         ),
                         path = workflow.path
                     )

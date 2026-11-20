@@ -665,6 +665,7 @@ def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
     workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
 
     assert set(workflow.triggers) == {"pull_request", "workflow_dispatch"}
+    assert workflow.triggers["workflow_dispatch"] == Trigger()
     assert workflow.triggers["pull_request"].types == (
         "opened", "ready_for_review", "reopened", "synchronize"
     )

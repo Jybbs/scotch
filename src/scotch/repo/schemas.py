@@ -303,8 +303,8 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
 
     types: tuple[str, ...] = ()
     """
-    The activity types the event fires on, empty where it fires on the
-    types GitHub fires it on by default.
+    The activity types the event fires on, empty where it fires on GitHub's
+    default types.
     """
 
     def fires(self, path: Path) -> bool:
@@ -1002,7 +1002,7 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
         Reads whether the job runs under `always()`, alone or joined to
         `draft`.
         """
-        return self.expression in {"always()", f"always() && {self.draft}"}
+        return self.expression.removesuffix(f" && {self.draft}") == "always()"
 
     @property
     def checks(self) -> tuple[tuple[str, str], ...]:
@@ -1038,8 +1038,8 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
     def guard(self) -> str:
         """
         Reads the condition the job takes in a pull-request workflow,
-        `draft` joined to `always()` on a gate, so a failing job still runs
-        it, and `draft` alone on any other job.
+        `draft` joined to `always()` on a gate, which then runs after a
+        failing job, and `draft` alone on any other job.
         """
         return f"always() && {self.draft}" if self.gate else self.draft
 
@@ -1149,9 +1149,12 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
     The workflow file.
     """
 
-    triggers: dict[str, Trigger | None]
+    triggers: dict[str, Annotated[Trigger, BeforeValidator(
+        lambda trigger: trigger or {}
+    )]]
     """
-    The events the workflow fires on, each beside the filters it declares.
+    The events the workflow fires on, each beside the filters it declares,
+    an event declaring none reading as a `Trigger` with every field empty.
     """
 
     name: str = ""
@@ -1225,10 +1228,7 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         which it never does where the workflow does not fire on `event` and
         always does where the event declares no filter.
         """
-        if event not in self.triggers:
-            return False
-
-        return (trigger := self.triggers[event]) is None or trigger.fires(path)
+        return event in self.triggers and self.triggers[event].fires(path)
 
     @classmethod
     def read(cls, path: Path) -> Self:

@@ -29,7 +29,7 @@ No TypeScript or Vue file under `docs/.vitepress/` carries an `eslint-disable` o
 
 ## ⏱️ Checks
 
-A pull request runs `♟️ CI` wherever it changes a file outside the site's pages, its public files, and `docs/.vitepress/`, and runs `♟️ Site` wherever it changes a file the site is built or checked from, so a change to the crate, the composite action, or the toolchain's pins runs both. A draft pull request runs neither workflow until it is marked ready for review, and marking it ready runs each workflow its changes fire on against the head it holds at that moment. Each row runs one task, so the command beside each check below runs the same task on a laptop:
+A pull request runs `♟️ CI` wherever it changes a file outside the site's pages, its public files, and `docs/.vitepress/`, and runs `♟️ Site` wherever it changes a file the site is built or checked from, so a change to the crate, the composite action, or the toolchain's pins runs both. A draft pull request runs neither workflow until it is marked ready for review, and marking it ready runs each workflow its changed files trigger, on the head the branch holds at that moment. Each row runs one task, so the command beside each check below runs the same task on a laptop:
 
 | **Check** | **Runs Locally** | **Fails When** |
 |---|---|---|
