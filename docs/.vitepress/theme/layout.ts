@@ -10,9 +10,17 @@ import { MotionSwitch } from './components/front/motion.ts'
 import { Notes }        from './components/notes.ts'
 import { Slip }         from './components/reference/slip.ts'
 
-const lockup = (): VNode => h('div', { class: 'sc-lockup' }, [
-  h('span', { class: 'sc-wordmark', innerHTML: wordmark }),
-  h('p', { class: 'sc-tagline' }, IDENTITY.tagline)
+const lockup = (): VNode => h('div', {
+  class: 'mx-auto grid w-[min(32rem,100%)] justify-items-center gap-3.5 text-center'
+}, [
+  h('span', {
+    class     : 'block w-[min(24rem,76%)] text-run [&_svg]:block [&_svg]:h-auto [&_svg]:w-full',
+    innerHTML : wordmark
+  }),
+  h('p', {
+    class: 'm-0 font-body text-[length:clamp(1.1rem,3vw,1.45rem)]/[1.3] font-normal text-balance text-ink '
+         + 'italic'
+  }, IDENTITY.tagline)
 ])
 
 /**

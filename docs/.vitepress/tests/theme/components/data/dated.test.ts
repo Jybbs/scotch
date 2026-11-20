@@ -23,8 +23,8 @@ describe('DatedBands', () => {
 
   it('opens on the 1990s, drawing three tiers per decade in each band', () => {
     const drawn = mount(DatedBands)
-    expect(drawn.find('.sc-data-big').text()).toBe('1990s')
-    expect(drawn.findAll('.sc-data-dated-cell')).toHaveLength(decades.length * 6)
+    expect(drawn.find('span').text()).toBe('1990s')
+    expect(drawn.findAll('rect[data-k]')).toHaveLength(decades.length * 6)
   })
 
   it('follows the pointer and the arrow keys across the decades, answering no other key', async () => {
@@ -33,7 +33,7 @@ describe('DatedBands', () => {
     const clientX = layout.left + 0.5 * layout.cell
     slider.element.dispatchEvent(new PointerEvent('pointermove', { clientX }))
     await drawn.vm.$nextTick()
-    expect(drawn.find('.sc-data-say').text()).toBe(tags.datedSentence(decades[0]!))
+    expect(drawn.find('p').text()).toBe(tags.datedSentence(decades[0]!))
     expect(await pressed(slider.element, 'ArrowRight')).toBe(true)
     expect(slider.attributes('aria-valuenow')).toBe('1')
     expect(await pressed(slider.element, 'ArrowUp')).toBe(false)
@@ -41,8 +41,8 @@ describe('DatedBands', () => {
 
   it('dims every tier but the one a corner mark lights', async () => {
     const drawn = mount(DatedBands)
-    await drawn.findAll('.sc-data-legend-mark')[1]!.trigger('pointerenter')
-    expect(drawn.find('[data-k="part"]').classes()).not.toContain('sc-data-off')
-    expect(drawn.find('[data-k="full"]').classes()).toContain('sc-data-off')
+    await drawn.findAll('[role=listitem]')[1]!.trigger('pointerenter')
+    expect(drawn.find('[data-k="part"]').attributes('data-off')).toBeUndefined()
+    expect(drawn.find('[data-k="full"]').attributes('data-off')).toBe('')
   })
 })

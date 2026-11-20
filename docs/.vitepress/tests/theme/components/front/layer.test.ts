@@ -16,7 +16,7 @@ describe('Layer', () => {
   it('holds the canvas the mark is drawn into, hidden from a screen reader', () => {
     const layer = mount(Layer)
     expect(layer.attributes('aria-hidden')).toBe('true')
-    expect(layer.find('canvas.sc-front-mark').exists()).toBe(true)
+    expect(layer.find('canvas').exists()).toBe(true)
     expect((drawn.canvas as { value: unknown }).value).toBe(layer.find('canvas').element)
   })
 })

@@ -53,6 +53,7 @@ dev = [
     "pytest-socket",
     "pytest-subprocess",
     "pytest-testmon",
+    "pytest-xdist",
     "responses",
     "syrupy"
 ]
@@ -67,9 +68,10 @@ precision                  = 2
 show_missing               = true
 
 [tool.coverage.run]
-branch    = true
-data_file = ".cache/coverage/data"
-source    = ["src/scotch"]
+branch         = true
+data_file      = ".cache/coverage/data"
+relative_files = true
+source         = ["src/scotch"]
 
 [tool.maturin]
 data          = "src/scotch.data"
@@ -99,6 +101,7 @@ addopts                  = [
     "--allow-unix-socket",
     "--disable-socket",
     "--import-mode=importlib",
+    "--numprocesses=auto",
     "-m",
     "not network",
     "-ra",

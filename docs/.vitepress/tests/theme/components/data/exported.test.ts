@@ -13,7 +13,7 @@ describe('Exported', () => {
     expect(drawn.findAll('[role="tabpanel"][data-on]').map(panel => panel.attributes('id'))).toEqual([
       expect.stringMatching(/-panel-span$/u)
     ])
-    expect(drawn.findAll('.sc-exported-record').length).toBeGreaterThan(0)
+    expect(drawn.findAll('[role=tabpanel] code').length).toBeGreaterThan(0)
   })
 
   it('picks a field by a press or the arrow keys', async () => {

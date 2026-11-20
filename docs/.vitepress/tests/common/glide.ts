@@ -19,7 +19,7 @@ export async function glided(clock: typeof vi): Promise<void> {
  * Reads where the line at the move a chart follows stands.
  */
 export function mover(chart: VueWrapper): string {
-  return (chart.get('.sc-data-mover').element as HTMLElement).style.transform
+  return (chart.get('[data-mover]').element as HTMLElement).style.transform
 }
 
 /**

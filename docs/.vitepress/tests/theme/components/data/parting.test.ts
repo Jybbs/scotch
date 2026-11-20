@@ -24,10 +24,10 @@ describe('SharedParting', () => {
 
   it('opens on move 10, lighting its bar and naming its shares', () => {
     const drawn = mount(SharedParting)
-    expect(drawn.find('.sc-data-big').text()).toBe(numbers.percent(parting.sharingAt(every, 10)))
-    expect(drawn.find('.sc-data-say').text()).toBe(parting.partingSentence(10))
-    expect(drawn.findAll('.sc-data-parting-bar').findIndex(bar => bar.classes('sc-data-on'))).toBe(10)
-    expect(drawn.find('.sc-data-parting-tag').attributes('text-anchor')).toBe('start')
+    expect(drawn.find('span').text()).toBe(numbers.percent(parting.sharingAt(every, 10)))
+    expect(drawn.find('p').text()).toBe(parting.partingSentence(10))
+    expect(drawn.findAll('rect[data-k=alone]').findIndex(bar => bar.attributes('data-on') === '')).toBe(10)
+    expect(drawn.find('circle + text').attributes('text-anchor')).toBe('start')
   })
 
   it('follows the pointer to the move nearest it, turning the tag to the left past move 30', async () => {
@@ -36,7 +36,7 @@ describe('SharedParting', () => {
     slider.element.dispatchEvent(new PointerEvent('pointermove', { clientX: parting.moveOn(layout, 35) }))
     await drawn.vm.$nextTick()
     expect(slider.attributes('aria-valuenow')).toBe('35')
-    expect(drawn.find('.sc-data-parting-tag').attributes('text-anchor')).toBe('end')
+    expect(drawn.find('circle + text').attributes('text-anchor')).toBe('end')
   })
 
   it('steps along the moves on an arrow key and answers no other key', async () => {
@@ -51,9 +51,9 @@ describe('SharedParting', () => {
 
   it('dims every part but the one a corner mark lights', async () => {
     const drawn = mount(SharedParting)
-    await drawn.findAll('.sc-data-legend-mark')[1]!.trigger('pointerenter')
-    expect(drawn.find('.sc-data-parting-line').classes()).toContain('sc-data-off')
-    expect(drawn.find('.sc-data-parting-half').classes()).toContain('sc-data-off')
-    expect(drawn.find('.sc-data-parting-bar').classes()).not.toContain('sc-data-off')
+    await drawn.findAll('[role=listitem]')[1]!.trigger('pointerenter')
+    expect(drawn.findAll('path[data-k=sharing]')[1]!.attributes('data-off')).toBe('')
+    expect(drawn.find('g[data-k=half]').attributes('data-off')).toBe('')
+    expect(drawn.find('rect[data-k=alone]').attributes('data-off')).toBeUndefined()
   })
 })

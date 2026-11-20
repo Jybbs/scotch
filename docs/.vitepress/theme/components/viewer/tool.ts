@@ -11,6 +11,56 @@ import { gameLegend }             from './legend.ts'
 import { Stage }                  from './stage.ts'
 
 /**
+ * The Viewer's root: the column it fills, the pitch of a sheet's row, the
+ * height of a caption, the shade its raised surfaces cast, and the color each
+ * game's marks read from the game they stand for.
+ */
+const ROOT = [
+  'mx-auto mt-6 grid w-[calc(100%_-_48px)] max-w-[94rem] min-w-0 grid-cols-[minmax(0,1fr)] gap-5 text-ink',
+  'outline-none [--sc-viewer-caption:26px] [--sc-viewer-pitch:33px]',
+  '[--sc-viewer-shade:light-dark(color-mix(in_srgb,var(--sc-dark)_35%,transparent),color-mix(in_srgb,var(--sc-dark)_70%,transparent))]',
+  '[&_[data-game=stored]]:[--sc-viewer-game:var(--sc-stored)]',
+  '[&_[data-game=submitted]]:[--sc-viewer-game:var(--sc-submitted)]',
+  'max-sm:mt-4 max-sm:w-[calc(100%_-_32px)] max-sm:gap-3.5'
+]
+/**
+ * The name of the source the match came from, faint in the stage's corner.
+ */
+const SOURCE = 'pointer-events-none absolute right-0 bottom-1.5 w-[24ch] overflow-hidden text-right '
+             + 'font-code text-[0.54rem]/[12px] font-medium tracking-[0.12em] text-ellipsis '
+             + 'whitespace-nowrap text-quiet uppercase opacity-70'
+/**
+ * The stage, its parts one over the other, with the two boards side by side
+ * in whole pixels on a narrow screen.
+ */
+const STAGE = [
+  'relative grid gap-[22px] pb-[30px] max-lg:justify-between max-lg:gap-x-5',
+  'max-lg:grid-cols-[repeat(2,round(down,calc((100%_-_20px)_/_2),1px))]',
+  'max-sm:gap-x-3.5 max-sm:grid-cols-[repeat(2,round(down,calc((100%_-_14px)_/_2),1px))] max-sm:pb-6'
+]
+/**
+ * The strip of figures closing the Viewer, one row of them over a rule, two
+ * to a row on a narrow screen.
+ */
+const STATS = 'mx-auto mt-9 mb-10 flex w-fit justify-center border-t border-rule px-2 pt-3.5 max-sm:mt-7 '
+            + 'max-sm:grid max-sm:w-full max-sm:grid-cols-2 max-sm:gap-y-3.5'
+
+/**
+ * Draws the strip of figures, each figure over its label.
+ */
+function drawStats(stats: readonly Stat[]): VNode {
+  return h('dl', { class: STATS }, stats.map(({ label, value }) =>
+    h('div', { class: 'grid min-w-[7.5rem] justify-items-center gap-0.5 px-3 max-sm:min-w-0' }, [
+      h('dt', {
+        class: 'font-code text-[0.62rem]/[16px] font-medium tracking-[0.14em] text-quiet uppercase'
+      }, label),
+      h('dd', {
+        class: '-order-1 m-0 font-code text-[0.94rem]/[20px] font-medium text-ink tabular-nums'
+      }, value)
+    ])))
+}
+
+/**
  * Draws the stage at the Viewer's cursor, each part binding the ref the drive
  * reaches it through, with the legend of the two games over its track.
  */
@@ -57,7 +107,7 @@ export const Tool = defineComponent({
     const submitting = useSubmission(drive.problem, viewer)
 
     return () => h('div', {
-      'class'        : 'sc-viewer',
+      'class'        : ROOT,
       'data-matched' : opened.matched,
       'data-shared'  : opened.shared,
       'onKeydown'    : drive.answer,
@@ -65,7 +115,7 @@ export const Tool = defineComponent({
       'style'        : { '--sc-viewer-step': '0ms' },
       'tabindex'     : '-1'
     }, [
-      h('section', { 'aria-label': 'The two games', 'class': 'sc-viewer-stage' }, [
+      h('section', { 'aria-label': 'The two games', 'class': STAGE }, [
         h(Band, {
           at       : submitting.at.value,
           covering : viewer.covered.value && viewer.cursor.value <= (viewer.loaded.value.shared?.last ?? 0),
@@ -86,15 +136,14 @@ export const Tool = defineComponent({
           }
         }),
         drawStage(drive, viewer),
-        h('span', { class: 'sc-viewer-source' }, viewer.source.value)
+        h('span', { class: SOURCE }, viewer.source.value)
       ]),
       h('p', {
         'aria-live' : 'polite',
-        'class'     : 'sc-viewer-hidden',
+        'class'     : 'sr-only',
         'role'      : 'status'
       }, [viewer.verdict.value?.say, viewer.status.value.say].filter(Boolean).join(' ')),
-      h('dl', { class: 'sc-viewer-stats' }, stats().map(({ label, value }) =>
-        h('div', { class: 'sc-viewer-stat' }, [h('dt', label), h('dd', value)])))
+      drawStats(stats())
     ])
   }
 })

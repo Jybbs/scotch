@@ -2,6 +2,15 @@ import * as motion  from './motion.ts'
 import * as squares from './squares.ts'
 
 /**
+ * A piece of a board's layer, standing on the board's a8 corner until its
+ * transform moves it, hidden until its opacity is written, its drawing filling
+ * it, and a ghost's drawing hollow in the dark shade.
+ */
+export const PIECE = 'absolute top-0 left-0 size-[12.5%] opacity-0 will-change-[transform,opacity] '
+                   + '[&_svg]:block [&_svg]:size-full data-ghost:[&_svg_*]:fill-transparent! '
+                   + 'data-ghost:[&_svg_*]:stroke-dark!'
+
+/**
  * The pieces of a board's layer, each node kept by the name it holds, so a
  * piece moves from square to square as one node and a piece that changes, as a
  * pawn does when it promotes, is drawn again in place.
@@ -18,8 +27,8 @@ export class PieceLayer {
    *   board : The board holding the layer.
    */
   constructor(board: HTMLElement) {
-    this.#layer = board.querySelector<HTMLElement>('.sc-run-layer')!
-    for (const node of this.#layer.querySelectorAll<HTMLElement>('.sc-run-piece')) {
+    this.#layer = board.querySelector<HTMLElement>('[data-layer]')!
+    for (const node of this.#layer.querySelectorAll<HTMLElement>('[data-piece]')) {
       this.#nodes.set(node.dataset.id!, node)
     }
   }
@@ -28,7 +37,7 @@ export class PieceLayer {
     const found = this.#nodes.get(id)
     if (found?.dataset.piece === placed.piece) return found
     const node = found ?? document.createElement('span')
-    Object.assign(node, { className: 'sc-run-piece', innerHTML: squares.pieceMarkup(placed.piece) })
+    Object.assign(node, { className: PIECE, innerHTML: squares.pieceMarkup(placed.piece) })
     node.dataset.id    = id
     node.dataset.piece = placed.piece
     node.toggleAttribute('data-ghost', placed.ghost)

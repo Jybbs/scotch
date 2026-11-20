@@ -26,14 +26,14 @@ describe('Faces', () => {
   test('sets the score sheet in the three faces, its move numbers set apart', ({ clock }) => {
     const drawn = settled(clock)
     expect(drawn.find('h5').text()).toBe('The Longest Run')
-    expect(drawn.findAll('.sc-ref-part').map(part => part.attributes('data-face')))
+    expect(drawn.findAll('span[data-face]').map(part => part.attributes('data-face')))
       .toEqual(['display', 'body', 'code'])
-    expect(drawn.findAll('.sc-ref-number').length).toBe(7)
-    expect(drawn.findAll('.sc-ref-moves span').length).toBe(21)
+    expect(drawn.findAll('[data-number]').length).toBe(7)
+    expect(drawn.findAll('[data-face="code"] div > span').length).toBe(21)
   })
 
   test('states each face beside what it sets, its package, and its license', ({ clock }) => {
-    const facts = settled(clock).findAll('.sc-ref-fact')
+    const facts = settled(clock).findAll('button[data-face]')
     expect(facts.map(fact => fact.find('b').text())).toEqual(['display', 'body', 'code'].map(face =>
       IDENTITY.faces[face as 'body'].family))
     const { license, package: named } = IDENTITY.faces.body
@@ -43,40 +43,40 @@ describe('Faces', () => {
 
   test("lights what a picked face sets and lets go on a second press", async ({ clock }) => {
     const drawn = settled(clock)
-    const fact  = drawn.findAll('.sc-ref-fact')[2]!
+    const fact  = drawn.findAll('button[data-face]')[2]!
     await fact.trigger('click')
     expect(fact.attributes('aria-pressed')).toBe('true')
-    expect(drawn.find('.sc-ref-score').attributes('data-look')).toBe('')
+    expect(drawn.find("[role='img']").attributes('data-look')).toBe('')
     expect(drawn.find('[data-face="code"]').attributes('data-on')).toBe('')
     await fact.trigger('click')
     expect(fact.attributes('aria-pressed')).toBe('false')
-    expect(drawn.find('.sc-ref-score').attributes('data-look')).toBeUndefined()
+    expect(drawn.find("[role='img']").attributes('data-look')).toBeUndefined()
   })
 })
 
 describe('Faces, the tint behind a pick', () => {
   test('slides the tint to the picked row and off again', async ({ clock }) => {
     const drawn = settled(clock)
-    const fact  = drawn.findAll('.sc-ref-fact')[1]!
+    const fact  = drawn.findAll('button[data-face]')[1]!
     vi.spyOn(fact.element as HTMLElement, 'offsetHeight', 'get').mockReturnValue(40)
     vi.spyOn(fact.element as HTMLElement, 'offsetTop', 'get').mockReturnValue(60)
     await fact.trigger('click')
-    expect(drawn.find('.sc-ref-block').attributes('style')).toContain('height: 40px')
-    expect(drawn.find('.sc-ref-block').attributes('style')).toContain('translateY(60px)')
+    expect(drawn.find('div > i').attributes('style')).toContain('height: 40px')
+    expect(drawn.find('div > i').attributes('style')).toContain('translateY(60px)')
     await fact.trigger('click')
-    expect(drawn.find('.sc-ref-block').attributes('style')).toContain('height: 0px')
+    expect(drawn.find('div > i').attributes('style')).toContain('height: 0px')
   })
 
   test('measures the tint again once the column changes', async ({ clock }) => {
     const drawn = settled(clock)
-    const fact  = drawn.findAll('.sc-ref-fact')[1]!
+    const fact  = drawn.findAll('button[data-face]')[1]!
     await fact.trigger('click')
     vi.spyOn(fact.element as HTMLElement, 'offsetHeight', 'get').mockReturnValue(70)
     resized(342)
     await flushPromises()
     clock.advanceTimersToNextFrame()
     await flushPromises()
-    expect(drawn.find('.sc-ref-block').attributes('style')).toContain('height: 70px')
+    expect(drawn.find('div > i').attributes('style')).toContain('height: 70px')
   })
 
   test('wipes each part in over its gray strokes and then lights each face', async ({ clock }) => {
@@ -84,20 +84,20 @@ describe('Faces, the tint behind a pick', () => {
     const drawn = mount(Faces)
     await show()
     await flushPromises()
-    expect(drawn.find('.sc-ref-part i').exists()).toBe(true)
-    expect(drawn.find('.sc-ref-words').attributes('style')).toContain('inset(-2px 100% -2px 0)')
+    expect(drawn.find('span[data-face] > i').exists()).toBe(true)
+    expect(drawn.find('span[data-face] > span').attributes('style')).toContain('inset(-2px 100% -2px 0)')
     clock.advanceTimersByTime(4100)
     await flushPromises()
-    expect(drawn.findAll('.sc-ref-fact')[0]!.attributes('aria-pressed')).toBe('true')
+    expect(drawn.findAll('button[data-face]')[0]!.attributes('aria-pressed')).toBe('true')
     clock.advanceTimersByTime(700)
     await flushPromises()
-    expect(drawn.findAll('.sc-ref-fact')[1]!.attributes('aria-pressed')).toBe('true')
+    expect(drawn.findAll('button[data-face]')[1]!.attributes('aria-pressed')).toBe('true')
     clock.advanceTimersByTime(700)
     await flushPromises()
-    expect(drawn.findAll('.sc-ref-fact')[2]!.attributes('aria-pressed')).toBe('true')
+    expect(drawn.findAll('button[data-face]')[2]!.attributes('aria-pressed')).toBe('true')
     clock.advanceTimersByTime(800)
     await flushPromises()
-    const pressed = drawn.findAll('.sc-ref-fact').map(fact => fact.attributes('aria-pressed'))
+    const pressed = drawn.findAll('button[data-face]').map(fact => fact.attributes('aria-pressed'))
     expect(pressed.every(each => each === 'false')).toBe(true)
   })
 })

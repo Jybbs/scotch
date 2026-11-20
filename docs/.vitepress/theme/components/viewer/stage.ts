@@ -5,33 +5,45 @@ import type { Guess, Offer, Verdict }       from '../../../lib/viewer/guesses.ts
 import type { Loaded, Party, Status }       from '../../../lib/viewer/loaded.ts'
 import type { Facing }                      from '../../../lib/viewer/trail.ts'
 import { GameFigure }                       from './board.ts'
-import { Controls }                         from './controls.ts'
+import { Controls, statusLine }             from './controls.ts'
 import { GuessEntry }                       from './guess.ts'
 import { Ledger }                           from './ledger.ts'
 import { Track }                            from './track.ts'
 
 /**
- * Draws the status line under the controls, the count of the squares the boards
- * differ on following it as a button that shows those squares while the pointer
- * rests on it or it holds focus, the button hidden where no square differs. A
- * verdict on the move a step just showed takes the line's text in its place.
+ * The raised surface setting the two boards at either side of the sheets, each
+ * board as wide as the room left beside the sheets allows in whole rows, no
+ * taller than the window leaves under the band, and the three parts set
+ * straight into the stage's grid on a narrow screen.
  */
-function statusLine(status: Status, show: (on: boolean) => void, verdict?: Verdict): VNode {
-  const short = verdict?.line ?? status.short
-  return h('p', { 'class': 'sc-viewer-status', 'data-verdict': verdict ? '' : undefined }, [
-    status.count ? `${short} · ` : short,
-    h('button', {
-      class          : 'sc-viewer-differing',
-      hidden         : !status.count,
-      onBlur         : () => show(false),
-      onFocus        : () => show(true),
-      onPointerenter : () => show(true),
-      onPointerleave : () => show(false),
-      title          : 'Show the squares the boards differ on',
-      type           : 'button'
-    }, status.count)
-  ])
-}
+const FLANK = [
+  '[--sc-viewer-led:20rem] [--sc-viewer-gap:24px] [--sc-viewer-cap:max(13rem,calc(100dvh_-_26rem))]',
+  '[--sc-viewer-fit:min(var(--sc-viewer-cap),calc((100%_-_var(--sc-viewer-led)_-_2_*_var(--sc-viewer-gap))_/_2))]',
+  '[--sc-viewer-side:calc(round(down,var(--sc-viewer-fit)_-_2px,var(--sc-viewer-pitch))_+_2px)]',
+  'grid grid-cols-[var(--sc-viewer-side)_var(--sc-viewer-led)_var(--sc-viewer-side)] items-stretch',
+  'justify-center gap-(--sc-viewer-gap) rounded-[14px] bg-raised px-5 pt-[18px] pb-9',
+  '[box-shadow:0_0_0_1px_var(--sc-rule),0_24px_48px_-30px_var(--sc-viewer-shade)] max-lg:contents'
+]
+/**
+ * The pill of controls set over the surface's lower edge with the status line
+ * and the field taking a move under it, in its own row on a narrow screen.
+ */
+const FOOT = 'relative z-2 -mt-[45px] grid justify-items-center gap-2.5 max-lg:col-span-full max-lg:row-3 '
+           + 'max-lg:mt-0'
+/**
+ * The column holding the sheets, sized by the boards beside it, and on a
+ * narrow screen a band of its own under the track, a set count of rows tall.
+ */
+const SPINE = [
+  'grid min-h-0 [contain:size] max-lg:[grid-area:5/1/auto/-1] max-lg:[contain:none]',
+  'max-lg:[--sc-viewer-rows:12]',
+  'max-lg:h-[calc(var(--sc-viewer-rows)_*_var(--sc-viewer-pitch)_+_2px_+_var(--sc-viewer-caption)_+_10px)]',
+  'max-sm:[--sc-viewer-rows:11]'
+]
+/**
+ * The legend and the track under the stage's surface, over a rule.
+ */
+const UNDER = 'min-w-0 border-t border-rule pt-1.5 max-lg:col-span-full max-lg:row-4'
 
 /**
  * The stage under the band: the two boards at either side of both games' moves
@@ -92,12 +104,12 @@ export const Stage = defineComponent({
         taking  : party === 'stored' && taking
       })
       return [
-        h('div', { class: 'sc-viewer-flank' }, [
+        h('div', { class: FLANK }, [
           figure('submitted'),
-          h('div', { class: 'sc-viewer-spine' }, [h(Ledger, { loaded, onGo: go, ref: parts.ledger })]),
+          h('div', { class: SPINE }, [h(Ledger, { loaded, onGo: go, ref: parts.ledger })]),
           figure('stored')
         ]),
-        h('div', { class: 'sc-viewer-foot' }, [
+        h('div', { class: FOOT }, [
           h(Controls, { covered, cursor, facing, loaded, onCover: cover, onGo: go, onTurn: turn }),
           statusLine(props.status, show, props.verdict),
           h(GuessEntry, {
@@ -108,7 +120,7 @@ export const Stage = defineComponent({
             taking  : taking
           })
         ]),
-        h('div', { class: 'sc-viewer-under' }, [
+        h('div', { class: UNDER }, [
           slots.default?.(),
           h(Track, { cursor, facing, loaded, onGo: go, ref: parts.track, status: props.status })
         ])
