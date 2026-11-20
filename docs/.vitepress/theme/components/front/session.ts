@@ -4,6 +4,7 @@ import { useDrive }            from '../../../lib/front/drive.ts'
 import { frontOf }             from '../../../lib/front/example.ts'
 import * as session            from '../../../lib/front/session.ts'
 import { type Readout, Panel } from './panel.ts'
+import * as terminal           from './terminal.ts'
 
 /**
  * How the session plays its beats: the milliseconds between two, and the beats
@@ -21,16 +22,16 @@ const NUMERALS = ['I', 'II', 'III'] as const
  * finished command printed, a prompt waiting with the cursor after the last.
  */
 function lines(beat: session.Beat, commands: readonly session.Command[]): VNode[] {
-  const cursor = h('span', { class: 'sc-front-cursor' })
+  const cursor = terminal.cursor()
   const shown  = [] as VNode[]
   for (const [step, each] of commands.slice(0, beat.step + 1).entries()) {
     const done  = step < beat.step || beat.done
     const typed = step < beat.step ? each.command : each.command.slice(0, beat.typed)
-    shown.push(h('div', [h('span', { class: 'sc-front-prompt' }, '❯ '), typed, done ? null : cursor]))
-    if (done) shown.push(...each.out.map(line => h('div', { class: 'sc-front-out' }, line)))
+    shown.push(h('div', [terminal.prompt('❯ '), typed, done ? null : cursor]))
+    if (done) shown.push(...each.out.map(line => h('div', { 'class': terminal.OUT, 'data-out': '' }, line)))
   }
   if (beat.done && beat.step === commands.length - 1) {
-    shown.push(h('div', [h('span', { class: 'sc-front-prompt' }, '❯ '), cursor]))
+    shown.push(h('div', [terminal.prompt('❯ '), cursor]))
   }
   return shown
 }
@@ -70,9 +71,16 @@ export const Session = defineComponent({
       const beat    = beats[drive.at.value]!
       const readout = readoutOf(beat, commands)
       return h(Panel, { drive, label: 'The session', names, readout, ref: panel }, () =>
-        h('div', { class: 'sc-front-terminal' }, [
-          h('header', { 'aria-hidden': 'true' }, [h('i'), h('i'), h('i'), h('span', '~/scotch')]),
-          h('pre', { 'aria-label': label, 'role': 'img' }, lines(beat, commands))
+        h('div', { class: [terminal.SCREEN, 'h-[260px] grid-rows-[30px_1fr]'] }, [
+          terminal.bar(terminal.lights()),
+          h('pre', {
+            'aria-label' : label,
+            'role'       : 'img',
+            'class'      : [
+              terminal.PRINTED, 'flex flex-col justify-end wrap-anywhere',
+              "after:flex-1 after:content-['']"
+            ]
+          }, lines(beat, commands))
         ]))
     }
   }

@@ -54,7 +54,7 @@ describe('Seat', () => {
     await flushPromises()
     const field = wrapper.find('textarea').element
     expect([field.value, field.selectionStart, field.selectionEnd]).toEqual(['1. d4 Nf6', 0, 9])
-    expect((wrapper.find('.sc-viewer-copy').element as HTMLElement).style)
+    expect((wrapper.find('[popover]').element as HTMLElement).style)
       .toMatchObject({ left: '60px', top: '140px' })
     expect([opened.mock.calls.length, wrapper.find('[role="status"]').text()])
       .toEqual([1, 'The text is selected to copy'])
@@ -68,6 +68,6 @@ describe('Seat', () => {
     const wrapper = mounted(() => '1. d4 Nf6')
     await wrapper.find('button').trigger('click')
     await flushPromises()
-    expect((wrapper.find('.sc-viewer-copy').element as HTMLElement).style.left).toBe('16px')
+    expect((wrapper.find('[popover]').element as HTMLElement).style.left).toBe('16px')
   })
 })

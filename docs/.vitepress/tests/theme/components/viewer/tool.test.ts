@@ -44,14 +44,14 @@ async function settled(spy: MockInstance): Promise<void> {
  * and the band's stored move as a reader hears it and as it is marked.
  */
 function parted(wrapper: VueWrapper): unknown[] {
-  const named = wrapper.get('.sc-viewer-details [data-game="stored"]')
+  const named = wrapper.get('[aria-label="The match and your game"] p + p [data-game="stored"]')
   const drawn = (party: string): number =>
-    wrapper.findAll(`.sc-viewer-arrow[data-game="${party}"][data-on]`).length
+    wrapper.findAll(`svg g[data-game="${party}"][data-on]`).length
   return [
     said(wrapper)[1]!.includes(`the stored game played ${parting} next`),
     drawn('stored'),
     drawn('submitted'),
-    named.find('.sc-viewer-hidden').exists() ? named.get('.sc-viewer-hidden').text() : named.text(),
+    named.find('.sr-only').exists() ? named.get('.sr-only').text() : named.text(),
     named.find('[aria-hidden="true"]').exists(),
     named.attributes('data-covered')
   ]
@@ -63,7 +63,7 @@ function parted(wrapper: VueWrapper): unknown[] {
  * standing in for the page's.
  */
 function point(wrapper: VueWrapper, square: number, type: 'pointerdown' | 'pointerup'): void {
-  const board  = wrapper.find('[data-game="stored"] .sc-viewer-board').element
+  const board  = wrapper.find('figure[data-game="stored"] svg').element
   const [x, y] = square < 0 ? [400, 20] : [(square % 8) * 45 + 20, (7 - (square >> 3)) * 45 + 20]
   board.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1 }))
 }
@@ -72,8 +72,8 @@ function point(wrapper: VueWrapper, square: number, type: 'pointerdown' | 'point
  * Types text into the field taking a move and offers it.
  */
 async function typed(wrapper: VueWrapper, text: string): Promise<void> {
-  await wrapper.find('.sc-viewer-guess-field').setValue(text)
-  await wrapper.find('.sc-viewer-guess').trigger('submit')
+  await wrapper.find('#sc-viewer-guess-field').setValue(text)
+  await wrapper.find('form').trigger('submit')
   await flushPromises()
 }
 
@@ -82,19 +82,21 @@ async function typed(wrapper: VueWrapper, text: string): Promise<void> {
  * moves offered that match.
  */
 function said(wrapper: VueWrapper): string[] {
-  return ['.sc-viewer-status', 'p[role=status]', '.sc-viewer-guess-note'].map(name => wrapper.get(name).text())
+  return ['p:has(> button[title])', 'p[role=status]', '#sc-viewer-guess-note']
+    .map(name => wrapper.get(name).text())
 }
 
 describe('Tool as the build renders it', () => {
   it('draws both boards, the sheets, and the band at the first position the two share', async () => {
     const html = await renderToString(createSSRApp(Tool))
     const host = Object.assign(document.createElement('div'), { innerHTML: html })
-    expect(host.querySelectorAll('.sc-viewer-piece')).toHaveLength(64)
-    expect([...host.querySelectorAll('[aria-current="step"] .sc-viewer-san')].map(move => move.textContent))
+    expect(host.querySelectorAll('[data-piece]')).toHaveLength(64)
+    expect([...host.querySelectorAll('[aria-current="step"] > span:first-child')]
+      .map(move => move.textContent))
       .toEqual([EXAMPLES.match.submitted.moves[matches.meet - 1], stored.moves[matches.meet - 1]])
-    expect(host.querySelector('.sc-viewer-count')?.textContent).toBe(String(length))
-    expect(host.querySelector('.sc-viewer-status')?.textContent).toBe(`Same position · 1 of ${length}`)
-    expect(host.querySelector('.sc-viewer-stats')?.textContent).toBe('Games435,321')
+    expect(host.querySelector('b')?.textContent).toBe(String(length))
+    expect(host.querySelector('p:has(> button[title])')?.textContent).toBe(`Same position · 1 of ${length}`)
+    expect(host.querySelector('dl')?.textContent).toBe('Games435,321')
   })
 
   it('hydrates the rendered markup at that position with nothing moved', async () => {
@@ -111,18 +113,21 @@ describe('Tool as the build renders it', () => {
 describe('Tool, its legend', () => {
   it('names each game in its color in the corner, the submitted game first', async () => {
     const { wrapper } = mountedTool()
-    const marks       = wrapper.findAll('.sc-viewer-legend .sc-data-legend-mark')
+    const marks       = wrapper.findAll('[role=listitem]')
     expect(marks.map(mark => [mark.attributes('aria-label'), mark.attributes('style')])).toEqual([
       ['Your game', '--sc-data-tone: var(--sc-submitted);'],
       ['The stored game', '--sc-data-tone: var(--sc-stored);']
     ])
     await marks[1]!.trigger('pointerenter')
-    expect(wrapper.find('.sc-viewer-legend .sc-data-legend-caption').text()).toBe('The stored game')
+    expect(wrapper.find('[role=list] + p').text()).toBe('The stored game')
   })
 
   it('opens the line beneath the boards', () => {
     const { wrapper } = mountedTool()
-    expect(wrapper.find('.sc-viewer-under').element.firstElementChild?.classList).toContain('sc-viewer-legend')
+    const legend      = wrapper.get('[role=list]').element.parentElement!.parentElement!
+    const under       = legend.parentElement!
+    expect([under.firstElementChild === legend, under.querySelector('canvas') !== null])
+      .toEqual([true, true])
   })
 })
 
@@ -130,10 +135,10 @@ describe('Tool as a reader steps it', () => {
   test('steps on the controls’ keys, marking whether the boards share a position', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
     expect(await pressed(root, 'ArrowRight')).toBe(true)
-    expect(wrapper.find('.sc-viewer-status').text()).toBe(`Same position · 2 of ${length}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 2 of ${length}`)
     expect(root.style.getPropertyValue('--sc-viewer-step')).not.toBe('0ms')
     expect(await pressed(root, 'Home')).toBe(true)
-    expect([wrapper.find('.sc-viewer-status').text(), root.dataset.shared])
+    expect([wrapper.find('p:has(> button[title])').text(), root.dataset.shared])
       .toEqual([`Different · meet at ply ${matches.meet}`, 'no'])
     expect(await pressed(root, 'Home')).toBe(false)
     clock.advanceTimersByTime(5000)
@@ -141,11 +146,12 @@ describe('Tool as a reader steps it', () => {
 
   test('captions each board with the start mark at the starting position and with a move after it', async () => {
     const { root, wrapper } = mountedTool()
-    const captions          = (): string[] => wrapper.findAll('.sc-viewer-caption-move').map(move => move.text())
+    const captions          = (): string[] => wrapper.findAll('figcaption > span:last-child')
+      .map(move => move.text())
     expect(captions().every(move => /^\d+\./u.test(move))).toBe(true)
     await pressed(root, 'Home')
     expect(captions()).toEqual(['Start', 'Start'])
-    expect(wrapper.findAll('.sc-viewer-caption-move .sc-start-glyph')).toHaveLength(2)
+    expect(wrapper.findAll('figcaption > span:last-child [data-start] svg')).toHaveLength(2)
   })
 
   test('turns both boards on F, pressing the flip', async ({ clock }) => {
@@ -163,7 +169,7 @@ describe('Tool as a reader steps it', () => {
   ] as const)('leaves a key pressed %s to the page', async ([, key, held]) => {
     const { root, wrapper } = mountedTool()
     expect(await pressed(root, key, held)).toBe(false)
-    expect(wrapper.find('.sc-viewer-status').text()).toBe(`Same position · 1 of ${length}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 1 of ${length}`)
   })
 
   test('leaves a key pressed inside a field to the field', async () => {
@@ -179,7 +185,7 @@ describe('Tool answering Up and Down', () => {
     expect(await pressed(root, 'ArrowDown')).toBe(true)
     expect(slider.attributes('aria-valuenow')).toBe(String(EXAMPLES.match.submitted.moves.length))
     expect(await pressed(root, 'ArrowUp')).toBe(true)
-    expect(wrapper.find('.sc-viewer-status').text()).toBe(`Different · meet at ply ${matches.meet}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Different · meet at ply ${matches.meet}`)
     clock.advanceTimersByTime(5000)
   })
 
@@ -205,8 +211,8 @@ describe('Tool answering Up and Down', () => {
 describe('Tool as a reader moves through it', () => {
   test('moves the cursor to a move pressed in the sheets and to a control pressed', async ({ clock }) => {
     const { wrapper } = mountedTool()
-    await wrapper.findAll('.sc-viewer-move[data-party="submitted"]')[19]!.trigger('click')
-    expect(wrapper.find('.sc-viewer-status').text())
+    await wrapper.findAll('button[data-party][data-party="submitted"]')[19]!.trigger('click')
+    expect(wrapper.find('p:has(> button[title])').text())
       .toBe(`Same position · ${20 - matches.meet + 1} of ${length}`)
     await wrapper.find('[data-control="end"]').trigger('click')
     await flushPromises()
@@ -219,7 +225,7 @@ describe('Tool as a reader moves through it', () => {
     const { wrapper } = mountedTool()
     await wrapper.find('[data-control="flip"]').trigger('click')
     await flushPromises()
-    const king = wrapper.find('[data-game="submitted"] .sc-viewer-piece[data-piece="K"]').element
+    const king = wrapper.find('figure[data-game="submitted"] [data-piece="K"]').element
     expect(wrapper.find('[data-control="flip"]').attributes('aria-pressed')).toBe('true')
     expect(king.getAttribute('transform')).toMatch(/^matrix\(1 0 0 1 \d+ 0\)$/u)
     clock.advanceTimersByTime(5000)
@@ -227,7 +233,7 @@ describe('Tool as a reader moves through it', () => {
 
   test('marks the root as matched or not with each example loaded', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    const [match, alone]    = wrapper.findAll('.sc-viewer-examples button')
+    const [match, alone]    = wrapper.findAll('[aria-label="Examples"] button')
     await alone!.trigger('click')
     await flushPromises()
     expect(root.dataset.matched).toBe('no')
@@ -249,13 +255,13 @@ describe('Tool as a reader moves through it', () => {
 describe('Tool showing the squares the boards differ on', () => {
   test('washes the squares once the games part while their count holds the pointer', async ({ clock }) => {
     const { wrapper } = mountedTool()
-    const count       = wrapper.find('.sc-viewer-differing').element as HTMLButtonElement
-    const washed      = (): number => wrapper.findAll('.sc-viewer-square[data-differ]').length
+    const count       = wrapper.find('p > button[title]').element as HTMLButtonElement
+    const washed      = (): number => wrapper.findAll('rect[data-differ]').length
     expect(count.hidden).toBe(true)
     await wrapper.find('[data-control="part"]').trigger('click')
     await wrapper.find('[data-control="next"]').trigger('click')
     await flushPromises()
-    expect([wrapper.find('.sc-viewer-status').text(), count.hidden])
+    expect([wrapper.find('p:has(> button[title])').text(), count.hidden])
       .toEqual([`Parted at ply ${matches.meet + length} · 4 squares differ`, false])
     count.dispatchEvent(new PointerEvent('pointerenter'))
     await flushPromises()
@@ -270,10 +276,10 @@ describe('Tool showing the squares the boards differ on', () => {
   test('moves the wash with each step while the count holds focus', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
     const washed            = (): number => wrapper.findAll('[data-game="submitted"] [data-differ]').length
-    await wrapper.findAll('.sc-viewer-move[data-party="submitted"]')[stored.moves.length]!.trigger('click')
+    await wrapper.findAll('button[data-party][data-party="submitted"]')[stored.moves.length]!.trigger('click')
     await flushPromises()
     clock.advanceTimersByTime(5000)
-    const count = wrapper.find('.sc-viewer-differing')
+    const count = wrapper.find('p > button[title]')
     await count.trigger('focus')
     clock.advanceTimersByTime(10)
     expect(washed()).toBe(0)
@@ -282,7 +288,7 @@ describe('Tool showing the squares the boards differ on', () => {
     expect([washed(), count.text()]).toEqual([19, '19 squares differ'])
     await count.trigger('blur')
     clock.advanceTimersByTime(10)
-    expect(wrapper.findAll('.sc-viewer-square[data-differ]')).toHaveLength(0)
+    expect(wrapper.findAll('rect[data-differ]')).toHaveLength(0)
   })
 })
 
@@ -334,10 +340,10 @@ describe('Tool opened from a link', () => {
     history.replaceState(null, '', '#sample=alone&ply=3&side=black')
     const { wrapper } = mountedTool()
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-status').text()).toBe('Nothing matched')
+    expect(wrapper.find('p:has(> button[title])').text()).toBe('Nothing matched')
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow')).toBe('3')
     expect(wrapper.find('[data-control="flip"]').attributes('aria-pressed')).toBe('true')
-    expect(wrapper.find('.sc-viewer-source').text()).toBe('demo.pgn')
+    expect(wrapper.find('[aria-label="The two games"] > span').text()).toBe('demo.pgn')
     clock.advanceTimersByTime(5000)
   })
 
@@ -348,7 +354,7 @@ describe('Tool opened from a link', () => {
     const encoding = vi.spyOn(links, 'encodedOf')
     const { root, wrapper } = mountedTool()
     await settled(read)
-    expect(wrapper.find('.sc-viewer-source').text()).toBe('A link')
+    expect(wrapper.find('[aria-label="The two games"] > span').text()).toBe('A link')
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow')).toBe('5')
     await settled(encoding)
     await pressed(root, 'ArrowRight')
@@ -362,7 +368,7 @@ describe('Tool opened from a link', () => {
     const { wrapper } = mountedTool()
     await settled(read)
     expect(wrapper.find('[role="alert"]').text()).toBe('The link holds no match, or was cut short or altered')
-    await wrapper.find('.sc-viewer-examples button').trigger('click')
+    await wrapper.find('[aria-label="Examples"] button').trigger('click')
     expect(wrapper.find('[role="alert"]').text()).toBe('')
   })
 
@@ -378,7 +384,7 @@ describe('Tool copying the match', () => {
   test('copies a link opening on the match where it stands', async () => {
     const written = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
     const { wrapper } = mountedTool()
-    await wrapper.find('.sc-viewer-seat button').trigger('click')
+    await wrapper.find('div:has(> [popover]) > button').trigger('click')
     await flushPromises()
     expect(written)
       .toHaveBeenCalledWith(`${location.origin}${location.pathname}#sample=match&ply=${matches.meet}`)
@@ -387,7 +393,7 @@ describe('Tool copying the match', () => {
   test('copies the submitted game as PGN, the stored game’s moves as a variation', async () => {
     const written = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
     const { wrapper } = mountedTool()
-    await wrapper.findAll('.sc-viewer-seat button')[1]!.trigger('click')
+    await wrapper.findAll('div:has(> [popover]) > button')[1]!.trigger('click')
     await flushPromises()
     expect(written.mock.calls[0]![0]).toMatch(/^\[Event "The Viewer's example"\][^]+\( \{[^}]+\} /u)
   })
@@ -402,7 +408,7 @@ describe('Tool copying the match', () => {
     })
     const { wrapper } = mountedTool()
     await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
-    await wrapper.find('.sc-viewer-seat button').trigger('click')
+    await wrapper.find('div:has(> [popover]) > button').trigger('click')
     expect(await copied.promise).toBe(`${location.origin}${location.pathname}#match=${encoded}&ply=0`)
     await settled(encoding)
     clock.advanceTimersByTime(5000)
@@ -415,19 +421,19 @@ describe('Tool covering the stored game', () => {
     clock
   }) => {
     const { root, wrapper } = mountedTool()
-    const covered           = (): number => wrapper.findAll('.sc-viewer-move[data-covered]').length
-    const entry             = wrapper.find('.sc-viewer-guess').element as HTMLFormElement
+    const covered           = (): number => wrapper.findAll('button[data-party][data-covered]').length
+    const entry             = wrapper.find('form').element as HTMLFormElement
     expect([covered(), entry.inert]).toEqual([0, true])
     expect(await pressed(root, 'c')).toBe(true)
     await flushPromises()
     expect([covered(), entry.inert, wrapper.find('[data-control="cover"]').attributes('aria-pressed')])
       .toEqual([stored.moves.length - matches.meet, false, 'true'])
-    expect(wrapper.find('.sc-viewer-move[data-covered]').attributes('aria-label')).toBe('A covered move')
-    expect(wrapper.find('.sc-viewer-details [data-covered]').exists()).toBe(true)
+    expect(wrapper.find('button[data-party][data-covered]').attributes('aria-label')).toBe('A covered move')
+    expect(wrapper.find('[aria-label="The match and your game"] p + p [data-covered]').exists()).toBe(true)
     await pressed(root, 'C')
     await flushPromises()
-    expect([covered(), entry.inert, wrapper.find('.sc-viewer-details [data-covered]').exists()])
-      .toEqual([0, true, false])
+    const marked = wrapper.find('[aria-label="The match and your game"] p + p [data-covered]')
+    expect([covered(), entry.inert, marked.exists()]).toEqual([0, true, false])
     clock.advanceTimersByTime(5000)
   })
 
@@ -448,7 +454,7 @@ describe('Tool covering the stored game', () => {
 
   test('takes no cover from the control or its key where no game is stored', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    await wrapper.findAll('.sc-viewer-examples button')[1]!.trigger('click')
+    await wrapper.findAll('[aria-label="Examples"] button')[1]!.trigger('click')
     await pressed(root, 'c')
     await flushPromises()
     const control = wrapper.find('[data-control="cover"]')
@@ -482,7 +488,7 @@ describe('Tool covering where the two games part', () => {
     const { root, wrapper } = mountedTool()
     await pressed(root, 'c')
     await typed(wrapper, 'Bb4')
-    await wrapper.findAll('.sc-viewer-examples button')[0]!.trigger('click')
+    await wrapper.findAll('[aria-label="Examples"] button')[0]!.trigger('click')
     await flushPromises()
     expect([said(wrapper)[2], wrapper.find('[data-control="cover"]').attributes('aria-pressed')])
       .toEqual(['0 of 0 offered match', 'true'])
@@ -522,7 +528,7 @@ describe('Tool taking a move made on the stored board', () => {
 
   test('outlines a piece tapped on the stored board until a second tap lets it go', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    const mark              = (): boolean => wrapper.find('.sc-viewer-picked').exists()
+    const mark              = (): boolean => wrapper.find('[data-picked]').exists()
     await pressed(root, 'c')
     await flushPromises()
     point(wrapper, 61, 'pointerdown')
@@ -542,7 +548,7 @@ describe('Tool taking a move made on the stored board', () => {
     point(wrapper, -1, 'pointerdown')
     point(wrapper, 34, 'pointerup')
     await flushPromises()
-    expect([wrapper.find('.sc-viewer-picked').exists(), said(wrapper)[2]])
+    expect([wrapper.find('[data-picked]').exists(), said(wrapper)[2]])
       .toEqual([false, '0 of 0 offered match'])
     clock.advanceTimersByTime(5000)
   })
@@ -558,7 +564,7 @@ describe('Tool stepping on with a piece picked', () => {
     await flushPromises()
     await pressed(root, 'ArrowRight')
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-picked').exists()).toBe(false)
+    expect(wrapper.find('[data-picked]').exists()).toBe(false)
     point(wrapper, 34, 'pointerdown')
     point(wrapper, 34, 'pointerup')
     await flushPromises()
@@ -570,7 +576,7 @@ describe('Tool stepping on with a piece picked', () => {
 describe('Tool taking a move while covered at the edges of the stored game', () => {
   test('clears the field once it takes a move, keeping text it cannot take', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
-    const input             = wrapper.find('.sc-viewer-guess-field').element as HTMLInputElement
+    const input             = wrapper.find('#sc-viewer-guess-field').element as HTMLInputElement
     const field             = (): string => input.value
     await pressed(root, 'c')
     await typed(wrapper, 'hello')
@@ -584,7 +590,7 @@ describe('Tool taking a move while covered at the edges of the stored game', () 
     const { root, wrapper } = mountedTool()
     await pressed(root, 'c')
     await typed(wrapper, 'hello')
-    expect([wrapper.find('.sc-viewer-guess-field').attributes('aria-invalid'), said(wrapper)[2]])
+    expect([wrapper.find('#sc-viewer-guess-field').attributes('aria-invalid'), said(wrapper)[2]])
       .toEqual(['true', 'Not a move in SAN'])
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow')).toBe(String(matches.meet))
     clock.advanceTimersByTime(5000)
@@ -605,8 +611,8 @@ describe('Tool taking a move while covered at the edges of the stored game', () 
     await pressed(root, 'c')
     await pressed(root, 'ArrowDown')
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-guess-field').attributes('disabled')).toBeDefined()
-    expect(wrapper.find('[data-game="stored"] .sc-viewer-board').attributes('data-taking')).toBeUndefined()
+    expect(wrapper.find('#sc-viewer-guess-field').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('figure[data-game="stored"] svg').attributes('data-taking')).toBeUndefined()
     clock.advanceTimersByTime(5000)
   })
 })
@@ -617,26 +623,26 @@ describe('Tool matching a pasted game', () => {
     const submitted   = vi.spyOn(Matcher.prototype, 'submit')
       .mockResolvedValue({ matches: matches.answered(...tied) })
     const { wrapper } = mountedTool()
-    const field       = wrapper.find('.sc-viewer-pgn-field')
+    const field       = wrapper.find('textarea[placeholder]')
     await field.setValue('1. Nf3 *')
     await field.trigger('keydown', { key: 'Enter' })
     await flushPromises()
     expect(submitted).toHaveBeenCalledWith('the pasted game', '1. Nf3 *')
-    expect([wrapper.find('.sc-viewer-source').text(), wrapper.find('.sc-viewer-count').text()])
+    expect([wrapper.find('[aria-label="The two games"] > span').text(), wrapper.find('b').text()])
       .toEqual(['the pasted game', String(length)])
-    await wrapper.find('.sc-viewer-rank-chip').trigger('click')
+    await wrapper.find('button[aria-pressed][title]:not([data-control])').trigger('click')
     await flushPromises()
-    expect([wrapper.find('.sc-viewer-source').text(), wrapper.find('.sc-viewer-count').text()])
+    expect([wrapper.find('[aria-label="The two games"] > span').text(), wrapper.find('b').text()])
       .toEqual(['the pasted game', '2'])
   })
 
   it('names the problem a pasted game carries under the intake', async () => {
     vi.spyOn(Matcher.prototype, 'submit').mockResolvedValue({ problem: 'Found no game in the pasted game' })
     const { wrapper } = mountedTool()
-    const field       = wrapper.find('.sc-viewer-pgn-field')
+    const field       = wrapper.find('textarea[placeholder]')
     await field.setValue('nothing')
     await field.trigger('keydown', { key: 'Enter' })
     await flushPromises()
-    expect(wrapper.find('.sc-viewer-problem').text()).toBe('Found no game in the pasted game')
+    expect(wrapper.find('[role="alert"]').text()).toBe('Found no game in the pasted game')
   })
 })

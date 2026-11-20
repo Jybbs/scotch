@@ -11,7 +11,7 @@ import { startMark } from '../start.ts'
  */
 function band(loaded: Loaded, cursor: number | undefined): VNode {
   return h('rect', {
-    'class'   : 'sc-rails-band',
+    'class'   : 'fill-ink/9 opacity-0 transition-[opacity,x] data-on:opacity-100',
     'data-on' : cursor === undefined ? undefined : '',
     'height'  : rails.RAILS.height,
     'rx'      : 2,
@@ -27,11 +27,30 @@ function band(loaded: Loaded, cursor: number | undefined): VNode {
  * position.
  */
 function entry({ game, label, move, start }: rails.Entry): VNode {
-  const named = h('i', { class: 'sc-rails-label' }, label)
-  return h('span', { 'class': 'sc-rails-entry', 'data-game': game }, start ? [startMark(), named] : [
-    named,
-    move === undefined ? null : h('span', { class: 'sc-rails-move' }, move)
-  ])
+  const named = h('i', {
+    class: 'text-[0.62rem] font-semibold tracking-[0.1em] text-quiet not-italic uppercase'
+  }, label)
+  return h('span', {
+    'data-game' : game,
+    'class'     : [
+      'inline-flex items-center gap-[0.5em]',
+      'data-[game=stored]:text-[color-mix(in_oklab,var(--sc-stored)_60%,var(--sc-ink))]',
+      'data-[game=submitted]:text-[color-mix(in_oklab,var(--sc-submitted)_60%,var(--sc-ink))]'
+    ]
+  }, start ? [startMark(), named] : [named, move === undefined ? null : h('span', move)])
+}
+
+/**
+ * Draws the key over the rails, one entry per game, read aloud as it changes.
+ */
+function keyOf(entries: rails.Entry[]): VNode {
+  return h('p', {
+    'aria-live' : 'polite',
+    'class'     : [
+      'm-0 mb-2 flex min-h-5.5 flex-wrap gap-x-4.5 gap-y-1',
+      'font-code text-[0.8rem]/5.5 font-medium text-ink tabular-nums'
+    ]
+  }, entries.map(it => entry(it)))
 }
 
 /**
@@ -57,15 +76,20 @@ function replayRails(loaded: Loaded, nodes: Map<rails.Square, Element>, cut?: El
  */
 function square(it: rails.Square, lit: number | undefined, register: (node: unknown) => void): VNode {
   return h('rect', {
-    'class'     : { 'is-lit': lit === it.cursor, 'sc-rails-square': true },
     'data-game' : it.game,
+    'data-lit'  : lit === it.cursor ? '' : undefined,
     'data-tone' : it.game === 'both' ? (it.cursor % 2 ? 'dark' : 'light') : undefined,
     'height'    : rails.RAILS.cell,
     'ref'       : register,
     'rx'        : 1.5,
     'width'     : rails.RAILS.cell,
     'x'         : it.x,
-    'y'         : rails.RAILS.middle + it.lift - rails.RAILS.cell / 2
+    'y'         : rails.RAILS.middle + it.lift - rails.RAILS.cell / 2,
+    'class'     : [
+      'data-[tone=dark]:fill-primary data-[tone=light]:fill-light',
+      'data-[game=stored]:fill-stored data-[game=submitted]:fill-submitted',
+      'data-lit:stroke-ink data-lit:stroke-[0.9]'
+    ]
   })
 }
 
@@ -108,11 +132,11 @@ export const Rails = defineComponent({
       cursor.value = undefined
     }
 
-    return () => h('figure', { class: 'sc-rails' }, [
-      h('p', { 'aria-live': 'polite', 'class': 'sc-rails-key' }, key.value.map(entry)),
+    return () => h('figure', { class: 'mx-0 my-6 cursor-crosshair' }, [
+      keyOf(key.value),
       h('svg', {
         'aria-label'     : `Both games share ${props.loaded.shared!.length} positions, then part`,
-        'class'          : 'sc-rails-drawing',
+        'class'          : 'block h-auto w-full overflow-visible',
         'onPointerdown'  : read,
         'onPointerenter' : replay,
         'onPointerleave' : rest,
@@ -125,7 +149,7 @@ export const Rails = defineComponent({
           if (node instanceof Element) nodes.set(it, node)
         })),
         h('line', {
-          class : 'sc-rails-cut',
+          class : 'stroke-ink stroke-1 [stroke-dasharray:2_2]',
           ref   : cut,
           x1    : rails.cutOf(props.loaded),
           x2    : rails.cutOf(props.loaded),

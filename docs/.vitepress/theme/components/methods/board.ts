@@ -4,7 +4,39 @@ import { type PropType, type Ref, type VNode, defineComponent, h, onMounted, sha
 import { MatchBoard, readingOrder } from '../../../lib/methods/board.ts'
 import { type Example, cellOf }     from '../../../lib/methods/example.ts'
 import type { How }                 from '../../../lib/methods/motion.ts'
+import { PIECE }                    from '../../../lib/methods/piece-layer.ts'
 import * as squares                 from '../../../lib/methods/squares.ts'
+
+/**
+ * The layer a board's pieces stand in, over the squares and their washes.
+ */
+export const LAYER = 'pointer-events-none absolute inset-0'
+/**
+ * A grid of the board's eight files and eight ranks, filling the board.
+ */
+const GRID = 'absolute inset-0 grid grid-cols-[repeat(8,1fr)] grid-rows-[repeat(8,1fr)]'
+/**
+ * The leader running from a mark's square down to its tag, hidden until the
+ * board is measured.
+ */
+const LEADER = 'absolute left-0 w-px origin-bottom bg-ink opacity-0 will-change-[transform,opacity] '
+             + '[box-shadow:0_0_0_1px_color-mix(in_oklab,var(--sc-page)_70%,transparent)]'
+/**
+ * The tag naming a mark in the key, centered on the row its leader ends at.
+ */
+const TAG = 'absolute left-0 -mt-[7px] flex h-3.5 items-center font-code text-[0.65rem]/[14px] font-medium '
+          + 'tracking-[0.06em] whitespace-nowrap text-ink opacity-0 will-change-[transform,opacity]'
+/**
+ * A square's wash, a game's color over the square where that game alone
+ * stands a piece there and both colors split along the diagonal where each
+ * does.
+ */
+const WASH = [
+  'will-change-[opacity]',
+  '[&:is([data-kind=submitted],[data-kind=stored])]:bg-(--sc-run-game)/52',
+  '[&:is([data-kind=submitted],[data-kind=stored])]:[box-shadow:inset_0_0_0_2px_var(--sc-run-game)]',
+  'data-[kind=both]:bg-[linear-gradient(135deg,color-mix(in_oklab,var(--sc-submitted)_60%,transparent)_0_49.4%,color-mix(in_oklab,var(--sc-ground)_70%,transparent)_49.4%_50.6%,color-mix(in_oklab,var(--sc-stored)_60%,transparent)_50.6%)]'
+]
 
 /**
  * Draws the board at a ply: its squares, a wash over each square the two games
@@ -27,11 +59,23 @@ function drawBoard(
   const stamped = cellOf(example, ply) === 'run'
   const pieces  = Array.from(squares.placedAt(example, ply), ([id, placed]) => drawPiece(id, placed))
   return [
-    h('div', { 'aria-hidden': 'true', 'class': 'sc-run-board', 'ref': board }, [
+    h('div', {
+      'aria-hidden' : 'true',
+      'class'       : 'relative aspect-[1] overflow-hidden rounded-[3px] [grid-area:board]',
+      'ref'         : board
+    }, [
       drawSquares(),
       washes(squares.marksAt(example, ply)),
-      h('div', { class: 'sc-run-layer' }, pieces),
-      h('span', { class: 'sc-run-stamp', style: { opacity: stamped ? '1' : '0' } }, 'One position')
+      h('div', { 'class': LAYER, 'data-layer': '' }, pieces),
+      h('span', {
+        'class'      : [
+          'pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2 rounded-[999px] bg-dark/80',
+          'px-[9px] py-[3px] font-code text-[0.54rem]/[14px] font-semibold tracking-[0.12em]',
+          'whitespace-nowrap text-ground uppercase opacity-0 will-change-[opacity]'
+        ],
+        'data-stamp' : '',
+        'style'      : { opacity: stamped ? '1' : '0' }
+      }, 'One position')
     ]),
     drawKey(key)
   ]
@@ -42,15 +86,15 @@ function drawBoard(
  */
 function drawKey(key: Ref<HTMLElement | null>): VNode {
   const parts = squares.MARKS.flatMap(mark => [
-    h('i', { 'class': 'sc-run-leader', 'data-kind': mark }),
-    h('span', { 'class': 'sc-run-tag', 'data-kind': mark }, squares.MARK_NAMES[mark])
+    h('i', { 'class': LEADER, 'data-kind': mark }),
+    h('span', { 'class': TAG, 'data-kind': mark }, squares.MARK_NAMES[mark])
   ])
-  return h('div', { 'aria-hidden': 'true', 'class': 'sc-run-key', 'ref': key }, parts)
+  return h('div', { 'aria-hidden': 'true', 'class': 'relative h-[108px] [grid-area:key]', 'ref': key }, parts)
 }
 
 function washes(marks: readonly (squares.Mark | undefined)[]): VNode {
-  return h('div', { class: 'sc-run-washes' }, readingOrder.map(square => h('i', {
-    'class'     : 'sc-run-wash',
+  return h('div', { 'class': GRID, 'data-washes': '' }, readingOrder.map(square => h('i', {
+    'class'     : WASH,
     'data-kind' : marks[square],
     'style'     : { opacity: marks[square] ? '1' : '0' }
   })))
@@ -62,7 +106,7 @@ function washes(marks: readonly (squares.Mark | undefined)[]): VNode {
  */
 export function drawPiece(id: string, placed: squares.Placed): VNode {
   return h('span', {
-    'class'      : 'sc-run-piece',
+    'class'      : PIECE,
     'data-ghost' : placed.ghost ? '' : undefined,
     'data-id'    : id,
     'data-piece' : placed.piece,
@@ -76,8 +120,10 @@ export function drawPiece(id: string, placed: squares.Placed): VNode {
  * first.
  */
 export function drawSquares(): VNode {
-  return h('div', { class: 'sc-run-squares' }, readingOrder.map(square =>
-    h('i', { 'class': 'sc-run-square', 'data-shade': squares.shadeOf(square) })))
+  return h('div', { class: GRID }, readingOrder.map(square => h('i', {
+    'class'      : 'data-[shade=dark]:bg-primary data-[shade=light]:bg-light',
+    'data-shade' : squares.shadeOf(square)
+  })))
 }
 
 /**

@@ -8,7 +8,7 @@ writes beside the fetched files and `scotch index games` reads.
 from collections         import Counter
 from collections.abc     import Iterable, Iterator
 from datetime            import UTC, datetime
-from functools           import partial
+from functools           import cache, partial
 from hashlib             import file_digest
 from importlib.resources import read_text
 from pathlib             import Path
@@ -312,10 +312,12 @@ class Sources(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         return self
 
     @classmethod
+    @cache
     def read(cls) -> Self:
         """
         Reads every row of the `sources.toml` the `scotch.sources` package
-        ships.
+        ships, parsing the file once per process and returning that one
+        record to every later call.
         """
         return cls.model_validate(loads(cls.text()))
 

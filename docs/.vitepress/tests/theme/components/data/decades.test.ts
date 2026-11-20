@@ -19,45 +19,45 @@ describe('Decades', () => {
   it('shades a cell per decade and marks the median with a pawn, naming it beside the summary', () => {
     const drawn = mount(Decades)
     expect(drawn.findAll('svg rect[style]').length).toBe(strip.decades.length)
-    expect(drawn.find('path.sc-data-pawn').exists()).toBe(true)
-    expect(drawn.find('.sc-data-big').text()).toBe(strip.decades[median]!.name)
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, null))
+    expect(drawn.find('svg path').exists()).toBe(true)
+    expect(drawn.find('span').text()).toBe(strip.decades[median]!.name)
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, null))
   })
 })
 
 describe('Decades, under a pointer', () => {
   it('picks the last decade under a pointer past the last cell', async () => {
     const drawn = mount(Decades)
-    await drawn.find('.sc-data-chart').trigger('pointermove', { clientX: 10_000 })
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, strip.decades.length - 1))
+    await drawn.find('[role=slider]').trigger('pointermove', { clientX: 10_000 })
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, strip.decades.length - 1))
   })
 
   it('reads the decade under the pointer, clearing the reading and the shade as it leaves', async () => {
     const drawn = mount(Decades)
-    const chart = drawn.find('.sc-data-chart')
+    const chart = drawn.find('[role=slider]')
     await chart.trigger('pointermove', { clientX: 1 })
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, 0))
-    expect(drawn.find('.sc-data-cursor').classes()).toContain('sc-data-on')
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, 0))
+    expect(drawn.find('[role=slider] > div').attributes('data-on')).toBe('')
     await chart.trigger('pointerleave')
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, null))
-    expect(drawn.find('.sc-data-cursor').classes()).not.toContain('sc-data-on')
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, null))
+    expect(drawn.find('[role=slider] > div').attributes('data-on')).toBeUndefined()
   })
 
   it("reads the pointer from the chart's own left edge wherever the page places it", async () => {
     const drawn = mount(Decades)
-    const chart = drawn.find('.sc-data-chart')
+    const chart = drawn.find('[role=slider]')
     vi.spyOn(chart.element, 'getBoundingClientRect').mockReturnValue(new DOMRect(200, 0, 600, 78))
     await chart.trigger('pointermove', { clientX: 201 })
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, 0))
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, 0))
   })
 
   it('keeps the decade a finger taps without moving once the finger lifts', async () => {
     const drawn = mount(Decades)
-    const chart = drawn.find('.sc-data-chart')
+    const chart = drawn.find('[role=slider]')
     await chart.trigger('pointerdown', { clientX: 1, pointerType: 'touch' })
     await chart.trigger('pointerup', { pointerType: 'touch' })
     await chart.trigger('pointerleave', { pointerType: 'touch' })
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, 0))
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, 0))
   })
 })
 
@@ -69,19 +69,19 @@ describe('Decades, stepped by key and unsized', () => {
     { key: 'End', picked: strip.decades.length - 1 }
   ])('steps from the median decade on $key, as a slider does', async ({ key, picked }) => {
     const drawn = mount(Decades)
-    await drawn.find('.sc-data-chart').trigger('keydown', { key })
-    expect(drawn.find('.sc-data-chart').attributes('aria-valuenow')).toBe(String(picked))
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, picked))
+    await drawn.find('[role=slider]').trigger('keydown', { key })
+    expect(drawn.find('[role=slider]').attributes('aria-valuenow')).toBe(String(picked))
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, picked))
   })
 
   it('ignores any other key and clears the reading on leaving the chart', async () => {
     const drawn = mount(Decades)
-    const chart = drawn.find('.sc-data-chart')
+    const chart = drawn.find('[role=slider]')
     await chart.trigger('keydown', { key: 'a' })
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, null))
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, null))
     await chart.trigger('keydown', { key: 'Home' })
     await chart.trigger('blur')
-    expect(drawn.find('.sc-data-line').text()).toBe(decades.stripReading(strip, null))
+    expect(drawn.findAll('p').at(-1)!.text()).toBe(decades.stripReading(strip, null))
   })
 
   it('draws nothing until the chart has a width, holding the room the chart takes', () => {
@@ -89,7 +89,7 @@ describe('Decades, stepped by key and unsized', () => {
     const drawn  = mount(Decades)
     const height = decades.stripLayout(strip.decades.length, 0).height
     expect(drawn.find('svg').exists()).toBe(false)
-    expect(drawn.find('.sc-data-chart').attributes('style')).toBe(`min-height: ${height}px;`)
+    expect(drawn.find('[role=slider]').attributes('style')).toBe(`min-height: ${height}px;`)
   })
 })
 
@@ -98,7 +98,7 @@ describe('Decades, its marks', () => {
 
   it('rules the decades holding the first and the third quarter of the dated games', () => {
     const [first, , third] = strip.quartiles
-    const rules            = mount(Decades).findAll('rect.sc-data-rule')
+    const rules            = mount(Decades).findAll('svg rect[width="1"]').slice(0, 2)
       .map(rule => Number(rule.attributes('x')))
     expect(rules).toEqual([decades.cellMiddle(layout, first), decades.cellMiddle(layout, third)])
   })
@@ -106,18 +106,18 @@ describe('Decades, its marks', () => {
   it('rules the median decade and stands the pawn on it', () => {
     const drawn  = mount(Decades)
     const middle = decades.cellMiddle(layout, median)
-    expect(Number(drawn.find('rect.sc-data-median').attributes('x'))).toBe(middle)
-    expect(drawn.find('path.sc-data-pawn').attributes('transform'))
+    expect(Number(drawn.findAll('svg rect[width="1"]')[2]!.attributes('x'))).toBe(middle)
+    expect(drawn.find('svg path').attributes('transform'))
       .toBe(decades.pawnAt(middle + 0.5, layout.band.top - 8))
   })
 
   it('names the first decade, the last, and each decade the axis marks beneath the strip', () => {
-    expect(mount(Decades).findAll('text.sc-data-axis').map(name => name.text()))
+    expect(mount(Decades).findAll('svg text').map(name => name.text()))
       .toEqual(decades.stripTicks(strip).map(index => strip.decades[index]!.label))
   })
 
   it('names the median decade until a key picks another, then the decade picked', async () => {
-    const chart = mount(Decades).find('.sc-data-chart')
+    const chart = mount(Decades).find('[role=slider]')
     expect(chart.attributes('aria-valuetext')).toBe(decades.stripReading(strip, median))
     await chart.trigger('keydown', { key: 'Home' })
     expect(chart.attributes('aria-valuetext')).toBe(decades.stripReading(strip, 0))
@@ -136,16 +136,16 @@ describe('Decades, shaded and picked', () => {
 
   it('moves the shade over the decade a key picks', async () => {
     const drawn = mount(Decades)
-    await drawn.find('.sc-data-chart').trigger('keydown', { key: 'End' })
+    await drawn.find('[role=slider]').trigger('keydown', { key: 'End' })
     const { starts } = decades.stripLayout(strip.decades.length, 600)
-    expect(drawn.find('.sc-data-cursor').attributes('style'))
+    expect(drawn.find('[role=slider] > div').attributes('style'))
       .toContain(`translate3d(${starts.at(-2)}px, 0, 0)`)
   })
 })
 
 describe('Decades, from the keyboard', () => {
   it('steps as a slider across every decade from the tab order', () => {
-    expect(mount(Decades).find('.sc-data-chart').attributes()).toMatchObject({
+    expect(mount(Decades).find('[role=slider]').attributes()).toMatchObject({
       'aria-valuemax' : String(strip.decades.length - 1),
       'aria-valuemin' : '0',
       'role'          : 'slider',
@@ -154,7 +154,7 @@ describe('Decades, from the keyboard', () => {
   })
 
   it('keeps the page from scrolling on a key it answers and lets any other key through', () => {
-    const chart = mount(Decades).find('.sc-data-chart').element
+    const chart = mount(Decades).find('[role=slider]').element
     expect([prevented(chart, 'Home'), prevented(chart, 'a')]).toEqual([true, false])
   })
 })

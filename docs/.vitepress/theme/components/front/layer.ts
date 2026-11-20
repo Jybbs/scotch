@@ -14,7 +14,12 @@ export const Layer = defineComponent({
   setup: () => {
     const canvas = shallowRef<HTMLCanvasElement | null>(null)
     useMarkLayer(canvas)
-    return (): VNode => h('div', { 'aria-hidden': 'true', 'class': 'sc-front-layer' },
-      h('canvas', { class: 'sc-front-mark', ref: canvas }))
+    return (): VNode => h('div', {
+      'aria-hidden' : 'true',
+      'class'       : [
+        '[--sc-front-layer:calc(100lvh-var(--vp-nav-height))]',
+        'pointer-events-none sticky top-(--vp-nav-height) z-0 -mb-(--sc-front-layer) h-(--sc-front-layer)'
+      ]
+    }, h('canvas', { class: 'block size-full', ref: canvas }))
   }
 })

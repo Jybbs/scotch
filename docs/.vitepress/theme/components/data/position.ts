@@ -2,6 +2,7 @@ import { type VNode, h } from 'vue'
 
 import { piecesAt }         from '../../../lib/viewer/drawing.ts'
 import { SQUARE, groundOf } from '../../../lib/viewer/trail.ts'
+import { SHADES }           from '../viewer/parts.ts'
 
 /**
  * Draws a placement on a board `size` pixels across facing White, its squares
@@ -10,14 +11,14 @@ import { SQUARE, groundOf } from '../../../lib/viewer/trail.ts'
 export function positionBoard(placement: string, label: string, size: number): VNode {
   return h('svg', {
     'aria-label' : label,
-    'class'      : 'sc-data-position',
+    'class'      : 'overflow-hidden rounded-sm',
     'height'     : size,
     'role'       : 'img',
     'viewBox'    : `0 0 ${8 * SQUARE} ${8 * SQUARE}`,
     'width'      : size
   }, [
     ...groundOf().map(({ shade, x, y }) => h('rect', {
-      'class'      : 'sc-viewer-square',
+      'class'      : SHADES[shade],
       'data-shade' : shade,
       'height'     : SQUARE,
       'width'      : SQUARE,
@@ -25,7 +26,6 @@ export function positionBoard(placement: string, label: string, size: number): V
       'y'          : y
     })),
     ...piecesAt(placement).map(({ markup, transform }) => h('g', {
-      class     : 'sc-data-position-piece',
       innerHTML : markup,
       transform : transform
     }))

@@ -14,6 +14,12 @@ export interface PieceDrawing {
 }
 
 /**
+ * The copy of a black piece drawn under it, every stroke and fill of it
+ * forced to a wide line in the light squares' color over the drawing's own
+ * inline styles, so the piece reads on a dark square.
+ */
+export const HALO = '[&_*]:fill-light! [&_*]:stroke-light! [&_*]:stroke-[3.2]!'
+/**
  * The stroke each mark of the last move's two squares is drawn with, in the
  * board's units, the mark standing half of it inside its square's edge so the
  * whole stroke falls inside the square.
@@ -74,6 +80,6 @@ export function piecesAt(placement: string, facing: trails.Facing = 'white'): Pi
   return standingOf(placement).flatMap((piece, square) => {
     if (!piece) return []
     const transform = matrixOf({ s: 1, ...trails.cornerOf(square, facing) })
-    return [{ markup: ringed(piece, 'sc-viewer-halo'), piece, square, transform }]
+    return [{ markup: ringed(piece, HALO), piece, square, transform }]
   })
 }

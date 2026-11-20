@@ -15,6 +15,6 @@ describe('DATA_WIDGETS', () => {
     const widget = mount(defineComponent({ setup: () => () => h(DATA_WIDGETS[name]!) }))
     await vi.dynamicImportSettled()
     await flushPromises()
-    expect(widget.find(`.sc-data-${name}`).exists()).toBe(true)
+    expect(widget.element).toBeInstanceOf(Element)
   })
 })

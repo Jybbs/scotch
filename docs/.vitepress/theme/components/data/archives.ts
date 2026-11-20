@@ -4,7 +4,14 @@ import { type VNode, defineComponent, h, shallowRef } from 'vue'
 import * as files   from '../../../lib/data/files.ts'
 import * as numbers from '../../../lib/data/numbers.ts'
 import { STORE }    from '../../../lib/data/store.ts'
+import * as parts   from './parts.ts'
 import { Plate }    from './plate.ts'
+
+/**
+ * A row of the table, its name, its bar, and its two counts on the columns the
+ * table sets, the counts right-aligned.
+ */
+const ROW = 'col-span-full grid h-6 grid-cols-subgrid whitespace-nowrap [&>:nth-child(n+3)]:text-right'
 
 /**
  * The archives the store keeps the most games from and every other archive
@@ -26,21 +33,38 @@ export const Archives = defineComponent({
       line : files.largestReading(archives, picked.value, rows),
       say  : files.largestSummary(archives, rows)
     }, () => h('div', {
-      class          : 'sc-data-chart sc-data-archives',
-      onPointerleave : (event: PointerEvent) => { if (event.pointerType !== 'touch') picked.value = null },
-      style          : { '--sc-data-names': widest }
+      'class'          : [
+        parts.CHART, 'grid '
+                   + 'grid-cols-[calc(var(--sc-data-names)*1ch+1em)_minmax(0,1fr)_max-content_max-content]',
+        'gap-x-3 font-code text-[0.65rem]/[24px] font-medium tracking-[0.06em] tabular-nums'
+      ],
+      'data-chart'     : '',
+      'onPointerleave' : (event: PointerEvent) => { if (event.pointerType !== 'touch') picked.value = null },
+      'style'          : { '--sc-data-names': widest }
     }, [
-      h('div', { 'aria-hidden': 'true', class: 'sc-data-archive sc-data-archive-head' }, [
+      h('div', {
+        'aria-hidden' : 'true',
+        'class'       : [ROW, 'border-b-[1.5px] border-b-(--sc-data-ink) text-(--sc-data-quiet) uppercase']
+      }, [
         h('span', 'Archive'), h('span'), h('span', 'Games'), h('span', 'Held')
       ]),
       ...rows.map((row, index) => h('div', {
-        class          : ['sc-data-archive', { 'sc-data-on': index === picked.value }],
-        onPointerenter : () => { picked.value = index }
+        'class'          : [
+          ROW, '[border-bottom:var(--sc-data-hairline)] '
+             + 'data-on:bg-[color-mix(in_oklab,var(--sc-data-link)_8%,transparent)]'
+        ],
+        'data-on'        : index === picked.value ? '' : undefined,
+        'onPointerenter' : () => { picked.value = index }
       }, [
         h('span', row.name),
-        h('span', { class: 'sc-data-bar' }, h('i', {
-          class : { 'sc-data-bar-others': row.others },
-          style : { width: `${(clamp(row.games / most, 0, 1) * 88).toFixed(2)}%` }
+        h('span', { class: 'relative' }, h('i', {
+          'class'       : [
+            'absolute top-2 left-0 h-2 rounded-[1px]', row.others
+              ? '[background:repeating-linear-gradient(90deg,var(--sc-data-fill)_0_3px,transparent_3px_5px)]'
+              : 'bg-(--sc-data-fill)'
+          ],
+          'data-others' : row.others ? '' : undefined,
+          'style'       : { width: `${(clamp(row.games / most, 0, 1) * 88).toFixed(2)}%` }
         })),
         h('span', numbers.counted(row.games)),
         h('span', numbers.percent(row.held, 1))

@@ -1,20 +1,66 @@
 import { type VNode, defineComponent, h, shallowRef, useId } from 'vue'
 
 import * as commands from '../../../lib/data/commands.ts'
+import * as grid     from './grid.ts'
 import { Plate }     from './plate.ts'
 import { Tabs }      from './tabs.ts'
 
 /**
- * The handlers a header or a square takes so a pointer or the focus resting
- * on it aims the grid at `to`.
+ * The commands' plate, its readings set in four columns on the raised ground
+ * and in two in a narrow grid, its tabs and key spread to either side.
  */
-type Aiming = (to: commands.Aim) => Record<string, unknown>
-
+const BOARD = [
+  '@container min-w-0 *:gap-y-[18px] [&>div>div:first-child]:justify-between',
+  '[&>div>div:first-child]:gap-x-4 [&_dl]:grid-cols-[calc(13.5rem_-_28px)_repeat(3,minmax(0,1fr))]',
+  '[&_dl]:rounded-md [&_dl]:bg-raised [&_dl]:px-3 [&_dl]:py-2.5 [&_dl]:[border-top:0]',
+  '@max-[36rem]:[&_dl]:grid-cols-[repeat(2,minmax(0,1fr))]'
+]
 /**
- * The columns a verb's row spans: the commands', each file's, and the gap
- * between each two folders.
+ * The caption over the commands, in capitals of the code face.
  */
-const WIDTH = commands.FILES.length + commands.FOLDERS.length
+const CAPTION = 'font-code text-[0.65rem]/[18px] font-medium tracking-[0.1em] text-(--sc-data-quiet) '
+              + 'uppercase not-italic normal-nums'
+/**
+ * The cell heading the commands, its caption at the foot.
+ */
+const CORNER = [grid.FRAME, grid.FILLS.clear, 'pt-0! pr-1.5! pb-2.5! pl-3! text-left! align-bottom!']
+/**
+ * A file's name over its column, turned on its side in a narrow grid.
+ */
+const FILE = [
+  grid.CODE, 'inline-block rotate-180 text-[0.75rem]/[16px]! whitespace-nowrap [writing-mode:vertical-rl]',
+  '@min-[36rem]:rotate-none @min-[36rem]:whitespace-normal @min-[36rem]:[writing-mode:horizontal-tb]'
+]
+/**
+ * The header of a file's column, as tall as the longest name it turns.
+ */
+const FILE_HEAD = [
+  grid.FRAME, grid.FOCUS, grid.SHIFT,
+  'h-[9.5rem]! px-1! pt-1! pb-2.5! text-center! align-bottom! @min-[36rem]:h-auto!'
+]
+/**
+ * The header of a folder over its files, on the folder's ground.
+ */
+const FOLDER = [
+  grid.FRAME, grid.FILLS.ground,
+  'rounded-t-md! px-1.5! pt-2! pb-0.5! text-center! font-body! text-[0.75rem]/[18px]!',
+  'text-(--sc-data-quiet)! not-italic normal-nums @max-[36rem]:px-0! @max-[36rem]:pt-1.5!'
+]
+/**
+ * A folder's name over its size.
+ */
+const FOLDER_NAME = [
+  grid.CODE, 'block text-[0.875rem]/[24px]! font-medium! text-(--sc-data-ink)! @max-[36rem]:text-[0.6875rem]!'
+]
+/**
+ * The key naming the two marks, in capitals of the code face.
+ */
+const KEY = 'm-0! flex flex-wrap gap-x-4 gap-y-1.5 font-code text-[0.65rem]/[18px]! font-medium '
+          + 'tracking-[0.1em] text-(--sc-data-quiet) uppercase not-italic normal-nums'
+/**
+ * The grid of commands and files, its columns fixed and its cells unruled.
+ */
+const TABLE = 'm-0! table! w-full! table-fixed! border-separate! border-spacing-0!'
 
 /**
  * Sets a file name with a break allowed before each dot, so a narrow column
@@ -25,105 +71,51 @@ function broken(name: string): (VNode | string)[] {
 }
 
 /**
- * Draws the rows of one verb: the verb over the line its group's help gives,
- * then each of its commands beside a square for each file, a write a filled
- * mark and a read a hollow one, with a gap between two folders.
+ * Draws the header of a file's column, its name in the link's color while it
+ * is aimed, the first and last of a folder rounding its ground.
  */
-function group(aim: commands.Aim, aimAt: Aiming, tab: commands.Tab, verb: commands.Verb): VNode {
-  return h('tbody', { 'data-in': tab === 'all' || tab === verb ? '' : undefined, 'style': hue(verb) }, [
-    h('tr', { class: 'sc-commands-verb' }, h('th', { colspan: WIDTH, scope: 'rowgroup' }, [
-      h('i', { 'aria-hidden': 'true', 'class': 'sc-commands-dot' }),
-      h('code', verb),
-      h('span', commands.GROUPS[verb])
-    ])),
-    ...commands.commandsOf(verb).map(command => {
-      const row = commands.COMMANDS.indexOf(command)
-      return h('tr', { 'data-on': commands.reaches(aim, command.name, null) || undefined }, [
-        h('th', { ...aimAt({ command: command.name }), scope: 'row' }, [
-          h('code', { class: 'sc-commands-path' }, [
-            h('span', 'scotch'), h('span', verb), h('b', command.noun)
-          ])
-        ]),
-        ...commands.FILES.flatMap((file, column) => {
-          const kind = commands.edgeOf(command.name, file.path)
-          const gap  = column > 0 && file.folder !== commands.FILES[column - 1]!.folder
-          return [
-            gap ? h('td', { 'aria-hidden': 'true', 'class': 'sc-commands-gap' }) : null,
-            h('td', {
-              ...aimAt({ square: [row, column] }),
-              'data-kind' : kind,
-              'data-on'   : commands.reaches(aim, command.name, file.path) || undefined,
-              'tabindex'  : kind ? 0 : -1
-            }, kind
-              ? [mark(kind), h('span', { class: 'sc-commands-spoken' }, spoken(command, file, kind))]
-              : [])
-          ]
-        })
-      ])
-    })
-  ])
+function fileHead(aim: commands.Aim, aimAt: grid.Aiming, file: commands.File): VNode {
+  const on    = commands.reaches(aim, null, file.path)
+  const files = commands.filesOf(file.folder)
+  return h('th', {
+    ...aimAt({ file: file.path }),
+    'class'   : [
+      FILE_HEAD, on ? grid.FILLS.aimed : grid.FILLS.ground, files[0] === file ? 'rounded-bl-md!' : '',
+      files.at(-1) === file ? 'rounded-br-md!' : ''
+    ],
+    'data-on' : on || undefined,
+    'scope'   : 'col'
+  }, h('code', {
+    class: [FILE, on ? 'font-bold! text-(--sc-data-link)!' : 'font-medium! text-(--sc-data-quiet)!']
+  }, broken(file.name)))
 }
 
 /**
  * Draws the two header rows over the files: each folder over its size, then
  * each file's name, with a gap between two folders.
  */
-function head(aim: commands.Aim, aimAt: Aiming): VNode {
+function head(aim: commands.Aim, aimAt: grid.Aiming): VNode {
   return h('thead', [
-    h('tr', [
-      h('td', { class: 'sc-commands-corner', rowspan: 2 }, [
-        h('span', { class: 'sc-commands-caption' }, 'Command')
-      ]),
+    h('tr', { class: grid.ROW }, [
+      h('td', { class: CORNER, rowspan: 2 }, [h('span', { class: CAPTION }, 'Command')]),
       ...commands.FOLDERS.flatMap((folder, at) => [
-        at ? h('td', { 'aria-hidden': 'true', 'class': 'sc-commands-gap', 'rowspan': 2 }) : null,
-        h('th', {
-          class   : 'sc-commands-folder',
-          colspan : commands.filesOf(folder).length,
-          scope   : 'colgroup'
-        }, [
-          h('code', folder), h('span', commands.SIZES[folder])
+        at ? h('td', { 'aria-hidden': 'true', 'class': grid.GAP, 'rowspan': 2 }) : null,
+        h('th', { class: FOLDER, colspan: commands.filesOf(folder).length, scope: 'colgroup' }, [
+          h('code', { class: FOLDER_NAME }, folder), h('span', commands.SIZES[folder])
         ])
       ])
     ]),
-    h('tr', commands.FILES.map(file => h('th', {
-      ...aimAt({ file: file.path }),
-      'class'      : 'sc-commands-file',
-      'data-first' : commands.filesOf(file.folder)[0] === file || undefined,
-      'data-last'  : commands.filesOf(file.folder).at(-1) === file || undefined,
-      'data-on'    : commands.reaches(aim, null, file.path) || undefined,
-      'scope'      : 'col'
-    }, h('code', broken(file.name)))))
+    h('tr', { class: grid.ROW }, commands.FILES.map(file => fileHead(aim, aimAt, file)))
   ])
-}
-
-/**
- * Sets the hue of a verb's rows, the series color of its place in the run.
- */
-function hue(verb: commands.Verb): Record<string, string> {
-  return { '--sc-commands-hue': `var(--sc-series-${commands.RUN_ORDER.indexOf(verb) + 1})` }
 }
 
 /**
  * Draws the key naming the two marks.
  */
 function key(): VNode {
-  return h('p', { class: 'sc-commands-key' }, (['writes', 'reads'] as const).map(kind =>
-    h('span', [mark(kind), kind === 'writes' ? 'Writes' : 'Reads'])))
-}
-
-/**
- * Draws the mark of what a command does to a file: a filled square for a
- * write, a hollow one for a read.
- */
-function mark(kind: commands.Kind): VNode {
-  return h('i', { 'aria-hidden': 'true', 'class': 'sc-commands-mark', 'data-kind': kind })
-}
-
-/**
- * Says what a square holds, for a screen reader.
- */
-function spoken(command: commands.Command, file: commands.File, kind: commands.Kind): string {
-  return `scotch ${command.name} ${kind} ${file.path}`
+  return h('p', { class: KEY }, (['writes', 'reads'] as const).map(kind => h('span', {
+    class: 'inline-flex items-center gap-[7px]'
+  }, [grid.mark(kind, 'key'), kind === 'writes' ? 'Writes' : 'Reads'])))
 }
 
 /**
@@ -135,6 +127,7 @@ function tools(id: string, pick: (to: commands.Tab) => void, tab: commands.Tab):
     h(Tabs, {
       'controls'    : () => id,
       'label'       : 'Verbs',
+      'look'        : 'pill',
       'names'       : commands.TABS,
       'on'          : tab,
       'onUpdate:on' : (name: string) => { pick(name as commands.Tab) }
@@ -142,7 +135,7 @@ function tools(id: string, pick: (to: commands.Tab) => void, tab: commands.Tab):
       default: ({ name }: { name: commands.Tab }) => name === 'all'
         ? ['All', h('small', String(commands.COMMANDS.length))]
         : [
-            h('i', { 'aria-hidden': 'true', 'class': 'sc-commands-dot', 'style': hue(name) }),
+            h('i', { 'aria-hidden': 'true', 'class': [grid.DOT, 'mr-1.5'], 'style': grid.hue(name) }),
             name,
             h('small', String(commands.commandsOf(name).length))
           ]
@@ -166,7 +159,7 @@ export const Commands = defineComponent({
     const id            = useId()
     const tab           = shallowRef<commands.Tab>('all')
     const aim           = shallowRef<commands.Aim>(null)
-    const aimAt: Aiming = to => ({
+    const aimAt: grid.Aiming = to => ({
       onBlur         : () => { aim.value = null },
       onFocus        : () => { aim.value = to },
       onPointerenter : () => { aim.value = to },
@@ -174,21 +167,23 @@ export const Commands = defineComponent({
       tabindex       : 0
     })
 
-    return (): VNode => h('div', { class: 'sc-data-commands' }, h(Plate, {
+    return (): VNode => h('div', { class: BOARD }, h(Plate, {
       readings: commands.readingsOf(aim.value, tab.value)
     }, {
       default: () => h('table', {
         'aria-label' : 'What each command writes and reads',
-        'class'      : 'sc-commands',
-        'data-tab'   : tab.value,
+        'class'      : TABLE,
         'id'         : id
       }, [
-        h('colgroup', [h('col', { class: 'sc-commands-lead' }), ...commands.FOLDERS.flatMap((folder, at) => [
-          at ? h('col', { class: 'sc-commands-gap' }) : null,
-          ...commands.filesOf(folder).map(() => h('col'))
-        ])]),
+        h('colgroup', [
+          h('col', { class: 'w-[13.5rem] @max-[36rem]:w-[4.75rem]' }),
+          ...commands.FOLDERS.flatMap((folder, at) => [
+            at ? h('col', { class: 'w-5 @max-[36rem]:w-2' }) : null,
+            ...commands.filesOf(folder).map(() => h('col'))
+          ])
+        ]),
         head(aim.value, aimAt),
-        ...commands.RUN_ORDER.map(verb => group(aim.value, aimAt, tab.value, verb))
+        ...commands.RUN_ORDER.map(verb => grid.group(aim.value, aimAt, tab.value, verb))
       ]),
 
       tools: () => tools(id, to => { tab.value = to }, tab.value)

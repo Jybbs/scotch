@@ -6,6 +6,7 @@ import { stepped }             from '../../../lib/data/keys.ts'
 import * as numbers            from '../../../lib/data/numbers.ts'
 import * as omitted            from '../../../lib/data/omitted.ts'
 import { Corner }              from './corner.ts'
+import * as parts              from './parts.ts'
 import { Plate, axisLabel }    from './plate.ts'
 
 /**
@@ -14,6 +15,17 @@ import { Plate, axisLabel }    from './plate.ts'
  */
 type FloorSide = 'down' | 'none' | 'up'
 
+/**
+ * A cell of the grid or a bar of the margin, shaded by its games and colored
+ * by where its row stands against the floor.
+ */
+const CELL = [
+  'fill-[color-mix(in_oklab,var(--sc-data-ink)_calc(var(--sc-data-level)*80%+8%),var(--sc-data-page))]',
+  'data-[k=up]:fill-[color-mix(in_oklab,var(--sc-data-link)_calc(var(--sc-data-level)*82%+10%),var(--sc-data-page))]',
+  'data-[k=none]:fill-[color-mix(in_oklab,var(--sc-data-ink)_calc(var(--sc-data-level)*30%+6%),var(--sc-data-page))]',
+  'transition-[fill,opacity] duration-[var(--sc-duration-fade),var(--sc-duration-settle)] ease-glide',
+  'data-off:opacity-22'
+]
 /**
  * The counts the grid draws from.
  */
@@ -45,9 +57,10 @@ function cells(floor: number, layout: omitted.FloorLayout, lit: string | null): 
     if (!count) return []
     const standing = standingOf(bin, floor)
     return [box({
-      'class'  : ['sc-data-floor-cell', dimmed(standing, lit)],
-      'data-k' : standing,
-      'style'  : { '--sc-data-level': omitted.levelOf(count, most).toFixed(3) }
+      'class'    : CELL,
+      'data-k'   : standing,
+      'data-off' : dimmed(standing, lit),
+      'style'    : { '--sc-data-level': omitted.levelOf(count, most).toFixed(3) }
     }, layout, numbers.tenth(layout.left + column * layout.cell), rowY(bin, layout))]
   }))
 }
@@ -112,13 +125,14 @@ function margin(floor: number, layout: omitted.FloorLayout, lit: string | null):
   return rows.map((games, bin) => {
     const standing = standingOf(bin, floor)
     return h('rect', {
-      'class'  : ['sc-data-floor-cell', dimmed(standing, lit)],
-      'data-k' : standing,
-      'height' : layout.row - 4,
-      'style'  : { '--sc-data-level': '1' },
-      'width'  : numbers.tenth(Math.max(1, games / peak * layout.margin)),
-      'x'      : numbers.tenth(layout.edge),
-      'y'      : rowY(bin, layout) + 1.5
+      'class'    : CELL,
+      'data-k'   : standing,
+      'data-off' : dimmed(standing, lit),
+      'height'   : layout.row - 4,
+      'style'    : { '--sc-data-level': '1' },
+      'width'    : numbers.tenth(Math.max(1, games / peak * layout.margin)),
+      'x'        : numbers.tenth(layout.edge),
+      'y'        : rowY(bin, layout) + 1.5
     })
   })
 }
@@ -138,9 +152,13 @@ function rowY(bin: number, layout: omitted.FloorLayout): number {
  */
 function rule(floor: number, layout: omitted.FloorLayout): VNode {
   const y = rowY(counts.bins.indexOf(floor), layout) + layout.row
-  return h('g', { class: 'sc-data-floor-rule', transform: `translate(0 ${y})` }, [
+  return h('g', {
+    class     : 'fill-(--sc-data-ink) [&_text]:fill-(--sc-data-page) [&_text]:font-code '
+              + '[&_text]:text-[0.62rem]/[normal] [&_text]:font-semibold [&_text]:tabular-nums',
+    transform : `translate(0 ${y})`
+  }, [
     h('rect', { height: 2, width: layout.width - layout.left + 6, x: layout.left - 4, y: -1 }),
-    h('rect', { class: 'sc-data-floor-pill', height: 18, rx: 9, width: layout.left - 10, x: 0, y: -9 }),
+    h('rect', { height: 18, rx: 9, width: layout.left - 10, x: 0, y: -9 }),
     h('text', { 'text-anchor': 'middle', 'x': (layout.left - 10) / 2, 'y': 3.5 }, numbers.counted(floor))
   ])
 }
@@ -165,9 +183,15 @@ function strip(kept: omitted.Kept, layout: omitted.FloorLayout): VNode[] {
     const x     = numbers.tenth(layout.left + column * layout.cell)
     const width = numbers.tenth(layout.cell - 1)
     return [
-      h('rect', { class: 'sc-data-floor-track', height: tall, width, x, y: layout.grid + 6 }),
       h('rect', {
-        class  : 'sc-data-floor-kept',
+        class  : 'fill-[color-mix(in_oklab,var(--sc-data-rule)_30%,var(--sc-data-page))]',
+        height : tall,
+        width  : width,
+        x      : x,
+        y      : layout.grid + 6
+      }),
+      h('rect', {
+        class  : 'fill-(--sc-data-link) transition-[height,y] duration-fade ease-glide',
         height : numbers.tenth(share * tall),
         width  : width,
         x      : x,
@@ -202,19 +226,21 @@ export const RatingFloor = defineComponent({
           ['Unrated', numbers.counted(kept.unrated)]
         ],
         say: omitted.floorSentence(floor.value, kept)
-      }, () => h('div', { class: 'sc-data-floor' }, [
+      }, () => h('div', {
+        class: 'grid gap-2 [--sc-data-ramp:linear-gradient(90deg,var(--sc-data-tint),var(--sc-data-ink))]'
+      }, [
         h(Corner, {
           'items'        : omitted.FLOOR_MARKS,
           'lit'          : lit.value,
           'onUpdate:lit' : (key: string | null) => { lit.value = key }
         }),
-        h('div', { class: 'sc-data-chart', ref: chart, style: style.value }, sized.value
+        h('div', { class: parts.CHART, ref: chart, style: style.value }, sized.value
           ? [h('svg', {
               'aria-label'    : 'The Openings games by decade and by the higher of their two ratings',
               'aria-valuemax' : omitted.floors.at(-1),
               'aria-valuemin' : omitted.floors[0],
               'aria-valuenow' : floor.value,
-              'class'         : 'sc-data-svg',
+              'class'         : [parts.SVG, 'cursor-ns-resize touch-none'],
               'height'        : layout.value.height,
               'role'          : 'slider',
               'tabindex'      : 0,

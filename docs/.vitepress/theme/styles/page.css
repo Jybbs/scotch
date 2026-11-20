@@ -6,6 +6,44 @@
 
 .vp-doc :is(p, li, td) { text-wrap: pretty; }
 
+.VPHome {
+  --sc-front-fade   : 1;
+  --sc-front-square : color-mix(in oklab, var(--sc-ink) 8%, transparent);
+  --sc-front-side   : 72px;
+}
+
+.VPHome .VPHomeHero.VPHero {
+  position       : relative;
+  z-index        : 1;
+  isolation      : isolate;
+  padding-top    : calc(var(--vp-nav-height) + var(--vp-layout-top-height, 0px) + 88px);
+  padding-bottom : 104px;
+}
+
+.VPHome .VPHomeHero.VPHero::before {
+  content        : '';
+  position       : absolute;
+  inset          : 0;
+  z-index        : -1;
+  background     : repeating-conic-gradient(var(--sc-front-square) 0 25%, transparent 0 50%)
+                   50% 0 / calc(var(--sc-front-side) * 2) calc(var(--sc-front-side) * 2);
+  opacity        : var(--sc-front-fade);
+  pointer-events : none;
+  mask-image     : linear-gradient(#000 40%, transparent 96%);
+}
+
+.VPHome .VPHomeHero .main { width: 100%; }
+
+.VPHome .VPHomeContent {
+  position       : relative;
+  z-index        : 1;
+  padding-bottom : 24vh;
+}
+
+@media (width < 40rem) {
+  .VPHome { --sc-front-side: 48px; }
+}
+
 .sc-mark {
   display      : inline-flex;
   height       : 24px;
@@ -29,14 +67,6 @@
   background    : var(--sc-raised);
   color         : inherit;
   font          : 400 0.95rem/1 var(--sc-face-body);
-}
-
-.sc-data-plate,
-.sc-run {
-  padding       : 16px;
-  border        : 1px solid var(--sc-rule);
-  border-radius : 6px;
-  background    : var(--sc-page);
 }
 
 .vp-doc table {

@@ -28,6 +28,12 @@ export const MARK_NAMES = {
   submitted : 'Submitted alone'
 } as const satisfies Record<Mark, string>
 /**
+ * The copy of a black piece drawn under it, every stroke and fill of it forced
+ * to a wide line in the light squares' color over the drawing's own inline
+ * styles, and hidden under a ghost.
+ */
+export const HALO = '[&_*]:fill-light/85! [&_*]:stroke-light/85! [&_*]:stroke-[3.4]! in-data-ghost:hidden'
+/**
  * The opacity a piece takes on a square the two games share, on a square they
  * differ on, and as a stored game's ghost.
  */
@@ -64,10 +70,10 @@ export function nearest(squares: readonly number[]): number | undefined {
 /**
  * Writes a piece as a whole SVG with no `id` of its own, so the many copies a
  * board draws never share one, a black piece drawn over a copy of itself the
- * stylesheet rings in the light squares' color so it reads on a dark square.
+ * `HALO` rings in the light squares' color so it reads on a dark square.
  */
 export function pieceMarkup(piece: pieces.Piece): string {
-  return pieces.svgOf(pieces.ringed(piece, 'sc-run-halo'))
+  return pieces.svgOf(pieces.ringed(piece, HALO))
 }
 
 /**

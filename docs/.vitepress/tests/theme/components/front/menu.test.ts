@@ -10,31 +10,31 @@ import { pressed }   from '../../../common/keys.ts'
 describe('Menu', () => {
   it('lists each run beside the section it answers and opens on the first run printed whole', () => {
     const drawn = mount(Menu)
-    expect(drawn.findAll('.sc-menu-say').map(say => say.text())).toEqual(
+    expect(drawn.findAll('button > span:last-child').map(say => say.text())).toEqual(
       studying.RUNS.map(({ heading }) => `-- ${heading.toLowerCase()}`)
     )
-    expect(drawn.findAll('.sc-menu-run .sc-front-out')).toHaveLength(studying.RUNS[0]!.lines.length)
-    expect(drawn.find('.sc-menu-run [data-answer]').exists()).toBe(true)
-    expect(drawn.find('.sc-menu-program').text()).toBe('scotch')
+    expect(drawn.findAll("[role='region'] [data-out]")).toHaveLength(studying.RUNS[0]!.lines.length)
+    expect(drawn.find("[role='region'] [data-answer]").exists()).toBe(true)
+    expect(drawn.find("[data-kind='program']").text()).toBe('scotch')
   })
 
   test('types a picked run into the screen and keeps its last line in view', async ({ clock }) => {
     const drawn  = mount(Menu, { attachTo: document.body })
-    const screen = drawn.find('.sc-menu-run').element
+    const screen = drawn.find("[role='region']").element
     const scroll = vi.fn<(options?: ScrollToOptions) => void>()
     screen.scrollTo = scroll as typeof screen.scrollTo
     Object.defineProperty(screen, 'scrollHeight', { value: 480 })
-    await drawn.findAll('.sc-menu-choice')[4]!.trigger('click')
+    await drawn.findAll("[role='group'] button")[4]!.trigger('click')
     await clock.runAllTimersAsync()
-    expect(drawn.find('.sc-menu-run').attributes('aria-label')).toBe(studying.RUNS[4]!.heading)
-    expect(drawn.find('.sc-menu-lines').classes()).toContain('is-columns')
+    expect(drawn.find("[role='region']").attributes('aria-label')).toBe(studying.RUNS[4]!.heading)
+    expect(drawn.find('[data-columns]').exists()).toBe(true)
     expect(scroll).toHaveBeenLastCalledWith({ top: 480 })
     drawn.unmount()
   })
 
   it('moves the menu’s stop by the up and down keys, wrapping', async () => {
     const drawn   = mount(Menu, { attachTo: document.body })
-    const choices = drawn.findAll('.sc-menu-choice')
+    const choices = drawn.findAll("[role='group'] button")
     expect(await pressed(choices[0]!.element, 'ArrowUp')).toBe(true)
     expect(document.activeElement).toBe(choices.at(-1)!.element)
     expect(choices.at(-1)!.attributes('aria-current')).toBe('true')

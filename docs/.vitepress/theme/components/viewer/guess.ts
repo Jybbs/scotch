@@ -3,6 +3,18 @@ import { type PropType, type VNode, defineComponent, h, shallowRef } from 'vue'
 import { type Guess, tallyOf } from '../../../lib/viewer/guesses.ts'
 
 /**
+ * The field taking a move in SAN, rimmed in the ink while its text is no move.
+ */
+const FIELD = 'h-7 w-[7ch] rounded-md border border-rule bg-page px-2 py-0 font-code text-[0.8rem]/none '
+            + 'font-medium text-ink aria-invalid:border-ink'
+/**
+ * The button offering the typed move, quieted while no move is taken.
+ */
+const OFFER = 'h-7 cursor-pointer rounded-[999px] border border-rule bg-raised px-3 py-0 font-code '
+            + 'text-[0.64rem]/none font-semibold tracking-[0.1em] text-run uppercase disabled:cursor-default '
+            + 'disabled:text-quiet'
+
+/**
  * The field a player types a move in SAN into at a covered ply, beside the
  * button offering it and the count of the moves offered so far that match the
  * stored game's, the field marked invalid with a line saying so where the text
@@ -41,14 +53,21 @@ export const GuessEntry = defineComponent({
 
     return (): VNode => {
       const { matched, offered } = tallyOf(props.guesses)
-      return h('form', { class: 'sc-viewer-guess', inert: !props.covered, onSubmit: submit }, [
-        h('label', { class: 'sc-viewer-guess-label', for: 'sc-viewer-guess-field' }, 'Your move'),
+      return h('form', {
+        class    : 'flex items-center gap-2 font-code text-[0.64rem]/none font-medium inert:invisible',
+        inert    : !props.covered,
+        onSubmit : submit
+      }, [
+        h('label', {
+          class : 'tracking-[0.1em] text-quiet uppercase',
+          for   : 'sc-viewer-guess-field'
+        }, 'Your move'),
         h('input', {
           'aria-describedby' : 'sc-viewer-guess-note',
           'aria-invalid'     : String(invalid.value),
           'autocapitalize'   : 'off',
           'autocomplete'     : 'off',
-          'class'            : 'sc-viewer-guess-field',
+          'class'            : FIELD,
           'disabled'         : !props.taking,
           'id'               : 'sc-viewer-guess-field',
           'placeholder'      : 'Nf3',
@@ -59,8 +78,8 @@ export const GuessEntry = defineComponent({
             invalid.value = false
           }
         }),
-        h('button', { class: 'sc-viewer-guess-offer', disabled: !props.taking, type: 'submit' }, 'Offer'),
-        h('span', { class: 'sc-viewer-guess-note', id: 'sc-viewer-guess-note' }, invalid.value
+        h('button', { class: OFFER, disabled: !props.taking, type: 'submit' }, 'Offer'),
+        h('span', { class: 'min-w-[18ch] text-quiet', id: 'sc-viewer-guess-note' }, invalid.value
           ? 'Not a move in SAN'
           : `${matched} of ${offered} offered match`)
       ])
