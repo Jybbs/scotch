@@ -34,18 +34,25 @@ export const compiled = (
 })
 
 /**
- * Builds the utilities every element under `root` carries into a sheet the
- * document holds, with the entry sheet's layers and the fallbacks nested in
- * `@supports` dropped, since happy-dom applies no rule inside an `@layer` and
- * reads no nested rule.
+ * Builds the utilities `classes` name, with the entry sheet's layers and the
+ * fallbacks nested in `@supports` dropped, since happy-dom applies no rule
+ * inside an `@layer` and reads no nested rule.
  */
-export async function styled(root: Element): Promise<HTMLStyleElement> {
+export async function built(classes: string[]): Promise<string> {
   const unlayered = readFileSync(SHEET, 'utf8')
     .replace(/^@layer [^;]+;$/mu, '')
     .replaceAll(/ layer\(\w+\)/gu, '')
-  const classes   = [root, ...root.querySelectorAll('*')].flatMap(element => Array.from(element.classList))
-  const sheet     = document.createElement('style')
-  sheet.textContent = (await compiled(unlayered, POLYFILLS.none)).build([...new Set(classes)])
+  return (await compiled(unlayered, POLYFILLS.none)).build([...new Set(classes)])
+}
+
+/**
+ * Builds the utilities every element under `root` carries into a sheet the
+ * document holds.
+ */
+export async function styled(root: Element): Promise<HTMLStyleElement> {
+  const sheet = document.createElement('style')
+  const all   = [root, ...root.querySelectorAll('*')]
+  sheet.textContent = await built(all.flatMap(element => Array.from(element.classList)))
   document.head.append(sheet)
   return sheet
 }

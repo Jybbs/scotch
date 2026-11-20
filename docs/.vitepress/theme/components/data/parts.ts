@@ -33,8 +33,8 @@ export const FADE = 'transition-opacity duration-settle ease-glide'
  * The list of the files behind a count, in columns scrolling inside their own
  * height, each file's name ruled beneath and its count at its end.
  */
-export const FILES = 'm-0 grid max-h-64 list-none grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-x-5 '
-                   + 'overflow-y-auto p-0 font-code text-[0.65rem]/[22px] font-medium tabular-nums *:m-0 '
+export const FILES = 'm-0! grid max-h-64 list-none! grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-x-5 '
+                   + 'overflow-y-auto p-0! font-code text-[0.65rem]/[22px] font-medium tabular-nums *:m-0! '
                    + '*:flex *:justify-between *:gap-3 *:[border-bottom:var(--sc-data-hairline)]'
 /**
  * The figure and its sentence heading a plate, stacked on a narrow screen.

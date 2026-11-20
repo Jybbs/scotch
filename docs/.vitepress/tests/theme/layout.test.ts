@@ -44,7 +44,7 @@ describe('Layout', () => {
   })
 
   it("sets the mark beside the site's title, hidden from a screen reader", () => {
-    const mark = mount(Layout).find("[data-slot='nav-bar-title-before'] .sc-mark")
+    const mark = mount(Layout).find("[data-slot='nav-bar-title-before'] > span")
     expect(mark.attributes('aria-hidden')).toBe('true')
     expect(mark.find('svg').exists()).toBe(true)
   })

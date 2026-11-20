@@ -6,6 +6,7 @@ import * as sieve                    from '../../../../lib/data/sieve.ts'
 import { Sieve }                     from '../../../../theme/components/data/sieve.ts'
 import { test }                      from '../../../common/clock.ts'
 import { pressed }                   from '../../../common/keys.ts'
+import * as markdown                 from '../../../common/markdown.ts'
 import { pauseMotion, reduceMotion } from '../../../common/motion.ts'
 import { onScreen }                  from '../../../common/unfold.ts'
 
@@ -42,9 +43,11 @@ describe('Sieve', () => {
     expect(rail.attributes('aria-valuetext')).toBe(`${sieve.STEPS[2]!.name}: ${sieve.STEPS[2]!.say}`)
   })
 
-  it('keeps each step’s name on one line over the text-wrap the doc column sets on a list item', () => {
-    const names = mount(Sieve).findAll('ol[aria-hidden] > li')
-    expect(names.map(name => name.classes('whitespace-nowrap!'))).toEqual(sieve.STEPS.map(() => true))
+  it('keeps each step’s name on one line under the doc column’s list-item rule, unmarked', async () => {
+    const drawn = await markdown.columned(Sieve)
+    const names = drawn.findAll('ol[aria-hidden] > li')
+    expect(names.map(name => [name.classes('whitespace-nowrap'), getComputedStyle(name.element).whiteSpace]))
+      .toEqual(sieve.STEPS.map(() => [true, 'nowrap']))
   })
 
   it('rests on the stored games while the site’s drawings hold still', () => {
