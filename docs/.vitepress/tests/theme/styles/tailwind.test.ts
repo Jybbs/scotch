@@ -89,11 +89,14 @@ describe('the identity’s utilities', () => {
     expect(css).toContain('transition-timing-function: var(--tw-ease, var(--sc-curve-glide));')
   })
 
-  it('reads the dark scheme from the class the site’s switch sets on the root, not the system scheme', async () => {
-    const css = await built('dark:block')
-    expect(css).toContain(':root.dark .dark\\:block')
-    expect(css).not.toContain('prefers-color-scheme')
-  })
+  it(
+    'reads the dark scheme from the class the site’s switch sets on the root, not the system scheme',
+    async () => {
+      const css = await built('dark:block')
+      expect(css).toContain(':root.dark .dark\\:block')
+      expect(css).not.toContain('prefers-color-scheme')
+    }
+  )
 
   it.each([['rise', 'sc-data-rise'], ['unfold', 'sc-refused-in']])(
     'draws the %s animation from the %s keyframes the sheet declares',

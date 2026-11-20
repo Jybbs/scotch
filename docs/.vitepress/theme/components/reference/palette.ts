@@ -50,8 +50,8 @@ const HALF = 'grid min-w-0 content-start gap-[5px]'
  * mix.
  */
 const CHIP = [
-  'rounded-[3px]! border border-rule bg-transparent! px-[5px]! py-px! font-code text-[0.66rem]/[1.4]! font-medium',
-  'text-ink! normal-nums data-mixed:border-dashed data-mixed:text-quiet!'
+  'rounded-[3px]! border border-rule bg-transparent! px-[5px]! py-px! font-code text-[0.66rem]/[1.4]!',
+  'font-medium text-ink! normal-nums data-mixed:border-dashed data-mixed:text-quiet!'
 ]
 
 /**
@@ -92,7 +92,8 @@ function lanes(token: Token, homed: boolean): VNode {
     ...palette.SCHEMES.map(scheme => h('div', { class: LANE }, [
       h('small', { class: [SMALL, 'capitalize'] }, scheme),
       h('div', {
-        class: 'relative h-full @container before:absolute before:inset-x-0 before:top-1/2 before:h-px before:bg-rule'
+        class: 'relative h-full @container before:absolute before:inset-x-0 before:top-1/2 before:h-px '
+             + 'before:bg-rule'
       }, [
         ...Object.values(palette.GATES).map(gate => h('i', {
           class : ['absolute top-[3px] bottom-[3px] left-0 w-px bg-quiet', AT],

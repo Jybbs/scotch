@@ -41,8 +41,8 @@ describe('Rail', () => {
   })
 
   it('sets the first decade left of its cell and the last right of its where the two sit close', () => {
-    const rail = railed('players/Carlsen.zip')
-    expect(rail.findAll('span[data-side]').map(span => span.attributes('data-side'))).toEqual(['before', 'after'])
+    const sides = railed('players/Carlsen.zip').findAll('span[data-side]')
+    expect(sides.map(span => span.attributes('data-side'))).toEqual(['before', 'after'])
   })
 
   it('names a file no other section holds as only under its own', () => {

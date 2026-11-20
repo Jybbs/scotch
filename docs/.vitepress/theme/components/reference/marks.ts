@@ -151,8 +151,8 @@ function controls({ glide, place, set }: Walk): VNode {
     }),
     h('div', { class: 'relative h-[30px]' }, MARKS.stops.map((stop, index) => h('button', {
       'class'   : [
-        'absolute grid text-center font-code text-[0.59rem]/[1.35] font-medium whitespace-nowrap text-quiet normal-nums',
-        '[transform:translateX(-50%)] transition-[color] data-at:text-ink',
+        'absolute grid text-center font-code text-[0.59rem]/[1.35] font-medium whitespace-nowrap',
+        'text-quiet normal-nums [transform:translateX(-50%)] transition-[color] data-at:text-ink',
         'first:text-left first:[transform:none] last:text-right last:[transform:translateX(-100%)]'
       ],
       'data-at' : Math.round(place.value) === index ? '' : undefined,

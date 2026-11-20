@@ -106,7 +106,10 @@ function part(state: Sheet, index: number, words: VNode): VNode {
     'data-face' : face,
     'data-on'   : state.look.value === index ? '' : undefined
   }, [
-    h('span', { class: 'block', style: share < 1 ? { clipPath: `inset(-2px ${(1 - share) * 100}% -2px 0)` } : undefined }, [words]),
+    h('span', {
+      class : 'block',
+      style : share < 1 ? { clipPath: `inset(-2px ${(1 - share) * 100}% -2px 0)` } : undefined
+    }, [words]),
     share < 1
       ? h('i', {
         'aria-hidden' : 'true',
@@ -135,7 +138,9 @@ function score(state: Sheet): VNode {
       part(state, 0, h('h5', {
         class: 'm-0 mb-1.5 font-display text-[1.5rem]/[1.2] font-normal! tracking-normal normal-nums'
       }, 'The Longest Run')),
-      part(state, 1, h('p', { class: 'font-body text-[0.9375rem]/[1.6]! font-normal normal-nums' }, 'Two games share a run where they reach the same positions one ply after another, and the longest such run names the closest game.'))
+      part(state, 1, h('p', { class: 'font-body text-[0.9375rem]/[1.6]! font-normal normal-nums' },
+          'Two games share a run where they reach the same positions one ply after another, '
+        + 'and the longest such run names the closest game.'))
     ]),
     part(state, 2, h('div', {
       class: 'grid grid-cols-[1.7rem_minmax(0,1fr)_minmax(0,1fr)] content-start font-code '
@@ -174,10 +179,12 @@ function rows({ block, facts, look, show }: Sheet): VNode {
           class : face === 'code' ? 'text-[0.84rem]/[1.25] font-normal' : 'text-[1rem]/[1.25] font-normal',
           style : { fontFamily: stack }
         }, family), h('small', { class: SMALL }, name)]),
-        h('span', { class: 'font-body text-[0.8125rem]/[1.4] font-normal normal-nums' }, IDENTITY.meanings.faces[face]),
+        h('span', {
+          class: 'font-body text-[0.8125rem]/[1.4] font-normal normal-nums'
+        }, IDENTITY.meanings.faces[face]),
         h('code', {
-          class: 'col-2 bg-transparent! p-0! font-code text-[0.625rem]/[1.4]! font-medium wrap-anywhere text-quiet! '
-               + 'normal-nums in-data-narrow:col-1'
+          class: 'col-2 bg-transparent! p-0! font-code text-[0.625rem]/[1.4]! font-medium wrap-anywhere '
+               + 'text-quiet! normal-nums in-data-narrow:col-1'
         }, `${installed} · ${license}`)
       ])
     })

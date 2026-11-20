@@ -35,8 +35,8 @@ export const CELL = [
 /**
  * The timeline's grid, a column per ply across two lanes.
  */
-export const CELLS = 'relative grid grid-cols-[repeat(var(--sc-run-cells),minmax(0,1fr))] grid-rows-[10px_10px] '
-                   + 'gap-x-(--sc-run-gap) gap-y-[3px] [grid-area:cells]'
+export const CELLS = 'relative grid grid-cols-[repeat(var(--sc-run-cells),minmax(0,1fr))] '
+                   + 'grid-rows-[10px_10px] gap-x-(--sc-run-gap) gap-y-[3px] [grid-area:cells]'
 /**
  * The columns the heads and the list of plies share.
  */
@@ -71,14 +71,15 @@ export const LANES = 'grid grid-rows-[10px_10px] gap-y-[3px] justify-self-end [g
  * The mark naming where the run meets or parts, a pill at the end of its
  * move.
  */
-export const MARK = 'ml-auto rounded-[999px] px-1.5 text-[0.48rem]/[14px] tracking-[0.1em] text-run uppercase '
-                  + '[box-shadow:inset_0_0_0_1px_var(--sc-run)]'
+export const MARK = 'ml-auto rounded-[999px] px-1.5 text-[0.48rem]/[14px] tracking-[0.1em] text-run '
+                  + 'uppercase [box-shadow:inset_0_0_0_1px_var(--sc-run)]'
 /**
  * A move in a row of plies, barred in its game's color, or the run's, past the
  * starting position.
  */
-export const MOVE = 'flex items-center gap-2 border-b border-[color-mix(in_oklab,var(--sc-rule)_60%,transparent)] '
-                  + 'pr-2 pl-3 tabular-nums whitespace-nowrap [&_[data-start]]:text-(--sc-run-game) '
+export const MOVE = 'flex items-center gap-2 border-b '
+                  + 'border-[color-mix(in_oklab,var(--sc-rule)_60%,transparent)] pr-2 pl-3 tabular-nums '
+                  + 'whitespace-nowrap [&_[data-start]]:text-(--sc-run-game) '
                   + 'not-in-data-[cell=start]:[box-shadow:inset_3px_0_0_var(--sc-run-game)]'
 /**
  * The sentence next to the key.
@@ -110,21 +111,22 @@ export const PLY = 'flex items-center justify-end gap-2 border-b '
 /**
  * The head of the column of ply numbers.
  */
-export const PLY_HEAD = 'flex items-center justify-end gap-2 px-2 font-code text-[0.56rem]/[24px] font-medium '
-                      + 'tracking-[0.1em] text-quiet uppercase'
+export const PLY_HEAD = 'flex items-center justify-end gap-2 px-2 font-code text-[0.56rem]/[24px] '
+                      + 'font-medium tracking-[0.1em] text-quiet uppercase'
 /**
  * The labels under the timeline, a column per ply, the last ending where its
  * column ends.
  */
-export const RULER = '-mt-3 grid h-3 grid-cols-[repeat(var(--sc-run-cells),minmax(0,1fr))] gap-x-(--sc-run-gap) '
-                   + 'font-code text-[0.54rem]/[12px] font-medium tracking-[0.08em] text-quiet uppercase '
-                   + '[grid-area:ruler] [&_span]:whitespace-nowrap [&_[data-end]]:justify-self-end'
+export const RULER = '-mt-3 grid h-3 grid-cols-[repeat(var(--sc-run-cells),minmax(0,1fr))] '
+                   + 'gap-x-(--sc-run-gap) font-code text-[0.54rem]/[12px] font-medium tracking-[0.08em] '
+                   + 'text-quiet uppercase [grid-area:ruler] [&_span]:whitespace-nowrap '
+                   + '[&_[data-end]]:justify-self-end'
 /**
  * The line naming the ply in view, cut at its column's edge.
  */
 export const STATUS = 'self-center justify-self-stretch overflow-hidden text-right font-code '
-                    + 'text-[0.62rem]/[16px] font-medium tracking-[0.1em] whitespace-nowrap text-quiet uppercase '
-                    + '[grid-area:status] max-sm:text-left'
+                    + 'text-[0.62rem]/[16px] font-medium tracking-[0.1em] whitespace-nowrap text-quiet '
+                    + 'uppercase [grid-area:status] max-sm:text-left'
 /**
  * The heads over the list of plies, ruled above and below.
  */

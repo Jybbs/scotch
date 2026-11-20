@@ -44,8 +44,9 @@ describe('Construction', () => {
     expect(drawn.find('[data-at] h4').text()).toBe(MARKS.guides[0]!.name)
     expect(drawn.findAll('g[data-state]')[0]!.attributes('data-state')).toBe('now')
     expect(drawn.findAll('g[data-state]')[1]!.attributes('data-state')).toBe('next')
-    expect(drawn.findAll('svg > path[stroke-dasharray]')[0]!.attributes('style')).toContain('stroke-width: 7px')
-    expect(drawn.findAll('svg > path[stroke-dasharray]')[1]!.attributes('style')).toContain('stroke-width: 3px')
+    const pens = drawn.findAll('svg > path[stroke-dasharray]')
+    expect(pens[0]!.attributes('style')).toContain('stroke-width: 7px')
+    expect(pens[1]!.attributes('style')).toContain('stroke-width: 3px')
   })
 
   test('steps through the lengths, naming each by its units', async ({ clock }) => {
@@ -68,7 +69,8 @@ describe('Construction, as it unfolds', () => {
     await flushPromises()
     expect(drawn.find('[data-at] h4').text()).toBe('The outline')
     expect(drawn.find('b').text()).toBe('0')
-    expect(drawn.findAll('g[data-state]').every(guide => guide.attributes('data-state') === 'next')).toBe(true)
+    expect(drawn.findAll('g[data-state]').every(guide => guide.attributes('data-state') === 'next'))
+      .toBe(true)
     clock.advanceTimersByTime(2900)
     await flushPromises()
     expect(drawn.find('[data-at] h4').text()).toBe(MARKS.guides[0]!.name)

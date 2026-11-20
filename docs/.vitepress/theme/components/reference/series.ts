@@ -120,7 +120,8 @@ function plot(lines: Lines, column: number, width: number): VNode {
       'x'           : tick.x,
       'y'           : series.CHART.height - 4
     }, String(tick.label))),
-    ...drawn.ds.map((d, index) => line(lines, d, index, `${PEN} [stroke-width:2.25]`, lines.weights.value[index]!)),
+    ...drawn.ds.map((d, index) =>
+      line(lines, d, index, `${PEN} [stroke-width:2.25]`, lines.weights.value[index]!)),
     column < 0
       ? null
       : h('line', {
@@ -140,7 +141,8 @@ function spark(lines: Lines, index: number): VNode {
     'preserveAspectRatio' : 'none',
     'viewBox'             : '0 0 100 40'
   }, [
-    ...SPARKS.flatMap((d, other) => other === index ? [] : [h('path', { class: `${SPARK} stroke-rule stroke-1`, d })]),
+    ...SPARKS.flatMap((d, other) =>
+      other === index ? [] : [h('path', { class: `${SPARK} stroke-rule stroke-1`, d })]),
     line(lines, SPARKS[index]!, index, `${SPARK} [stroke-width:2]`)
   ])
 }
@@ -174,7 +176,8 @@ function switches(lines: Lines, column: number): VNode {
     }, file.hex),
     spark(lines, index),
     h('em', {
-      class: 'p-0 font-code text-[0.69rem]/[1.45] font-medium whitespace-nowrap text-ink not-italic normal-nums'
+      class: 'p-0 font-code text-[0.69rem]/[1.45] font-medium whitespace-nowrap text-ink not-italic '
+           + 'normal-nums'
     }, figure(file, column))
   ])))
 }

@@ -26,7 +26,8 @@ describe('Pieces', () => {
     expect(drawn.find('h4').text()).toBe('White queen')
     expect(drawn.find('p').text()).toBe('27 squares from d4 on an empty board')
     expect(lit(drawn)).toBe(27)
-    expect(drawn.find("[role='application'] > i:last-child").attributes('style')).toContain('translate(300%, 400%)')
+    expect(drawn.find("[role='application'] > i:last-child").attributes('style'))
+      .toContain('translate(300%, 400%)')
   })
 
   test('sets a tray of every piece and stands the piece a reader picks on its home', async ({ clock }) => {

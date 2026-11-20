@@ -136,7 +136,10 @@ function board(state: Standing): VNode {
   }, [
     ...SQUARES.map(index => tile(index, state)),
     h('i', {
-      class     : [FILLED, 'pointer-events-none absolute top-0 left-0 size-[12.5%] transition-[transform] duration-glide'],
+      class     : [
+        FILLED,
+        'pointer-events-none absolute top-0 left-0 size-[12.5%] transition-[transform] duration-glide'
+      ],
       innerHTML : drawing(piece.value),
       style     : { transform: `translate(${file * 100}%, ${rank * 100}%)` }
     })
@@ -154,7 +157,8 @@ function beside({ lit, pick, piece, square }: Standing): VNode {
       })),
       h('div', { class: 'ml-3 min-w-0' }, [
         h('h4', {
-          class: 'm-0! border-0 p-0 font-display text-[1.05rem]/[1.2]! font-normal tracking-normal! text-ink normal-nums'
+          class: 'm-0! border-0 p-0 font-display text-[1.05rem]/[1.2]! font-normal tracking-normal! text-ink '
+               + 'normal-nums'
         }, moves.pieceName(piece.value)),
         h('p', {
           class: 'font-code text-[0.66rem]/[1.4]! font-medium text-quiet normal-nums'

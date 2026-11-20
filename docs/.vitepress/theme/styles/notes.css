@@ -183,14 +183,16 @@
   padding-bottom      : 2px;
   background-image    : 
     repeating-conic-gradient(var(--sc-page) 0 25%, transparent 0 50%),
-    linear-gradient(90deg, var(--sc-run) var(--sc-sweep), color-mix(in oklab, currentColor 62%, var(--sc-page)) 0);
+    linear-gradient(90deg, var(--sc-run) var(--sc-sweep),
+                    color-mix(in oklab, currentColor 62%, var(--sc-page)) 0);
   background-position : 0 100%, 0 100%;
   background-repeat   : repeat-x, no-repeat;
   background-size     : 4px 4px, 100% 4px;
   color               : var(--sc-ink);
   font-weight         : inherit;
   text-decoration     : none;
-  transition          : --sc-sweep var(--sc-duration-glide) var(--sc-curve-glide), color var(--sc-duration-fade) var(--sc-curve-glide);
+  transition          : --sc-sweep var(--sc-duration-glide) var(--sc-curve-glide),
+                        color var(--sc-duration-fade) var(--sc-curve-glide);
 }
 
 .vp-doc a.sc-term:hover, .vp-doc a.sc-term:focus-visible {

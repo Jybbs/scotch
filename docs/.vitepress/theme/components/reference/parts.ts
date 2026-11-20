@@ -29,7 +29,8 @@ const BUTTON = 'rounded-sm border border-rule px-2.5 py-[7px] font-code text-[0.
 /**
  * The name a Reference drawing heads its pick with.
  */
-export const NAME = 'm-0 border-0 p-0 font-display text-[1.25rem]/[1.25] font-normal tracking-normal text-ink normal-nums'
+export const NAME = 'm-0 border-0 p-0 font-display text-[1.25rem]/[1.25] font-normal tracking-normal '
+                  + 'text-ink normal-nums'
 
 /**
  * The sentence saying what a Reference drawing's pick is.
@@ -103,8 +104,8 @@ export function stepper({ at, cell, names, pick }: Stepping): VNode {
     }, 'Back'),
     h('output', {
       'aria-live' : 'polite',
-      'class'     : 'overflow-hidden text-center font-code text-[0.74rem]/[1.3] font-medium whitespace-nowrap '
-                  + 'text-ink normal-nums [&_span]:text-quiet'
+      'class'     : 'overflow-hidden text-center font-code text-[0.74rem]/[1.3] font-medium '
+                  + 'whitespace-nowrap text-ink normal-nums [&_span]:text-quiet'
     }, [
       stacked(names.map((name, index) => [h('span', `${index + 1} of ${count} · `), name]), at)
     ]),
@@ -115,15 +116,16 @@ export function stepper({ at, cell, names, pick }: Stepping): VNode {
       },
       type    : 'button'
     }, 'Next'),
-    h('div', { class: cell ? CELLS : 'col-span-full flex' }, names.map((name, index) => cell?.(index) ?? h('button', {
-      'aria-current' : index === at ? 'step' : undefined,
-      'aria-label'   : name,
-      'class'        : DOT,
-      'data-seen'    : index < at ? '' : undefined,
-      'onClick'      : () => {
-        pick(index)
-      },
-      'type'         : 'button'
-    })))
+    h('div', { class: cell ? CELLS : 'col-span-full flex' }, names.map((name, index) =>
+      cell?.(index) ?? h('button', {
+        'aria-current' : index === at ? 'step' : undefined,
+        'aria-label'   : name,
+        'class'        : DOT,
+        'data-seen'    : index < at ? '' : undefined,
+        'onClick'      : () => {
+          pick(index)
+        },
+        'type'         : 'button'
+      })))
   ])
 }

@@ -153,7 +153,8 @@ describe('Results, one result at a time', () => {
   })
 
   it('names each result in its corner in the tone its band takes, in the order the bands stack', () => {
-    expect(mounted().results.findAll('[role=listitem]').map(mark => [mark.attributes('aria-label'), mark.attributes('style')]))
+    expect(mounted().results.findAll('[role=listitem]')
+      .map(mark => [mark.attributes('aria-label'), mark.attributes('style')]))
       .toEqual(lengths.OUTCOMES.map(({ key, name }) => [name, `--sc-data-tone: var(--sc-data-band-${key});`]))
   })
 })

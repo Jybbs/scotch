@@ -83,7 +83,11 @@ function text(): VNode {
       'class'     : 'm-0 font-display text-[1.05rem]/[1.2] font-normal! text-(--sc-ref-ink) normal-nums',
       'data-role' : 'ink'
     }, 'The Longest Run'),
-    h('p', ['Two games share a ', h('span', { 'data-role': 'run', 'style': { color: 'var(--sc-ref-run)' } }, 'run'), ' where they reach the same positions.']),
+    h('p', [
+      'Two games share a ',
+      h('span', { 'data-role': 'run', 'style': { color: 'var(--sc-ref-run)' } }, 'run'),
+      ' where they reach the same positions.'
+    ]),
     h('p', {
       class: 'font-code text-[0.6rem]/[1.4]! font-medium text-(--sc-ref-quiet) normal-nums'
     }, 'A caption sets quiet text beneath a figure.'),
@@ -132,8 +136,8 @@ export function sheet(scheme: palette.Scheme): VNode {
   const colors = Object.fromEntries(ORDER.map(role => [`--sc-ref-${role.replace('_', '-')}`, palette.colorOf(role, scheme)]))
   return h('div', {
     'class'     : [
-      'grid grid-cols-[5.6rem_minmax(0,1fr)] bg-(--sc-ref-page) font-body text-[0.8125rem]/[1.45] font-normal',
-      'text-(--sc-ref-ink) normal-nums in-data-narrow:grid-cols-1'
+      'grid grid-cols-[5.6rem_minmax(0,1fr)] bg-(--sc-ref-page) font-body text-[0.8125rem]/[1.45]',
+      'font-normal text-(--sc-ref-ink) normal-nums in-data-narrow:grid-cols-1'
     ],
     'data-role' : 'page',
     'style'     : colors
@@ -166,15 +170,17 @@ function half(role: palette.RoleName, scheme: palette.Scheme): VNode {
     h('i', {
       'aria-hidden' : 'true',
       'class'       : [
-        'grid size-[2.4rem] place-items-center border border-(--sc-ref-edge) font-display text-[1.15rem]/none',
-        'font-normal not-italic normal-nums transition-[background-color,color]'
+        'grid size-[2.4rem] place-items-center border border-(--sc-ref-edge) font-display',
+        'text-[1.15rem]/none font-normal not-italic normal-nums transition-[background-color,color]'
       ],
       'style'       : {
         background : ground ? color : 'transparent',
         color      : ground ? (kind === 'fill' ? 'transparent' : palette.colorOf('ink', scheme)) : color
       }
     }, 'Aa'),
-    h('div', { class: 'grid min-w-0 gap-px font-code text-[0.66rem]/[1.35] font-medium wrap-anywhere normal-nums' }, [
+    h('div', {
+      class: 'grid min-w-0 gap-px font-code text-[0.66rem]/[1.35] font-medium wrap-anywhere normal-nums'
+    }, [
       h('b', { class: 'text-[0.76rem] font-medium' }, color),
       h('span', palette.paintWord(ROLES[role][scheme])),
       h('span', heldLine(role, contrast(color, palette.colorOf('page', scheme))))

@@ -138,8 +138,8 @@ function guide(state: Drafting, index: number): VNode {
     }),
     h('text', {
       'class'       : [
-        'fill-ink stroke-page font-code text-[30px] leading-normal font-medium normal-nums [paint-order:stroke]',
-        '[stroke-width:9px]',
+        'fill-ink stroke-page font-code text-[30px] leading-normal font-medium normal-nums',
+        '[paint-order:stroke] [stroke-width:9px]',
         'transition-[fill-opacity] in-data-[state=seen]:[fill-opacity:0.3]'
       ],
       'text-anchor' : item.anchor,
@@ -202,7 +202,14 @@ function drawing(state: Drafting, id: string): VNode {
     }),
     ...plan.SUBPATHS.map((d, index) => outlineOf(state, d, index)),
     nib
-      ? h('rect', { class: 'fill-run stroke-page [stroke-width:4]', height: 18, transform: `translate(${nib.x} ${nib.y}) rotate(45)`, width: 18, x: -9, y: -9 })
+      ? h('rect', {
+        class     : 'fill-run stroke-page [stroke-width:4]',
+        height    : 18,
+        transform : `translate(${nib.x} ${nib.y}) rotate(45)`,
+        width     : 18,
+        x         : -9,
+        y         : -9
+      })
       : null,
     ...GUIDES.map((_, index) => guide(state, index))
   ])
@@ -213,7 +220,9 @@ function drawing(state: Drafting, id: string): VNode {
  */
 function titled(name: string, note: string): VNode {
   return h('div', [
-    h('h4', { class: 'm-0! font-display text-[1.05rem]/[1.25]! font-normal tracking-normal! normal-nums' }, name),
+    h('h4', {
+      class: 'm-0! font-display text-[1.05rem]/[1.25]! font-normal tracking-normal! normal-nums'
+    }, name),
     h('p', { class: 'font-body text-[0.875rem]/[1.4]! font-normal text-quiet normal-nums' }, note)
   ])
 }
@@ -253,9 +262,13 @@ function beside(state: Drafting): VNode {
         },
         'type'         : 'button'
       }, [
-        h('small', { class: 'font-code text-[0.66rem]/[1.35] font-medium tracking-[0.01em] normal-nums' }, `${index + 1}.`),
+        h('small', {
+          class: 'font-code text-[0.66rem]/[1.35] font-medium tracking-[0.01em] normal-nums'
+        }, `${index + 1}.`),
         h('span', item.name),
-        h('em', { class: 'font-code text-[0.72rem]/none font-medium not-italic normal-nums' }, String(item.length))
+        h('em', {
+          class: 'font-code text-[0.72rem]/none font-medium not-italic normal-nums'
+        }, String(item.length))
       ]))
     ])
   ])

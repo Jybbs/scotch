@@ -149,7 +149,8 @@ describe('Run, its list', () => {
 
   it('sets the start mark in both games’ columns of the starting position alone', () => {
     const wrapper = mounted()
-    expect([0, 1].map(ply => wrapper.find(`[id$='-ply-${ply}']`).findAll('[data-start]').length)).toEqual([2, 0])
+    expect([0, 1].map(ply => wrapper.find(`[id$='-ply-${ply}']`).findAll('[data-start]').length))
+      .toEqual([2, 0])
   })
 
   it('centers the row of the ply in view in the list', async () => {

@@ -60,7 +60,9 @@ const SLIP = [
 function said(term: Term): VNode[] {
   return [
     h('b', { class: 'block font-display text-[1rem]/[1.25] font-normal text-run normal-nums' }, term.name),
-    h('span', { class: 'mt-0.5 block font-body text-[0.875rem]/[1.4] font-normal text-ink normal-nums' }, term.sentence),
+    h('span', {
+      class: 'mt-0.5 block font-body text-[0.875rem]/[1.4] font-normal text-ink normal-nums'
+    }, term.sentence),
     h('a', {
       class    : 'mt-[3px] block font-code text-[0.66rem]/[1.4] font-medium text-quiet normal-nums',
       href     : addressOf(term),

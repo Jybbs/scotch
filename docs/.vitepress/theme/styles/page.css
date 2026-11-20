@@ -25,7 +25,8 @@
   position       : absolute;
   inset          : 0;
   z-index        : -1;
-  background     : repeating-conic-gradient(var(--sc-front-square) 0 25%, transparent 0 50%) 50% 0 / calc(var(--sc-front-side) * 2) calc(var(--sc-front-side) * 2);
+  background     : repeating-conic-gradient(var(--sc-front-square) 0 25%, transparent 0 50%)
+                   50% 0 / calc(var(--sc-front-side) * 2) calc(var(--sc-front-side) * 2);
   opacity        : var(--sc-front-fade);
   pointer-events : none;
   mask-image     : linear-gradient(#000 40%, transparent 96%);
