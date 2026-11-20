@@ -76,6 +76,35 @@ def lagging_three() -> tuple[Lift, ...]:
     )
 
 
+def test_a_checkout_failing_with_no_lift_written_stops_before_any_lift_is_held(
+    capsys  : CaptureFixture[str],
+    lagging : Lagging,
+    sample  : Sample
+):
+    """
+    Asserts that a failing trial on a checkout that fails with no lift
+    written exits naming the command and the log of that attempt, holding
+    back no lift, running no trial per lift, and writing nothing.
+    """
+    attempts, applied = lagging(lagging_three(), breaking={"polars"}, broken=True)
+    logs              = sample.root / ".cache" / "lift"
+
+    assert invoke("lift", "pins", "--try", "--write") == (
+        "The checkout fails `mise run repo:ci` with no lift written, logged in "
+        f"{logs / 'base.log'}"
+    )
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        f"The lift fails `mise run repo:ci`, logged in {logs / 'trial.log'}"
+    )
+    assert (attempts, applied) == (
+        [
+            (("actions/checkout", "pluggy", "polars"), "trial.log", True),
+            ((), "base.log", True)
+        ],
+        []
+    )
+
+
 def test_a_command_reading_a_pin_that_fails_exits_naming_it(
     lagging     : Lagging,
     monkeypatch : MonkeyPatch
@@ -102,20 +131,6 @@ def test_a_command_reading_a_pin_that_fails_exits_naming_it(
     assert invoke("lift", "pins") == "`uv audit` exited with status 2\nunreachable"
 
 
-def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):
-    """
-    Asserts that a write whose relock or audit fails exits naming the folder
-    its log lands in and applies nothing.
-    """
-    _, applied = lagging(lagging_three(), breaking={"pluggy"})
-
-    assert invoke("lift", "pins", "--write") == (
-        "The lift fails to relock or to pass `mise audit`, logged under "
-        f"{sample.root / '.cache' / 'lift'}"
-    )
-    assert applied == []
-
-
 @mark.parametrize(
     "new",
     [param("node   = 26", id="out-of-shape"), param("node   = ", id="unparseable")]
@@ -136,6 +151,20 @@ def test_a_config_failing_to_read_exits_naming_the_file(
         f"1 validation error for {inside.root / '.mise' / 'config.toml'}\n"
     )
     assert not fp.calls
+
+
+def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):
+    """
+    Asserts that a write whose relock or audit fails exits naming the folder
+    its log lands in and applies nothing.
+    """
+    _, applied = lagging(lagging_three(), breaking={"pluggy"})
+
+    assert invoke("lift", "pins", "--write") == (
+        "The lift fails to relock or to pass `mise audit`, logged under "
+        f"{sample.root / '.cache' / 'lift'}"
+    )
+    assert applied == []
 
 
 def test_a_failing_trial_holds_back_a_coupled_pair_once_as_one(
@@ -161,6 +190,7 @@ def test_a_failing_trial_holds_back_a_coupled_pair_once_as_one(
     ]
     assert attempts == [
         (("@vitest/coverage-v8", "vitest", "pluggy"), "trial.log", True),
+        ((), "base.log", True),
         (("@vitest/coverage-v8", "vitest"), "lift-@vitest-coverage-v8.log", True),
         (("pluggy",), "lift-pluggy.log", True)
     ]
@@ -197,6 +227,21 @@ def test_a_held_lift_names_only_the_coupled_pins_the_table_lists(
     ]
 
 
+@mark.parametrize("hold", ["@vitest/coverage-v8", "vitest"])
+def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
+    hold    : str,
+    lagging : Lagging
+):
+    """
+    Asserts that holding either of `vitest` and `@vitest/coverage-v8` leaves
+    both out of the trial.
+    """
+    attempts, _ = lagging(coupled_pair())
+
+    assert invoke("lift", "pins", "--try", "--hold", hold) == 0
+    assert attempts == [(("pluggy",), "trial.log", True)]
+
+
 def test_a_hold_naming_no_listed_pin_exits_two_before_any_attempt(
     lagging     : Lagging,
     monkeypatch : MonkeyPatch
@@ -221,49 +266,6 @@ def test_a_hold_naming_no_listed_pin_exits_two_before_any_attempt(
     ) == 2
     assert stderr.getvalue() == "The table lists no pin named pydantic\n"
     assert (attempts, applied) == ([], [])
-
-
-@mark.parametrize("hold", ["@vitest/coverage-v8", "vitest"])
-def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
-    hold    : str,
-    lagging : Lagging
-):
-    """
-    Asserts that holding either of `vitest` and `@vitest/coverage-v8` leaves
-    both out of the trial.
-    """
-    attempts, _ = lagging(coupled_pair())
-
-    assert invoke("lift", "pins", "--try", "--hold", hold) == 0
-    assert attempts == [(("pluggy",), "trial.log", True)]
-
-
-def test_a_lift_no_longer_applying_exits_naming_the_apply(
-    lagging     : Lagging,
-    monkeypatch : MonkeyPatch
-):
-    """
-    Asserts that a write whose diff no longer applies to the checkout, since
-    a file it changes changed while the lift ran, ends the run naming the
-    `git apply` and what it printed to standard error.
-    """
-    lagging(lagging_three())
-
-    def stale(self: Tree, patch: bytes) -> tuple[str, ...]:
-        """
-        Raises the error `git apply` raises on a file that changed.
-        """
-        raise CalledProcessError(
-            1,
-            ["git", "apply"],
-            stderr = b"error: patch failed: pyproject.toml:3\n"
-        )
-
-    monkeypatch.setattr(Tree, "apply", stale)
-
-    assert invoke("lift", "pins", "--write") == (
-        "`git apply` exited with status 1\nerror: patch failed: pyproject.toml:3"
-    )
 
 
 @mark.parametrize(
@@ -316,12 +318,13 @@ def test_a_failing_trial_tries_each_lift_in_turn_and_writes_those_passing(
     written  : bytes
 ):
     """
-    Asserts that a trial failing with every pin lifted runs again for each
-    lift the reader did not hold, in the table's order and each under a log
-    named for it, on top of the lifts already passing, prints one line for
-    each lift it holds back naming the failing command and the log, the last
-    lift tried with none held before it taking the first trial's log rather
-    than running that trial again, and writes the last passing trial's diff.
+    Asserts that a trial failing with every pin lifted runs once with no
+    lift written and then again for each lift the reader did not hold, in
+    the table's order and each under a log named for it, on top of the lifts
+    already passing, prints one line for each lift it holds back naming the
+    failing command and the log, the last lift tried with none held before
+    it taking the first trial's log rather than running that trial again,
+    and writes the last passing trial's diff.
     """
     attempts, applied = lagging(lagging_three(), breaking=breaking)
     lifted            = tuple(
@@ -339,19 +342,48 @@ def test_a_failing_trial_tries_each_lift_in_turn_and_writes_those_passing(
         f"{logs / log}"
         for name, log in held
     ]
-    assert attempts == [(lifted, "trial.log", True), *reruns]
+    assert attempts == [(lifted, "trial.log", True), ((), "base.log", True), *reruns]
     assert applied == [written]
 
 
-def test_a_lone_failing_lift_is_held_back_without_a_second_trial(
+def test_a_lift_no_longer_applying_exits_naming_the_apply(
+    lagging     : Lagging,
+    monkeypatch : MonkeyPatch
+):
+    """
+    Asserts that a write whose diff no longer applies to the checkout, since
+    a file it changes changed while the lift ran, ends the run naming the
+    `git apply` and what it printed to standard error.
+    """
+    lagging(lagging_three())
+
+    def stale(self: Tree, patch: bytes) -> tuple[str, ...]:
+        """
+        Raises the error `git apply` raises on a file that changed.
+        """
+        raise CalledProcessError(
+            1,
+            ["git", "apply"],
+            stderr = b"error: patch failed: pyproject.toml:3\n"
+        )
+
+    monkeypatch.setattr(Tree, "apply", stale)
+
+    assert invoke("lift", "pins", "--write") == (
+        "`git apply` exited with status 1\nerror: patch failed: pyproject.toml:3"
+    )
+
+
+def test_a_lone_failing_lift_is_held_back_without_a_trial_of_its_own(
     capsys  : CaptureFixture[str],
     lagging : Lagging,
     sample  : Sample
 ):
     """
     Asserts that a trial failing on its one lift holds that lift back on
-    the trial's own failure, running no second attempt, and exits naming the
-    folder the logs land in.
+    the trial's own failure once the checkout passes with no lift written,
+    running no trial of the lift alone, and exits naming the folder the logs
+    land in.
     """
     attempts, applied = lagging(lagging_three()[:1], breaking={"polars"})
     logs              = sample.root / ".cache" / "lift"
@@ -363,7 +395,10 @@ def test_a_lone_failing_lift_is_held_back_without_a_second_trial(
         "Held back `polars`, whose trial fails `mise run repo:ci`, logged in "
         f"{logs / 'trial.log'}"
     )
-    assert (attempts, applied) == ([(("polars",), "trial.log", True)], [])
+    assert (attempts, applied) == (
+        [(("polars",), "trial.log", True), ((), "base.log", True)],
+        []
+    )
 
 
 @mark.parametrize(

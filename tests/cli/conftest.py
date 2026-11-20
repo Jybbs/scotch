@@ -252,19 +252,22 @@ def lagging(
     Builds a function that makes `scotch lift pins`, its root pointed at the
     sample checkout, read the lifts it is given on 2026-10-23, and stands
     in for each attempt at a lift, which fails on `mise run repo:ci` where
-    it lifts a pin `breaking` names and otherwise returns the names it lifts
-    as its diff. The function returns the attempts made, each as the names
-    lifted, the log's name, and whether it was checked, beside each diff
-    applied to the checkout.
+    it lifts a pin `breaking` names, or lifts nothing where `broken` is
+    set, and otherwise returns the names it lifts as its diff. The function
+    returns the attempts made, each as the names lifted, the log's name, and
+    whether it was checked, beside each diff applied to the checkout.
     """
 
     def lag(
         lifts    : Iterable[Lift],
-        breaking : Collection[str] = ()
+        breaking : Collection[str] = (),
+        *,
+        broken   : bool = False
     ) -> tuple[list[tuple[tuple[str, ...], str, bool]], list[bytes]]:
         """
         Makes the command read `lifts`, every attempt lifting a pin
-        `breaking` names failing.
+        `breaking` names failing, as does the attempt lifting nothing where
+        `broken` is set.
         """
         attempts, applied = [], []
 
@@ -277,12 +280,13 @@ def lagging(
         ) -> bytes | Failure:
             """
             Records the attempt and returns the names it lifts as its diff,
-            or a failing `mise run repo:ci` where it lifts a breaking pin.
+            or a failing `mise run repo:ci` where it lifts a breaking pin or
+            lifts nothing on a broken checkout.
             """
             names = tuple(lift.name for lift in lifted)
             attempts.append((names, log.name, checked))
 
-            if set(names) & set(breaking):
+            if set(names) & set(breaking) or (broken and not names):
                 return Failure(command="mise run repo:ci", log=log)
 
             return ",".join(names).encode()
