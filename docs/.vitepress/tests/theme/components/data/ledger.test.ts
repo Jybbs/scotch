@@ -18,9 +18,15 @@ vi.mock('../../../../lib/rendered/omissions.json', async original => {
 const CHIP     = 'button[data-k="variant"] span'
 const HATCH    = /^repeating-linear-gradient\(-45deg, ?rgb\(0, 0, 0\) 0 1\.5px, ?transparent 1\.5px 5px\)\s+color-mix\(in oklab, ?rgb\(0, 0, 0\) 62%, ?rgb\(255, 255, 255\)\)$/u
 const INKS     = ':root { --sc-ink: rgb(0, 0, 0); --sc-page: rgb(255, 255, 255) }'
+const LABEL    = 'button[data-k]:not([data-k="variant"]) span'
 const REPEAT   = /^color-mix\(in oklab, ?rgb\(0, 0, 0\) 26%, ?rgb\(255, 255, 255\)\)$/u
+// Widths in em at the segments' 0.6rem, a glyph taking JetBrains Mono's 0.6em advance and 0.06em tracking.
+const WIDTHS   = { chip: 12 / 9.6, glyph: 0.66, label: 16 / 9.6 }
 const sections = omitted.OMISSIONS.sections
 const openings = sections.find(({ section }) => section === 'Openings')!
+
+const glyphs = (drawn: VueWrapper, selector: string): number =>
+  Math.max(...drawn.findAll(selector).map(span => span.text().length)) * WIDTHS.glyph
 
 describe('GameLedger', () => {
   it('draws a bar per section and a segment per count, pressing the Openings games under the floor', () => {
@@ -110,5 +116,10 @@ describe('GameLedger, its styles', () => {
     expect([declared(CHIP, 'padding-block'), declared(CHIP, 'padding-inline')]).toEqual([undefined, '6px'])
     expect(tone(CHIP, 'border-radius')).toBe('2px')
     expect(tone(CHIP, 'line-height')).toBe('16px')
+  })
+
+  it('hides each label below the widest label and chip it draws, rounded up to a tenth of an em', () => {
+    const widest = Math.max(glyphs(drawn, LABEL) + WIDTHS.label, glyphs(drawn, CHIP) + WIDTHS.chip)
+    expect(sheet.textContent).toContain(`@container (width < ${Math.ceil(widest * 10) / 10}em)`)
   })
 })
