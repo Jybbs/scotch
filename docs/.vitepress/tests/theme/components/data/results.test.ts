@@ -60,6 +60,13 @@ describe('Results', () => {
       lengths.sharesReading(endings, lengths.CHART.opening).map(reading => reading.slice(1).join(' ')))
   })
 
+  it('sets the pointer over each band, inside the crosshair the rest of the chart takes', () => {
+    const { results, slider } = mounted()
+    const bands               = results.findAll('g[data-k] > path')
+    expect(slider.classes('cursor-crosshair')).toBe(true)
+    expect(bands.map(band => band.classes('cursor-pointer'))).toEqual([true, true, true])
+  })
+
   it('sets the share of the short games drawn beside the sentence comparing it with the long ones', () => {
     const { results } = mounted()
     expect(results.find('span').text()).toBe(numbers.percent(lengths.drawnShares(endings).short))
