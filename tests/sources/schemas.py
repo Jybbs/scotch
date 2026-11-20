@@ -272,6 +272,14 @@ def test_sources_name_a_floor_for_a_section_no_row_declares():
         Sources(floors={"Events": 2500}, sources=[declare("A.zip")])
 
 
+def test_the_declared_files_are_parsed_once_per_process(declared: Sources):
+    """
+    Asserts that every read of `sources.toml` after the first returns the
+    record that first read parsed.
+    """
+    assert Sources.read() is declared
+
+
 def test_the_declared_files_are_pgn_mentor_s_sections_in_order(declared: Sources):
     """
     Asserts that `sources.toml` declares PGN Mentor's Players archives, its
