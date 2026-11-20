@@ -17,8 +17,7 @@ from subprocess      import CompletedProcess, run
 class Launcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     The one executable every stand-in of a test session links to, which runs
-    the shell script `link` wrote for the name it is called by, from the
-    folder `STAND_INS` names.
+    the shell script `link` wrote beside the link it is called through.
     """
 
     path: Path
@@ -29,12 +28,12 @@ class Launcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     def environment(self, folder: Path) -> dict[str, str]:
         """
         Names the variables a command reaches the stand-ins in `folder`
-        through, meaning `PATH` with `folder` first and `STAND_INS`.
+        through, meaning `PATH` with `folder` first.
 
         Returns:
             Each variable's name, paired with its value.
         """
-        return {"PATH": f"{folder}{pathsep}{environ['PATH']}", "STAND_INS": str(folder)}
+        return {"PATH": f"{folder}{pathsep}{environ['PATH']}"}
 
     def link(self, folder: Path, program: str, script: str):
         """
@@ -53,7 +52,7 @@ class Launcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         Writes the executable into `folder`.
         """
         (path := folder / "stand-in").write_text(
-            '#!/bin/sh\n. "$STAND_INS/${0##*/}.sh"\n'
+            '#!/bin/sh\n. "$0.sh"\n'
         )
         path.chmod(0o755)
 

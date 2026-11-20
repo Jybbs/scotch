@@ -164,6 +164,7 @@ def test_the_site_selects_against_main(
     folder = vitest.root / "node_modules" / ".bin"
     folder.mkdir(parents=True)
     (vitest.root / "vitest").rename(folder / "vitest")
+    (vitest.root / "vitest.sh").rename(folder / "vitest.sh")
     result = vitest.start(
         [pytestconfig.rootpath / ".mise" / "tasks" / "site" / "affected", "--bail=1"],
         vitest.root
