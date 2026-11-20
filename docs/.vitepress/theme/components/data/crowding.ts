@@ -26,7 +26,7 @@ function block(
   const y     = each.depth * layout.row
   return h('g', {
     'class'    : [
-      'transition-opacity duration-settle ease-glide data-off:opacity-22 [&_rect]:transition-[fill]',
+      parts.DIM, '[&_rect]:transition-[fill]',
       '[&_rect]:duration-fade [&_rect]:ease-glide',
       '[&_rect]:fill-[color-mix(in_oklab,var(--sc-data-ink)_calc(var(--sc-data-level)*24%+12%),var(--sc-data-page))]',
       'data-[on=path]:[&_rect]:fill-[color-mix(in_oklab,var(--sc-data-link)_45%,var(--sc-data-page))]',

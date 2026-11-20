@@ -16,8 +16,8 @@
   position       : relative;
   z-index        : 1;
   isolation      : isolate;
-  padding-top    : calc(var(--vp-nav-height) + var(--vp-layout-top-height, 0px) + var(--sc-hero-top, 88px));
-  padding-bottom : var(--sc-hero-bottom, 104px);
+  padding-top    : calc(var(--vp-nav-height) + var(--vp-layout-top-height, 0px) + 88px);
+  padding-bottom : 104px;
 }
 
 .VPHome .VPHomeHero.VPHero::before {

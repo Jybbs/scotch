@@ -28,8 +28,7 @@ function cell(
   return h('div', {
     'class'          : [
       'grid h-[22px] cursor-pointer place-items-center rounded-xs bg-(--sc-data-held) font-code',
-      'text-[0.54rem]/none',
-      'font-semibold text-(--sc-data-page) transition-opacity duration-settle ease-glide data-off:opacity-22',
+      'text-[0.54rem]/none font-semibold text-(--sc-data-page)', parts.DIM,
       'data-on:[box-shadow:0_0_0_2px_var(--sc-data-page),0_0_0_3.5px_var(--sc-data-ink)]',
       'data-[k=gap]:bg-[color-mix(in_oklab,var(--sc-data-link)_calc(var(--sc-data-level)*75%+25%),var(--sc-data-page))]',
       { 'ml-1.5': at.column === tags.COLUMNS.length - 1 }

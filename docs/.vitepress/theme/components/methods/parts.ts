@@ -40,7 +40,7 @@ export const CELLS = 'relative grid grid-cols-[repeat(var(--sc-run-cells),minmax
 /**
  * The columns the heads and the list of plies share.
  */
-export const COLUMNS = 'grid grid-cols-[2.25rem_minmax(0,1fr)_minmax(0,1fr)]'
+const COLUMNS = 'grid grid-cols-[2.25rem_minmax(0,1fr)_minmax(0,1fr)]'
 /**
  * The row of buttons stepping the widget.
  */

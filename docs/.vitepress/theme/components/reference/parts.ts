@@ -23,7 +23,7 @@ export const BESIDE = 'grid min-w-0 content-start gap-[11px]'
 /**
  * A Reference drawing's outlined button.
  */
-export const BUTTON = 'rounded-sm border border-rule px-2.5 py-[7px] font-code text-[0.7rem]/none font-medium '
+const BUTTON = 'rounded-sm border border-rule px-2.5 py-[7px] font-code text-[0.7rem]/none font-medium '
                     + 'whitespace-nowrap text-quiet normal-nums transition-[color] hover:text-ink'
 
 /**

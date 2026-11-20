@@ -9,7 +9,7 @@ import { CHIP, KICKER } from './parts.ts'
  * under the seat's chip.
  */
 const PANEL = [
-  'fixed inset-auto m-0 w-[min(30rem,calc(100vw_-_32px))] rounded-xl border-0 bg-raised px-4 pt-3.5 pb-4',
+  'inset-auto m-0 w-[min(30rem,calc(100vw_-_32px))] rounded-xl border-0 bg-raised px-4 pt-3.5 pb-4',
   'text-ink open:grid open:gap-2.5',
   '[box-shadow:0_0_0_1px_var(--sc-rule),0_18px_40px_-20px_var(--sc-viewer-shade)]'
 ]

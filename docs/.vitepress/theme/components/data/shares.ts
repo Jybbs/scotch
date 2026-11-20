@@ -61,7 +61,7 @@ function bands(
   shares : readonly number[][]
 ): VNode[] {
   return lengths.OUTCOMES.map(({ key }, kind) => h('g', {
-    'class'    : 'transition-opacity duration-settle ease-glide data-off:opacity-16',
+    'class'    : [parts.FADE, 'data-off:opacity-16'],
     'data-k'   : key,
     'data-off' : dimmed(key, lit)
   }, [h('path', { class: [BANDS[key], 'cursor-pointer'], d: lengths.bandPath(shares, kind, layout) })]))
