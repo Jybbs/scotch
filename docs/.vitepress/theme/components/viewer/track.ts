@@ -13,6 +13,32 @@ import type { Facing }                       from '../../../lib/viewer/trail.ts'
 type Refs = { [Part in keyof TrackParts]: Ref<TrackParts[Part] | null> }
 
 /**
+ * The frame standing at the cursor's column, gliding at the step's pace while
+ * it glides.
+ */
+const HEAD = 'pointer-events-none absolute left-0 rounded-[5px] [box-shadow:0_0_0_2px_var(--sc-ink)] '
+           + 'will-change-transform data-gliding:transition-transform '
+           + 'data-gliding:duration-[var(--sc-viewer-step,var(--sc-duration-glide))]'
+/**
+ * The box the canvas scrolls in sideways, its two ends fading out.
+ */
+const SCROLL = [
+  'relative min-w-0 overflow-x-auto overflow-y-hidden overscroll-contain [scrollbar-width:thin]',
+  '[mask-image:linear-gradient(90deg,transparent,var(--sc-ink)_20px,var(--sc-ink)_calc(100%_-_20px),transparent)]'
+]
+/**
+ * The swatch naming one game's row at its middle, in the game's color.
+ */
+const SWATCH = 'absolute top-[calc(var(--sc-viewer-middle)_-_4px)] right-0 flex before:size-[9px] '
+             + 'before:flex-none before:rounded-[2px] before:bg-(--sc-viewer-game)'
+/**
+ * The slider, the swatches beside the scrolling box, the swatches dropped on
+ * a narrow screen.
+ */
+const TRACK = 'focus-ring grid min-w-0 cursor-pointer touch-pan-x grid-cols-[9px_minmax(0,1fr)] gap-x-2.5 '
+            + 'rounded-md max-sm:grid-cols-[minmax(0,1fr)]'
+
+/**
  * Draws the track as a slider over the plies of both games: the swatches naming
  * each game's row at its middle, and the canvas and the head inside the box it
  * scrolls in, the head standing at the cursor's column.
@@ -38,24 +64,25 @@ function drawSlider(cursor: number, loaded: Loaded, refs: Refs, status: Status):
     'aria-valuemin'  : loaded.first,
     'aria-valuenow'  : cursor,
     'aria-valuetext' : status.line,
-    'class'          : 'sc-viewer-track',
+    'class'          : TRACK,
     'ref'            : refs.slider,
     'role'           : 'slider',
     'tabindex'       : '0'
   }, [
-    h('div', { 'aria-hidden': 'true', 'class': 'sc-viewer-track-swatches' }, PARTIES.map(party => h('span', {
+    h('div', { 'aria-hidden': 'true', 'class': 'relative max-sm:hidden' }, PARTIES.map(party => h('span', {
+      'class'     : [SWATCH, party === 'stored' ? 'in-data-[matched=no]:hidden' : ''],
       'data-game' : party,
       'style'     : { '--sc-viewer-middle': `${track.ROWS[party] + track.GLYPH / 2}px` }
     }))),
-    h('div', { class: 'sc-viewer-track-scroll', ref: refs.scroll }, [
-      h('div', { class: 'sc-viewer-track-area', ref: refs.area, style: size }, [
+    h('div', { class: SCROLL, ref: refs.scroll }, [
+      h('div', { class: 'relative', ref: refs.area, style: size }, [
         h('canvas', {
           'aria-hidden' : 'true',
-          'class'       : 'sc-viewer-track-canvas',
+          'class'       : 'block',
           'ref'         : refs.canvas,
           'style'       : size
         }),
-        h('span', { 'aria-hidden': 'true', 'class': 'sc-viewer-track-head', 'ref': refs.head, 'style': head })
+        h('span', { 'aria-hidden': 'true', 'class': HEAD, 'ref': refs.head, 'style': head })
       ])
     ])
   ])

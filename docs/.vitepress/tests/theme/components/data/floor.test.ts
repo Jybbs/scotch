@@ -21,7 +21,7 @@ const layout = omitted.floorLayout(600)
  */
 function labeledDecades(pixels: number): number {
   resized(pixels)
-  const axis = mount(RatingFloor).findAll('.sc-data-axis')
+  const axis = mount(RatingFloor).findAll('svg[role=slider] > text')
   return axis.filter(label => counts.decades.includes(label.text())).length
 }
 
@@ -42,18 +42,18 @@ describe('RatingFloor', () => {
     const drawn = mount(RatingFloor)
     const kept  = omitted.keptAt(counts.floor)
     expect(drawn.find('[role="slider"]').attributes('aria-valuenow')).toBe(String(counts.floor))
-    expect(drawn.find('.sc-data-big').text()).toBe(numbers.percent(kept.kept / kept.total))
-    expect(drawn.find('.sc-data-say').text()).toBe(omitted.floorSentence(counts.floor, kept))
-    expect(drawn.find('.sc-data-floor-rule text').text()).toBe(numbers.counted(counts.floor))
+    expect(drawn.find('span').text()).toBe(numbers.percent(kept.kept / kept.total))
+    expect(drawn.find('p').text()).toBe(omitted.floorSentence(counts.floor, kept))
+    expect(drawn.find('g > text').text()).toBe(numbers.counted(counts.floor))
   })
 
   it('dims every cell but the standing a corner mark lights', async () => {
     const drawn = mount(RatingFloor)
-    await drawn.find('.sc-data-legend-mark').trigger('pointerenter')
-    const cells = drawn.findAll('.sc-data-floor-cell')
-    const lit   = cells.filter(cell => !cell.classes('sc-data-off'))
+    await drawn.find('[role=listitem]').trigger('pointerenter')
+    const cells = drawn.findAll('rect[data-k]')
+    const lit   = cells.filter(cell => cell.attributes('data-off') === undefined)
     expect(lit.every(cell => cell.attributes('data-k') === 'up')).toBe(true)
-    expect(cells.some(cell => cell.classes('sc-data-off'))).toBe(true)
+    expect(cells.some(cell => cell.attributes('data-off') === '')).toBe(true)
   })
 
   it('labels every fourth decade on a narrow chart and every other one on a wide chart', () => {

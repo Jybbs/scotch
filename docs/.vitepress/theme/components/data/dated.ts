@@ -6,6 +6,7 @@ import { stepped }             from '../../../lib/data/keys.ts'
 import * as numbers            from '../../../lib/data/numbers.ts'
 import * as tags               from '../../../lib/data/tags.ts'
 import { Corner }              from './corner.ts'
+import * as parts              from './parts.ts'
 import { Plate, axisLabel }    from './plate.ts'
 
 /**
@@ -23,8 +24,14 @@ function band(layout: tags.DatedLayout, lit: string | null, side: 'dates' | 'rat
     const shares = tags.datedParts(decade)[side]
     const starts = numbers.accumulated([0, ...shares])
     return TIERS.map((tier, at) => h('rect', {
-      'class'  : ['sc-data-dated-cell', dimmed(tier, lit)],
-      'data-k' : tier,
+      'class'    : [
+        'fill-(--sc-data-tint) transition-[height,opacity]',
+        'duration-[var(--sc-duration-fade),var(--sc-duration-settle)]',
+        'ease-glide data-off:opacity-22 data-[k=full]:fill-(--sc-data-link)',
+        'data-[k=part]:fill-(--sc-data-fill)'
+      ],
+      'data-k'   : tier,
+      'data-off' : dimmed(tier, lit),
       'height' : numbers.tenth(shares[at]! * layout.band),
       'width'  : numbers.tenth(Math.max(0, layout.cell - 1.5)),
       'x'      : numbers.tenth(layout.left + column * layout.cell),
@@ -50,7 +57,7 @@ function drawn(
     'aria-valuemin'  : 0,
     'aria-valuenow'  : at,
     'aria-valuetext' : tags.datedSentence(decade),
-    'class'          : 'sc-data-svg',
+    'class'          : [parts.SVG, 'cursor-crosshair touch-pan-y'],
     'height'         : layout.height,
     'role'           : 'slider',
     'tabindex'       : 0,
@@ -75,7 +82,7 @@ function plot(at: number, layout: tags.DatedLayout, lit: string | null): VNode[]
       ? []
       : [axisLabel(decade.name, layout.left + (column + 0.5) * layout.cell, layout.height - 6, 'middle')]),
     h('rect', {
-      class  : 'sc-data-dated-box',
+      class  : 'pointer-events-none fill-none stroke-(--sc-data-ink) stroke-[1.5]',
       height : 2 * layout.band + 20,
       rx     : 2,
       width  : numbers.tenth(layout.cell + 1),
@@ -121,13 +128,13 @@ export const DatedBands = defineComponent({
           ['Neither', numbers.percent(ratings[2]!)]
         ],
         say: tags.datedSentence(decade)
-      }, () => h('div', { class: 'sc-data-dated' }, [
+      }, () => h('div', { class: 'grid gap-2' }, [
         h(Corner, {
           'items'        : tags.DATED_MARKS,
           'lit'          : lit.value,
           'onUpdate:lit' : (key: string | null) => { lit.value = key }
         }),
-        h('div', { class: 'sc-data-chart', ref: chart, style: style.value }, sized.value
+        h('div', { class: parts.CHART, ref: chart, style: style.value }, sized.value
           ? [drawn(at.value, calls, layout.value, lit.value)]
           : [])
       ]))

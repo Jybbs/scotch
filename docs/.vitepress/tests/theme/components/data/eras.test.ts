@@ -33,14 +33,14 @@ function mounted(): { eras: VueWrapper, list: DOMWrapper<Element> } {
  * Reads the name of the picked ridge and the move the readings name.
  */
 function picked(eras: VueWrapper): string[] {
-  return eras.findAll('.sc-data-read dd').map(value => value.text())
+  return eras.findAll('dd').map(value => value.text())
 }
 
 describe('Eras, as it opens', () => {
   it("sets the picked ridge's median beside the sentence comparing it with the others", () => {
     const { eras } = mounted()
-    expect(eras.find('.sc-data-big').text()).toBe(String(all.at(-1)!.quartiles[1]))
-    expect(eras.find('.sc-data-say').text()).toBe(ridges.ridgeSummary(all, all.length - 1))
+    expect(eras.find('span').text()).toBe(String(all.at(-1)!.quartiles[1]))
+    expect(eras.find('p').text()).toBe(ridges.ridgeSummary(all, all.length - 1))
   })
 })
 
@@ -58,7 +58,7 @@ describe('Eras', () => {
     const { eras } = mounted()
     expect(eras.findAll('[role="option"]').map(ridge => ridge.attributes('aria-label')))
       .toEqual(all.map(ridge => `${ridge.name}, half ending by move ${ridge.quartiles[1]}`))
-    expect(eras.findAll('.sc-data-ridge-name').map(name => name.text()))
+    expect(eras.findAll('[role=option] text').map(name => name.text()))
       .toEqual(all.map(ridge => ridge.label))
   })
 
@@ -109,7 +109,7 @@ describe('Eras, unsized and from the keyboard', () => {
     const eras   = mount(Eras)
     const height = ridges.ridgesLayout(all.length, 0).height
     expect(eras.find('svg').exists()).toBe(false)
-    expect(eras.find('.sc-data-chart').attributes('style')).toBe(`min-height: ${height}px;`)
+    expect(eras.find('[role=listbox]').attributes('style')).toBe(`min-height: ${height}px;`)
   })
 
   it('keeps the page from scrolling on a key it answers and lets any other key through', () => {

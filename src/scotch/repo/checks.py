@@ -19,18 +19,21 @@ from ast             import (
     parse,
     walk
 )
-from collections.abc import Iterator
-from io              import StringIO
-from itertools       import combinations
-from math            import dist
-from more_itertools  import duplicates_everseen, unique_everseen
-from pathlib         import Path
-from pydantic        import BaseModel, ValidationError
-from re              import findall, finditer, search, sub
-from statistics      import mode
-from tokenize        import COMMENT, generate_tokens
-from typing          import ClassVar
+from collections.abc    import Iterator
+from functools          import cached_property
+from importlib.metadata import metadata
+from io                 import StringIO
+from itertools          import combinations
+from math               import dist
+from more_itertools     import duplicates_everseen, unique_everseen
+from pathlib            import Path
+from pydantic           import BaseModel, ValidationError
+from re                 import escape, findall, finditer, search, sub
+from statistics         import mode
+from tokenize           import COMMENT, generate_tokens
+from typing             import ClassVar
 
+from scotch.docs.project  import addresses
 from scotch.docs.stops    import Stops
 from scotch.repo.checkout import Checkout
 from scotch.repo.schemas  import Cache, Finding, exact
@@ -870,56 +873,128 @@ class SummaryCheck(Check):
 
 class SuppressionCheck(Check):
     """
-    Fails on a comment in the Python under `.mise/tasks`, `src`, or `tests`
-    carrying one of the suppression directives Prose documents, meaning:
+    Fails on each inline suppression in a file `git ls-files`
+    lists, meaning:
 
-    - `# prose: off`, `skip`, `ignore`, or `keep`, bare or with a bracketed
-      rule list
-    - `# fmt: off`, `on`, or `skip`, or `# yapf: disable` or `enable`, which
-      Prose reads as the same suppression
+    - A `#[allow(`, `#![allow(`, `#[expect(`, or `#![expect(` attribute in
+      a `.rs` file
+    - An `eslint-disable` or `oxlint-disable` comment in any of its forms,
+      or `@ts-ignore`, `@ts-expect-error`, or `@ts-nocheck`, in a `.ts` or
+      `.vue` file
+    - A Python comment carrying `# fmt: off`, `on`, or `skip`, or `# yapf:
+      disable` or `enable`, which Prose reads as its own suppression
+    - A Python comment carrying `# prose: off`, `skip`, `ignore`, or `keep`,
+      bare or with a bracketed rule list, unless that comment or the one on
+      the line above carries the URL of an issue on Prose's tracker
     """
 
     directive: ClassVar[str] = (
-        r"#\s*(?:prose:\s*(?:off|skip|ignore|keep)(?:\[(?P<rules>[^\]]*)\])?"
-        r"|fmt:\s*(?:off|on|skip)|yapf:\s*(?:disable|enable))(?![\w-])"
+        r"#\s*(?:(?P<prose>prose):\s*(?:off|skip|ignore|keep)"
+        r"(?:\[(?P<rules>[^\]]*)\])?|fmt:\s*(?:off|on|skip)"
+        r"|yapf:\s*(?:disable|enable))(?![\w-])"
     )
 
-    trees: ClassVar[tuple[str, ...]] = (
-        ".mise/tasks/**/*.py", "src/**/*.py", "tests/**/*.py"
-    )
+    @cached_property
+    def markers(self) -> tuple[tuple[frozenset[str], str, str], ...]:
+        """
+        Lists each marker beside the suffixes of the files it is read in and
+        the configuration that turns the check off in its place.
+        """
+        return (
+            (
+                frozenset({".rs"}),
+                r"#!?\[(?:allow|expect)\(",
+                "a lint level in the `[lints]` table of "
+                f"`{self.checkout.pyproject.crate}`"
+            ),
+            (
+                frozenset({".ts", ".vue"}),
+                r"(?:eslint|oxlint)-disable[\w-]*",
+                "a rule level in `docs/.vitepress/config/.oxlintrc.json`"
+            ),
+            (
+                frozenset({".ts", ".vue"}),
+                r"@ts-(?:ignore|expect-error|nocheck)(?![\w-])",
+                "a compiler option in `docs/.vitepress/tsconfig.json`"
+            )
+        )
+
+    @cached_property
+    def tracker(self) -> str:
+        """
+        Reads the `issues` address the installed `prose-formatter` package
+        lists among its `Project-URL` entries.
+        """
+        return addresses(metadata("prose-formatter"))["issues"]
+
+    def comments(self, path: Path) -> Iterator[Finding]:
+        """
+        Yields a finding at the line of each directive a comment token in
+        the Python file at `path` carries, one for each rule a bracketed
+        list names. A directive inside a string sits in no comment token, so
+        it passes, as does a Prose directive whose comment or the comment on
+        the line above carries the URL of an issue on `tracker`.
+        """
+        source   = StringIO(path.read_text(encoding="utf-8"))
+        comments = {
+            token.start[0]: token.string
+            for token in generate_tokens(source.readline)
+            if token.type == COMMENT
+        }
+        for line, comment in comments.items():
+            for directive in finditer(self.directive, comment):
+                route = "`pyproject.toml`"
+
+                if directive["prose"]:
+                    filed = rf"{escape(self.tracker)}/\d+(?!\w)"
+
+                    if search(filed, f"{comments.get(line - 1, '')}\n{comment}"):
+                        continue
+                    route += f", or the URL of an issue at `{self.tracker}` beside it"
+
+                for rule in findall(r"[^\s,]+", directive["rules"] or "") or ["<rule>"]:
+                    yield Finding(
+                        line    = line,
+                        message = (
+                            f"The comment carries `{directive[0]}`, a suppression "
+                            "directive of Prose, in place of a "
+                            f"`[tool.prose.rules.{rule}]` table in {route}"
+                        ),
+                        path = path
+                    )
+
+    def lines(self, path: Path) -> Iterator[Finding]:
+        """
+        Yields a finding at each line of the file at `path` carrying a
+        marker `markers` lists for the file's suffix, reading no file of a
+        suffix it lists none for.
+        """
+        rows = [
+            (marker, place)
+            for suffixes, marker, place in self.markers
+            if path.suffix in suffixes
+        ]
+        text = path.read_text("utf-8") if rows else ""
+
+        for line, content in enumerate(text.splitlines(), 1):
+            for marker, place in rows:
+                for hit in finditer(marker, content):
+                    yield Finding(
+                        line    = line,
+                        message = (
+                            f"The line carries `{hit[0]}`, which silences a check "
+                            f"in place of {place}"
+                        ),
+                        path = path
+                    )
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding at the line of each directive a comment token
-        carries, one for each rule a bracketed list names. A directive
-        inside a string sits in no comment token, so it passes.
+        Yields the findings on each tracked Python file and each file of a
+        suffix `markers` lists.
         """
-        root = self.checkout.root
-
-        for path in self.checkout.tracked:
-            if not any(map(path.full_match, self.trees)):
-                continue
-
-            source = StringIO((root / path).read_text(encoding="utf-8"))
-
-            for token in generate_tokens(source.readline):
-                if token.type != COMMENT:
-                    continue
-
-                for directive in finditer(self.directive, token.string):
-                    rules = findall(r"[^\s,]+", directive["rules"] or "")
-
-                    for rule in rules or ["<rule>"]:
-                        yield Finding(
-                            line    = token.start[0],
-                            message = (
-                                f"The comment carries `{directive[0]}`, a "
-                                "suppression directive of Prose, in place of a "
-                                f"`[tool.prose.rules.{rule}]` table in "
-                                "`pyproject.toml`"
-                            ),
-                            path = root / path
-                        )
+        for path in map(self.checkout.root.joinpath, self.checkout.tracked):
+            yield from self.comments(path) if path.suffix == ".py" else self.lines(path)
 
 
 class TaskCheck(Check):

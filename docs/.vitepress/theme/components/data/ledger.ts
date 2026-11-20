@@ -4,7 +4,44 @@ import { dimmed }   from '../../../lib/data/corner.ts'
 import * as numbers from '../../../lib/data/numbers.ts'
 import * as omitted from '../../../lib/data/omitted.ts'
 import { Corner }   from './corner.ts'
+import * as parts   from './parts.ts'
 import { Plate }    from './plate.ts'
+
+/**
+ * The chart of bars, holding the color each kind of segment takes, the games
+ * left out as variants hatched over their tone.
+ */
+const LEDGER = [
+  parts.CHART, 'grid gap-3.5 [--sc-data-kept:var(--sc-data-link)]',
+  '[--sc-data-below:color-mix(in_oklab,var(--sc-data-ink)_60%,var(--sc-data-page))]',
+  '[--sc-data-repeat:color-mix(in_oklab,var(--sc-data-ink)_26%,var(--sc-data-page))]',
+  '[--sc-data-unread:color-mix(in_oklab,var(--sc-data-ink)_78%,var(--sc-data-page))]',
+  '[--sc-data-hatch:repeating-linear-gradient(-45deg,var(--sc-data-ink)_0_1.5px,transparent_1.5px_5px)]',
+  '[--sc-data-variant:var(--sc-data-hatch)_color-mix(in_oklab,var(--sc-data-ink)_62%,var(--sc-data-page))]'
+]
+/**
+ * A segment of a section's bar in its kind's color, the repeats' count set in
+ * the ink, ringed while pressed and faded while a mark of the corner names
+ * another kind.
+ */
+const SEGMENT = [
+  '@container min-w-[3px] cursor-pointer rounded-xs border-0 p-0',
+  '[background:var(--sc-data-mark,var(--sc-data-fill))]',
+  'font-code text-[0.6rem]/[26px] font-medium tracking-[0.06em] text-(--sc-data-page) uppercase',
+  'transition-[opacity,flex-grow] duration-settle ease-glide data-off:opacity-22',
+  'aria-pressed:[box-shadow:0_0_0_2px_var(--sc-data-page),0_0_0_3.5px_var(--sc-data-ink)]',
+  'focus-visible:outline-2 focus-visible:outline-offset-3',
+  'focus-visible:outline-(--sc-data-link) data-[k=below]:[--sc-data-mark:var(--sc-data-below)]',
+  'data-[k=kept]:[--sc-data-mark:var(--sc-data-kept)] data-[k=repeat]:[--sc-data-mark:var(--sc-data-repeat)]',
+  'data-[k=repeat]:text-(--sc-data-ink) data-[k=unread]:[--sc-data-mark:var(--sc-data-unread)]',
+  'data-[k=variant]:[--sc-data-mark:var(--sc-data-variant)]'
+]
+/**
+ * The count a segment names, hidden where the segment runs too narrow to hold
+ * it, and set in the ink on a chip of the repeats' tone over the hatch of the
+ * variants.
+ */
+const SPAN = 'block overflow-hidden whitespace-nowrap @max-[12em]:invisible'
 
 /**
  * Draws one section's bar of the games its files hold, a segment per kind as
@@ -19,12 +56,19 @@ function bar(
 ): VNode {
   const read  = omitted.readOf(ledger)
   const width = `${Math.max(9, read / most * 100).toFixed(2)}%`
-  return h('div', { class: 'sc-data-ledger-section' }, [
-    h('header', [
+  return h('div', [
+    h('header', {
+      class: 'mb-1 flex justify-between gap-3 font-code text-[0.65rem]/[16px] font-medium tracking-[0.08em] '
+           + 'uppercase'
+    }, [
       h('span', ledger.name),
-      h('small', `${numbers.counted(read)} read · ${numbers.counted(ledger.files)} files`)
+      h('small', { class: 'text-[0.6rem] text-(--sc-data-quiet) tabular-nums' },
+        `${numbers.counted(read)} read · ${numbers.counted(ledger.files)} files`)
     ]),
-    h('div', { class: 'sc-data-ledger-bar', style: { width } }, omitted.segments
+    h('div', {
+      class : 'flex h-[26px] gap-0.5 transition-[width] duration-settle ease-glide',
+      style : { width }
+    }, omitted.segments
       .filter(({ section }) => section === ledger.section)
       .map(cell => segment(cell, ledger, lit, picked, press)))
   ])
@@ -36,9 +80,12 @@ function bar(
  */
 function drawer({ kind, section }: omitted.Segment): VNode {
   const files = omitted.holding(kind, section)
-  return h('details', { class: 'sc-data-drawer' }, [
-    h('summary', `Show the ${numbers.counted(files.length)} files behind this count`),
-    h('ol', { class: 'sc-data-drawer-files' }, files.map(([name, count]) => h('li', [
+  return h('details', { class: 'group/drawer' }, [
+    h('summary', {
+      class: 'cursor-pointer font-body text-[0.78rem]/[24px] font-semibold text-(--sc-data-link) '
+           + 'group-open/drawer:mb-1.5!'
+    }, `Show the ${numbers.counted(files.length)} files behind this count`),
+    h('ol', { class: parts.FILES }, files.map(([name, count]) => h('li', [
       h('span', name),
       h('b', numbers.counted(count))
     ])))
@@ -58,7 +105,7 @@ function pressing(
     picked.value = omitted.segments[next]!
     if (!step) return
     void nextTick(() => {
-      chart.value?.querySelectorAll<HTMLElement>('.sc-data-ledger-segment')[next]?.focus()
+      chart.value?.querySelectorAll<HTMLElement>('button[data-k]')[next]?.focus()
     })
   }
 }
@@ -79,8 +126,9 @@ function segment(
   return h('button', {
     'aria-label'   : `${ledger.section}, ${label}, ${numbers.counted(count)} games`,
     'aria-pressed' : String(cell.kind === picked.kind && cell.section === picked.section),
-    'class'        : ['sc-data-ledger-segment', dimmed(cell.kind, lit)],
+    'class'        : SEGMENT,
     'data-k'       : cell.kind,
+    'data-off'     : dimmed(cell.kind, lit),
     'onClick'      : () => { press(cell, 0) },
     'style'        : { flexGrow: count },
     'type'         : 'button',
@@ -91,7 +139,14 @@ function segment(
       event.preventDefault()
       press(cell, step)
     }
-  }, h('span', `${word} ${numbers.counted(count)}`))
+  }, h('span', {
+    class: [
+      SPAN, cell.kind === 'variant'
+        ? 'mx-auto my-[5px] w-fit rounded-xs bg-(--sc-data-repeat) px-[6px] leading-[16px] '
+        + 'text-(--sc-data-ink)'
+        : 'px-2'
+    ]
+  }, `${word} ${numbers.counted(count)}`))
 }
 
 /**
@@ -116,7 +171,7 @@ export const GameLedger = defineComponent({
         line : `${omitted.KINDS.find(({ key }) => key === picked.value.kind)!.label} · ${ledger.name}`,
         say  : omitted.ledgerSentence(picked.value.kind, ledger)
       }, () => [
-        h('div', { class: 'sc-data-chart sc-data-ledger', ref: chart }, [
+        h('div', { 'class': LEDGER, 'data-chart': '', 'ref': chart }, [
           h(Corner, {
             'items'        : omitted.ledgerMarks,
             'lit'          : lit.value,

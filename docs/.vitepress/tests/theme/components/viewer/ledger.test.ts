@@ -16,7 +16,7 @@ const { last, meet } = loaded.shared!
  * Reads the moves marked as the step the cursor stands on.
  */
 function current(wrapper: ReturnType<typeof mount<typeof Ledger>>): string[] {
-  return wrapper.findAll('[aria-current="step"] .sc-viewer-san').map(san => san.text())
+  return wrapper.findAll('[aria-current="step"] > span:first-child').map(san => san.text())
 }
 
 /**
@@ -38,7 +38,7 @@ function mounted(match = loaded): {
  */
 function twinned(wrapper: ReturnType<typeof mount<typeof Ledger>>): string[] {
   return wrapper.findAll('[data-twin]')
-    .map(move => `${move.attributes('data-party')} ${move.find('.sc-viewer-san').text()}`)
+    .map(move => `${move.attributes('data-party')} ${move.find('span:first-child').text()}`)
 }
 
 beforeEach(() => {
@@ -66,18 +66,19 @@ describe('Ledger as drawn', () => {
 
   it('opens on a row setting the start mark in each game’s half', () => {
     const start = mounted().wrapper.find('[role="row"]')
-    expect(start.findAll('.sc-viewer-start').map(half => [half.attributes('data-game'), half.text()]))
+    expect(start.findAll('[role="gridcell"][data-game]')
+      .map(half => [half.attributes('data-game'), half.text()]))
       .toEqual([['submitted', 'Start'], ['stored', 'Start']])
   })
 
   it('leaves the stored half of the start row empty where no stored game matched', () => {
     const start = mounted(new Loaded(EXAMPLES.alone)).wrapper.find('[role="row"]')
-    expect(start.findAll('.sc-viewer-start').map(half => half.text())).toEqual(['Start', ''])
+    expect(start.findAll('[role="gridcell"][data-game]').map(half => half.text())).toEqual(['Start', ''])
   })
 
   it('moves the cursor to a move pressed', async () => {
     const { wrapper } = mounted()
-    await wrapper.findAll('.sc-viewer-move[data-party="stored"]')[3]!.trigger('click')
+    await wrapper.findAll('button[data-party="stored"]')[3]!.trigger('click')
     expect(wrapper.emitted('go')).toEqual([[4]])
   })
 
@@ -85,7 +86,7 @@ describe('Ledger as drawn', () => {
     const { painted, wrapper } = mounted()
     painted.paint(meet + 3, false)
     expect(current(wrapper)).toHaveLength(2)
-    expect(wrapper.find('[aria-current] .sc-viewer-san').text())
+    expect(wrapper.find('[aria-current] > span:first-child').text())
       .toBe(EXAMPLES.match.submitted.moves[meet - 1])
   })
 })
@@ -95,7 +96,7 @@ describe('Ledger painting the cursor', () => {
     const { painted, wrapper } = mounted()
     painted.load()
     painted.paint(meet + 3, false)
-    const was = wrapper.findAll('.sc-viewer-move[data-party="submitted"]')[meet - 1]!.element as HTMLElement
+    const was = wrapper.findAll('button[data-party="submitted"]')[meet - 1]!.element as HTMLElement
     expect(current(wrapper))
       .toEqual([EXAMPLES.match.submitted.moves[meet + 2], EXAMPLES.match.stored!.moves[meet + 2]])
     expect([was.hasAttribute('aria-current'), was.tabIndex]).toEqual([false, -1])
@@ -126,7 +127,7 @@ describe('Ledger painting the cursor', () => {
     const { painted, wrapper } = mounted()
     painted.load()
     painted.paint(0, false)
-    const moves = wrapper.findAll('.sc-viewer-move').map(move => (move.element as HTMLElement).tabIndex)
+    const moves = wrapper.findAll('button[data-party]').map(move => (move.element as HTMLElement).tabIndex)
     expect([current(wrapper), moves.indexOf(0), moves.filter(index => index === 0)]).toEqual([[], 0, [0]])
   })
 })
@@ -147,7 +148,7 @@ describe('Ledger’s pairs', () => {
 
   it('outlines the pair under the pointer or focus, and the cursor’s again once it leaves', async () => {
     const { painted, wrapper } = mounted()
-    const moves                = wrapper.findAll('.sc-viewer-move[data-party="submitted"]')
+    const moves                = wrapper.findAll('button[data-party="submitted"]')
     painted.load()
     painted.paint(meet, false)
     await moves[0]!.trigger('pointerover')
@@ -164,7 +165,7 @@ describe('Ledger’s pairs', () => {
   it('keeps the cursor’s pair where the pointer rests between moves', async () => {
     const { painted, wrapper } = mounted()
     painted.load()
-    await wrapper.find('.sc-viewer-row').trigger('pointerover')
+    await wrapper.find('[role="row"]').trigger('pointerover')
     expect(twinned(wrapper)).toEqual(['stored d4', 'submitted d4'])
   })
 })
@@ -174,17 +175,17 @@ describe('Ledger’s threads', () => {
     const { painted, resize, wrapper } = mounted()
     resize()
     painted.load()
-    const svg = wrapper.find('svg.sc-viewer-threads')
+    const svg = wrapper.find('svg:has(> [data-bar])')
     expect(svg.attributes('viewBox')).toBe('0 0 400 24')
-    expect(wrapper.findAll('.sc-viewer-thread').map(thread => thread.attributes('d')?.startsWith('M')))
+    expect(wrapper.findAll('path[data-game]').map(thread => thread.attributes('d')?.startsWith('M')))
       .toEqual([true, true])
-    expect(wrapper.find('.sc-viewer-bar').attributes('opacity')).toBe('1')
+    expect(wrapper.find('[data-bar]').attributes('opacity')).toBe('1')
   })
 
   it('draws the run’s band from the row the run meets in, beneath the start row', () => {
     const { painted, wrapper } = mounted()
     painted.load()
-    const y = Number(wrapper.find('.sc-viewer-bar').attributes('y'))
+    const y = Number(wrapper.find('[data-bar]').attributes('y'))
     expect(Math.floor((y + 3.5) / 24)).toBe(rowAt(meet, 0) + 1)
   })
 
@@ -192,17 +193,17 @@ describe('Ledger’s threads', () => {
     const { painted, wrapper } = mounted()
     painted.load()
     painted.paint(last + 40, true)
-    const rings = wrapper.findAll('.sc-viewer-ring-at').map(ring => (ring.element as HTMLElement).style)
+    const rings = wrapper.findAll('[data-rings] > g').map(ring => (ring.element as HTMLElement).style)
     expect(rings.map(({ opacity }) => opacity)).toEqual(['', '0'])
     expect(rings[0]!.transform).toMatch(/^translate\(/u)
-    expect(wrapper.find('.sc-viewer-rings').classes()).toContain('sc-viewer-gliding')
+    expect(wrapper.find('[data-rings]').attributes('data-gliding')).toBe('')
   })
 
   it('says nothing matched and hides the band where no stored game shares a position', () => {
     const { painted, wrapper } = mounted(new Loaded(EXAMPLES.alone))
     painted.load()
-    expect(wrapper.find('.sc-viewer-none').exists()).toBe(true)
-    expect(wrapper.find('.sc-viewer-bar').attributes('opacity')).toBe('0')
+    expect(wrapper.find('p').exists()).toBe(true)
+    expect(wrapper.find('[data-bar]').attributes('opacity')).toBe('0')
   })
 })
 

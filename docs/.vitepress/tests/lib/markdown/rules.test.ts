@@ -35,7 +35,7 @@ describe('markdownRules', () => {
   it("sets the front page's sections as entries, each holding its widget", () => {
     const page = ['Data', 'Guide', 'Methods', 'Viewer'].map(label => `## ${label}\n\nText.\n`).join('\n')
     const html = md.render(`# Scotch\n\nTagline.\n\n${page}`, { relativePath: 'index.md' })
-    const entry = new RegExp(`<section class="sc-entry"[^]*?<${FIGURE} name="store" />[^]*?</section>`, 'u')
+    const entry = new RegExp(`<section class="[^"]+" data-entry[^]*?<${FIGURE} name="store" />[^]*?</section>`, 'u')
     expect(html).toMatch(entry)
   })
 

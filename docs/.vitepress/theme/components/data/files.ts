@@ -6,9 +6,24 @@ import * as files    from '../../../lib/data/files.ts'
 import * as list     from '../../../lib/data/list.ts'
 import * as timeline from '../../../lib/reference/timeline.ts'
 import * as drawings from './drawings.ts'
+import * as parts    from './parts.ts'
 import { Rail }      from './rail.ts'
 import { Tabs }      from './tabs.ts'
 
+/**
+ * The drawing of a section's files, its labels in the code face, ringed in the
+ * link's color while it holds the focus.
+ */
+const DRAW = [
+  'group/files block touch-none rounded-md outline-none',
+  'focus-visible:[box-shadow:0_0_0_2px_var(--sc-data-link)] [&_text]:fill-(--sc-data-quiet)',
+  '[&_text]:font-code [&_text]:text-[9.5px]/[normal] [&_text]:font-medium [&_text]:tabular-nums'
+]
+/**
+ * The line beneath the drawing saying what its marks stand for, two lines tall
+ * whichever section it names.
+ */
+const LEGEND = 'm-0! min-h-[2.8em] font-body text-[0.8rem]/[1.4]! font-normal text-(--sc-data-quiet)'
 /**
  * How long a drawing's marks take to finish unfolding, the last one's delay
  * included, in milliseconds.
@@ -20,16 +35,22 @@ const UNFOLD = 1800
  * tally.
  */
 function findField(state: list.List, marks: readonly files.Entry[]): VNode {
-  return h('label', { class: 'sc-data-files-find' }, [
+  return h('label', {
+    class: 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2.5 rounded-md border '
+         + 'border-(--sc-data-rule) bg-raised px-2.5'
+  }, [
     h('input', {
-      'aria-label' : 'Find a file',
-      onInput      : (event: Event) => {
+      'aria-label'  : 'Find a file',
+      'class'       : 'min-w-0 border-0 bg-transparent bg-none px-0 py-2.5 font-body text-[0.95rem]/none '
+                    + 'font-normal text-(--sc-data-ink) outline-none',
+      'onInput'     : (event: Event) => {
         state.query.value = (event.target as HTMLInputElement).value.trim().toLowerCase()
       },
-      placeholder  : 'Find a file, such as Najdorf',
-      type         : 'search'
+      'placeholder' : 'Find a file, such as Najdorf',
+      'type'        : 'search'
     }),
-    h('span', list.tallyOf(state, marks))
+    h('span', { class: 'font-code text-[0.7rem]/none font-medium text-(--sc-data-quiet) tabular-nums' },
+      list.tallyOf(state, marks))
   ])
 }
 
@@ -104,21 +125,24 @@ export const Files = defineComponent({
       if (list.stepAlong(event.key, state, drawn.value.marks)) event.preventDefault()
     }
 
-    return (): VNode => h('div', { class: 'sc-data sc-data-files' }, [
+    return (): VNode => h('div', {
+      class: [parts.DATA, 'grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5 text-(--sc-data-ink)']
+    }, [
       sectionTabs(id, state),
       findField(state, drawn.value.marks),
-      h('div', { class: 'sc-data-files-chart', ref: chart, style: style.value }, sized.value ? h('svg', {
-        'aria-label' : `${state.section.value}, ${files.LEGENDS[state.section.value]}`,
-        class        : ['sc-data-files-draw', { 'sc-data-unfold': unfolding.value }],
-        height       : layout.value.height,
-        id           : `${id}-drawing`,
-        onKeydown    : stepped,
-        role         : 'group',
-        tabindex     : 0,
-        viewBox      : `0 0 ${layout.value.width} ${layout.value.height}`,
-        width        : layout.value.width
+      h('div', { class: 'min-w-0', ref: chart, style: style.value }, sized.value ? h('svg', {
+        'aria-label'  : `${state.section.value}, ${files.LEGENDS[state.section.value]}`,
+        'class'       : DRAW,
+        'data-unfold' : unfolding.value ? '' : undefined,
+        'height'      : layout.value.height,
+        'id'          : `${id}-drawing`,
+        'onKeydown'   : stepped,
+        'role'        : 'group',
+        'tabindex'    : 0,
+        'viewBox'     : `0 0 ${layout.value.width} ${layout.value.height}`,
+        'width'       : layout.value.width
       }, drawn.value.nodes) : undefined),
-      h('p', { class: 'sc-data-files-legend' }, files.LEGENDS[state.section.value]),
+      h('p', { class: LEGEND }, files.LEGENDS[state.section.value]),
       state.at.value
         ? h(Rail, { decades: state.decades, entries: state.entries, entry: state.at.value })
         : null

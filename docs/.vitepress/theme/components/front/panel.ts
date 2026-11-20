@@ -22,10 +22,17 @@ export interface Readout {
  * the sentence on a row of its own beneath them.
  */
 function head({ big, say, unit }: Readout): VNode {
-  const figure = [h(Count, { figure: big }), h('span', { class: 'sc-front-unit' }, unit)]
-  return h('div', { class: 'sc-front-head' }, [
-    h('div', { class: 'sc-front-figure' }, figure),
-    h('p', { class: 'sc-front-say' }, say)
+  const figure = [h(Count, { figure: big }), h('span', {
+    'data-unit' : '',
+    'class'     : 'font-code text-[0.62rem]/none font-semibold tracking-[0.14em] whitespace-nowrap '
+                + 'text-quiet uppercase'
+  }, unit)]
+  return h('div', { class: 'grid gap-2' }, [
+    h('div', { class: 'flex min-h-9 items-baseline gap-2.5' }, figure),
+    h('p', {
+      'data-say' : '',
+      'class'    : 'm-0! max-w-[60ch] min-h-12 font-body text-base leading-6! font-normal max-sm:min-h-18'
+    }, say)
   ])
 }
 
@@ -47,14 +54,18 @@ export const Panel = defineComponent({
   },
 
   setup: (props, { slots }) => (): VNode => h('div', {
-    class          : 'sc-front-panel',
     onFocusin      : () => props.drive.hold(true),
     onFocusout     : () => props.drive.hold(false),
     onPointerenter : () => props.drive.hold(true),
-    onPointerleave : () => props.drive.hold(false)
+    onPointerleave : () => props.drive.hold(false),
+    class          : [
+      'relative overflow-hidden rounded-md',
+      '[box-shadow:0_18px_40px_-28px_color-mix(in_oklab,var(--sc-ink)_40%,transparent)]',
+      "before:absolute before:inset-[0_0_auto] before:h-[3px] before:bg-(--sc-entry) before:content-['']"
+    ]
   }, h(Plate, { readings: props.readout.readings }, () => [
     head(props.readout),
-    h('div', { class: 'sc-front-draw' }, slots.default?.()),
+    h('div', { class: 'relative min-w-0' }, slots.default?.()),
     h(Clock, { at: props.drive.at.value, label: props.label, names: props.names, pick: props.drive.go })
   ]))
 })

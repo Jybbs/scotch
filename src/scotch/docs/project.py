@@ -1,12 +1,13 @@
 """
 Holds `Project`, the facts the package's metadata carries from
 `pyproject.toml` that the README and the Guide restate, meaning its name,
-its homepage, its repository, and the Python release it requires, from which
-`scotch render docs` writes the README's row of badges, the steps both pages
-give for installing it, and the Guide's account of each step.
+its homepage, its repository, and the Python release it requires, from
+which `scotch render docs` writes the README's row of badges, the steps both
+pages give for installing it, and the Guide's account of each step, beside
+`addresses`, which reads an installed package's `Project-URL` entries.
 """
 
-from importlib.metadata import metadata
+from importlib.metadata import PackageMetadata, metadata
 from pathlib            import Path
 from pydantic           import BaseModel
 from typing             import Self
@@ -120,12 +121,10 @@ class Project(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     @classmethod
     def installed(cls) -> Self:
         """
-        Reads the facts from the metadata of the installed package, whose
-        `Project-URL` entries each name an address behind a label and
-        a comma.
+        Reads the facts from the metadata of the installed package.
         """
         package = metadata("scotch")
-        urls    = dict(entry.split(", ", 1) for entry in package.get_all("Project-URL"))
+        urls    = addresses(package)
 
         return cls(
             floor      = package["Requires-Python"].removeprefix(">="),
@@ -133,3 +132,14 @@ class Project(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             name       = package["Name"],
             repository = urls["Repository"]
         )
+
+
+def addresses(package: PackageMetadata) -> dict[str, str]:
+    """
+    Reads the `Project-URL` entries of an installed package's metadata, each
+    naming an address behind a label and a comma.
+
+    Returns:
+        Each address keyed by its label.
+    """
+    return dict(entry.split(", ", 1) for entry in package.get_all("Project-URL"))

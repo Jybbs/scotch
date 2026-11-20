@@ -10,6 +10,6 @@ const { submitted } = frontOf().example
 describe('Half', () => {
   it.each([[0, '0'], [1, '1']])('marks the square the move to ply %i landed on at %s', (ply, opacity) => {
     const half = mount(Half, { props: { game: 'submitted', label: 'A board', position: submitted[ply]! } })
-    expect((half.find('.sc-front-landed').element as HTMLElement).style.opacity).toBe(opacity)
+    expect((half.find('[data-landed]').element as HTMLElement).style.opacity).toBe(opacity)
   })
 })

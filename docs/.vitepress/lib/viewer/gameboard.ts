@@ -47,13 +47,13 @@ export class GameBoard {
    */
   constructor(svg: SVGSVGElement, pace: Readonly<Pace> = PACE) {
     this.#arrows = {
-      stored    : svg.querySelector<SVGGElement>(".sc-viewer-arrow[data-game='stored']")!,
-      submitted : svg.querySelector<SVGGElement>(".sc-viewer-arrow[data-game='submitted']")!
+      stored    : svg.querySelector<SVGGElement>("g[data-game='stored']")!,
+      submitted : svg.querySelector<SVGGElement>("g[data-game='submitted']")!
     }
-    this.#hops       = [...svg.querySelectorAll<SVGRectElement>('.sc-viewer-hop')]
+    this.#hops       = [...svg.querySelectorAll<SVGRectElement>('[data-hop]')]
     this.#pace       = pace
-    this.#sprites    = new Sprites(svg.querySelector<SVGGElement>('.sc-viewer-pieces')!)
-    this.#squares    = [...svg.querySelectorAll<SVGRectElement>('.sc-viewer-square')]
+    this.#sprites    = new Sprites(svg.querySelector<SVGGElement>('[data-pieces]')!)
+    this.#squares    = [...svg.querySelectorAll<SVGRectElement>('rect[data-square]')]
     this.#planner    = new Planner(this.#sprites, pace)
     this.#planner.at = this.#sprites.adopted
   }

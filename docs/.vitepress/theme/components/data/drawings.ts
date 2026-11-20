@@ -29,6 +29,10 @@ export interface Drawn {
 }
 
 /**
+ * A rule of the year axis, kept on whole pixels.
+ */
+const AXIS = 'stroke-(--sc-data-rule) stroke-1 [shape-rendering:crispEdges]'
+/**
  * The Openings drawing's three levels from the top, each at its height with the
  * share of its hue its bands take, the files alternating between two.
  */
@@ -67,7 +71,7 @@ function levelBands(
     const [left, wide] = spanOf(band, domain, drawing.width)
     const entry        = lead(band)
     return h('g', {
-      class          : 'sc-data-band',
+      class          : 'cursor-pointer',
       onClick        : () => zoom(band),
       onPointerenter : () => { if (entry) drawing.focus(entry) }
     }, [
@@ -81,7 +85,11 @@ function levelBands(
         y              : top
       }),
       wide > band.label.length * 6.6 + 10
-        ? h('text', { class: 'sc-data-band-name', x: tenth(left + 5), y: top + 15.5 }, band.label)
+        ? h('text', {
+            class : 'fill-(--sc-data-ink)! font-semibold!',
+            x     : tenth(left + 5),
+            y     : top + 15.5
+          }, band.label)
         : null
     ])
   }))
@@ -99,13 +107,18 @@ function mark(
   motion  : { delay: number, opacity: number, rise: number }
 ): VNode {
   return h(shape, {
-    class          : ['sc-data-mark', {
-      'sc-data-at'  : entry === drawing.at,
-      'sc-data-dim' : !files.matches(entry, drawing.query)
-    }],
-    fill           : files.HUES[entry.section],
-    onPointerenter : () => drawing.focus(entry),
-    style          : {
+    'class'          : [
+      'cursor-pointer [fill-opacity:var(--sc-data-a,1)] transition-opacity duration-fade ease-glide',
+      'data-at:stroke-(--sc-data-ink) data-at:stroke-[1.5] data-at:[paint-order:stroke] data-dim:opacity-13',
+      'dark:[fill-opacity:calc(0.28+var(--sc-data-a,1)*0.72)] group-data-unfold/files:origin-center',
+      'group-data-unfold/files:animate-rise group-data-unfold/files:[transform-box:fill-box]',
+      'group-data-unfold/files:[animation-delay:calc(var(--sc-data-i,0)*1ms)]'
+    ],
+    'data-at'        : entry === drawing.at ? '' : undefined,
+    'data-dim'       : files.matches(entry, drawing.query) ? undefined : '',
+    'fill'           : files.HUES[entry.section],
+    'onPointerenter' : () => drawing.focus(entry),
+    'style'          : {
       '--sc-data-a'    : motion.opacity,
       '--sc-data-from' : `${tenth(motion.rise)}px`,
       '--sc-data-i'    : motion.delay
@@ -133,7 +146,7 @@ function yearAxis(width: number, y: number, years: axes.Years): VNode[] {
   const count   = Math.floor((years[1] - years[0]) / 10)
   const decades = Array.from({ length: count }, (_, step) => years[0] + 5 + step * 10)
   const tick    = (decade: number): VNode => h('line', {
-    class : 'sc-data-files-axis',
+    class : AXIS,
     x1    : x(decade),
     x2    : x(decade),
     y1    : y,
@@ -143,7 +156,7 @@ function yearAxis(width: number, y: number, years: axes.Years): VNode[] {
     h('text', { 'text-anchor': 'middle', x: tenth(axes.yearX(width, years, year)), y: y + 17 }, String(year))
 
   return [
-    h('line', { class: 'sc-data-files-axis', x1: 14, x2: width - 14, y1: y + 0.5, y2: y + 0.5 }),
+    h('line', { class: AXIS, x1: 14, x2: width - 14, y1: y + 0.5, y2: y + 0.5 }),
     ...decades.map(decade => tick(decade)),
     ...axes.namedYears(years).map(year => named(year))
   ]

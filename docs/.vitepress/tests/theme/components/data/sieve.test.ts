@@ -19,7 +19,7 @@ describe('Sieve', () => {
     await clock.runAllTimersAsync()
     expect(rail.attributes('aria-valuenow')).toBe(String(sieve.STEPS.length))
     const gone = sieve.SQUARES.filter(kind => kind !== 'stored')
-    expect(drawn.findAll('.sc-sieve-cell[data-gone]')).toHaveLength(gone.length)
+    expect(drawn.findAll('g[data-gone]')).toHaveLength(gone.length)
   })
 
   test('holds still on the step the reader moves to, by the keys or the pointer', async ({ clock }) => {
@@ -40,6 +40,11 @@ describe('Sieve', () => {
     await rail.trigger('pointermove', { clientX: 200, pointerId: 1 })
     await rail.trigger('pointermove', { clientX: 300, pointerId: 1 })
     expect(rail.attributes('aria-valuetext')).toBe(`${sieve.STEPS[2]!.name}: ${sieve.STEPS[2]!.say}`)
+  })
+
+  it('keeps each step’s name on one line over the text-wrap the doc column sets on a list item', () => {
+    const names = mount(Sieve).findAll('ol[aria-hidden] > li')
+    expect(names.map(name => name.classes('whitespace-nowrap!'))).toEqual(sieve.STEPS.map(() => true))
   })
 
   it('rests on the stored games while the site’s drawings hold still', () => {
