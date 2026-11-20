@@ -8,6 +8,6 @@ import { METHODS_WIDGETS } from '../../../../theme/components/methods/index.ts'
 describe('METHODS_WIDGETS', () => {
   it.each(Object.keys(METHODS_WIDGETS))('draws the %s widget with the page placing it', name => {
     const widget = mount(defineComponent({ setup: () => () => h(METHODS_WIDGETS[name]!) }))
-    expect(widget.find(`.sc-${name}`).exists()).toBe(true)
+    expect(widget.element).toBeInstanceOf(HTMLDivElement)
   })
 })

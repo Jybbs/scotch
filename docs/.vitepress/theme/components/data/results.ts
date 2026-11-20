@@ -1,156 +1,30 @@
-import { clamp } from '@vueuse/core'
 import { type ShallowRef, type VNode, defineComponent, h, shallowRef } from 'vue'
 
 import { pointerAt, useChart }         from '../../../lib/data/chart.ts'
-import { dimmed }                      from '../../../lib/data/corner.ts'
 import { stepped }                     from '../../../lib/data/keys.ts'
 import * as lengths                    from '../../../lib/data/lengths.ts'
 import { useGlide, useMove }           from '../../../lib/data/move.ts'
 import * as numbers                    from '../../../lib/data/numbers.ts'
 import { Corner }                      from './corner.ts'
-import { Plate, moveTicks, moverLine } from './plate.ts'
+import * as parts                      from './parts.ts'
+import { Plate }                       from './plate.ts'
+import * as shares                     from './shares.ts'
 
 /**
- * The counts the chart draws: the games ending in each result at each move, the
- * shares the bands take, and the games ending at each move.
+ * The chart's column and the tone of each result's band, the black wins
+ * deepened and the white wins lifted off the page.
  */
-interface Counts {
-  endings : number[][]
-  shares  : number[][]
-  totals  : number[]
-}
-
-/**
- * The caption over the bars, in capitals as every other axis label is set.
- */
-const CAPTION = 'GAMES ENDING AT EACH MOVE'
-
-/**
- * Draws the names of the bands, each at the middle of its band over the move
- * its outcome's `labeled` names.
- */
-function bandNames(layout: lengths.SharesLayout, shares: readonly number[][]): VNode {
-  return h('g', { class: 'sc-data-band-names' }, lengths.OUTCOMES.map(({ key, labeled, name }, kind) => {
-    const share = shares[labeled - 1]!
-    return h('text', {
-      class         : `sc-data-band-name sc-data-band-name-${key}`,
-      'text-anchor' : 'middle',
-      x             : numbers.tenth(lengths.moveX(layout, labeled, shares.length)),
-      y             : numbers.tenth(lengths.bandMiddle(kind, layout, share) + 4)
-    }, name)
-  }))
-}
-
-/**
- * Draws one band per result, every band but the one its corner mark lights
- * dimmed while one is lit.
- */
-function bands(
-  layout : lengths.SharesLayout,
-  lit    : string | null,
-  shares : readonly number[][]
-): VNode[] {
-  return lengths.OUTCOMES.map(({ key }, kind) => h('g', {
-    class: ['sc-data-band-group', dimmed(key, lit)]
-  }, [h('path', { class: `sc-data-band sc-data-band-${key}`, d: lengths.bandPath(shares, kind, layout) })]))
-}
-
-/**
- * Draws the bars beneath the bands, one per move, each as tall as the games
- * ending there against the move most games end at.
- */
-function countBars(layout: lengths.SharesLayout, totals: readonly number[]): VNode[] {
-  const plotted = lengths.CHART.plotted
-  const counts  = totals.slice(1, plotted + 1)
-  const peak    = Math.max(...counts)
-  const wide    = Math.max(1, layout.plot / plotted - 1)
-
-  return counts.map((games, index) => {
-    const tall = Math.max(1, Math.round(games / peak * layout.bars.height))
-    return h('rect', {
-      class  : 'sc-data-count',
-      height : tall,
-      width  : numbers.tenth(wide),
-      x      : numbers.tenth(lengths.moveX(layout, index + 1) - wide / 2),
-      y      : layout.bars.top + layout.bars.height - tall
-    })
-  })
-}
+const TONES = 'grid gap-2 '
+            + '[--sc-data-band-b:color-mix(in_oklab,var(--sc-data-black)_78%,var(--sc-data-page))] '
+            + '[--sc-data-band-d:var(--sc-data-draw)] '
+            + '[--sc-data-band-w:color-mix(in_oklab,var(--sc-data-ink)_6%,var(--sc-data-page))]'
 
 /**
  * Reads the shares the bands take and the games ending at each move from the
  * games ending in each result at each move.
  */
-function countsOf(endings: number[][]): Counts {
+function countsOf(endings: number[][]): shares.Counts {
   return { endings, shares: lengths.sharesOf(endings), totals: endings.map(ending => numbers.summed(ending)) }
-}
-
-/**
- * Draws the gridlines across the bands at each quarter of the games, each named
- * by its share at the left.
- */
-function gridlines(layout: lengths.SharesLayout): VNode[] {
-  return [0.25, 0.5, 0.75].flatMap(share => {
-    const y = Math.round(lengths.bandY(layout, share))
-    return [
-      h('rect', { class: 'sc-data-grid', height: 1, width: layout.plot, x: layout.left, y }),
-      h('text', {
-        class         : 'sc-data-axis',
-        'text-anchor' : 'end',
-        x             : layout.left - 6,
-        y             : y + 4
-      }, numbers.percent(share))
-    ]
-  })
-}
-
-/**
- * Draws the line at the move the chart follows and the thumb on it at the
- * middle of the drawn band, or of the band a corner mark lights.
- */
-function markers(
-  layout : lengths.SharesLayout,
-  lit    : string | null,
-  shares : readonly number[][],
-  shown  : number
-): VNode[] {
-  const share = shares[clamp(Math.round(shown), 1, lengths.CHART.plotted) - 1]!
-  const kind  = lengths.bandOf(lit ?? 'd')
-  const x     = lengths.moveX(layout, shown)
-  const y     = lengths.bandMiddle(kind, layout, share)
-
-  return [
-    moverLine(layout.bars.top + layout.bars.height - layout.bands.top, x, layout.bands.top),
-    h('i', {
-      class : 'sc-data-thumb',
-      style : { transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)` }
-    })
-  ]
-}
-
-/**
- * Draws the chart at its layout: the bands, their gridlines and names, the bars
- * beneath them, and the axis of moves, every band but the one a corner mark
- * lights dimmed while one is lit.
- */
-function sharesSvg(counts: Counts, layout: lengths.SharesLayout, lit: string | null): VNode {
-  const { bars, height, left, plot, width } = layout
-
-  return h('svg', {
-    'aria-hidden' : 'true',
-    class         : ['sc-data-svg', { 'sc-data-isolated': lit !== null }],
-    height        : height,
-    viewBox       : `0 0 ${width} ${height}`,
-    width         : width
-  }, [
-    ...bands(layout, lit, counts.shares),
-    ...gridlines(layout),
-    bandNames(layout, counts.shares),
-    h('text', { class: 'sc-data-axis sc-data-caption', x: left, y: bars.top - 5 }, CAPTION),
-    ...countBars(layout, counts.totals),
-    h('rect', { class: 'sc-data-base', height: 1, width: plot, x: left, y: bars.top + bars.height }),
-    ...moveTicks(layout, height - 6)
-  ])
 }
 
 /**
@@ -216,11 +90,11 @@ export const Results = defineComponent({
       big      : numbers.percent(lengths.drawnShares(counts.endings).short),
       readings : lengths.sharesReading(counts.endings, move.value),
       say      : lengths.sharesSummary(counts.endings)
-    }, () => h('div', { class: 'sc-data-shares' }, [
+    }, () => h('div', { class: TONES }, [
       legend(lit),
       h('div', {
         ...slider(move.value, counts.totals),
-        class           : 'sc-data-chart sc-data-results',
+        class           : [parts.CHART, 'cursor-crosshair touch-pan-y'],
         onKeydown       : keyed,
         onPointercancel : () => { dragging.value = false },
         onPointerdown   : pointed,
@@ -231,8 +105,8 @@ export const Results = defineComponent({
         style           : style.value,
         tabindex        : 0
       }, sized.value ? [
-        sharesSvg(counts, layout.value, lit.value),
-        ...markers(layout.value, lit.value, counts.shares, glide.shown.value)
+        shares.drawing(counts, layout.value, lit.value),
+        ...shares.markers(layout.value, lit.value, counts.shares, glide.shown.value)
       ] : [])
     ]))
   }

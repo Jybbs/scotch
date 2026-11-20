@@ -75,6 +75,21 @@ function useLines(chart: NodeRef): Lines {
   return { on, pen, toggle, weights }
 }
 
+/**
+ * A file's line, round at its ends and its joins.
+ */
+const PEN = 'fill-none [stroke-linecap:round] [stroke-linejoin:round]'
+
+/**
+ * A line in a switch's spark, holding its width as the spark stretches.
+ */
+const SPARK = `${PEN} [vector-effect:non-scaling-stroke]`
+
+/**
+ * The chart's labels, in the code face.
+ */
+const LABEL = 'fill-quiet font-code text-[11px] leading-normal font-medium normal-nums'
+
 function line(lines: Lines, d: string, index: number, klass: string, opacity = 1): VNode {
   const drawn = lines.pen.value[index]!
   return h('path', {
@@ -90,20 +105,27 @@ function plot(lines: Lines, column: number, width: number): VNode {
   const drawn = series.linesAt(width, lines.weights.value)
   return h('svg', {
     'aria-label' : 'Games by decade, one line per player file',
+    'class'      : 'block w-full overflow-visible',
     'height'     : series.CHART.height,
     'role'       : 'img',
     'viewBox'    : `0 0 ${width} ${series.CHART.height}`
   }, [
     ...drawn.rows.map(row => h('g', { style: { opacity: row.seen ? 1 : 0 } }, [
-      h('line', { class: 'sc-ref-row', x1: series.CHART.left, x2: width, y1: row.y, y2: row.y }),
-      h('text', { x: 0, y: row.y - 3 }, counted(row.label))
+      h('line', { class: 'stroke-rule stroke-1', x1: series.CHART.left, x2: width, y1: row.y, y2: row.y }),
+      h('text', { class: LABEL, x: 0, y: row.y - 3 }, counted(row.label))
     ])),
-    ...drawn.axis.map(tick => h('text', { 'text-anchor': tick.anchor, 'x': tick.x, 'y': series.CHART.height - 4 }, String(tick.label))),
-    ...drawn.ds.map((d, index) => line(lines, d, index, 'sc-ref-trace', lines.weights.value[index]!)),
+    ...drawn.axis.map(tick => h('text', {
+      'class'       : LABEL,
+      'text-anchor' : tick.anchor,
+      'x'           : tick.x,
+      'y'           : series.CHART.height - 4
+    }, String(tick.label))),
+    ...drawn.ds.map((d, index) =>
+      line(lines, d, index, `${PEN} [stroke-width:2.25]`, lines.weights.value[index]!)),
     column < 0
       ? null
       : h('line', {
-        class : 'sc-ref-hair',
+        class : 'stroke-ink stroke-1 opacity-55',
         x1    : drawn.xs(column),
         x2    : drawn.xs(column),
         y1    : series.CHART.top,
@@ -115,29 +137,48 @@ function plot(lines: Lines, column: number, width: number): VNode {
 function spark(lines: Lines, index: number): VNode {
   return h('svg', {
     'aria-hidden'         : 'true',
+    'class'               : 'mt-[3px] mb-0.5 block h-10 w-full overflow-visible',
     'preserveAspectRatio' : 'none',
     'viewBox'             : '0 0 100 40'
   }, [
-    ...SPARKS.flatMap((d, other) => other === index ? [] : [h('path', { class: 'sc-ref-other', d })]),
-    line(lines, SPARKS[index]!, index, 'sc-ref-spark')
+    ...SPARKS.flatMap((d, other) =>
+      other === index ? [] : [h('path', { class: `${SPARK} stroke-rule stroke-1`, d })]),
+    line(lines, SPARKS[index]!, index, `${SPARK} [stroke-width:2]`)
   ])
 }
 
 function switches(lines: Lines, column: number): VNode {
-  return h('div', { class: 'sc-ref-switches' }, series.FILES.map((file, index) => h('button', {
+  return h('div', {
+    class: 'grid grid-cols-5 gap-x-1.5 gap-y-2 in-data-narrow:grid-cols-6'
+  }, series.FILES.map((file, index) => h('button', {
     'aria-label'   : `${file.name}, ${file.token}, ${file.hex}`,
     'aria-pressed' : String(lines.on.value[index]),
-    'class'        : 'sc-ref-switch',
+    'class'        : [
+      'relative grid min-w-0 content-start gap-px pt-[9px] text-left transition-[opacity]',
+      'in-data-narrow:col-span-2 in-data-narrow:nth-[n+4]:col-span-3',
+      'before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-(--sc-ref-color)',
+      'before:[box-shadow:inset_0_0_0_1px_var(--sc-ref-color)] before:transition-[background-color]',
+      'aria-[pressed=false]:opacity-62 aria-[pressed=false]:before:bg-transparent'
+    ],
     'onClick'      : () => {
       lines.toggle(index)
     },
     'style'        : { '--sc-ref-color': file.hex },
     'type'         : 'button'
   }, [
-    h('b', file.name),
-    h('code', file.hex),
+    h('b', {
+      class: 'font-display text-[0.95rem]/[1.25] font-normal whitespace-nowrap normal-nums '
+           + 'in-aria-[pressed=false]:line-through'
+    }, file.name),
+    h('code', {
+      class: 'bg-transparent! p-0! font-code text-[0.625rem]/[1.45]! font-medium whitespace-nowrap '
+           + 'text-quiet! normal-nums'
+    }, file.hex),
     spark(lines, index),
-    h('em', figure(file, column))
+    h('em', {
+      class: 'p-0 font-code text-[0.69rem]/[1.45] font-medium whitespace-nowrap text-ink not-italic '
+           + 'normal-nums'
+    }, figure(file, column))
   ])))
 }
 
@@ -155,7 +196,7 @@ export const Series = defineComponent({
 
     return () => stage(chart, layout.value.narrow, [
       h('div', {
-        class          : 'sc-ref-chart',
+        class          : 'relative touch-pan-y',
         onPointerleave : () => {
           column.value = -1
         },

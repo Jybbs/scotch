@@ -46,7 +46,7 @@ export class SplitBoard {
   show(position: Position, how?: motion.How): void {
     motion.settleAll(this.#running)
     this.#pieces.place(placedOf(position), how, this.#running)
-    const landed = this.#board.querySelector<HTMLElement>('.sc-front-landed')!
+    const landed = this.#board.querySelector<HTMLElement>('[data-landed]')!
     const to     = position.to
     motion.moveNode(landed, how, this.#running, to === null ? { opacity: 0 } : {
       opacity   : 1,

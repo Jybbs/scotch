@@ -10,6 +10,6 @@ describe('REFERENCE_WIDGETS', () => {
     const widget = mount(defineComponent({ setup: () => () => h(REFERENCE_WIDGETS[name]!) }))
     await vi.dynamicImportSettled()
     await flushPromises()
-    expect(widget.find('.sc-ref').exists()).toBe(true)
+    expect(widget.element).toBeInstanceOf(HTMLDivElement)
   })
 })

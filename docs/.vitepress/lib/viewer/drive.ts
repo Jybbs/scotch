@@ -68,7 +68,7 @@ function answerKey(event: KeyboardEvent, viewer: Viewer): void {
   const target = event.target as HTMLElement
   if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
   if (target.matches('input, select, textarea')) return
-  const move    = target.closest<HTMLElement>('.sc-viewer-move')
+  const move    = target.closest<HTMLElement>('button[data-party]')
   const row     = { ArrowDown: 2, ArrowUp: -2 }[event.key]
   const control = controlOf(event.key)
   const key     = event.key.toLowerCase()
@@ -130,7 +130,7 @@ function moveBoards(figures: Pick<Parts, Party>, reach: Reach, viewer: Viewer): 
  */
 function refocus(from: HTMLElement): void {
   from.closest('[role="grid"]')
-    ?.querySelector<HTMLElement>(`.sc-viewer-move[data-party='${from.dataset.party}'][aria-current='step']`)
+    ?.querySelector<HTMLElement>(`button[data-party='${from.dataset.party}'][aria-current='step']`)
     ?.focus({ preventScroll: true })
 }
 

@@ -123,7 +123,11 @@ function handle({ drag, hold, seam }: Seam): VNode {
     'aria-valuemax'  : 100,
     'aria-valuemin'  : 0,
     'aria-valuenow'  : Math.round(seam.value / Math.max(1, hold.value?.offsetWidth ?? 1) * 100),
-    'class'          : 'sc-ref-seam',
+    'class'          : [
+      'absolute inset-y-0 -left-3 grid w-[25px] cursor-ew-resize touch-none justify-items-center',
+      'before:h-full before:w-[1.5px] before:bg-run',
+      'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-run'
+    ],
     'onKeydown'      : (event: KeyboardEvent) => {
       const move = ({ ArrowLeft: -16, ArrowRight: 16 } as Record<string, number>)[event.key]
       if (move === undefined) return
@@ -140,20 +144,27 @@ function handle({ drag, hold, seam }: Seam): VNode {
     'role'           : 'slider',
     'style'          : { transform: `translateX(${seam.value}px)` },
     'tabindex'       : 0
-  }, h('i'))
+  }, h('i', {
+    class: 'absolute top-1/2 -mt-2 size-[15px] bg-run [box-shadow:0_0_0_2px_var(--sc-page)] '
+         + '[transform:rotate(45deg)]'
+  }))
 }
 
 function pages(state: Seam): VNode {
   const { height, left, top, width } = state.ring.value
-  return h('div', { class: 'sc-ref-hold', ref: state.hold }, [
+  return h('div', { class: 'relative min-w-0 overflow-hidden', ref: state.hold }, [
     h('div', { ref: state.light }, [sheet('light')]),
     h('div', {
-      class : 'sc-ref-over',
+      class : 'absolute top-0 left-0 w-full',
       style : { clipPath: `inset(0 0 0 ${state.seam.value}px)` }
     }, [sheet('dark')]),
     h('i', {
       'aria-hidden' : 'true',
-      'class'       : 'sc-ref-outline',
+      'class'       : [
+        'pointer-events-none absolute top-0 left-0 rounded-[3px]',
+        '[box-shadow:0_0_0_1.5px_var(--sc-run),0_0_0_3.5px_var(--sc-page)]',
+        'transition-[transform,width,height,opacity] duration-glide'
+      ],
       'data-off'    : state.ringed.value ? undefined : '',
       'style'       : {
         height    : `${height}px`,
@@ -170,7 +181,11 @@ function chip({ at, pick }: Seam, index: number): VNode {
   return h('button', {
     'aria-current' : index === at.value ? 'step' : undefined,
     'aria-label'   : role,
-    'class'        : 'sc-ref-chip',
+    'class'        : [
+      'relative h-6 min-w-0 bg-[linear-gradient(90deg,var(--sc-ref-light)_50%,var(--sc-ref-dark)_50%)]',
+      '[box-shadow:inset_0_0_0_1px_var(--sc-rule)]',
+      'aria-[current]:z-1 aria-[current]:[box-shadow:0_0_0_2px_var(--sc-run),0_0_0_3px_var(--sc-page)]'
+    ],
     'onClick'      : () => {
       pick(index)
     },

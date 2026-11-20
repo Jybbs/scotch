@@ -6,8 +6,13 @@ import { stepped }             from '../../../lib/data/keys.ts'
 import * as numbers            from '../../../lib/data/numbers.ts'
 import * as parting            from '../../../lib/data/parting.ts'
 import { Corner }              from './corner.ts'
+import * as parts              from './parts.ts'
 import { Plate, axisLabel }    from './plate.ts'
 
+/**
+ * A label the chart sets beside a line, in the code face.
+ */
+const TAG = 'fill-(--sc-data-ink) font-code text-[0.62rem]/[normal] font-medium'
 /**
  * Every stored game's parting, which the chart draws.
  */
@@ -27,13 +32,17 @@ function bars(layout: parting.PartingLayout, lit: string | null, move: number): 
   return every.alone.map((_, at) => {
     const tall = Math.max(0.8, parting.aloneAt(every, at) / most * layout.strip)
     return h('rect', {
-      'class'  : ['sc-data-parting-bar', dimmed('alone', lit), { 'sc-data-on': at === move }],
-      'data-k' : 'alone',
-      'height' : numbers.tenth(tall),
-      'rx'     : 1,
-      'width'  : numbers.tenth(wide),
-      'x'      : numbers.tenth(parting.moveOn(layout, at) - wide / 2),
-      'y'      : numbers.tenth(layout.base - tall)
+      'class'    : 'fill-(--sc-data-bar) transition-[fill,opacity] '
+                 + 'duration-[var(--sc-duration-fade),var(--sc-duration-settle)] ease-glide '
+                 + 'data-off:opacity-22 data-on:fill-(--sc-data-ink)',
+      'data-k'   : 'alone',
+      'data-off' : dimmed('alone', lit),
+      'data-on'  : at === move ? '' : undefined,
+      'height'   : numbers.tenth(tall),
+      'rx'       : 1,
+      'width'    : numbers.tenth(wide),
+      'x'        : numbers.tenth(parting.moveOn(layout, at) - wide / 2),
+      'y'        : numbers.tenth(layout.base - tall)
     })
   })
 }
@@ -47,10 +56,21 @@ function cursor(layout: parting.PartingLayout, move: number): VNode[] {
   const y     = shareY(layout, parting.sharingAt(every, move))
   const right = move > 30
   return [
-    h('line', { class: 'sc-data-parting-cursor', x1: x, x2: x, y1: layout.top - 4, y2: layout.base }),
-    h('circle', { class: 'sc-data-parting-dot', cx: x, cy: y, r: 4.5 }),
+    h('line', {
+      class : 'stroke-(--sc-data-ink) stroke-1',
+      x1    : x,
+      x2    : x,
+      y1    : layout.top - 4,
+      y2    : layout.base
+    }),
+    h('circle', {
+      class : 'fill-(--sc-data-link) stroke-(--sc-data-page) stroke-2',
+      cx    : x,
+      cy    : y,
+      r     : 4.5
+    }),
     h('text', {
-      'class'       : 'sc-data-parting-tag',
+      'class'       : TAG,
       'text-anchor' : right ? 'end' : 'start',
       'x'           : x + (right ? -9 : 9),
       'y'           : Math.max(layout.top + 18, y - 9)
@@ -71,14 +91,16 @@ function curve(layout: parting.PartingLayout, lit: string | null): VNode[] {
   const foot  = [[parting.moveOn(layout, parting.LAST_MOVE), floor], [layout.left, floor]] as const
   return [
     h('path', {
-      'class'  : ['sc-data-parting-area', dimmed('sharing', lit)],
-      'd'      : numbers.pathThrough(points, foot),
-      'data-k' : 'sharing'
+      'class'    : [parts.DIM, 'fill-[color-mix(in_oklab,var(--sc-data-link)_16%,var(--sc-data-page))]'],
+      'd'        : numbers.pathThrough(points, foot),
+      'data-k'   : 'sharing',
+      'data-off' : dimmed('sharing', lit)
     }),
     h('path', {
-      'class'  : ['sc-data-parting-line', dimmed('sharing', lit)],
-      'd'      : numbers.pathThrough(points),
-      'data-k' : 'sharing'
+      'class'    : [parts.DIM, 'fill-none stroke-(--sc-data-link) stroke-2'],
+      'd'        : numbers.pathThrough(points),
+      'data-k'   : 'sharing',
+      'data-off' : dimmed('sharing', lit)
     })
   ]
 }
@@ -93,11 +115,17 @@ function frame(layout: parting.PartingLayout): VNode[] {
     ...[0, 0.5, 1].flatMap(share => {
       const y = shareY(layout, share)
       return [
-        h('rect', { class: 'sc-data-grid', height: 1, width: layout.plot, x: layout.left, y }),
+        h('rect', { class: 'fill-(--sc-data-rule)', height: 1, width: layout.plot, x: layout.left, y }),
         axisLabel(numbers.percent(share), layout.left - 6, y + 3)
       ]
     }),
-    h('rect', { class: 'sc-data-base', height: 1, width: layout.plot, x: layout.left, y: layout.base }),
+    h('rect', {
+      class  : 'fill-(--sc-data-ink)',
+      height : 1,
+      width  : layout.plot,
+      x      : layout.left,
+      y      : layout.base
+    }),
     ...parting.MOVE_TICKS.map(move => axisLabel(String(move), parting.moveOn(layout, move), foot, 'middle')),
     axisLabel('move', layout.left - 12, foot)
   ]
@@ -109,9 +137,15 @@ function frame(layout: parting.PartingLayout): VNode[] {
  */
 function half(layout: parting.PartingLayout, lit: string | null): VNode {
   const x = numbers.tenth(parting.moveOn(layout, every.half))
-  return h('g', { 'class': ['sc-data-parting-half', dimmed('half', lit)], 'data-k': 'half' }, [
-    h('line', { x1: x, x2: x, y1: layout.top, y2: layout.base }),
-    h('text', { x: x + 6, y: layout.top + 4 }, `half alone by move ${every.half}`)
+  return h('g', { 'class': parts.DIM, 'data-k': 'half', 'data-off': dimmed('half', lit) }, [
+    h('line', {
+      class : 'stroke-(--sc-data-ink) [stroke-dasharray:3_3]',
+      x1    : x,
+      x2    : x,
+      y1    : layout.top,
+      y2    : layout.base
+    }),
+    h('text', { class: TAG, x: x + 6, y: layout.top + 4 }, `half alone by move ${every.half}`)
   ])
 }
 
@@ -131,7 +165,7 @@ function plot(
     'aria-valuemin'  : 0,
     'aria-valuenow'  : move,
     'aria-valuetext' : parting.partingSentence(move),
-    'class'          : 'sc-data-svg',
+    'class'          : [parts.SVG, 'cursor-crosshair touch-pan-y'],
     'height'         : layout.height,
     'role'           : 'slider',
     'tabindex'       : 0,
@@ -188,13 +222,15 @@ export const SharedParting = defineComponent({
         ['Half alone by', `move ${every.half}`]
       ],
       say: parting.partingSentence(move.value)
-    }, () => h('div', { class: 'sc-data-parting' }, [
+    }, () => h('div', {
+      class: 'grid gap-2 [--sc-data-bar:color-mix(in_oklab,var(--sc-data-ink)_45%,var(--sc-data-page))]'
+    }, [
       h(Corner, {
         'items'        : parting.PARTING_MARKS,
         'lit'          : lit.value,
         'onUpdate:lit' : (key: string | null) => { lit.value = key }
       }),
-      h('div', { class: 'sc-data-chart', ref: chart, style: style.value }, sized.value
+      h('div', { class: parts.CHART, ref: chart, style: style.value }, sized.value
         ? [plot(calls, layout.value, lit.value, move.value)]
         : [])
     ]))

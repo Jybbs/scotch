@@ -28,30 +28,33 @@ function at(path: string): files.Entry {
 describe('Rail', () => {
   it('names a player over its games, its section, path, and decades, a cell per decade, and its twin', () => {
     const rail = railed('players/Bird.zip')
-    expect(rail.find('.sc-data-rail-name').text()).toBe('Henry Bird')
-    expect(rail.find('.sc-data-rail-top b').text()).toBe('8held')
-    expect(rail.find('.sc-data-rail-sub').text()).toBe('Playersplayers/Bird.zip1850s–1880s')
-    expect(rail.findAll('.sc-data-rail-cells i')).toHaveLength(decades.length)
-    expect(rail.findAll('.sc-data-rail-scale span').map(span => span.text())).toEqual(['1850s', '1880s'])
-    expect(rail.find('.sc-data-rail-tab').text()).toBe('Also underOpeningsopenings/Bird.zip40 held')
+    expect(rail.find('p').text()).toBe('Henry Bird')
+    expect(rail.find('b').text()).toBe('8held')
+    expect(rail.get('code').element.parentElement!.textContent).toBe('Playersplayers/Bird.zip1850s–1880s')
+    expect(rail.findAll('i')).toHaveLength(decades.length)
+    expect(rail.findAll('span[data-side]').map(span => span.text())).toEqual(['1850s', '1880s'])
+    expect(rail.element.lastElementChild!.textContent).toBe('Also underOpeningsopenings/Bird.zip40 held')
+  })
+
+  it('keeps a file’s title on one line, clipped at an ellipsis, over the doc column’s text-wrap', () => {
+    expect(railed('players/Bird.zip').get('p').classes()).toContain('whitespace-nowrap!')
   })
 
   it('sets the first decade left of its cell and the last right of its where the two sit close', () => {
-    const rail = railed('players/Carlsen.zip')
-    expect(rail.findAll('.sc-data-rail-scale span').map(span => span.classes()))
-      .toEqual([['sc-data-before'], ['sc-data-after']])
+    const sides = railed('players/Carlsen.zip').findAll('span[data-side]')
+    expect(sides.map(span => span.attributes('data-side'))).toEqual(['before', 'after'])
   })
 
   it('names a file no other section holds as only under its own', () => {
-    expect(railed('events/Linares1994.pgn').find('.sc-data-rail-tab').text()).toBe('Only underEvents')
+    expect(railed('events/Linares1994.pgn').element.lastElementChild!.textContent).toBe('Only underEvents')
   })
 
   it('sets an opening’s moves in place of the cells, over its place among the Openings', () => {
     const rail = railed('openings/Najdorf.zip')
-    expect(rail.find('.sc-data-rail-cells').exists()).toBe(false)
-    expect(rail.findAll('.sc-data-rail-moves code').map(move => move.text()))
-      .toEqual(['1.e4', 'c5', '2.Nf3', 'd6'])
-    expect(rail.find('.sc-data-rank').text()).toBe('No. 1 of 5 by games held')
+    const moves = rail.get('code').element.parentElement!.nextElementSibling!.children
+    expect(rail.find('i').exists()).toBe(false)
+    expect([...moves].map(move => move.textContent)).toEqual(['1.e4', 'c5', '2.Nf3', 'd6'])
+    expect(rail.find('span[data-side]').text()).toBe('No. 1 of 5 by games held')
   })
 
   it('lifts its name, its sub line, and its tab into place on a new file, one after the other', async () => {
@@ -69,6 +72,6 @@ describe('Rail', () => {
     const rail = railed('players/Bird.zip')
     await rail.setProps({ entry: at('players/Morphy.zip') })
     expect(Element.prototype.animate).not.toHaveBeenCalled()
-    expect(rail.find('.sc-data-rail-top b').text()).toBe('10held')
+    expect(rail.find('b').text()).toBe('10held')
   })
 })

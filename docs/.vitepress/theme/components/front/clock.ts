@@ -2,6 +2,15 @@ import { clamp }                                          from '@vueuse/core'
 import { type PropType, type VNode, defineComponent, h } from 'vue'
 
 /**
+ * The clock line's track, a hairline the ticks stand on.
+ */
+const CLOCK = [
+  'relative h-[34px] cursor-pointer touch-none before:absolute before:inset-[10px_0_auto] before:h-px',
+  'before:bg-rule',
+  'focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4',
+  'focus-visible:outline-(--sc-entry)'
+]
+/**
  * The keys the clock line answers, each naming the step it moves to from the
  * step in view and the last step, following the slider pattern's arrows,
  * Home, and End.
@@ -13,6 +22,35 @@ const CLOCK_KEYS: Readonly<Record<string, (at: number, last: number) => number>>
   ArrowUp    : at => at + 1,
   End        : (_, last) => last,
   Home       : () => 0
+}
+
+/**
+ * Draws the clock line's marks: a tick per step, those up to `at` lit, the bar
+ * of the stretch played so far, and the chip naming the step in view.
+ */
+function marks(at: number, names: readonly string[]): VNode[] {
+  const last = names.length - 1
+  return [
+    ...names.map((_, step) => h('i', {
+      'class'   : 'absolute top-1.5 h-[9px] w-px bg-rule data-on:bg-(--sc-entry)',
+      'data-on' : step <= at ? '' : undefined,
+      'style'   : { left: `${last ? step / last * 100 : 0}%` }
+    })),
+    h('b', {
+      class: [
+        'absolute top-[9px] left-0 h-[3px] w-(--sc-front-clock) rounded-[2px] bg-(--sc-entry)',
+        'transition-[width] duration-settle'
+      ]
+    }),
+    h('span', {
+      class: [
+        'absolute top-[18px] left-(--sc-front-clock) -translate-x-(--sc-front-clock) rounded-[3px] bg-page',
+        'px-1.5 py-[3px] [box-shadow:inset_0_0_0_1px_var(--sc-rule)]',
+        'font-code text-[0.65rem]/none font-semibold tracking-[0.1em] whitespace-nowrap text-ink uppercase',
+        'transition-[left,translate] duration-settle'
+      ]
+    }, names[at])
+  ]
 }
 
 /**
@@ -50,7 +88,7 @@ export const Clock = defineComponent({
         'aria-valuemin'  : '1',
         'aria-valuenow'  : String(props.at + 1),
         'aria-valuetext' : props.names[props.at],
-        'class'          : 'sc-front-clock',
+        'class'          : CLOCK,
         'role'           : 'slider',
         'style'          : { '--sc-front-clock': share },
         'tabindex'       : '0',
@@ -76,14 +114,7 @@ export const Clock = defineComponent({
         'onPointerup': () => {
           dragging = false
         }
-      }, [
-        ...props.names.map((_, step) => h('i', {
-          'data-on' : step <= props.at ? '' : undefined,
-          'style'   : { left: `${last ? step / last * 100 : 0}%` }
-        })),
-        h('b'),
-        h('span', props.names[props.at])
-      ])
+      }, marks(props.at, props.names))
     }
   }
 })

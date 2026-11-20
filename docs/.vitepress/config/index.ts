@@ -5,7 +5,7 @@ import * as chrome                from '../lib/config/chrome.ts'
 import * as head                  from '../lib/config/head.ts'
 import { buildNav, buildSidebar } from '../lib/config/navigation.ts'
 import { pageData }               from '../lib/config/page-data.ts'
-import { identityPlugin }         from '../lib/identity/sheet.ts'
+import { sitePlugins }            from '../lib/config/plugins.ts'
 import { markdownRules }          from '../lib/markdown/rules.ts'
 import * as manifest              from '../lib/site/manifest.ts'
 import * as paths                 from '../lib/site/paths.ts'
@@ -41,7 +41,7 @@ export default defineConfig<chrome.SiteTheme>({
 
   vite: {
     css       : { transformer: 'lightningcss' },
-    plugins   : [identityPlugin()],
+    plugins   : sitePlugins(),
     publicDir : paths.publicDir(import.meta.url)
   }
 })

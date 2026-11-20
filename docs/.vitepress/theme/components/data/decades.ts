@@ -4,6 +4,7 @@ import { type VNode, computed, defineComponent, h, shallowRef } from 'vue'
 import { pointerAt, useChart } from '../../../lib/data/chart.ts'
 import * as decades            from '../../../lib/data/decades.ts'
 import { stepped }             from '../../../lib/data/keys.ts'
+import * as parts              from './parts.ts'
 import { Plate }               from './plate.ts'
 
 /**
@@ -12,8 +13,11 @@ import { Plate }               from './plate.ts'
 function cursor(layout: decades.StripLayout, picked: number | null): VNode {
   const at = picked ?? 0
   return h('div', {
-    class : ['sc-data-cursor', { 'sc-data-on': picked !== null }],
-    style : {
+    'class'   : 'pointer-events-none absolute left-0 '
+              + 'bg-[color-mix(in_oklab,var(--sc-data-link)_22%,transparent)] opacity-0 transition-opacity '
+              + 'duration-fade ease-glide will-change-[transform,opacity] data-on:opacity-100',
+    'data-on' : picked === null ? undefined : '',
+    'style'   : {
       height    : `${layout.band.height}px`,
       top       : `${layout.band.top}px`,
       transform : `translate3d(${layout.starts[at]}px, 0, 0)`,
@@ -37,7 +41,7 @@ function stripSvg(strip: decades.Strip, layout: decades.StripLayout): VNode {
 
   return h('svg', {
     'aria-hidden' : 'true',
-    class         : 'sc-data-svg',
+    class         : parts.SVG,
     height        : height,
     viewBox       : `0 0 ${width} ${height}`,
     width         : width
@@ -50,26 +54,26 @@ function stripSvg(strip: decades.Strip, layout: decades.StripLayout): VNode {
       y      : band.top
     })),
     ...[first, third].map(index => h('rect', {
-      class  : 'sc-data-rule',
+      class  : 'fill-(--sc-data-ink)',
       height : band.height + 8,
       width  : 1,
       x      : decades.cellMiddle(layout, index),
       y      : band.top - 8
     })),
     h('rect', {
-      class  : 'sc-data-median',
+      class  : 'fill-(--sc-data-link)',
       height : band.height + 6,
       width  : 1,
       x      : decades.cellMiddle(layout, median),
       y      : band.top - 6
     }),
     h('path', {
-      class     : 'sc-data-pawn',
+      class     : 'fill-(--sc-data-link)',
       d         : decades.pawn,
       transform : decades.pawnAt(decades.cellMiddle(layout, median) + 0.5, band.top - 8)
     }),
     ...decades.stripTicks(strip).map(index => h('text', {
-      class         : 'sc-data-axis',
+      class         : parts.AXIS,
       'text-anchor' : 'middle',
       x             : decades.cellMiddle(layout, index) + 0.5,
       y             : height - 4
@@ -116,7 +120,7 @@ export const Decades = defineComponent({
       'aria-valuemin'  : 0,
       'aria-valuenow'  : focused.value,
       'aria-valuetext' : decades.stripReading(strip, focused.value),
-      class            : 'sc-data-chart sc-data-decades',
+      class            : [parts.CHART, 'touch-pan-y'],
       onBlur           : () => { picked.value = null },
       onKeydown        : keyed,
       onPointerdown    : pointed,

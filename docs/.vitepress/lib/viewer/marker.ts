@@ -19,9 +19,9 @@ export interface Drawn {
  */
 function drawThreads(svg: SVGSVGElement, threads: Threads): void {
   for (const party of PARTIES) {
-    svg.querySelector(`.sc-viewer-thread[data-game='${party}']`)!.setAttribute('d', threads.pathOf(party))
+    svg.querySelector(`path[data-game='${party}']`)!.setAttribute('d', threads.pathOf(party))
   }
-  const band = svg.querySelector('.sc-viewer-bar')!
+  const band = svg.querySelector('[data-bar]')!
   const area = threads.band
   band.setAttribute('opacity', area ? '1' : '0')
   for (const [name, value] of Object.entries(area ?? {})) band.setAttribute(name, String(value))
@@ -100,7 +100,7 @@ export class SheetMarker {
   layout(): void {
     const { rows, svg } = this.#drawn
     const first         = rows.querySelector<HTMLElement>('[role="row"]')
-    const gutter        = first?.querySelector<HTMLElement>('.sc-viewer-gutter')
+    const gutter        = first?.querySelector<HTMLElement>('[data-gutter]')
     if (!this.#shown || !first?.offsetHeight || !gutter) return
     const { loaded, sheet } = this.#shown
     this.#threads           = new Threads({
@@ -187,7 +187,7 @@ export class SheetMarker {
   #listen(): void {
     const options = { signal: this.#abort.signal }
     const enter   = (event: Event): void => {
-      const move = (event.target as Element).closest<HTMLElement>('.sc-viewer-move')
+      const move = (event.target as Element).closest<HTMLElement>('button[data-party]')
       if (!move) return
       this.#hovered = true
       this.#pair(move)
@@ -220,8 +220,8 @@ export class SheetMarker {
    */
   #ring(glide: boolean): void {
     if (!this.#threads || !this.#shown) return
-    const rings = this.#drawn.svg.querySelector<SVGGElement>('.sc-viewer-rings')!
-    rings.classList.toggle('sc-viewer-gliding', glide)
+    const rings = this.#drawn.svg.querySelector<SVGGElement>('[data-rings]')!
+    rings.toggleAttribute('data-gliding', glide)
     for (const party of PARTIES) {
       const ring           = rings.querySelector<SVGGElement>(`[data-game='${party}']`)!
       const { x, y }       = this.#threads.ringAt(party, this.#cursor)
