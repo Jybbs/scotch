@@ -20,11 +20,14 @@ pub enum Turn {
     Null,
 }
 
-/// A position and the castling rules it is read under.
+/// A position, the castling rules it is read under, and the clocks of the
+/// position it was set up from.
 #[derive(Clone, Debug)]
 pub struct Board {
     /// The position.
     pub position: Chess,
+    /// The clocks of the position the board was set up from.
+    clocks: fens::Clocks,
 }
 
 impl Board {
@@ -36,7 +39,10 @@ impl Board {
     /// or a message naming a position python-chess sets up and no legal
     /// game reaches, such as one with no king.
     pub fn set_up(fen: Option<&str>, rules: Rules) -> Result<Board, String> {
-        let setup = fen.map_or_else(|| Ok(Setup::initial()), fens::read)?;
+        let (setup, clocks) = match fen {
+            None => (Setup::initial(), fens::Clocks::initial()),
+            Some(fen) => fens::read(fen)?,
+        };
         let mode = match rules {
             Rules::Chess960 => CastlingMode::Chess960,
             _ => CastlingMode::detect(&setup),
@@ -49,26 +55,27 @@ impl Board {
                     fens::repr(fen.unwrap_or_default())
                 )
             })?,
+            clocks,
         })
     }
 
     /// Writes the position in FEN as python-chess's `Board.fen` does, its
     /// castling rights in X-FEN and its en passant square only where a
-    /// legal capture reaches it.
-    pub fn fen(&self) -> String {
+    /// legal capture reaches it, or returns the message Python's `str` raises
+    /// for a clock past the digits it writes.
+    pub fn fen(&self) -> Result<String, String> {
         let pos = &self.position;
         let castling = fens::castling(pos);
         let ep = pos
             .ep_square(EnPassantMode::Legal)
             .map_or_else(|| "-".to_owned(), |square| square.to_string());
 
-        format!(
-            "{} {} {castling} {ep} {} {}",
+        Ok(format!(
+            "{} {} {castling} {ep} {}",
             pos.board(),
             pos.turn().char(),
-            pos.halfmoves(),
-            pos.fullmoves()
-        )
+            self.clocks.written(pos)?
+        ))
     }
 
     /// Sets up the position a mainline starts from, under the rules its
@@ -240,7 +247,7 @@ mod tests {
     use super::*;
 
     fn set_up(fen: &str) -> Result<String, String> {
-        Board::set_up(Some(fen), Rules::Standard).map(|board| board.fen())
+        Board::set_up(Some(fen), Rules::Standard).and_then(|board| board.fen())
     }
 
     #[test]
@@ -259,8 +266,38 @@ mod tests {
                 "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3",
                 "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3",
             ),
+            (
+                "4k3/8/8/8/8/8/8/4K3 w - - ٣ ٠",
+                "4k3/8/8/8/8/8/8/4K3 w - - 3 1",
+            ),
+            (
+                "4k3/8/8/8/8/8/8/4K3 w - - 4294967296 99999999999999999999",
+                "4k3/8/8/8/8/8/8/4K3 w - - 4294967296 99999999999999999999",
+            ),
         ] {
             assert_eq!(set_up(fen), Ok(written.to_owned()), "{fen}");
+        }
+    }
+
+    #[test]
+    fn a_clock_past_a_u32_counts_each_ply_until_a_pawn_move_resets_it() {
+        let mut board = Board::set_up(
+            Some("4k3/4p3/8/8/8/8/8/4K3 b - - 18446744073709551615 9223372036854775808"),
+            Rules::Standard,
+        )
+        .unwrap();
+
+        for (uci, clocks) in [
+            ("e8d8", "18446744073709551616 9223372036854775809"),
+            ("0000", "18446744073709551617 9223372036854775809"),
+            ("e7e5", "0 9223372036854775810"),
+            ("e1e2", "1 9223372036854775810"),
+        ] {
+            assert!(board.take(board.named(uci).unwrap()), "{uci}");
+            assert!(
+                board.fen().unwrap().ends_with(&format!(" {clocks}")),
+                "{uci}"
+            );
         }
     }
 
@@ -305,6 +342,10 @@ mod tests {
                 "half-move clock cannot be negative: '8/8/8/8/8/8/8/8 w - - -1'",
             ),
             (
+                "8/8/8/8/8/8/8/8 w - - 0 -٣",
+                "fullmove number cannot be negative: '8/8/8/8/8/8/8/8 w - - 0 -٣'",
+            ),
+            (
                 "8/8/8/8/8/8/8/8 w - - 0 1 x",
                 "fen string has more parts than expected: '8/8/8/8/8/8/8/8 w - - 0 1 x'",
             ),
@@ -319,13 +360,13 @@ mod tests {
 
         assert!(board.pass());
         assert_eq!(
-            board.fen(),
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 1 1"
+            board.fen().as_deref(),
+            Ok("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 1 1")
         );
         assert!(board.pass());
         assert_eq!(
-            board.fen(),
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 2 2"
+            board.fen().as_deref(),
+            Ok("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 2 2")
         );
     }
 
@@ -367,8 +408,8 @@ mod tests {
         assert!(matches!(board.named("0000"), Some(Turn::Null)));
         assert!(board.take(board.named("e2e4").unwrap()));
         assert_eq!(
-            board.fen(),
-            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+            board.fen().as_deref(),
+            Ok("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1")
         );
     }
 

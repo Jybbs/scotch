@@ -1,5 +1,6 @@
 jobs:
   check:
+    if: ${{ !github.event.pull_request.draft }}
     name: ${{ matrix.name }}
     runs-on: ubuntu-26.04
     steps:
@@ -23,7 +24,7 @@ jobs:
             task: py:coverage
             tools: python uv
   scoresheet:
-    if: always()
+    if: ${{ always() && !github.event.pull_request.draft }}
     name: 🖋️ Scoresheet
     needs: check
     runs-on: ubuntu-26.04
@@ -42,4 +43,9 @@ on:
       - '!docs/.vitepress/**'
       - '!docs/pages/**'
       - '!docs/public/**'
+    types:
+      - opened
+      - ready_for_review
+      - reopened
+      - synchronize
   workflow_dispatch:

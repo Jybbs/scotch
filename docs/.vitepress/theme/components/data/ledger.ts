@@ -37,11 +37,12 @@ const SEGMENT = [
   'data-[k=variant]:[--sc-data-mark:var(--sc-data-variant)]'
 ]
 /**
- * The count a segment names, hidden where the segment runs too narrow to hold
- * it, and set in the ink on a chip of the repeats' tone over the hatch of the
- * variants.
+ * The count a segment names, set in the ink on a chip of the repeats' tone over
+ * the hatch of the variants. A segment hides its count while narrower than the
+ * widest label and chip the ledger draws, each glyph taking 0.66em and each
+ * label its padding, with that width rounded up to a tenth of an em.
  */
-const SPAN = 'block overflow-hidden whitespace-nowrap @max-[12em]:invisible'
+const SPAN = 'block overflow-hidden whitespace-nowrap @max-[13.6em]:invisible'
 
 /**
  * Draws one section's bar of the games its files hold, a segment per kind as

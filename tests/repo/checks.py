@@ -21,6 +21,7 @@ from scotch.repo.checks  import (
     Check,
     CommandCheck,
     ContributingCheck,
+    DraftCheck,
     ExactPinCheck,
     FilterCheck,
     GateCheck,
@@ -309,6 +310,129 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 "The gate `scoresheet` does not wait for `kit`"
             )],
             id = "ungated-job"
+        ),
+        param(
+            GateCheck,
+            [(
+                ".github/workflows/ci.yml", "${{ always() && !github",
+                "${{ !cancelled() && !github"
+            )],
+            [(
+                ".github/workflows/ci.yml", None,
+                "The gate `scoresheet` does not run under `always()`"
+            )],
+            id = "guarded-gate-off-always"
+        ),
+        param(
+            DraftCheck,
+            [(".github/workflows/ci.yml", "      - ready_for_review\n", "")],
+            [(
+                ".github/workflows/ci.yml",
+                None,
+                "The `pull_request` trigger leaves out the `ready_for_review` "
+                "activity type"
+            )],
+            id = "ready-for-review-left-out"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml",
+                "    types:\n" + "".join(
+                    f"      - {kind}\n" for kind in sorted(DraftCheck.types)
+                ),
+                ""
+            )],
+            [
+                (
+                    ".github/workflows/ci.yml", None,
+                    f"The `pull_request` trigger leaves out the `{kind}` activity type"
+                )
+                for kind in sorted(DraftCheck.types)
+            ],
+            id = "default-types"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/site.yml",
+                "  press:\n    if: ${{ !github.event.pull_request.draft }}\n",
+                "  press:\n"
+            )],
+            [(
+                ".github/workflows/site.yml",
+                None,
+                "The job `press` does not skip a draft under "
+                "`!github.event.pull_request.draft`"
+            )],
+            id = "unguarded-row"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/site.yml",
+                "  press:\n    if: ${{ !github.event.pull_request.draft }}\n",
+                (
+                    "  press:\n    if: ${{ always() && "
+                    "!github.event.pull_request.draft }}\n"
+                )
+            )],
+            [(
+                ".github/workflows/site.yml",
+                None,
+                "The job `press` does not skip a draft under "
+                "`!github.event.pull_request.draft`"
+            )],
+            id = "row-guard-joined-to-always"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml",
+                "  check:\n    if: ${{ !github.event.pull_request.draft }}\n",
+                "  check:\n"
+            )],
+            [(
+                ".github/workflows/ci.yml",
+                None,
+                "The job `check` does not skip a draft under "
+                "`!github.event.pull_request.draft`"
+            )],
+            id = "unguarded-first-row"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml",
+                "if: ${{ always() && !github.event.pull_request.draft }}",
+                "if: always()"
+            )],
+            [(
+                ".github/workflows/ci.yml",
+                None,
+                "The job `scoresheet` does not skip a draft under "
+                "`always() && !github.event.pull_request.draft`"
+            )],
+            id = "gate-on-always-alone"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml", "      - synchronize\n",
+                "      - synchronize\n      - labeled\n"
+            )],
+            [],
+            id = "extra-type-kept"
+        ),
+        param(
+            DraftCheck,
+            [(
+                ".github/workflows/ci.yml",
+                "if: ${{ always() && !github.event.pull_request.draft }}",
+                "if: always() && !github.event.pull_request.draft"
+            )],
+            [],
+            id = "unwrapped-gate-guard-kept"
         ),
         param(
             ContributingCheck,

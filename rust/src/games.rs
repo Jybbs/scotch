@@ -7,6 +7,8 @@
 //! game whole, and text past the first game holding no tag pair yields no
 //! game.
 
+use core::convert::identity;
+
 use shakmaty::uci::UciMove;
 
 use crate::{
@@ -349,7 +351,9 @@ impl Mainline {
                 Ok(uci.to_string())
             }
             Ok(Reading::Null) if board.pass() => Ok(UciMove::Null.to_string()),
-            Ok(Reading::Null) => Err(format!("illegal san: '{token}' in {}", board.fen())),
+            Ok(Reading::Null) => Err(board
+                .fen()
+                .map_or_else(identity, |fen| format!("illegal san: '{token}' in {fen}"))),
             Err(error) => Err(error),
         };
 
