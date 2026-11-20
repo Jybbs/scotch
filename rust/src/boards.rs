@@ -20,11 +20,14 @@ pub enum Turn {
     Null,
 }
 
-/// A position and the castling rules it is read under.
+/// A position, the castling rules it is read under, and the clocks of the
+/// position it was set up from.
 #[derive(Clone, Debug)]
 pub struct Board {
     /// The position.
     pub position: Chess,
+    /// The clocks of the position the board was set up from.
+    clocks: fens::Clocks,
 }
 
 impl Board {
@@ -36,7 +39,10 @@ impl Board {
     /// or a message naming a position python-chess sets up and no legal
     /// game reaches, such as one with no king.
     pub fn set_up(fen: Option<&str>, rules: Rules) -> Result<Board, String> {
-        let setup = fen.map_or_else(|| Ok(Setup::initial()), fens::read)?;
+        let (setup, clocks) = match fen {
+            None => (Setup::initial(), fens::Clocks::initial()),
+            Some(fen) => fens::read(fen)?,
+        };
         let mode = match rules {
             Rules::Chess960 => CastlingMode::Chess960,
             _ => CastlingMode::detect(&setup),
@@ -49,6 +55,7 @@ impl Board {
                     fens::repr(fen.unwrap_or_default())
                 )
             })?,
+            clocks,
         })
     }
 
@@ -63,11 +70,10 @@ impl Board {
             .map_or_else(|| "-".to_owned(), |square| square.to_string());
 
         format!(
-            "{} {} {castling} {ep} {} {}",
+            "{} {} {castling} {ep} {}",
             pos.board(),
             pos.turn().char(),
-            pos.halfmoves(),
-            pos.fullmoves()
+            self.clocks.written(pos)
         )
     }
 
@@ -259,8 +265,35 @@ mod tests {
                 "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3",
                 "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3",
             ),
+            (
+                "4k3/8/8/8/8/8/8/4K3 w - - ٣ ٠",
+                "4k3/8/8/8/8/8/8/4K3 w - - 3 1",
+            ),
+            (
+                "4k3/8/8/8/8/8/8/4K3 w - - 4294967296 99999999999999999999",
+                "4k3/8/8/8/8/8/8/4K3 w - - 4294967296 99999999999999999999",
+            ),
         ] {
             assert_eq!(set_up(fen), Ok(written.to_owned()), "{fen}");
+        }
+    }
+
+    #[test]
+    fn a_clock_past_a_u32_counts_each_ply_until_a_pawn_move_resets_it() {
+        let mut board = Board::set_up(
+            Some("4k3/4p3/8/8/8/8/8/4K3 b - - 18446744073709551615 9223372036854775808"),
+            Rules::Standard,
+        )
+        .unwrap();
+
+        for (uci, clocks) in [
+            ("e8d8", "18446744073709551616 9223372036854775809"),
+            ("0000", "18446744073709551617 9223372036854775809"),
+            ("e7e5", "0 9223372036854775810"),
+            ("e1e2", "1 9223372036854775810"),
+        ] {
+            assert!(board.take(board.named(uci).unwrap()), "{uci}");
+            assert!(board.fen().ends_with(&format!(" {clocks}")), "{uci}");
         }
     }
 
@@ -303,6 +336,10 @@ mod tests {
             (
                 "8/8/8/8/8/8/8/8 w - - -1",
                 "half-move clock cannot be negative: '8/8/8/8/8/8/8/8 w - - -1'",
+            ),
+            (
+                "8/8/8/8/8/8/8/8 w - - 0 -٣",
+                "fullmove number cannot be negative: '8/8/8/8/8/8/8/8 w - - 0 -٣'",
             ),
             (
                 "8/8/8/8/8/8/8/8 w - - 0 1 x",

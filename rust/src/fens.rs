@@ -3,7 +3,7 @@
 //! as its `castling_xfen` writes them, each message worded as python-chess
 //! words it.
 
-use core::{fmt::Write, num::NonZeroU32};
+use core::fmt::Write;
 
 use shakmaty::{
     Bitboard, Board as Placement, Chess, Color, File, Piece, Position, Rank, Role, Setup, Square,
@@ -11,10 +11,69 @@ use shakmaty::{
 
 use crate::lines::is_space;
 
+/// The most digits Python's `int` reads from a string, the default of
+/// `sys.get_int_max_str_digits`.
+const DIGITS: usize = 4300;
+
+/// The first code point of each run of ten characters with the `Nd`
+/// property in Unicode 17, the version Python 3.15's `unicodedata` reads.
+const ZEROS: [u32; 77] = [
+    0x30, 0x660, 0x6f0, 0x7c0, 0x966, 0x9e6, 0xa66, 0xae6, 0xb66, 0xbe6, 0xc66, 0xce6, 0xd66,
+    0xde6, 0xe50, 0xed0, 0xf20, 0x1040, 0x1090, 0x17e0, 0x1810, 0x1946, 0x19d0, 0x1a80, 0x1a90,
+    0x1b50, 0x1bb0, 0x1c40, 0x1c50, 0xa620, 0xa8d0, 0xa900, 0xa9d0, 0xa9f0, 0xaa50, 0xabf0, 0xff10,
+    0x104a0, 0x10d30, 0x10d40, 0x11066, 0x110f0, 0x11136, 0x111d0, 0x112f0, 0x11450, 0x114d0,
+    0x11650, 0x116c0, 0x116d0, 0x116da, 0x11730, 0x118e0, 0x11950, 0x11bf0, 0x11c50, 0x11d50,
+    0x11da0, 0x11de0, 0x11f50, 0x16130, 0x16a60, 0x16ac0, 0x16b50, 0x16d70, 0x1ccf0, 0x1d7ce,
+    0x1d7d8, 0x1d7e2, 0x1d7ec, 0x1d7f6, 0x1e140, 0x1e2f0, 0x1e4f0, 0x1e5f1, 0x1e950, 0x1fbf0,
+];
+
+/// The half-move clock and fullmove number of a position a board is set up
+/// from, each in the ASCII digits python-chess's `Board.fen` writes, beside
+/// the side to move.
+#[derive(Clone, Debug)]
+pub struct Clocks {
+    /// The half-move clock.
+    halfmoves: String,
+    /// The fullmove number.
+    fullmoves: String,
+    /// The side to move.
+    turn: Color,
+}
+
+impl Clocks {
+    /// Returns the clocks of the standard starting position.
+    pub fn initial() -> Clocks {
+        Clocks {
+            halfmoves: "0".to_owned(),
+            fullmoves: "1".to_owned(),
+            turn: Color::White,
+        }
+    }
+
+    /// Writes the half-move clock and fullmove number of `pos` as
+    /// python-chess's `Board.fen` writes them, where `pos` was reached from
+    /// the position these clocks belong to and its own clocks started at
+    /// zero and one.
+    pub fn written(&self, pos: &Chess) -> String {
+        let turns = pos.fullmoves().get() - 1;
+        let plies = 2 * turns + u32::from(pos.turn().is_black()) - u32::from(self.turn.is_black());
+        let halfmoves = if pos.halfmoves() == plies {
+            plus(&self.halfmoves, plies)
+        } else {
+            pos.halfmoves().to_string()
+        };
+
+        format!("{halfmoves} {}", plus(&self.fullmoves, turns))
+    }
+}
+
 /// Reads `fen` as python-chess's `Board.set_fen` reads it, each field after
 /// the placement optional, raising the message it raises for each field it
 /// cannot read.
-pub fn read(fen: &str) -> Result<Setup, String> {
+///
+/// Returns the position with its clocks at zero and one, beside the clocks
+/// `fen` names.
+pub fn read(fen: &str) -> Result<(Setup, Clocks), String> {
     let mut parts = fen.split(is_space).filter(|part| !part.is_empty());
     let quoted = repr(fen);
     let placement = parts.next().ok_or("empty fen")?;
@@ -38,24 +97,10 @@ pub fn read(fen: &str) -> Result<Setup, String> {
                 .map_err(|_| format!("invalid en passant part in fen: {quoted}"))?,
         ),
     };
-    let halfmoves = match parts.next() {
-        None => 0,
-        Some(part) => {
-            let clock =
-                integer(part).ok_or_else(|| format!("invalid half-move clock in fen: {quoted}"))?;
-            u32::try_from(clock)
-                .map_err(|_| format!("half-move clock cannot be negative: {quoted}"))?
-        }
-    };
-    let fullmoves = match parts.next() {
-        None => 1,
-        Some(part) => {
-            let number =
-                integer(part).ok_or_else(|| format!("invalid fullmove number in fen: {quoted}"))?;
-            u32::try_from(number)
-                .map_err(|_| format!("fullmove number cannot be negative: {quoted}"))?
-        }
-    };
+    let halfmoves = clock(parts.next(), "half-move clock", "0", &quoted)?;
+    let fullmoves = Some(clock(parts.next(), "fullmove number", "1", &quoted)?)
+        .filter(|number| number != "0")
+        .unwrap_or_else(|| "1".to_owned());
 
     if parts.next().is_some() {
         Err(format!("fen string has more parts than expected: {quoted}"))?;
@@ -63,16 +108,38 @@ pub fn read(fen: &str) -> Result<Setup, String> {
 
     let board = place(placement)?;
     let castling_rights = rights(&board, castling);
-
-    Ok(Setup {
+    let setup = Setup {
         board,
         castling_rights,
         ep_square,
-        fullmoves: NonZeroU32::new(fullmoves).unwrap_or(NonZeroU32::MIN),
-        halfmoves,
         turn,
         ..Setup::empty()
-    })
+    };
+
+    Ok((
+        setup,
+        Clocks {
+            halfmoves,
+            fullmoves,
+            turn,
+        },
+    ))
+}
+
+/// Reads the `field` a FEN holds in `part` as `Board.set_fen` reads a clock,
+/// or `missing` where the FEN ends before it, raising its message for a
+/// field Python's `int` cannot read and for a negative one.
+fn clock(part: Option<&str>, field: &str, missing: &str, quoted: &str) -> Result<String, String> {
+    let Some(part) = part else {
+        return Ok(missing.to_owned());
+    };
+    let number = integer(part).ok_or_else(|| format!("invalid {field} in fen: {quoted}"))?;
+
+    if number.starts_with('-') {
+        Err(format!("{field} cannot be negative: {quoted}"))
+    } else {
+        Ok(number)
+    }
 }
 
 /// Reads the placement field of a FEN as python-chess's
@@ -220,18 +287,55 @@ pub fn castling(pos: &Chess) -> String {
 }
 
 /// Reads `part` as Python's `int` reads a FEN field, an optional sign before
-/// ASCII digits that single underscores may separate.
-fn integer(part: &str) -> Option<i64> {
-    let digits = part.trim_prefix(['+', '-']);
-    let grouped = !digits.starts_with('_')
-        && !digits.ends_with('_')
-        && !digits.contains("__")
-        && digits.bytes().any(|c| c.is_ascii_digit())
-        && digits.bytes().all(|c| c.is_ascii_digit() || c == b'_');
+/// at most `DIGITS` decimal digits that single underscores may separate,
+/// and writes the integer in ASCII digits with no leading zero.
+fn integer(part: &str) -> Option<String> {
+    let unsigned = part.trim_prefix(['+', '-']);
 
-    grouped
-        .then(|| part.replace('_', "").parse::<i64>().ok())
-        .flatten()
+    if unsigned.split('_').any(str::is_empty) {
+        return None;
+    }
+
+    let digits: String = unsigned
+        .chars()
+        .filter(|&c| c != '_')
+        .map(digit)
+        .collect::<Option<_>>()?;
+    let value = match digits.trim_start_matches('0') {
+        "" => "0",
+        value => value,
+    };
+
+    (digits.len() <= DIGITS).then(|| {
+        if part.starts_with('-') && value != "0" {
+            format!("-{value}")
+        } else {
+            value.to_owned()
+        }
+    })
+}
+
+/// Reads the ASCII digit `c` stands for, as Python's `int` reads each
+/// character with the `Nd` property as its place in its run of ten.
+fn digit(c: char) -> Option<char> {
+    let code = u32::from(c);
+    let zero = ZEROS[..ZEROS.partition_point(|&zero| zero <= code)].last()?;
+
+    char::from_digit(code - zero, 10)
+}
+
+/// Writes the decimal `digits` plus `n`, adding `n` to the last 19 digits,
+/// whose sum with any `u32` fits a `u64`, and carrying one into the digits
+/// before them.
+fn plus(digits: &str, n: u32) -> String {
+    let (high, low) = digits.split_at(digits.len().saturating_sub(19));
+    let sum = low.parse::<u64>().unwrap_or_default() + u64::from(n);
+
+    match sum.checked_sub(10_u64.pow(19)) {
+        Some(rest) => format!("{}{rest:019}", plus(high, 1)),
+        None if high.is_empty() => sum.to_string(),
+        None => format!("{high}{sum:019}"),
+    }
 }
 
 /// Writes `text` as Python's `repr` writes a string, in single quotes unless
@@ -301,12 +405,26 @@ mod tests {
 
     #[test]
     fn a_fen_number_reads_as_python_int_reads_it() {
+        let nines = "9".repeat(DIGITS);
+        let zeros = "0".repeat(DIGITS + 1);
+
         for (part, number) in [
-            ("12", Some(12)),
-            ("+12", Some(12)),
-            ("-3", Some(-3)),
-            ("1_000", Some(1000)),
-            ("+1_0", Some(10)),
+            ("12", Some("12")),
+            ("+12", Some("12")),
+            ("-3", Some("-3")),
+            ("-0", Some("0")),
+            ("007", Some("7")),
+            ("1_000", Some("1000")),
+            ("+1_0", Some("10")),
+            ("٣", Some("3")),
+            ("-١_٢", Some("-12")),
+            ("１２", Some("12")),
+            ("𝟗", Some("9")),
+            ("18446744073709551616", Some("18446744073709551616")),
+            (&nines, Some(nines.as_str())),
+            (&zeros, None),
+            ("½", None),
+            ("²", None),
             ("", None),
             ("+", None),
             ("-", None),
@@ -318,7 +436,29 @@ mod tests {
             ("-_1", None),
             ("1__0", None),
         ] {
-            assert_eq!(integer(part), number, "{part:?}");
+            assert_eq!(integer(part).as_deref(), number, "{part:?}");
+        }
+    }
+
+    #[test]
+    fn a_decimal_carries_past_every_digit_it_fills() {
+        for (digits, n, sum) in [
+            ("0", 0, "0"),
+            ("4294967295", 2, "4294967297"),
+            ("9999999999999999999", 1, "10000000000000000000"),
+            ("9223372036854775808", 2, "9223372036854775810"),
+            (
+                "99999999999999999999999999999999999999",
+                u32::MAX,
+                "100000000000000000000000000004294967294",
+            ),
+            (
+                "12345678901234567890123456789",
+                7,
+                "12345678901234567890123456796",
+            ),
+        ] {
+            assert_eq!(plus(digits, n), sum, "{digits} + {n}");
         }
     }
 

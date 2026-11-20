@@ -27,6 +27,8 @@ from functools      import partial
 from io             import StringIO
 from pathlib        import Path
 from pytest         import Subtests, mark, param
+from sys            import get_int_max_str_digits, maxunicode
+from unicodedata    import category
 
 from scotch.games.readers import STANDARD, keys, read, scored, trails
 from scotch.games.schemas import Game
@@ -279,6 +281,38 @@ def test_keys_reads_a_key_for_each_position_it_can_reach(
         param(
             '[FEN "4k3/8/8/8/8/8/8/4K3 w - - -_1 1"]\n\n1. Ke2 *\n',
             id = "underscore-after-a-clock-sign"
+        ),
+        param(
+            "".join(
+                f'[FEN "4k3/8/8/8/8/8/8/4K3 w - - {digit} {digit}"]\n\n1. Ka1 *\n\n'
+                for digit in map(chr, range(maxunicode + 1))
+                if category(digit) == "Nd"
+            ),
+            id = "clocks-in-each-decimal-digit"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 w - - 4294967296 4294967296"]\n\n'
+            "1. Ke2 Kd7 2. Ka1 *\n",
+            id = "clocks-past-a-u32"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 b - - 9223372036854775808 99999999999999999999"]'
+            "\n\n1... Kd7 2. Ke2 Ke7 3. Ka1 *\n",
+            id = "clocks-past-an-i64"
+        ),
+        param(
+            '[FEN "4k3/4p3/8/8/8/8/8/4K3 b - - 18446744073709551615 1"]\n\n'
+            "1... Kd8 2. Ke2 e5 3. Ka1 *\n",
+            id = "pawn-move-resets-a-clock-past-a-u64"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 w - - -\u0663 1"]\n\n1. Ke2 *\n',
+            id = "negative-clock-in-a-decimal-digit"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 w - - '
+            f'{"0" * (get_int_max_str_digits() + 1)} 1"]\n\n1. Ke2 *\n',
+            id = "clock-past-the-digits-int-reads"
         )
     ]
 )
