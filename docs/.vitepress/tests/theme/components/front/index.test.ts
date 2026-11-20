@@ -12,8 +12,8 @@ vi.mock('@vueuse/core', async original => ({
 
 describe('FRONT_WIDGETS', () => {
   it.each([
-    ['menu', '.sc-menu'], ['opening', '.sc-front-opening'], ['prints', '.sc-front-prints'],
-    ['session', '.sc-front-terminal'], ['split', '.sc-front-split'], ['store', '.sc-front-store']
+    ['menu', "[aria-label='Commands']"], ['opening', '[data-says]'], ['prints', 'span[title]'],
+    ['session', "pre[role='img']"], ['split', '[data-split]'], ['store', '[data-shade]']
   ])('loads the %s widget with the front page', async (name, drawn) => {
     const widget = mount(defineComponent({ setup: () => () => h('div', h(FRONT_WIDGETS[name]!)) }))
     await vi.dynamicImportSettled()

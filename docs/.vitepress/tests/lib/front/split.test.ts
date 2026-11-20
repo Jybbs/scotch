@@ -15,13 +15,12 @@ function boardAt(ply: number, line = submitted): HTMLElement {
   const board = document.createElement('div')
   const layer = document.createElement('div')
   const mark  = document.createElement('i')
-  layer.className = 'sc-run-layer'
-  mark.className  = 'sc-front-landed'
+  layer.dataset.layer = ''
+  mark.dataset.landed = ''
   for (const { id, piece, square } of line[ply]!.standing) {
     const node = document.createElement('span')
     Object.assign(node.dataset, { id: String(id), piece })
     Object.assign(node.style, { opacity: '1', transform: squares.squareAt(square) })
-    node.className = 'sc-run-piece'
     layer.append(node)
   }
   board.append(mark, layer)
@@ -33,7 +32,7 @@ function boardAt(ply: number, line = submitted): HTMLElement {
  * number it keeps.
  */
 function shown(board: HTMLElement): Record<string, [string, string]> {
-  return Object.fromEntries([...board.querySelectorAll<HTMLElement>('.sc-run-piece')]
+  return Object.fromEntries([...board.querySelectorAll<HTMLElement>('[data-piece]')]
     .map(node => [node.dataset.id!, [node.style.transform, node.style.opacity]]))
 }
 
@@ -63,7 +62,7 @@ describe('SplitBoard', () => {
   it('marks the square the last move landed on, and none at the start', () => {
     const board  = boardAt(0)
     const driver = new SplitBoard(board)
-    const landed = board.querySelector<HTMLElement>('.sc-front-landed')!
+    const landed = board.querySelector<HTMLElement>('[data-landed]')!
     driver.show(submitted[1]!)
     expect(landed.style.transform).toBe(squares.squareAt(submitted[1]!.to!))
     driver.show(submitted[0]!)

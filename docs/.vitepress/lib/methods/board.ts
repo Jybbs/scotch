@@ -91,7 +91,7 @@ export class MatchBoard {
     motion.settleAll(this.#running)
     this.#pieces.place(squares.placedAt(this.#example, ply), how, this.#running)
 
-    const washes = this.#board.querySelectorAll<HTMLElement>('.sc-run-wash')
+    const washes = this.#board.querySelectorAll<HTMLElement>('[data-washes] > i')
     const marks  = squares.marksAt(this.#example, ply)
     for (const [at, square] of readingOrder.entries()) {
       const mark = marks[square]
@@ -101,7 +101,7 @@ export class MatchBoard {
     }
     this.#marks = marks
 
-    const stamp = this.#board.querySelector<HTMLElement>('.sc-run-stamp')!
+    const stamp = this.#board.querySelector<HTMLElement>('[data-stamp]')!
     motion.moveNode(stamp, how, this.#running, { opacity: cellOf(this.#example, ply) === 'run' ? 1 : 0 })
     this.#placeKey(how)
   }

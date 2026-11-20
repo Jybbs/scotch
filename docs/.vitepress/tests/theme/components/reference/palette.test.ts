@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, vi } from 'vitest'
+import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, vi }             from 'vitest'
 
 import { hexOf }   from '../../../../lib/identity/tokens.ts'
 import * as lib    from '../../../../lib/reference/palette.ts'
@@ -22,7 +22,7 @@ describe('Palette', () => {
     onScreen()
     const drawn = mount(Palette)
     clock.runAllTimers()
-    const squares = drawn.findAll('.sc-ref-square')
+    const squares = drawn.findAll('button')
     expect(squares.length).toBe(lib.TOKENS.length)
     expect(squares[0]!.text()).toBe(hexOf(lib.TOKENS[0]!))
     expect(squares[0]!.attributes('aria-pressed')).toBe('true')
@@ -33,10 +33,10 @@ describe('Palette', () => {
     reduceMotion()
     const drawn = mount(Palette)
     clock.runAllTimers()
-    await drawn.findAll('.sc-ref-square')[4]!.trigger('click')
+    await drawn.findAll('button')[4]!.trigger('click')
     await flushPromises()
-    expect(drawn.find('.sc-ref-stack > [data-at] small').text()).toContain(hexOf(lib.TOKENS[4]!))
-    expect(drawn.findAll('.sc-ref-cell b')[0]!.text()).toBe(held(4).toFixed(2))
+    expect(drawn.find('[data-at] small').text()).toContain(hexOf(lib.TOKENS[4]!))
+    expect(drawn.findAll('b')[0]!.text()).toBe(held(4).toFixed(2))
   })
 
   test('reserves the widest ratio beside each level, so a count moves nothing', ({ clock }) => {
@@ -45,7 +45,7 @@ describe('Palette', () => {
     clock.runAllTimers()
     const widest = Math.max(...lib.TOKENS.flatMap(token => lib.SCHEMES.flatMap(scheme =>
       lib.GROUNDS.map(ground => lib.heldOf(token, ground, scheme).toFixed(2).length))))
-    const styles = drawn.findAll('.sc-ref-cell b').map(figure => figure.attributes('style'))
+    const styles = drawn.findAll('b').map(figure => figure.attributes('style'))
     expect(new Set(styles)).toEqual(new Set([`min-width: ${widest}ch;`]))
   })
 
@@ -55,9 +55,9 @@ describe('Palette', () => {
     resized(342)
     const drawn = mount(Palette)
     clock.runAllTimers()
-    await drawn.findAll('.sc-ref-square')[7]!.trigger('click')
-    expect(drawn.find('.sc-ref').attributes('data-narrow')).toBe('')
-    expect(drawn.find('.sc-ref-ring').attributes('style')).toContain('translate(100%, 100%)')
+    await drawn.findAll('button')[7]!.trigger('click')
+    expect(drawn.attributes('data-narrow')).toBe('')
+    expect(drawn.find('i[aria-hidden]').attributes('style')).toContain('translate(100%, 100%)')
   })
 })
 
@@ -66,8 +66,8 @@ describe('Palette, as it unfolds', () => {
     onScreen()
     const drawn = mount(Palette)
     await flushPromises()
-    expect(drawn.find('.sc-ref-picked').attributes('data-off')).toBeUndefined()
-    expect(drawn.find('.sc-ref-rank').attributes('data-off')).toBeUndefined()
+    expect([...drawn.element.children].slice(0, 2).map(part => new DOMWrapper(part).attributes('data-off')))
+      .toEqual([undefined, undefined])
   })
 
   test('unfolds through its colors and settles on the first', async ({ clock }) => {
@@ -78,14 +78,14 @@ describe('Palette, as it unfolds', () => {
     expect(Element.prototype.animate).toHaveBeenCalledTimes(lib.TOKENS.length)
     clock.advanceTimersByTime(2800)
     await flushPromises()
-    expect(drawn.findAll('.sc-ref-square')[4]!.attributes('aria-pressed')).toBe('true')
+    expect(drawn.findAll('button')[4]!.attributes('aria-pressed')).toBe('true')
     clock.advanceTimersByTime(1700)
     await flushPromises()
-    expect(drawn.findAll('.sc-ref-square')[11]!.attributes('aria-pressed')).toBe('true')
+    expect(drawn.findAll('button')[11]!.attributes('aria-pressed')).toBe('true')
     clock.advanceTimersByTime(4000)
     await flushPromises()
-    expect(drawn.findAll('.sc-ref-square')[0]!.attributes('aria-pressed')).toBe('true')
-    expect(drawn.find('.sc-ref-picked').attributes('data-off')).toBeUndefined()
+    expect(drawn.findAll('button')[0]!.attributes('aria-pressed')).toBe('true')
+    expect(new DOMWrapper(drawn.element.children[1]!).attributes('data-off')).toBeUndefined()
   })
 
   test('states every value at once for a reader who prefers reduced motion', async ({ clock }) => {
@@ -94,8 +94,8 @@ describe('Palette, as it unfolds', () => {
     const drawn = mount(Palette)
     clock.runAllTimers()
     await flushPromises()
-    expect(drawn.find('.sc-ref-picked').attributes('data-off')).toBeUndefined()
-    expect(drawn.findAll('.sc-ref-cell b')[0]!.text()).toBe(held(0).toFixed(2))
+    expect(new DOMWrapper(drawn.element.children[1]!).attributes('data-off')).toBeUndefined()
+    expect(drawn.findAll('b')[0]!.text()).toBe(held(0).toFixed(2))
   })
 
   test('names a chart series only where a color no role takes is one', async ({ clock }) => {
@@ -104,8 +104,8 @@ describe('Palette, as it unfolds', () => {
     const drawn = mount(Palette)
     clock.runAllTimers()
     expect(drawn.text()).toContain('No role, a chart series')
-    await drawn.findAll('.sc-ref-square')[lib.TOKENS.indexOf('warning')]!.trigger('click')
+    await drawn.findAll('button')[lib.TOKENS.indexOf('warning')]!.trigger('click')
     await flushPromises()
-    expect(drawn.find('.sc-ref-stack > [data-at] .sc-ref-chips').text()).toBe('No role')
+    expect(drawn.find('[data-at] code').text()).toBe('No role')
   })
 })

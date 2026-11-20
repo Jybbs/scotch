@@ -1,6 +1,6 @@
 import { smooth, smoother }             from '../motion/timing.ts'
 import { type Piece, ringed }           from '../site/pieces.ts'
-import { matrixOf }                     from './drawing.ts'
+import { HALO, matrixOf }               from './drawing.ts'
 import { SQUARE, type Trail, cornerOf } from './trail.ts'
 
 /**
@@ -190,7 +190,7 @@ export class Sprites {
    * them at rest, keyed by the square each stands on.
    */
   get adopted(): Map<number, Sprite> {
-    return new Map([...this.#layer.querySelectorAll<SVGGElement>('.sc-viewer-piece')].map(node => {
+    return new Map([...this.#layer.querySelectorAll<SVGGElement>('[data-piece]')].map(node => {
       const square = Number(node.dataset.square)
       const rest   = { a: 1, s: 1, ...cornerOf(square) }
       return [square, { ...still(node, node.dataset.piece as Piece), rest, shown: 100, written: { ...rest } }]
@@ -226,9 +226,8 @@ export class Sprites {
       return sprite
     }
     const node = document.createElementNS(SVG, 'g')
-    node.classList.add('sc-viewer-piece')
     node.dataset.piece = piece
-    node.innerHTML     = ringed(piece, 'sc-viewer-halo')
+    node.innerHTML     = ringed(piece, HALO)
     this.#layer.append(node)
     return still(node, piece)
   }

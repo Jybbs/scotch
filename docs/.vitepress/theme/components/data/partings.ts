@@ -5,6 +5,7 @@ import { dimmed }              from '../../../lib/data/corner.ts'
 import * as numbers            from '../../../lib/data/numbers.ts'
 import * as parting            from '../../../lib/data/parting.ts'
 import { Corner }              from './corner.ts'
+import * as parts              from './parts.ts'
 import { Plate, axisLabel }    from './plate.ts'
 
 /**
@@ -24,21 +25,26 @@ const columns = parting.LAST_MOVE + 1
 function cells(layout: parting.PartingsLayout, lit: string | null): VNode[] {
   return decades.flatMap((decade, row) => [
     ...decade.sharing.map((_, move) => h('rect', {
-      class  : ['sc-data-partings-cell', dimmed('cells', lit)],
-      height : layout.row - 1.4,
-      rx     : 1,
-      style  : { '--sc-data-level': parting.sharingAt(decade, move).toFixed(3) },
-      width  : numbers.tenth(Math.max(0, layout.cell - 0.8)),
-      x      : numbers.tenth(layout.left + move * layout.cell),
-      y      : row * layout.row
+      'class'    : [
+        parts.DIM,
+        'fill-[color-mix(in_oklab,var(--sc-data-link)_calc(var(--sc-data-level)*90%+4%),var(--sc-data-page))]'
+      ],
+      'data-off' : dimmed('cells', lit),
+      'height'   : layout.row - 1.4,
+      'rx'       : 1,
+      'style'    : { '--sc-data-level': parting.sharingAt(decade, move).toFixed(3) },
+      'width'    : numbers.tenth(Math.max(0, layout.cell - 0.8)),
+      'x'        : numbers.tenth(layout.left + move * layout.cell),
+      'y'        : row * layout.row
     })),
     h('rect', {
-      'class'  : ['sc-data-partings-half', dimmed('half', lit)],
-      'data-k' : 'half',
-      'height' : layout.row + 0.6,
-      'width'  : 2,
-      'x'      : numbers.tenth(parting.columnOn(layout, Math.min(decade.half, parting.LAST_MOVE)) - 1),
-      'y'      : row * layout.row - 1
+      'class'    : [parts.DIM, 'pointer-events-none fill-(--sc-data-ink)'],
+      'data-k'   : 'half',
+      'data-off' : dimmed('half', lit),
+      'height'   : layout.row + 0.6,
+      'width'    : 2,
+      'x'        : numbers.tenth(parting.columnOn(layout, Math.min(decade.half, parting.LAST_MOVE)) - 1),
+      'y'        : row * layout.row - 1
     })
   ])
 }
@@ -53,15 +59,21 @@ function cursor(cell: parting.PartingCell, layout: parting.PartingsLayout): VNod
   const y = lineY(layout, parting.sharingAt(decades[cell.decade]!, cell.move))
   return [
     h('rect', {
-      class  : 'sc-data-partings-row',
+      class  : 'pointer-events-none fill-none stroke-(--sc-data-ink) stroke-[1.2]',
       height : layout.row,
       rx     : 2,
       width  : numbers.tenth(layout.cell * columns + 2),
       x      : layout.left - 1,
       y      : cell.decade * layout.row - 0.5
     }),
-    h('line', { class: 'sc-data-partings-cursor', x1: x, x2: x, y1: 0, y2: layout.line + layout.tall }),
-    h('circle', { class: 'sc-data-partings-dot', cx: x, cy: y, r: 4 })
+    h('line', {
+      class : 'stroke-(--sc-data-ink) stroke-1',
+      x1    : x,
+      x2    : x,
+      y1    : 0,
+      y2    : layout.line + layout.tall
+    }),
+    h('circle', { class: 'fill-(--sc-data-link) stroke-(--sc-data-page) stroke-2', cx: x, cy: y, r: 4 })
   ]
 }
 
@@ -74,7 +86,8 @@ function frame(cell: parting.PartingCell, layout: parting.PartingsLayout): VNode
   const base = layout.height - 6
   return [
     ...decades.map((decade, row) => h('text', {
-      'class'       : ['sc-data-partings-name', { 'sc-data-on': row === cell.decade }],
+      'class'       : 'fill-(--sc-data-ink) font-code text-[0.62rem]/[normal] font-normal data-on:font-bold',
+      'data-on'     : row === cell.decade ? '' : undefined,
       'text-anchor' : 'end',
       'x'           : layout.left - 8,
       'y'           : row * layout.row + layout.row / 2 + 3
@@ -82,7 +95,13 @@ function frame(cell: parting.PartingCell, layout: parting.PartingsLayout): VNode
     ...[0, 0.5, 1].flatMap(share => {
       const y = lineY(layout, share)
       return [
-        h('rect', { class: 'sc-data-grid', height: 1, width: layout.cell * columns, x: layout.left, y }),
+        h('rect', {
+          class  : 'fill-(--sc-data-rule)',
+          height : 1,
+          width  : layout.cell * columns,
+          x      : layout.left,
+          y      : y
+        }),
         axisLabel(numbers.percent(share), layout.left - 8, y + 3)
       ]
     }),
@@ -102,14 +121,16 @@ function lines(cell: parting.PartingCell, layout: parting.PartingsLayout, lit: s
   ]))
   return [
     h('path', {
-      'class'  : ['sc-data-partings-every', dimmed('every', lit)],
-      'd'      : path(parting.SHARED.every),
-      'data-k' : 'every'
+      'class'    : [parts.DIM, 'fill-none stroke-(--sc-data-fill) stroke-[1.6]'],
+      'd'        : path(parting.SHARED.every),
+      'data-k'   : 'every',
+      'data-off' : dimmed('every', lit)
     }),
     h('path', {
-      'class'  : ['sc-data-partings-line', dimmed('decade', lit)],
-      'd'      : path(decades[cell.decade]!),
-      'data-k' : 'decade'
+      'class'    : [parts.DIM, 'fill-none stroke-(--sc-data-link) stroke-[2.4]'],
+      'd'        : path(decades[cell.decade]!),
+      'data-k'   : 'decade',
+      'data-off' : dimmed('decade', lit)
     })
   ]
 }
@@ -139,7 +160,7 @@ function plot(
     'aria-valuemin'  : 0,
     'aria-valuenow'  : cell.move,
     'aria-valuetext' : parting.partingsSentence(cell.move, decade),
-    'class'          : 'sc-data-svg',
+    'class'          : [parts.SVG, 'cursor-crosshair touch-pan-y'],
     'height'         : layout.height,
     'role'           : 'slider',
     'tabindex'       : 0,
@@ -196,13 +217,15 @@ export const SharedPartings = defineComponent({
           ['Middle half parts', parting.middleHalf(decade)]
         ],
         say: parting.partingsSentence(cell.value.move, decade)
-      }, () => h('div', { class: 'sc-data-partings' }, [
+      }, () => h('div', {
+        class: 'grid gap-2 [--sc-data-ramp:linear-gradient(90deg,var(--sc-data-page),var(--sc-data-link))]'
+      }, [
         h(Corner, {
           'items'        : parting.PARTINGS_MARKS,
           'lit'          : lit.value,
           'onUpdate:lit' : (key: string | null) => { lit.value = key }
         }),
-        h('div', { class: 'sc-data-chart', ref: chart, style: style.value }, sized.value
+        h('div', { class: parts.CHART, ref: chart, style: style.value }, sized.value
           ? [plot(calls, cell.value, layout.value, lit.value)]
           : [])
       ]))

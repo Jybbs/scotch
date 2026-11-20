@@ -11,9 +11,9 @@ export interface CornerMark {
 }
 
 /**
- * Reads the class a part of a figure takes while a mark of its corner is lit,
- * dimming every part the lit mark does not name.
+ * Reads the `data-off` a part of a figure takes while a mark of its corner is
+ * lit, set on every part the lit mark does not name and absent otherwise.
  */
-export function dimmed(key: string, lit: string | null): { 'sc-data-off': boolean } {
-  return { 'sc-data-off': lit !== null && lit !== key }
+export function dimmed(key: string, lit: string | null): '' | undefined {
+  return lit !== null && lit !== key ? '' : undefined
 }

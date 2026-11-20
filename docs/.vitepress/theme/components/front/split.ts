@@ -14,10 +14,46 @@ import { type Readout, Panel }         from './panel.ts'
 type Halves = Record<'stored' | 'submitted', ShallowRef<Shown | null>>
 
 /**
+ * Where each caption stands and when it shows: the shared one over the
+ * boards until they part, and each game's over its own board after.
+ */
+const CAPTIONS = {
+  both      : 'left-1/2 in-data-apart:opacity-0',
+  stored    : 'left-[calc(50%+var(--sc-front-gap)+var(--sc-front-board)/2)] opacity-0 '
+            + 'in-data-apart:opacity-100 in-data-apart:delay-glide',
+  submitted : 'left-[calc(50%-var(--sc-front-gap)-var(--sc-front-board)/2)] opacity-0 '
+            + 'in-data-apart:opacity-100 in-data-apart:delay-glide'
+} as const
+/**
+ * Where each game's board moves once the boards part.
+ */
+const HALVES = {
+  stored    : 'z-1 in-data-apart:translate-x-(--sc-front-gap)',
+  submitted : 'in-data-apart:translate-x-[calc(-100%-var(--sc-front-gap))]'
+} as const
+/**
+ * The box each board stands in, centered until the boards part.
+ */
+const HALF = 'absolute top-[30px] left-1/2 aspect-[1] w-(--sc-front-board) -translate-x-1/2 '
+           + 'transition-[translate] duration-part'
+/**
  * How the split plays its plies: the milliseconds between two, and the beats
  * it rests on the last.
  */
 const PACE = { interval: 700, rest: 6 } as const
+
+/**
+ * Draws the caption naming one game, or both, over the boards.
+ */
+function caption(game: keyof typeof CAPTIONS, text: string): VNode {
+  return h('span', {
+    'data-game' : game,
+    'class'     : [
+      'absolute top-0 -translate-x-1/2 whitespace-nowrap transition-[opacity] text-ink',
+      'font-code text-[0.65rem]/none font-semibold tracking-[0.14em] uppercase', CAPTIONS[game]
+    ]
+  }, text)
+}
 
 /**
  * Draws the split's two boards at the position the run opens on, the stored
@@ -27,22 +63,37 @@ function halvesOf(front: Front, halves: Halves): VNode[] {
   const { start } = front.example.run
   const mover     = (lastOf(front) + 1) % 2 ? 'White' : 'Black'
   return [
-    h('div', { 'class': 'sc-front-half', 'data-game': 'submitted' }, h(Half, {
+    h('div', { 'class': [HALF, HALVES.submitted], 'data-game': 'submitted' }, h(Half, {
       game     : 'submitted',
       label    : 'Your game’s board',
       position : front.example.submitted[start]!,
       ref      : halves.submitted
     })),
-    h('div', { 'class': 'sc-front-half', 'data-game': 'stored' }, [
+    h('div', { 'class': [HALF, HALVES.stored], 'data-game': 'stored' }, [
       h(Half, {
         game     : 'stored',
         label    : 'The stored game’s board',
         position : front.example.stored[start]!,
         ref      : halves.stored
       }),
-      h('div', { 'aria-hidden': 'true', 'class': 'sc-front-cover' }, [
-        h('b', '?'),
-        h('span', `${mover} to move`)
+      h('div', {
+        'aria-hidden' : 'true',
+        'data-cover'  : '',
+        'class'       : [
+          'pointer-events-none absolute inset-0 z-2 grid place-content-center justify-items-center gap-1.5',
+          'rounded-[3px] bg-raised/62 [backdrop-filter:blur(2.5px)] opaque:bg-raised',
+          'opaque:[backdrop-filter:none]',
+          'opacity-0 transition-[opacity] duration-settle in-data-apart:opacity-100',
+          'in-data-apart:delay-settle'
+        ]
+      }, [
+        h('b', { class: 'font-display text-[4rem]/none font-normal text-stored max-sm:text-[2.6rem]' }, '?'),
+        h('span', {
+          class: [
+            'rounded-[3px] bg-raised px-[7px] py-1 [box-shadow:0_0_0_1px_var(--sc-stored)]',
+            'font-code text-[0.65rem]/[1.2] font-semibold tracking-[0.14em] text-ink uppercase'
+          ]
+        }, `${mover} to move`)
       ])
     ])
   ]
@@ -122,13 +173,18 @@ export const Split = defineComponent({
       const readout = readoutOf(front, ply)
       return h(Panel, { drive, label: 'Plies', names, readout, ref: panel }, () => h('div', {
         'aria-label' : label,
-        'class'      : 'sc-front-split',
         'data-apart' : ply > last ? '' : undefined,
-        'role'       : 'img'
+        'data-split' : '',
+        'role'       : 'img',
+        'class'      : [
+          '[--sc-front-board:min(236px,47%)] [--sc-front-gap:10px] max-sm:[--sc-front-board:47%]',
+          'max-sm:[--sc-front-gap:6px]',
+          'relative aspect-[100/52] max-h-[300px] w-full max-sm:aspect-[100/60]'
+        ]
       }, [
-        h('span', { 'class': 'sc-front-caption', 'data-game': 'both' }, 'Both games, one position'),
-        h('span', { 'class': 'sc-front-caption', 'data-game': 'submitted' }, 'Your game'),
-        h('span', { 'class': 'sc-front-caption', 'data-game': 'stored' }, 'The stored game'),
+        caption('both', 'Both games, one position'),
+        caption('submitted', 'Your game'),
+        caption('stored', 'The stored game'),
         ...halvesOf(front, halves)
       ]))
     }

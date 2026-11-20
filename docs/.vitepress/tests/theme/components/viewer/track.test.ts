@@ -56,7 +56,7 @@ describe('Track as drawn', () => {
 
   it('names each game’s row by a swatch standing at the row’s middle', () => {
     const { wrapper } = mounted()
-    expect(wrapper.findAll('.sc-viewer-track-swatches span')
+    expect(wrapper.findAll('[aria-hidden] > span[data-game]')
       .map(swatch => (swatch.element as HTMLElement).style.getPropertyValue('--sc-viewer-middle')))
       .toEqual(['40px', '102px'])
   })
@@ -64,7 +64,7 @@ describe('Track as drawn', () => {
   it('sizes its canvas to a column for every ply and stands the head at the cursor’s column', () => {
     const { wrapper } = mounted()
     expect((wrapper.find('canvas').element as HTMLElement).style.width).toBe(`${track.trackWidth(loaded)}px`)
-    expect((wrapper.find('.sc-viewer-track-head').element as HTMLElement).style.transform)
+    expect((wrapper.find('canvas + span').element as HTMLElement).style.transform)
       .toBe(`translate(${meet * track.TRACK.column}px, 0px)`)
   })
 })
@@ -91,7 +91,7 @@ describe('Track once loaded', () => {
     painted.paint(meet + 1, true)
     painted.paint(meet + 1, true)
     expect(Element.prototype.scrollTo).toHaveBeenCalledTimes(2)
-    expect(wrapper.find('.sc-viewer-track-head').classes()).toContain('sc-viewer-gliding')
+    expect(wrapper.find('canvas + span').attributes('data-gliding')).toBe('')
   })
 })
 

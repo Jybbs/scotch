@@ -6,7 +6,7 @@ import * as plan                                         from '../../../lib/refe
 import { MARKS }                                         from '../../../lib/reference/marks.ts'
 import { narrowAt }                                      from '../../../lib/reference/pick.ts'
 import { type Beats, type NodeRef, useBeats, useUnfold } from '../../../lib/reference/timeline.ts'
-import { stacked, stage, stepper }                       from './parts.ts'
+import { BED, BESIDE, stacked, stage, stepper }          from './parts.ts'
 
 /**
  * Where the drawing stands, each length's place, the outline's progress, and the
@@ -111,16 +111,41 @@ function useDrafting(chart: NodeRef): Drafting {
   return { ...state, draw }
 }
 
+/**
+ * A measured length's line or the page-colored halo beneath it, faded once the
+ * length is passed.
+ */
+const LENGTH = 'fill-none transition-[opacity] in-data-[state=seen]:opacity-30'
+
 function guide(state: Drafting, index: number): VNode {
   const item  = GUIDES[index]!
   const at    = state.at.value
   const place = index === at ? 'now' : 'seen'
   const shown = !state.named.value || index > at ? 'next' : place
   const d     = plan.guidePath(item as Parameters<typeof plan.guidePath>[0])
-  return h('g', { 'class': 'sc-ref-guide', 'data-state': shown }, [
-    h('path', { class: 'sc-ref-halo-line', d }),
-    h('path', { 'd': d, 'pathLength': 1, 'stroke-dasharray': '1 1', 'stroke-dashoffset': shown === 'now' ? 1 - state.dash.value : 0 }),
-    h('text', { 'text-anchor': item.anchor, 'x': item.label[0], 'y': item.label[1] }, String(item.length))
+  return h('g', {
+    'class'      : 'opacity-0 transition-[opacity] data-[state=now]:opacity-100 '
+                 + 'data-[state=seen]:opacity-100',
+    'data-state' : shown
+  }, [
+    h('path', { class: ['stroke-page [stroke-width:11]', LENGTH], d }),
+    h('path', {
+      'class'             : ['stroke-ink [stroke-width:4]', LENGTH],
+      'd'                 : d,
+      'pathLength'        : 1,
+      'stroke-dasharray'  : '1 1',
+      'stroke-dashoffset' : shown === 'now' ? 1 - state.dash.value : 0
+    }),
+    h('text', {
+      'class'       : [
+        'fill-ink stroke-page font-code text-[30px] leading-normal font-medium normal-nums',
+        '[paint-order:stroke] [stroke-width:9px]',
+        'transition-[fill-opacity] in-data-[state=seen]:[fill-opacity:0.3]'
+      ],
+      'text-anchor' : item.anchor,
+      'x'           : item.label[0],
+      'y'           : item.label[1]
+    }, String(item.length))
   ])
 }
 
@@ -130,7 +155,7 @@ function guide(state: Drafting, index: number): VNode {
 function outlineOf(state: Drafting, d: string, index: number): VNode {
   const lit = state.named.value && GUIDES[state.at.value]!.owners.includes(index)
   return h('path', {
-    'class'             : 'sc-ref-out',
+    'class'             : 'fill-none stroke-run [stroke-width:3.5] transition-[stroke-width,opacity]',
     'd'                 : d,
     'pathLength'        : 1,
     'ref'               : index === 0 ? state.first : undefined,
@@ -154,16 +179,22 @@ function drawing(state: Drafting, id: string): VNode {
   const nib = state.nib.value
   return h('svg', {
     'aria-label' : 'The mark with each measured length',
-    'class'      : 'sc-ref-plan',
+    'class'      : 'block h-auto w-full overflow-visible',
     'role'       : 'img',
     'viewBox'    : plan.PLAN
   }, [
     defs(id, state.rise.value),
     h('rect', { fill: `url(#${id}-board)`, height: H, width: W, x: X, y: Y }),
-    h('rect', { class: 'sc-ref-frame', height: H, width: W, x: X, y: Y }),
-    h('line', { class: 'sc-ref-base', x1: -60, x2: 700, y1: 0, y2: 0 }),
+    h('rect', {
+      class  : 'fill-none stroke-rule [stroke-dasharray:8_8] [stroke-width:2.5]',
+      height : H,
+      width  : W,
+      x      : X,
+      y      : Y
+    }),
+    h('line', { class: 'stroke-rule [stroke-width:2.5]', x1: -60, x2: 700, y1: 0, y2: 0 }),
     h('path', {
-      'class'     : 'sc-ref-fill',
+      'class'     : 'fill-run transition-[fill-opacity] duration-enter',
       'clip-path' : `url(#${id}-rise)`,
       'd'         : MARKS.mark.paths[0]!,
       'fill-rule' : 'nonzero',
@@ -171,9 +202,28 @@ function drawing(state: Drafting, id: string): VNode {
     }),
     ...plan.SUBPATHS.map((d, index) => outlineOf(state, d, index)),
     nib
-      ? h('rect', { class: 'sc-ref-nib', height: 18, transform: `translate(${nib.x} ${nib.y}) rotate(45)`, width: 18, x: -9, y: -9 })
+      ? h('rect', {
+        class     : 'fill-run stroke-page [stroke-width:4]',
+        height    : 18,
+        transform : `translate(${nib.x} ${nib.y}) rotate(45)`,
+        width     : 18,
+        x         : -9,
+        y         : -9
+      })
       : null,
     ...GUIDES.map((_, index) => guide(state, index))
+  ])
+}
+
+/**
+ * Heads a length with its name over the note on what it measures.
+ */
+function titled(name: string, note: string): VNode {
+  return h('div', [
+    h('h4', {
+      class: 'm-0! font-display text-[1.05rem]/[1.25]! font-normal tracking-normal! normal-nums'
+    }, name),
+    h('p', { class: 'font-body text-[0.875rem]/[1.4]! font-normal text-quiet normal-nums' }, note)
   ])
 }
 
@@ -181,25 +231,45 @@ function beside(state: Drafting): VNode {
   const at       = state.at.value
   const named    = state.named.value
   const measured = named ? Math.round(GUIDES[at]!.length * state.dash.value) : 0
-  return h('div', { class: 'sc-ref-beside' }, [
-    h('div', { class: 'sc-ref-figure' }, [
-      h('b', { style: { minWidth: `${DIGITS}ch` } }, String(measured)),
+  return h('div', { class: BESIDE }, [
+    h('div', { class: 'grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3.5 gap-y-0.5' }, [
+      h('b', {
+        class : 'font-display text-[3rem]/none font-normal tabular-nums',
+        style : { minWidth: `${DIGITS}ch` }
+      }, String(measured)),
       stacked([
-        h('div', [h('h4', 'The outline'), h('p', 'One compound path, drawn from its five subpaths')]),
-        ...GUIDES.map(item => h('div', [h('h4', item.name), h('p', item.note)]))
+        titled('The outline', 'One compound path, drawn from its five subpaths'),
+        ...GUIDES.map(item => titled(item.name, item.note))
       ], named ? at + 1 : 0)
     ]),
-    h('div', { class: 'sc-ref-list' }, [
-      h('i', { 'aria-hidden': 'true', 'class': 'sc-ref-slide', 'style': { transform: `translateY(${at * 25}px)` } }),
+    h('div', { class: 'relative grid in-data-narrow:hidden' }, [
+      h('i', {
+        'aria-hidden' : 'true',
+        'class'       : 'absolute inset-x-0 top-0 h-[25px] bg-tint transition-[transform] duration-glide',
+        'style'       : { transform: `translateY(${at * 25}px)` }
+      }),
       ...GUIDES.map((item, index) => h('button', {
         'aria-label'   : `${item.name}, ${item.length}`,
         'aria-pressed' : String(named && index === at),
+        'class'        : [
+          'relative z-1 grid h-[25px] grid-cols-[1.3rem_minmax(0,1fr)_auto] items-center px-1.5 text-left',
+          'font-body text-[0.8125rem]/none font-normal text-quiet normal-nums transition-[color]',
+          'data-known:text-ink aria-pressed:text-ink'
+        ],
         'data-known'   : named && index <= at ? '' : undefined,
         'onClick'      : () => {
           state.draw(index)
         },
         'type'         : 'button'
-      }, [h('small', `${index + 1}.`), h('span', item.name), h('em', String(item.length))]))
+      }, [
+        h('small', {
+          class: 'font-code text-[0.66rem]/[1.35] font-medium tracking-[0.01em] normal-nums'
+        }, `${index + 1}.`),
+        h('span', item.name),
+        h('em', {
+          class: 'font-code text-[0.72rem]/none font-medium not-italic normal-nums'
+        }, String(item.length))
+      ]))
     ])
   ])
 }
@@ -217,7 +287,7 @@ export const Construction = defineComponent({
     const state             = useDrafting(chart)
 
     return () => stage(chart, layout.value.narrow, [
-      h('div', { class: 'sc-ref-bed' }, [drawing(state, id), beside(state)]),
+      h('div', { class: BED }, [drawing(state, id), beside(state)]),
       stepper({ at: state.at.value, names: NAMES, pick: state.draw })
     ])
   }

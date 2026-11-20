@@ -3,6 +3,22 @@ import { type PropType, type VNode, defineComponent, h } from 'vue'
 import { counted }                                        from '../../../lib/data/numbers.ts'
 import { DRAWINGS, svgOf }                                from '../../../lib/site/pieces.ts'
 import { RANKS, type Tied, dotOf, dotsOf, rankOf, ranked } from '../../../lib/viewer/ranks.ts'
+import { PILL }                                           from './parts.ts'
+
+/**
+ * One dot under a rank's chip, a ring filled and grown where it stands for the
+ * shown game, and the last of a row shrunk where the rank holds more games
+ * than its dots.
+ */
+const DOT = [
+  'grid h-2.5 w-[9px] cursor-pointer place-items-center border-0 bg-transparent p-0',
+  'before:size-[5px] before:rounded-[50%] before:transition-[background-color,transform]',
+  'before:[box-shadow:inset_0_0_0_1px_color-mix(in_oklab,var(--sc-quiet)_70%,transparent)]',
+  'hover:before:[box-shadow:inset_0_0_0_1px_var(--sc-run)] in-data-more:last:before:size-[3px]',
+  'data-on:before:bg-run data-on:before:[box-shadow:none] data-on:before:[transform:scale(1.3)]',
+  'focus-visible:rounded-[3px] focus-visible:outline-2 focus-visible:outline-offset-1',
+  'focus-visible:outline-run'
+]
 
 /**
  * Names a count of `noun`, as `1 game` or `13 games`.
@@ -27,11 +43,11 @@ function drawDots(here: number, inside: readonly number[], show: (at: number) =>
   const on   = here < 0 ? -1 : dotOf(here, inside.length)
   const dots = dotsOf(inside.length)
   return h('span', {
-    'class'     : 'sc-viewer-rank-dots',
+    'class'     : 'flex h-2.5 items-center',
     'data-more' : inside.length > dots.length ? '' : undefined
   }, dots.map((opens, dot) => h('button', {
     'aria-label' : `Game ${counted(opens + 1)} of ${counted(inside.length)} in this rank`,
-    'class'      : 'sc-viewer-rank-dot',
+    'class'      : DOT,
     'data-on'    : dot === on ? '' : undefined,
     'type'       : 'button',
     'onClick'    : () => show(inside[opens]!)
@@ -52,16 +68,17 @@ function drawDots(here: number, inside: readonly number[], show: (at: number) =>
 function drawRank(at: number, inside: readonly number[], rank: number, show: (at: number) => void): VNode {
   const { piece, words } = RANKS[rank]!
   const here             = inside.indexOf(at)
-  return h('span', { class: 'sc-viewer-rank' }, [
+  return h('span', { class: 'grid justify-items-center gap-[7px]' }, [
     h('button', {
       'aria-pressed' : String(here >= 0),
-      'class'        : 'sc-viewer-rank-chip',
+      'class'        : [PILL, 'h-10 gap-1 pr-3 pl-[5px] font-code text-[0.76rem]/none font-semibold',
+                        'tabular-nums'],
       'title'        : `${named(inside.length, 'game')} rated ${words}`,
       'type'         : 'button',
       'onClick'      : () => show(inside[(here + 1) % inside.length]!)
     }, [
-      h('span', { class: 'sc-viewer-rank-piece', innerHTML: svgOf(DRAWINGS[piece], 30) }),
-      h('i', '×'),
+      h('span', { class: 'block size-[30px]', innerHTML: svgOf(DRAWINGS[piece], 30) }),
+      h('i', { class: 'mr-px font-medium text-quiet not-italic' }, '×'),
       counted(inside.length)
     ]),
     drawDots(here, inside, show)
@@ -98,18 +115,29 @@ export const Tally = defineComponent({
       const ranks = ranked(props.ties)
       const shown = rankOf(props.ties[props.at]!)
       let before  = 0
-      return h('div', { class: 'sc-viewer-tally' }, [
-        h('p', { class: 'sc-viewer-tally-kicker' }, [
-          h('span', [h('b', counted(props.ties.length)), ` games tied on ${named(props.length, 'position')}`]),
+      return h('div', { class: 'grid min-w-0 gap-2 border-t border-rule pt-3' }, [
+        h('p', {
+          class: 'flex items-center justify-between gap-3 font-code text-[0.62rem]/[16px] font-medium '
+               + 'tabular-nums tracking-[0.12em] text-quiet uppercase'
+        }, [
+          h('span', [
+            h('b', { class: 'font-semibold text-ink' }, counted(props.ties.length)),
+            ` games tied on ${named(props.length, 'position')}`
+          ]),
           h('span', 'Weighed by rating')
         ]),
-        h('div', { class: 'sc-viewer-ranks' }, ranks.flatMap(
+        h('div', { class: 'flex flex-wrap items-start gap-x-2 gap-y-2.5' }, ranks.flatMap(
           (inside, rank) => inside.length > 0 ? [drawRank(props.at, inside, rank, show)] : []
         )),
-        h('div', { 'aria-hidden': 'true', 'class': 'sc-viewer-meter' }, ranks.map((inside, rank) => {
+        h('div', {
+          'aria-hidden' : 'true',
+          'class'       : 'relative h-1.5 overflow-hidden rounded-[3px] bg-raised '
+                        + '[box-shadow:inset_0_0_0_1px_var(--sc-rule)]'
+        }, ranks.map((inside, rank) => {
           const left = before / props.ties.length * 100
           before    += inside.length
           return h('span', {
+            'class'   : 'absolute inset-y-0 bg-run/28 data-on:bg-run',
             'data-on' : rank === shown ? '' : undefined,
             'style'   : { left: `${left}%`, width: `calc(${inside.length / props.ties.length * 100}% - 2px)` }
           })
