@@ -118,7 +118,7 @@ function board(state: Standing): VNode {
     'class'      : [
       'relative aspect-square cursor-pointer touch-manipulation overflow-clip rounded-xs select-none',
       '[box-shadow:0_0_0_1px_var(--sc-rule)]',
-      'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run'
+      'focus-ring'
     ],
     'onClick'    : (event: PointerEvent) => {
       const { x, y } = pointerAt(event)

@@ -25,7 +25,7 @@ const TERM = [
   '[background-position:0_100%,0_100%] [background-repeat:repeat-x,no-repeat]',
   '[background-size:4px_4px,100%_4px]',
   '[&:hover]:text-run [&:hover]:[--sc-sweep:100%] focus-visible:text-run focus-visible:[--sc-sweep:100%]',
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run',
+  'focus-ring',
   'aria-expanded:text-run aria-expanded:[--sc-sweep:100%]'
 ]
 

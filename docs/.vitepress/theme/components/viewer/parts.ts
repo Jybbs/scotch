@@ -1,9 +1,4 @@
 /**
- * The ring a Viewer control draws in the run's color while it holds keyboard
- * focus.
- */
-export const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run'
-/**
  * The small capitals heading a part of the Viewer.
  */
 export const KICKER = 'm-0 inline-flex items-center gap-[7px] font-code text-[0.64rem]/[16px] font-medium '
@@ -27,6 +22,6 @@ export const SHADES = {
  * A Viewer chip, a pill naming an action in the code face's capitals, beside
  * its icon where it carries one.
  */
-export const CHIP = `${PILL} ${FOCUS} h-[34px] gap-[7px] px-[13px] font-code text-[0.64rem]/none `
+export const CHIP = `${PILL} focus-ring h-[34px] gap-[7px] px-[13px] font-code text-[0.64rem]/none `
                   + 'font-semibold tracking-[0.1em] whitespace-nowrap uppercase '
                   + 'transition-[border-color,background-color] has-[svg]:pl-[11px]'

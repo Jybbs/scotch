@@ -5,7 +5,6 @@ import { type Loaded, NOTHING, PARTIES, type Pair, type Party } from '../../../l
 import { SheetMarker } from '../../../lib/viewer/marker.ts'
 import * as sheets     from '../../../lib/viewer/sheet.ts'
 import { startMark }   from '../start.ts'
-import { FOCUS }       from './parts.ts'
 
 /**
  * What the sheets are drawn at: the cursor they open on, the call moving the
@@ -35,7 +34,7 @@ const LEDGER = 'grid h-full min-h-0 min-w-0 grid-rows-[minmax(0,1fr)_var(--sc-vi
  * covered past it.
  */
 const MOVE = [
-  FOCUS,
+  'focus-ring',
   'relative flex h-[calc(var(--sc-viewer-pitch)_-_1px)] w-full cursor-pointer items-center justify-between',
   'gap-1.5 border-0 bg-transparent px-1.5 py-0 text-left font-code text-[0.8rem]/none font-medium text-ink',
   'transition-[background-color] hover:bg-tint aria-[current=step]:bg-ink aria-[current=step]:text-page',

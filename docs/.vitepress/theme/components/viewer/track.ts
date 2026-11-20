@@ -6,7 +6,6 @@ import { type Loaded, PARTIES, type Status } from '../../../lib/viewer/loaded.ts
 import { type TrackParts, TrackStrip }       from '../../../lib/viewer/strip.ts'
 import * as track                            from '../../../lib/viewer/track.ts'
 import type { Facing }                       from '../../../lib/viewer/trail.ts'
-import { FOCUS }                             from './parts.ts'
 
 /**
  * The refs each drawn part of the track binds to.
@@ -36,7 +35,7 @@ const SWATCH = 'absolute top-[calc(var(--sc-viewer-middle)_-_4px)] right-0 flex 
  * The slider, the swatches beside the scrolling box, the swatches dropped on
  * a narrow screen.
  */
-const TRACK = `${FOCUS} grid min-w-0 cursor-pointer touch-pan-x grid-cols-[9px_minmax(0,1fr)] gap-x-2.5 `
+const TRACK = 'focus-ring grid min-w-0 cursor-pointer touch-pan-x grid-cols-[9px_minmax(0,1fr)] gap-x-2.5 '
             + 'rounded-md max-sm:grid-cols-[minmax(0,1fr)]'
 
 /**

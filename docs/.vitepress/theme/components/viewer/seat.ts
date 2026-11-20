@@ -1,8 +1,8 @@
 import { useTimeoutFn }                                  from '@vueuse/core'
 import { type PropType, defineComponent, h, shallowRef } from 'vue'
 
-import { ICONS }                from './icons.ts'
-import { CHIP, FOCUS, KICKER } from './parts.ts'
+import { ICONS }        from './icons.ts'
+import { CHIP, KICKER } from './parts.ts'
 
 /**
  * The field laying out the text to copy by hand, opening in the top layer
@@ -76,7 +76,7 @@ export const Seat = defineComponent({
         h('textarea', {
           'aria-label' : props.title,
           'class'      : [
-            FOCUS,
+            'focus-ring',
             'w-full resize-y rounded-md border border-rule bg-page px-2.5 py-2 font-code',
             'text-[0.74rem]/[18px] font-normal whitespace-pre text-ink'
           ],

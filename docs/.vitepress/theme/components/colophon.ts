@@ -82,7 +82,7 @@ function wellOf(credit: chrome.Credit, index: number, choice: Choice, shown: num
       'class'      : [
         'mb-0.5 grid size-11 cursor-pointer place-items-center rounded-md',
         '[-webkit-tap-highlight-color:transparent]',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run',
+        'focus-ring',
         '[&_svg]:size-8 [&_svg]:transition-[translate,filter] [&_svg]:duration-glide',
         '[&_svg]:[filter:drop-shadow(0_1px_0_color-mix(in_oklab,var(--sc-ink)_20%,transparent))]',
         'in-data-shown:[&_svg]:-translate-y-[7px]',

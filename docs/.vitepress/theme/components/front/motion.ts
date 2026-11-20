@@ -32,7 +32,7 @@ export const MotionSwitch = defineComponent({
       'class'        : [
         'ml-3 inline-grid h-5.5 w-10 shrink-0 cursor-pointer items-center rounded-[11px] bg-side px-0.5 py-0',
         '[box-shadow:inset_0_0_0_1px_var(--sc-rule)]',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run',
+        'focus-ring',
         '[&_svg]:size-3 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[1.6]'
       ],
       'onClick'      : toggle,

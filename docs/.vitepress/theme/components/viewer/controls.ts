@@ -6,7 +6,6 @@ import type { Verdict }        from '../../../lib/viewer/guesses.ts'
 import type { Loaded, Status } from '../../../lib/viewer/loaded.ts'
 import { snapRow }             from '../../../lib/viewer/pixel.ts'
 import type { Facing }         from '../../../lib/viewer/trail.ts'
-import { FOCUS }               from './parts.ts'
 
 /**
  * One control, a raised pill naming its step in the run's color, its rim
@@ -15,7 +14,7 @@ import { FOCUS }               from './parts.ts'
  * screen.
  */
 const CONTROL = [
-  FOCUS,
+  'focus-ring',
   'inline-flex h-[34px] cursor-pointer items-center gap-[7px] rounded-[999px] border border-rule bg-raised',
   'py-0 pr-[7px] pl-[13px] font-code text-[0.64rem]/none font-semibold tracking-[0.1em] text-run uppercase',
   'transition-[border-color,color]',
@@ -70,7 +69,7 @@ export function statusLine(status: Status, show: (on: boolean) => void, verdict?
     status.count ? `${short} · ` : short,
     h('button', {
       class          : [
-        FOCUS,
+        'focus-ring',
         'cursor-help border-0 border-b border-dashed border-current bg-transparent px-px py-0 text-inherit',
         '[font:inherit] tracking-[inherit] [text-transform:inherit]'
       ],

@@ -7,7 +7,7 @@ export const BUTTON = [
   'text-[0.6rem]/[24px] font-semibold tracking-[0.1em] text-run uppercase duration-move ease-glide',
   'transition-[border-color,background-color,color] hover:border-run disabled:cursor-default',
   'disabled:border-rule disabled:text-quiet aria-pressed:border-run aria-pressed:bg-run',
-  'aria-pressed:text-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run'
+  'aria-pressed:text-page focus-ring'
 ]
 /**
  * The widget's card: the controls and status over the timeline, the board
@@ -134,5 +134,4 @@ export const HEADS = `${COLUMNS} border-t-[1.5px] border-b border-ink font-body 
  * The list of plies, scrolling inside its own height.
  */
 export const LIST = `${COLUMNS} relative auto-rows-[26px] content-start overflow-auto overscroll-contain `
-                  + 'font-code text-[0.74rem]/[normal] font-normal [scrollbar-width:thin] focus-visible:outline-2 '
-                  + 'focus-visible:outline-offset-2 focus-visible:outline-run'
+                  + 'font-code text-[0.74rem]/[normal] font-normal [scrollbar-width:thin] focus-ring'

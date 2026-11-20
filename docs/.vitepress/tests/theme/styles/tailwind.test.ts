@@ -105,6 +105,16 @@ describe('the identity’s utilities', () => {
   )
 })
 
+describe('the sheet’s own variants and utilities', () => {
+  it('rings a control in the run’s color while it holds keyboard focus', async () => {
+    const css = await built('focus-ring')
+    expect(css).toContain('.focus-ring:focus-visible {')
+    expect(css).toContain('outline-width: 2px;')
+    expect(css).toContain('outline-offset: 2px;')
+    expect(css).toContain('outline-color: var(--sc-run);')
+  })
+})
+
 describe('Tailwind’s defaults', () => {
   it.each([
     'bg-red-500', 'text-white', 'font-sans', 'font-mono', 'ease-in-out', 'animate-spin', 'xl:block',
