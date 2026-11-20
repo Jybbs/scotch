@@ -2,6 +2,8 @@
 //! as python-chess's `Board.parse_san` reads it, accepting what it accepts
 //! and raising the message it raises for what it does not.
 
+use core::convert::identity;
+
 use shakmaty::{CastlingSide, File, Position, Rank, Role, Square, uci::UciMove};
 
 use crate::boards::Board;
@@ -109,7 +111,11 @@ pub fn read(board: &Board, token: &str) -> Result<Reading, String> {
         "O-O-O" | "0-0-0" => Some(CastlingSide::QueenSide),
         _ => None,
     };
-    let illegal = |prefix: &str| format!("{prefix}: '{token}' in {}", board.fen());
+    let illegal = |prefix: &str| {
+        board
+            .fen()
+            .map_or_else(identity, |fen| format!("{prefix}: '{token}' in {fen}"))
+    };
 
     if let Some(side) = side {
         return board
@@ -200,18 +206,18 @@ fn find(board: &Board, token: &str, from: Square, san: San) -> Result<Reading, S
         .legal()
         .find(|(_, legal)| *legal == named)
         .ok_or_else(|| {
-            format!(
-                "no matching legal move for {named} ({from} -> {}) in {}",
-                san.to,
-                board.fen()
-            )
+            board.fen().map_or_else(identity, |fen| {
+                format!(
+                    "no matching legal move for {named} ({from} -> {}) in {fen}",
+                    san.to
+                )
+            })
         })?;
 
     if promotion != san.promotion {
-        return Err(format!(
-            "missing promotion piece type: '{token}' in {}",
-            board.fen()
-        ));
+        return Err(board.fen().map_or_else(identity, |fen| {
+            format!("missing promotion piece type: '{token}' in {fen}")
+        }));
     }
 
     Ok(Reading::Move(m, named))
