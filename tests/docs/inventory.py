@@ -455,6 +455,9 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
             output.write(root)
 
     assert (root / "docs/pages/data/index.md").read_text().endswith(sentence)
+    assert (root / "docs/pages/methods/reading.md").read_text() == (
+        "<!-- illegal -->\n\n<!-- /illegal -->\n\n"
+    )
 
 
 @mark.parametrize(
