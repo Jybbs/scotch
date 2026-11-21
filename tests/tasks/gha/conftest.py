@@ -71,6 +71,62 @@ def task(request: FixtureRequest) -> ModuleType:
 
 
 @fixture
+def created(fp: FakeProcess):
+    """
+    Answers `gh release create` with the address of the new draft.
+    """
+    fp.register(
+        ["gh", "release", "create", fp.any()],
+        stdout = "https://example.test/untagged-1\n"
+    )
+
+
+@fixture
+def refreshed(fp: FakeProcess) -> list[str]:
+    """
+    Answers the `generate-notes` call with fresh notes and `gh release edit`
+    with the draft's new address.
+
+    Returns:
+        The notes `gh release edit` reads from its standard input.
+    """
+    notes = []
+    fp.register(
+        ["gh", "api", "repos/{owner}/{repo}/releases/generate-notes", fp.any()],
+        stdout = "Fresh notes\n"
+    )
+    fp.register(
+        ["gh", "release", "edit", "0.2.0", "--notes-file", "-"],
+        stdin_callable = notes.append,
+        stdout         = "https://example.test/untagged-2\n"
+    )
+    return notes
+
+
+@fixture
+def viewed(fp: FakeProcess) -> Callable[..., None]:
+    """
+    Builds a registrar answering `gh release view` for `0.2.0` with a
+    release targeting `main`, or failing on the `stderr` it is given.
+    """
+    def register(*, draft: bool = True, stderr: str = "", url: str = ""):
+        """
+        Registers the release whose draft flag is `draft` at `url`, or a
+        failure printing `stderr` where one is given.
+        """
+        fp.register(
+            ["gh", "release", "view", "0.2.0", "--json", "isDraft,targetCommitish,url"],
+            returncode = 1 if stderr else 0,
+            stderr     = stderr,
+            stdout     = dumps(
+                {"isDraft": draft, "targetCommitish": "main", "url": url}
+            )
+        )
+
+    return register
+
+
+@fixture
 def from_root(monkeypatch: MonkeyPatch, pytestconfig: Config):
     """
     Runs the test from the worktree root, the directory a gate runs its

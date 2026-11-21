@@ -61,16 +61,18 @@ class Release:
         place its tag is written, so publishing writes the tag at whatever
         `main` holds at that moment.
         """
-        created = run(
-            [
-                "gh", "release", "create", version, "--draft",
-                "--generate-notes", "--target", "main", "--title", version
-            ],
-            capture_output = True,
-            check          = True,
-            text           = True
+        url = gh(
+            "release",
+            "create",
+            version,
+            "--draft",
+            "--generate-notes",
+            "--target",
+            "main",
+            "--title",
+            version
         )
-        return cls(draft=True, target="main", url=created.stdout.strip())
+        return cls(draft=True, target="main", url=url)
 
     @classmethod
     def find(cls, version: str) -> Self | None:
@@ -116,26 +118,20 @@ class Release:
             The draft at the address `gh release edit` prints, since GitHub
             writes a new `untagged-` address on each edit of a draft.
         """
-        notes = run(
-            [
-                "gh", "api", "repos/{owner}/{repo}/releases/generate-notes", "--field",
-                f"tag_name={version}",
-                "--field",
-                f"target_commitish={self.target}",
-                "--jq", ".body"
-            ],
-            capture_output = True,
-            check          = True,
-            text           = True
+        notes = gh(
+            "api",
+            "repos/{owner}/{repo}/releases/generate-notes",
+            "--raw-field",
+            f"tag_name={version}",
+            "--raw-field",
+            f"target_commitish={self.target}",
+            "--jq",
+            ".body"
         )
-        edited = run(
-            ["gh", "release", "edit", version, "--notes-file", "-"],
-            capture_output = True,
-            check          = True,
-            input          = notes.stdout,
-            text           = True
+        return replace(
+            self,
+            url = gh("release", "edit", version, "--notes-file", "-", stdin=notes)
         )
-        return replace(self, url=edited.stdout.strip())
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -164,7 +160,8 @@ class Outcome:
     def cut(cls, version: str) -> Self:
         """
         Takes the cut for `version`, creating a draft where no release
-        carries it and refreshing the notes of the draft that does.
+        carries it, refreshing the notes of the draft that does, and keeping
+        a published release carrying it as found.
         """
         match Release.find(version):
             case None: release, state = Release.create(version), State.CREATED
@@ -192,10 +189,27 @@ class Outcome:
         if self.state is State.PUBLISHED:
             print(
                 f"::error::The published release {self.release.url} already "
-                f"carries {self.version}, so `mise bump` moves `[project].version` "
-                "to the next version"
+                f"carries {self.version}, so run `mise bump` to move "
+                "`[project].version` to the next version"
             )
             raise SystemExit(1)
+
+
+def gh(*arguments: str, stdin: str | None = None) -> str:
+    """
+    Runs `gh` with `arguments`, sending `stdin` on its standard input where
+    given, and reads what it prints, stripped.
+
+    Raises:
+        CalledProcessError: Where `gh` exits nonzero.
+    """
+    return run(
+        ["gh", *arguments],
+        capture_output = True,
+        check          = True,
+        input          = stdin,
+        text           = True
+    ).stdout.strip()
 
 
 if __name__ == "__main__":

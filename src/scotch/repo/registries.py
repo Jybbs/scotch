@@ -17,7 +17,7 @@ from markdown_it.tree import SyntaxTreeNode
 from math             import cbrt, sumprod
 from mdit_py_plugins.front_matter import front_matter_plugin
 from pydantic import AliasPath, BaseModel, BeforeValidator, Field, JsonValue, TypeAdapter
-from typing   import Annotated, ClassVar
+from typing   import Annotated, ClassVar, Self
 from yaml     import SafeLoader, load
 
 from scotch.repo.schemas import ConfigFile, Pyproject
@@ -204,6 +204,18 @@ class Request(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         return None if self.body is None else TypeAdapter(JsonValue).dump_json(
             self.body
         ).decode()
+
+    @classmethod
+    def toggled(cls, endpoint: str, on: bool) -> Self:
+        """
+        Builds the call turning the feature at `endpoint` under the
+        repository on through `PUT` where `on` holds and off through
+        `DELETE` otherwise.
+        """
+        return cls(
+            method = HTTPMethod.PUT if on else HTTPMethod.DELETE,
+            path   = f"repos/{{owner}}/{{repo}}/{endpoint}"
+        )
 
 
 class Scope(StrEnum):
@@ -447,10 +459,7 @@ class Dependabot(
         Dependabot opens a security update only where its alerts are on.
         """
         return [
-            Request(
-                method = HTTPMethod.PUT if on else HTTPMethod.DELETE,
-                path   = f"repos/{{owner}}/{{repo}}/{endpoint}"
-            )
+            Request.toggled(endpoint, on)
             for endpoint, on in (
                 ("vulnerability-alerts", self.vulnerability_alerts),
                 ("automated-security-fixes", self.automated_security_fixes)
@@ -491,10 +500,7 @@ class Releases(
         """
         Writes the call turning immutable releases on or off.
         """
-        return Request(
-            method = HTTPMethod.PUT if self.immutable_releases else HTTPMethod.DELETE,
-            path   = "repos/{owner}/{repo}/immutable-releases"
-        )
+        return Request.toggled("immutable-releases", self.immutable_releases)
 
 
 class Analysis(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):

@@ -4,6 +4,6 @@
 |---|---|
 | `draft` | failure |
 
-The [published release](https://example.test/0.2.0) already carries `0.2.0`, so `mise bump` moves `[project].version` to the next version.
+The [published release](https://example.test/0.2.0) already carries `0.2.0`, so run `mise bump` to move `[project].version` to the next version.
 
 The run checked `560c4d8` on `4/ci-gate`.

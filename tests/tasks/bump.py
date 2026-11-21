@@ -16,7 +16,7 @@ from pytest           import Config, mark
 def test_the_bump_moves_the_part_it_names_and_relocks(
     part         : str,
     pytestconfig : Config,
-    stand_in     : Callable[[str], StandIn]
+    stand_in     : Callable[..., StandIn]
 ):
     """
     Asserts that `repo:bump` hands `uv version` the part it was given
