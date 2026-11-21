@@ -190,8 +190,10 @@ export function shadeOf(entry: Entry): number {
  * Sets each Players archive's disc at the mean year of its games, sized by the
  * games the store holds, the largest placed first and each later one moved up
  * or down half a pixel at a time until it overlaps none placed before it, every
- * radius shrunk while the swarm would rise past the drawing's half height. An
- * archive with no dated game takes no disc.
+ * radius shrunk while the swarm would rise past the drawing's half height. Each
+ * disc is tested only against the placed discs within reach along the axis, and
+ * a scale is left at the first disc rising past it. An archive with no dated
+ * game takes no disc.
  */
 export function swarm(
   height  : number,
@@ -200,32 +202,37 @@ export function swarm(
   years   : Years,
   layout  : Layout = LAYOUT
 ): Mark<Disc>[] {
-  const base = (height - layout.axis - 2) / 2
-  const most = Math.max(1, ...players.map(entry => entry.listed.games))
-  const laid = (scale: number): Mark<Disc>[] => {
+  const base  = (height - layout.axis - 2) / 2
+  const most  = Math.max(1, ...players.map(entry => entry.listed.games))
+  const dated = players.flatMap(entry => {
+    const year = meanYear(entry.listed)
+    if (year === null) return []
+    const size = 1.5 + 5 * Math.sqrt(entry.listed.games / most)
+    return [{ entry, size, x: yearX(width, years, year, layout) }]
+  })
+  const risen = (box: Disc): boolean => Math.abs(box.y - base) + box.r > base - 4
+  const laid  = (scale: number): Mark<Disc>[] => {
     const placed: Mark<Disc>[] = []
-    const discs  = players.flatMap(entry => {
-      const year = meanYear(entry.listed)
-      if (year === null) return []
-      const r = (1.5 + 5 * Math.sqrt(entry.listed.games / most)) * scale
-      return [{ entry, r, x: yearX(width, years, year, layout) }]
-    }).toSorted((a, b) => b.r - a.r)
+    const discs  = dated.map(({ entry, size, x }) => ({ entry, r: size * scale, x }))
+      .toSorted((a, b) => b.r - a.r)
 
     for (const { entry, r, x } of discs) {
+      const near    = placed.filter(({ box }) => Math.abs(box.x - x) < box.r + r + layout.gap)
       let y         = base
       const crowded = (): boolean =>
-        placed.some(({ box }) => Math.hypot(box.x - x, box.y - y) < box.r + r + layout.gap)
+        near.some(({ box }) => Math.hypot(box.x - x, box.y - y) < box.r + r + layout.gap)
       for (let step = 1; crowded(); step++) y = base + (step % 2 ? 1 : -1) * Math.ceil(step / 2) * 0.5
-      placed.push({ box: { r, x, y }, delay: Math.round(x / width * 900), entry, rise: base - y })
+      const disc    = { box: { r, x, y }, delay: Math.round(x / width * 900), entry, rise: base - y }
+      placed.push(disc)
+      if (scale > layout.least && risen(disc.box)) break
     }
 
     return placed
   }
 
-  let scale   = Math.min(1, Math.sqrt(width / 688))
-  let placed  = laid(scale)
-  const risen = (): boolean => placed.some(({ box }) => Math.abs(box.y - base) + box.r > base - 4)
-  while (scale > layout.least && risen()) placed = laid(scale *= layout.shrink)
+  let scale  = Math.min(1, Math.sqrt(width / 688))
+  let placed = laid(scale)
+  while (scale > layout.least && placed.some(({ box }) => risen(box))) placed = laid(scale *= layout.shrink)
   return placed.toSorted((a, b) => a.box.x - b.box.x)
 }
 

@@ -86,8 +86,17 @@ describe('swarm', () => {
 
   it('shrinks no disc past the least scale, however high the swarm rises', () => {
     const layout = { axis: 26, gap: 0.7, least: 0.9, shrink: 0.5, side: 14 }
-    const [disc] = axes.swarm(60, crowd, 688, years, layout)
-    expect(disc!.box.r).toBeCloseTo(6.5 * 0.5)
+    const discs  = axes.swarm(60, crowd, 688, years, layout)
+    expect(discs[0]!.box.r).toBeCloseTo(6.5 * 0.5)
+    expect(discs).toHaveLength(crowd.length)
+  })
+
+  it('lays every disc of the scale it keeps, none overlapping another', () => {
+    const discs = axes.swarm(60, crowd, 688, years)
+    const gaps  = discs.flatMap((a, place) => discs.slice(place + 1)
+      .map(b => Math.hypot(a.box.x - b.box.x, a.box.y - b.box.y) - a.box.r - b.box.r))
+    expect(discs).toHaveLength(crowd.length)
+    expect(Math.min(...gaps)).toBeGreaterThanOrEqual(0.7)
   })
 })
 
