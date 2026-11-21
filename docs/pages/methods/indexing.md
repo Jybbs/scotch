@@ -4,7 +4,7 @@ What does a match search? It searches the index, which `scotch index games` buil
 
 ## What the Index Holds
 
-The index is two files. `games.parquet` holds one row for each stored game, naming the file it was read from and its place there, its result, and its tags, and `positions.bin` holds each stored game's moves beside the key of every position they reach, as [The Data Files](../data/files.md) sets out column by column and section by section. A game's positions are kept as their keys alone, so a lookup compares numbers rather than boards, and a page or a command that draws a position plays the game's moves again to reach it.
+A match reads two of the files the index writes, where `games.parquet` holds one row for each stored game, naming the file it was read from and its place there, its result, and its tags, and `positions.bin` holds each stored game's moves beside the key of every position they reach, as [The Data Files](../data/files.md) sets out column by column and section by section. A game's positions are kept as their keys alone, so a lookup compares numbers rather than boards, and a page or a command that draws a position plays the game's moves again to reach it.
 
 ## One Copy of a Repeated Game
 

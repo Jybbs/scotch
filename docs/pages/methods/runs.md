@@ -13,7 +13,7 @@ How does the search find the stored game sharing the longest run? It looks up ev
 
 ## The Grid of Shared Positions
 
-Setting the submitted game's plies along one side of a grid and the stored game's along the other shows each position the two share as a cell, the way a dot plot sets two sequences against each other.[^gibbs1970] A run is then a line of cells running down the diagonal, one ply further in each game at each step, and the stored game's ply less the submitted game's ply, the run's offset, sets how far that diagonal stands from the main one. Two games played in the same order share their runs on the main diagonal, whereas a game reaching the same position by another order of moves shares a run on a diagonal set off from it.
+Setting the submitted game's plies along one side of a grid and the stored game's along the other shows each position the two share as a cell, the way a dot plot sets two sequences against each other.[^gibbs1970] A run is then a line of cells running down the diagonal, one ply further in each game at each step, and the stored game's ply less the submitted game's ply, the run's offset, sets how far that diagonal stands from the main one. Two games played in the same order share one run down the main diagonal from its first cell, whereas a game reaching a position by another order of moves opens a new run there, further down the main diagonal past a gap where both orders take as many plies, and on a diagonal set off from it where they take a different number.
 
 ## Following a Run
 

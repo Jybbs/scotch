@@ -646,7 +646,11 @@ class Census:
             (
                 line
                 for address in unread
-                for line in Batch.read(downloads, sources[address]).summary.splitlines()
+                for line in Batch.read(
+                    downloads,
+                    sources[address],
+                    self.sources.floor(sources[address])
+                ).summary.splitlines()
                 if line.startswith("Left out game") and ": illegal san" in line
             ),
             ""

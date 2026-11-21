@@ -72,7 +72,7 @@ def test_an_index_adds_the_files_written_from_it(
     - The tables the Data pages, the store page, and the identity page set
       beneath their widgets, each the one its region names
     - The line the build prints for a game left out for an illegal move,
-      empty for an index leaving out no such game
+      set in a text block
     - The demo game's match file
     - The example run of each command whose output the index sets, the
       commands page's
@@ -84,6 +84,7 @@ def test_an_index_adds_the_files_written_from_it(
       length of the demo's address, and the bytes the downloads and the
       index take
     """
+    monkeypatch.setattr(Census, "illegal", lambda _, downloads: "Left out game 1")
     monkeypatch.setattr(Census, "store", tally)
     index = scanned(
         game.model_copy(
@@ -198,7 +199,9 @@ def test_an_index_adds_the_files_written_from_it(
         tally.outcomes
     )
     assert tally.archives in text["guide/store.md"]
-    assert text["methods/reading.md"] == "<!-- illegal -->\n\n<!-- /illegal -->\n\n"
+    assert text["methods/reading.md"] == (
+        "<!-- illegal -->\n```text\nLeft out game 1\n```\n<!-- /illegal -->\n\n"
+    )
     assert loads((root / "docs/public/matches/demo.json").read_text())["stored"][
         "headers"
     ]["White"] == "Kasparov, Gary"

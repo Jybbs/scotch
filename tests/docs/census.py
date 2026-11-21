@@ -686,7 +686,7 @@ def test_the_illegal_line_is_the_first_the_build_prints_for_an_illegal_move(
                 b'[White "C"]\n[Black "D"]\n\n1. e4 e5 2. Qxf7 *\n'
             )
         ),
-        land(tmp_path, "Second.pgn", body=b"1. d4 d5 2. Qxd5 *\n")
+        land(tmp_path, "Earlier.pgn", body=b"1. d4 d5 2. Qxd5 *\n")
     )
     census = Census(
         index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
@@ -697,6 +697,33 @@ def test_the_illegal_line_is_the_first_the_build_prints_for_an_illegal_move(
         f"Left out game 2 of {sources[1].address}, C vs. D: illegal san: 'Qxf7'"
         " in rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
     )
+
+
+def test_the_illegal_line_passes_over_a_game_rated_below_its_files_floor(
+    tmp_path: Path
+):
+    """
+    Asserts that the line read for an illegal move passes over a game rated
+    below the floor of its file's section, which the build leaves out for
+    its rating and prints no problem for.
+    """
+    source = land(
+        tmp_path,
+        "Opening.pgn",
+        body = (
+            b'[WhiteElo "2000"]\n[BlackElo "2000"]\n\n1. e4 e5 2. Qxf7 *\n\n'
+            b'[WhiteElo "2700"]\n[BlackElo "2700"]\n[FEN "garbage"]\n\n1. e4 *\n'
+        )
+    ).model_copy(update={"section": "Openings"})
+    sources = Sources(floors={"Openings": 2500}, sources=(source,))
+    census  = Census(
+        index = PositionIndex.merge(
+            [Batch.read(tmp_path, source, sources.floor(source))]
+        ),
+        sources = sources
+    )
+
+    assert census.illegal(tmp_path) == ""
 
 
 def test_tie_lists_the_games_sharing_the_whole_line_in_match_order(census: Census):

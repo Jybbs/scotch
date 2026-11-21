@@ -1,9 +1,9 @@
 import { createMarkdownRenderer } from 'vitepress'
 import { describe, expect, it }   from 'vitest'
 
-import { readGitHubMath } from '../../../lib/markdown/math.ts'
+import { markdownRules } from '../../../lib/markdown/rules.ts'
 
-const md = await createMarkdownRenderer('/tmp', { config: readGitHubMath, math: true })
+const md = await createMarkdownRenderer('/tmp', { config: markdownRules, math: true })
 
 /**
  * Renders `source` and returns the TeX MathJax read from each formula, kept in

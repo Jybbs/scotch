@@ -8,7 +8,7 @@ A game's movetext can carry variations, alternative lines set in parentheses aft
 
 ## Where a Game Starts
 
-A game starts from the standard starting position unless its `FEN` tag sets up another, in which case its first position is the one that tag names.[^edwards1994c] A game whose `Variant` tag names a variant other than standard chess is left out, since its moves follow other rules and its positions would take keys a standard game never reaches. The index holds <!-- left-variant -->0<!-- /left-variant --> such games of the files it reads, as `mise run docs:render` counts them.
+A game starts from the standard starting position unless its `FEN` tag sets up another, in which case its first position is the one that tag names.[^edwards1994c] A game whose `Variant` tag names a variant other than standard chess is left out, since its moves follow other rules and its positions would take keys a standard game never reaches. The index leaves out <!-- left-variant -->0<!-- /left-variant --> such games of the files it reads, as `mise run docs:render` counts them.
 
 ## A Move Illegal Where It Was Played
 
