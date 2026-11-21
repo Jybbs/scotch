@@ -16,6 +16,7 @@ from scotch.repo.registries import (
     GithubSettings,
     Label,
     Labels,
+    Releases,
     Request,
     Ruleset,
     Template
@@ -296,6 +297,25 @@ def test_a_request_reads_its_body_from_standard_input(
     standard input, and that one sending none passes no input.
     """
     assert (call.arguments, call.payload) == (arguments, payload)
+
+
+@mark.parametrize(
+    ("immutable", "method"),
+    [param(True, "PUT", id="on"), param(False, "DELETE", id="off")]
+)
+def test_immutable_releases_turn_on_or_off_on_their_endpoint(
+    immutable : bool,
+    method    : str
+):
+    """
+    Asserts that `immutable-releases` turns immutable releases on through
+    `PUT` and off through `DELETE` on their own endpoint.
+    """
+    request = Releases.model_validate({"immutable-releases": immutable}).request
+
+    assert (request.method, request.path) == (
+        method, "repos/{owner}/{repo}/immutable-releases"
+    )
 
 
 @mark.parametrize(

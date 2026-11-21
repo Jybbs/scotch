@@ -7,6 +7,9 @@ sha_pinning_required = true
 automated-security-fixes = false
 vulnerability-alerts     = true
 
+[releases]
+immutable-releases = true
+
 [repository]
 allow_auto_merge            = false
 allow_merge_commit          = false

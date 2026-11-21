@@ -71,26 +71,6 @@ def task(request: FixtureRequest) -> ModuleType:
 
 
 @fixture
-def versions(fp: FakeProcess) -> Callable[[str, str], None]:
-    """
-    Builds a registrar answering `git show` for `pyproject.toml`
-    at `HEAD` and at `HEAD~1` with the two versions it is given as
-    `[project].version`.
-    """
-    def register(current: str, previous: str):
-        """
-        Registers `current` at `HEAD` and `previous` at `HEAD~1`.
-        """
-        for ref, version in {"HEAD": current, "HEAD~1": previous}.items():
-            fp.register(
-                ["git", "show", f"{ref}:pyproject.toml"],
-                stdout = f'[project]\nname = "scotch"\nversion = "{version}"\n'
-            )
-
-    return register
-
-
-@fixture
 def from_root(monkeypatch: MonkeyPatch, pytestconfig: Config):
     """
     Runs the test from the worktree root, the directory a gate runs its

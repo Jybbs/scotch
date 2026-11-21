@@ -12,6 +12,7 @@ gh api --input - --method PUT --silent repos/{owner}/{repo}/topics
   {"names":["chess","pgn"]}
 gh api --method PUT --silent repos/{owner}/{repo}/vulnerability-alerts
 gh api --method DELETE --silent repos/{owner}/{repo}/automated-security-fixes
+gh api --method PUT --silent repos/{owner}/{repo}/immutable-releases
 gh api --input - --method PUT --silent repos/{owner}/{repo}/actions/permissions
   {"allowed_actions":"all","enabled":true,"sha_pinning_required":true}
 gh api --input - --method PUT --silent repos/{owner}/{repo}/actions/permissions/workflow

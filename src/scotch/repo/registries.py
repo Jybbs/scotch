@@ -469,6 +469,50 @@ class Feature(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     """
 
 
+class Releases(
+    BaseModel,
+    alias_generator          = lambda name: name.replace("_", "-"),
+    extra                    = "forbid",
+    frozen                   = True,
+    use_attribute_docstrings = True
+):
+    """
+    The release settings `[releases]` declares, keyed by the endpoint that
+    turns each on through `PUT` and off through `DELETE`.
+    """
+
+    immutable_releases: bool
+    """
+    Whether a published release's tag and files stay as published.
+    """
+
+    @property
+    def request(self) -> Request:
+        """
+        Writes the call turning immutable releases on or off.
+        """
+        return Request(
+            method = HTTPMethod.PUT if self.immutable_releases else HTTPMethod.DELETE,
+            path   = "repos/{owner}/{repo}/immutable-releases"
+        )
+
+
+class Analysis(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The security features `[repository.security_and_analysis]` declares.
+    """
+
+    secret_scanning: Feature
+    """
+    Whether GitHub scans the repository for a committed secret.
+    """
+
+    secret_scanning_push_protection: Feature
+    """
+    Whether GitHub refuses a push carrying a secret it recognizes.
+    """
+
+
 class Ruleset(ConfigFile, extra="forbid"):
     """
     One ruleset under `.github/rulesets/`, holding the fields the rulesets
@@ -548,22 +592,6 @@ class Token(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     default_workflow_permissions: Scope
     """
     The scope the token takes where a workflow sets no `permissions`.
-    """
-
-
-class Analysis(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
-    """
-    The security features `[repository.security_and_analysis]` declares.
-    """
-
-    secret_scanning: Feature
-    """
-    Whether GitHub scans the repository for a committed secret.
-    """
-
-    secret_scanning_push_protection: Feature
-    """
-    Whether GitHub refuses a push carrying a secret it recognizes.
     """
 
 
@@ -689,6 +717,11 @@ class GithubSettings(ConfigFile, extra="forbid"):
     The Dependabot features.
     """
 
+    releases: Releases
+    """
+    The release settings.
+    """
+
     repository: Repository
     """
     The repository's own settings.
@@ -701,10 +734,11 @@ class GithubSettings(ConfigFile, extra="forbid"):
 
     def requests(self, node: str, pyproject: Pyproject) -> list[Request]:
         """
-        Writes every call sending the settings, meaning the repository's own
-        settings and Discussions on the repository whose node ID is `node`,
-        the keywords `pyproject` declares as the topics, Dependabot, the
-        Actions permissions, and the token's defaults, in that order.
+        Writes every call sending the settings, meaning the repository's
+        own settings and Discussions on the repository whose node ID is
+        `node`, the keywords `pyproject` declares as the topics, Dependabot,
+        immutable releases, the Actions permissions, and the token's
+        defaults, in that order.
         """
         return [
             *self.repository.requests(node, pyproject),
@@ -714,6 +748,7 @@ class GithubSettings(ConfigFile, extra="forbid"):
                 path   = "repos/{owner}/{repo}/topics"
             ),
             *self.dependabot.requests,
+            self.releases.request,
             Request(
                 body   = self.actions.model_dump(mode="json"),
                 method = HTTPMethod.PUT,
