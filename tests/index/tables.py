@@ -469,7 +469,8 @@ def test_a_match_is_the_longest_run_any_stored_game_shares(
     of them, with ties going to the game whose ratings rank highest, then to
     the game the index holds first, then to the run starting earliest in the
     submitted game, then to the run starting earliest in that game, and that
-    `top` lists each game once at its longest run in that order.
+    `top` lists each game once at its longest run in that order, and that
+    the spans of each stored game are its runs in that order.
     """
     runs = sorted(
         (-length, -game.standing, number, start, ply - start)
@@ -488,6 +489,14 @@ def test_a_match_is_the_longest_run_any_stored_game_shares(
     assert index.runs(submitted).rows() == [
         (number, offset, start, -negated)
         for negated, _, number, start, offset in runs
+    ]
+    assert [index.spans(number, submitted) for number in range(len(store))] == [
+        tuple(
+            Span(length=-negated, offset=offset, start=start)
+            for negated, _, game, start, offset in runs
+            if game == number
+        )
+        for number in range(len(store))
     ]
     assert [
         (store.index(match.game), match.span, match.ties)

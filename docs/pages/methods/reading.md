@@ -4,7 +4,7 @@ Which positions does a game reach? A game reaches the position it starts from an
 
 ## The Mainline Alone
 
-A game's movetext can carry variations, alternative lines set in parentheses after the move each replaces, and comments set in braces.[^edwards1994a] The reader follows the mainline and sets every variation and comment aside, since only the moves the players made reach positions both games played through. A stored game's annotator can add many lines of analysis to a game, and none of them reaches the index.
+A game's movetext can carry variations, alternative lines set in parentheses after the move each replaces, and comments set in braces.[^edwards1994a] The reader follows the mainline and sets every variation and comment aside, since only the moves the players made reach positions the game passed through. A stored game's annotator can add many lines of analysis to a game, and none of them reaches the index.
 
 ## Where a Game Starts
 

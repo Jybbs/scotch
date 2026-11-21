@@ -48,14 +48,13 @@ def test_a_showing_counts_the_run_in_the_lines_plies_beside_the_longest_other_ru
             line("d4", "d5")
         ]
     )
-    drawn   = Example(path=Path(path.name), shown=0).drawn(index, path.parent)
-    figures = drawn.figures
+    drawn = Example(path=Path(path.name), shown=0).drawn(index, path.parent)
 
     assert drawn.runs == (
         Span(length=7, offset=4, start=0),
         Span(length=1, offset=0, start=0)
     )
-    assert {name: figures[name] for name in (
+    assert {name: drawn.figures[name] for name in (
         "end", "next", "parting", "run", "start"
     )} == {
         "end"     : "6",

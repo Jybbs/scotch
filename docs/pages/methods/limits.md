@@ -1,6 +1,6 @@
 # Matches the Rule Passes Over
 
-How often does the longest run pass over a match a reader would also want? The longest run is one reading of closeness among several, and the measures below count how often it passes over another. Each comes from <!-- sample -->1,000<!-- /sample --> stored games drawn at random, each matched as though submitted against every other stored game save those holding its whole mainline, and `mise run docs:render` counts them anew from the index. Each measure is the share of the sampled games some other stored game shares a position with that meet its condition.
+How often does the longest run pass over a match a reader would also want? The longest run is one reading of closeness among several, and the measures below count how often it passes over another. Each comes from <!-- sample -->1,000<!-- /sample --> stored games drawn at random, each matched as though submitted against every other stored game save those holding its whole mainline, and `mise run docs:render` counts them anew from the index. Each measure counts, among the sampled games some other stored game shares a position with, the share that meets its condition.
 
 ## How Far the Longest Run Reaches
 
@@ -16,7 +16,7 @@ The measure counts the sampled games whose longest run lies wholly in positions 
 
 ## Rarer Positions by Another Order
 
-The measure counts the sampled games where a shorter run with some stored game reaches, by another order of moves, a position fewer other stored games reach than reach any position of the longest run. In <!-- transposed -->56%<!-- /transposed --> of the sampled games one does, which the rule passes over because it counts positions rather than weighing how rare each one is.
+The measure counts the sampled games where a shorter run with some stored game reaches, by another order of moves, a position rarer than every position of the longest run, one fewer other stored games reach. In <!-- transposed -->56%<!-- /transposed --> of the sampled games one does, which the rule passes over because it counts positions rather than weighing how rare each one is.
 
 ## What a Match Cannot Show
 

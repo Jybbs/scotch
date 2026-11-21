@@ -453,6 +453,21 @@ class PositionIndex:
             schema = RUNS
         )
 
+    def spans(self, game: int, submitted: Game) -> tuple[Span, ...]:
+        """
+        Lists every run the stored game numbered `game` shares with
+        `submitted`, in the order `runs` ranks them.
+        """
+        return tuple(
+            Span(**run)
+            for run in (
+                self.runs(submitted)
+                    .filter(col("game") == game)
+                    .drop("game")
+                    .iter_rows(named=True)
+            )
+        )
+
     @staticmethod
     def table(directory: Path) -> Path:
         """

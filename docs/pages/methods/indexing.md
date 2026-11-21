@@ -8,7 +8,7 @@ The index is two files. `games.parquet` holds one row for each stored game, nami
 
 ## One Copy of a Repeated Game
 
-A game several files hold is kept once, since PGN Mentor's player, event, and opening files overlap, and a game counted twice would tie with itself on every run it shares. Two copies count as one game where they carry the same Seven Tag Roster,[^edwards1994] start from the same position, and play the same moves, so two games of one event and the same moves that differ in a player's name or the round stay two games. The index leaves out <!-- left-repeat -->437,913<!-- /left-repeat --> repeats this way, as [Games Left Out](../data/omitted.md) counts them.
+A game several files hold is kept once, since PGN Mentor's player, event, and opening files overlap, and a game counted twice would tie with itself on every run it shares. Two copies count as one game where they carry the same Seven Tag Roster,[^edwards1994] start from the same position, and play the same moves, so two games of one event playing the same moves stay two games where a player's name or the round differs. The index leaves out <!-- left-repeat -->437,913<!-- /left-repeat --> repeats this way, as [Games Left Out](../data/omitted.md) counts them.
 
 ## The Order Files Are Read In
 

@@ -29,7 +29,7 @@ from scotch.docs.tallies    import Archive, Era, Picked, Rules, Tally
 from scotch.docs.ties       import Tie, Tied
 from scotch.games           import readers
 from scotch.games.schemas   import Game, Origin
-from scotch.index.schemas   import REASONS, ROWS, RUNS, Span
+from scotch.index.schemas   import REASONS, ROWS, RUNS
 from scotch.index.tables    import Batch, PositionIndex
 from scotch.sources.schemas import Sources
 
@@ -266,9 +266,10 @@ class Census:
         """
         Measures what the longest-run rule leaves out over `sample` stored
         games drawn with `seed`, each matched against every other stored
-        game save those holding its whole mainline, and how far and from
-        where each longest run reaches, beside the count of the distinct
-        keys of the index the sample is drawn from.
+        game save those holding its whole mainline, how far and from where
+        each longest run reaches, and the first sampled game each measure
+        counts set against the stored game its grid draws, beside the count
+        of the distinct keys of the index the sample is drawn from.
         """
         keys     = self.index.positions.keys
         measured = DataFrame(
@@ -688,12 +689,17 @@ class Census:
                 "game",
                 ply = int_ranges("start", col("start") + col("length"))
             ).explode("ply", empty_as_null=False)
-            rarer = (
-                reached.with_columns(reaching=counts.gather(reached.get_column("ply")))
-                       .sort("reaching", maintain_order=True)
-                       .rows(named=True)
+            fewest = next(
+                (
+                    reached.with_columns(
+                        reaching = counts.gather(reached.get_column("ply"))
+                    )
+                           .sort("reaching", maintain_order=True)
+                           .head(1)
+                           .iter_rows(named=True)
+                ),
+                {"game": None, "reaching": rarest}
             )
-            fewest = rarer[0] if rarer else {"game": None, "reaching": rarest}
 
             yield {
                 "crowded"    : rarest > self.crowd,
@@ -751,15 +757,10 @@ class Census:
         numbered `stored`, as the grid of their shared positions draws them.
         """
         game = self.index.game(number)
-        runs = (
-            self.index.runs(game)
-                .filter(col("game") == stored)
-                .drop("game")
-        )
 
         return Picked(
             game   = number,
             plies  = (len(game.moves), len(self.index.game(stored).moves)),
-            runs   = tuple(Span(**run) for run in runs.iter_rows(named=True)),
+            runs   = self.index.spans(stored, game),
             stored = stored
         )
