@@ -37,6 +37,33 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     """
 
     @property
+    def homes(self) -> dict[str, str]:
+        """
+        Points each variable naming a folder mise, rustup, or Cargo writes
+        into at a folder of its own under the root's `.cache/mise/`,
+        which outlives each clone and holds every version an earlier trial
+        installed. The variables are:
+
+        - `MISE_CACHE_DIR`, `MISE_DATA_DIR`, and `MISE_STATE_DIR`, holding
+          the versions each tool lists, each installed tool and its shims,
+          and each trust record
+        - `MISE_CONFIG_DIR`, holding no global config, so a command installs
+          only the tools the tree's own config pins
+        - `RUSTUP_HOME` and `CARGO_HOME`, holding each Rust toolchain and
+          Cargo's registry cache
+        """
+        folder = self.root / ".cache" / "mise"
+
+        return {
+            "CARGO_HOME"      : str(folder / "cargo"),
+            "MISE_CACHE_DIR"  : str(folder / "cache"),
+            "MISE_CONFIG_DIR" : str(folder / "config"),
+            "MISE_DATA_DIR"   : str(folder / "data"),
+            "MISE_STATE_DIR"  : str(folder / "state"),
+            "RUSTUP_HOME"     : str(folder / "rustup")
+        }
+
+    @property
     def logs(self) -> Path:
         """
         Locates the folder each attempt at a lift writes its log into.
@@ -157,18 +184,23 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         `git diff` there reads only what is written after. The directory is
         removed once the block ends.
 
-        Each command the clone runs trusts the clone's own mise config
+        Each command the clone runs starts under the folders `homes` names,
+        authenticates to GitHub through the `github.credential_command` the
+        tree's mise settings give, and trusts the clone's own mise config
         through `MISE_TRUSTED_CONFIG_PATHS`, since `mise lock`, unlike `mise
         run`, `mise exec`, and `mise install`, refuses a config it has not
         been told to trust.
         """
+        credential = self.mise("settings", "get", "github.credential_command")
+
         with TemporaryDirectory(prefix="scotch-lift-") as scratch:
             root = (Path(scratch) / self.root.name).resolve()
             tree = self.model_copy(
                 update = {
                     "checkout"    : Checkout(app=self.checkout.app, root=root),
-                    "environment" : self.environment | {
-                        "MISE_TRUSTED_CONFIG_PATHS": pathsep.join(
+                    "environment" : self.environment | self.homes | {
+                        "MISE_GITHUB_CREDENTIAL_COMMAND" : credential.stdout.strip(),
+                        "MISE_TRUSTED_CONFIG_PATHS"      : pathsep.join(
                             filter(
                                 None,
                                 (

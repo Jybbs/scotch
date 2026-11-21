@@ -301,6 +301,12 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
     The patterns naming each path whose change never fires the event.
     """
 
+    types: tuple[str, ...] = ()
+    """
+    The activity types the event fires on, empty where it fires on GitHub's
+    default types.
+    """
+
     def fires(self, path: Path) -> bool:
         """
         Reads whether a change to `path` fires the event, as it does
@@ -983,13 +989,20 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
     The steps the job runs.
     """
 
+    draft: ClassVar[str] = "!github.event.pull_request.draft"
+    """
+    The condition skipping a job on a draft pull request, which holds on an
+    event carrying no pull request, since the absent property reads as an
+    empty string.
+    """
+
     @property
     def always(self) -> bool:
         """
-        Reads whether the job runs under `always()`, whether or not its
-        condition is wrapped in `${{ }}`.
+        Reads whether the job runs under `always()`, alone or joined to
+        `draft`.
         """
-        return self.condition.strip("${} ") == "always()"
+        return self.expression.removesuffix(f" && {self.draft}") == "always()"
 
     @property
     def checks(self) -> tuple[tuple[str, str], ...]:
@@ -1007,12 +1020,28 @@ class Job(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True)
         )
 
     @property
+    def expression(self) -> str:
+        """
+        Reads the job's condition with any `${{ }}` around it taken off.
+        """
+        return self.condition.strip("${} ")
+
+    @property
     def gate(self) -> bool:
         """
         Reads whether the job runs `gha:scoresheet`, the task the `🖋️
         Scoresheet` gate runs.
         """
         return "gha:scoresheet" in self.tasks
+
+    @property
+    def guard(self) -> str:
+        """
+        Reads the condition the job takes in a pull-request workflow,
+        `draft` joined to `always()` on a gate, which then runs after a
+        failing job, and `draft` alone on any other job.
+        """
+        return f"always() && {self.draft}" if self.gate else self.draft
 
     @property
     def instances(self) -> tuple[Step, ...]:
@@ -1120,9 +1149,12 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
     The workflow file.
     """
 
-    triggers: dict[str, Trigger | None]
+    triggers: dict[str, Annotated[Trigger, BeforeValidator(
+        lambda trigger: trigger or {}
+    )]]
     """
-    The events the workflow fires on, each beside the filters it declares.
+    The events the workflow fires on, each beside the filters it declares,
+    an event declaring none reading as a `Trigger` with every field empty.
     """
 
     name: str = ""
@@ -1196,10 +1228,7 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         which it never does where the workflow does not fire on `event` and
         always does where the event declares no filter.
         """
-        if event not in self.triggers:
-            return False
-
-        return (trigger := self.triggers[event]) is None or trigger.fires(path)
+        return event in self.triggers and self.triggers[event].fires(path)
 
     @classmethod
     def read(cls, path: Path) -> Self:

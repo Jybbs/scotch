@@ -1,5 +1,6 @@
 jobs:
   check:
+    if: ${{ !github.event.pull_request.draft }}
     name: Links
     runs-on: ubuntu-26.04
     steps:
@@ -14,6 +15,7 @@ jobs:
       - name: Check the site's links
         run: mise run --skip-deps site:links
   press:
+    if: ${{ !github.event.pull_request.draft }}
     name: Press
     runs-on: ubuntu-26.04
     steps:
@@ -26,7 +28,7 @@ jobs:
       - name: Build the site
         run: mise run site:press
   scoresheet:
-    if: always()
+    if: ${{ always() && !github.event.pull_request.draft }}
     name: 🖋️ Scoresheet
     needs:
       - check
@@ -49,4 +51,9 @@ on:
       - .mise/mise.lock
       - docs/**
       - rust/**
+    types:
+      - opened
+      - ready_for_review
+      - reopened
+      - synchronize
   workflow_dispatch:

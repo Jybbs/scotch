@@ -1,8 +1,9 @@
 """
 Pins what a `Tree` runs, meaning the environment a scrubbed tree starts each
-command with, the audit statuses it reads as a report, the log each command
-writes, the steps a lift runs in turn, the clone a trial runs in, the diff
-an attempt returns, and the files an applied patch changes.
+command with, the folders each clone installs into, the audit statuses it
+reads as a report, the log each command writes, the steps a lift runs in
+turn, the clone a trial runs in, the diff an attempt returns, and the files
+an applied patch changes.
 """
 
 from collections.abc import Iterator
@@ -191,6 +192,19 @@ def test_a_scrubbed_tree_drops_what_the_run_put_in_its_environment(sample: Sampl
     assert (tree.root, tree.logs) == (root, root / ".cache" / "lift")
 
 
+def test_an_applied_patch_lists_each_file_it_changes(fp: FakeProcess, tree: Tree):
+    """
+    Asserts that applying a patch applies it through one `git apply` that
+    prints the files it changes, and lists those files.
+    """
+    fp.register(
+        ["git", "apply", "--binary", "--numstat", "-z", "--apply"],
+        stdout = b"1\t1\tpyproject.toml\x002\t2\tuv.lock\x00"
+    )
+
+    assert tree.apply(b"diff") == ("pyproject.toml", "uv.lock")
+
+
 @mark.parametrize(("status", "failed"), [param(0, None), param(1, "mise run repo:ci")])
 def test_a_check_runs_every_check_a_pull_request_runs(
     failed   : str | None,
@@ -209,18 +223,25 @@ def test_a_check_runs_every_check_a_pull_request_runs(
         assert tree.check(handle) == failed
 
 
-@mark.parametrize("changes", [param(b"diff", id="changed"), param(b"", id="clean")])
+@mark.parametrize(
+    ("changes", "credential"),
+    [param(b"diff", "gh auth token", id="changed"), param(b"", "", id="clean")]
+)
 def test_a_clone_carries_the_working_tree_and_stages_it(
-    changes : bytes,
-    fp      : FakeProcess,
-    tree    : Tree
+    changes    : bytes,
+    credential : str,
+    fp         : FakeProcess,
+    tree       : Tree
 ):
     """
     Asserts that a clone shares the tree's objects, applies each change
     the working tree holds against `HEAD` where it holds any, copies each
     untracked file git does not ignore, stages everything, and is removed
-    once the block ends, keeping the tree's environment while adding its own
-    root to the mise configs the tree already trusts.
+    once the block ends, keeping the tree's environment while pointing the
+    mise, rustup, and Cargo folders under the tree's own `.cache/mise/`,
+    carrying the GitHub credential command the tree's mise settings give,
+    empty where they give none, and adding its own root to the mise configs
+    the tree already trusts.
     """
     tree = tree.model_copy(
         update = {
@@ -229,6 +250,10 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
     )
     (tree.root / "notes" / "draft.txt").parent.mkdir()
     (tree.root / "notes" / "draft.txt").write_text("draft")
+    fp.register(
+        ["mise", "-C", tree.root, "settings", "get", "github.credential_command"],
+        stdout = f"{credential}\n"
+    )
     fp.register(["git", "diff", "--binary", "HEAD"], stdout=changes)
     fp.register(
         ["git", "clone", "--quiet", "--shared", tree.root, fp.any(max=1, min=1)],
@@ -247,7 +272,9 @@ def test_a_clone_carries_the_working_tree_and_stages_it(
         assert (clone.root / "notes" / "draft.txt").read_text() == "draft"
         assert clone.environment == {
             **tree.environment,
-            "MISE_TRUSTED_CONFIG_PATHS": f"/trusted{pathsep}{clone.root}"
+            **tree.homes,
+            "MISE_GITHUB_CREDENTIAL_COMMAND" : credential,
+            "MISE_TRUSTED_CONFIG_PATHS"      : f"/trusted{pathsep}{clone.root}"
         }
 
     assert not clone.root.exists()
@@ -337,17 +364,22 @@ def test_a_write_failing_its_audit_names_the_audit(
     assert log.read_text().splitlines()[-1] == f"$ mise -C {tree.root} run repo:audit"
 
 
-def test_an_applied_patch_lists_each_file_it_changes(fp: FakeProcess, tree: Tree):
+def test_the_homes_keep_every_install_under_the_trees_own_cache(tree: Tree):
     """
-    Asserts that applying a patch applies it through one `git apply` that
-    prints the files it changes, and lists those files.
+    Asserts that each folder mise, rustup, and Cargo install or cache into
+    lands under the tree's `.cache/mise/`, never under the default mise
+    data, state, cache, or config folder, `~/.rustup`, or `~/.cargo`.
     """
-    fp.register(
-        ["git", "apply", "--binary", "--numstat", "-z", "--apply"],
-        stdout = b"1\t1\tpyproject.toml\x002\t2\tuv.lock\x00"
-    )
+    folder = tree.root / ".cache" / "mise"
 
-    assert tree.apply(b"diff") == ("pyproject.toml", "uv.lock")
+    assert tree.homes == {
+        "CARGO_HOME"      : str(folder / "cargo"),
+        "MISE_CACHE_DIR"  : str(folder / "cache"),
+        "MISE_CONFIG_DIR" : str(folder / "config"),
+        "MISE_DATA_DIR"   : str(folder / "data"),
+        "MISE_STATE_DIR"  : str(folder / "state"),
+        "RUSTUP_HOME"     : str(folder / "rustup")
+    }
 
 
 @mark.parametrize("status", [param(2, id="unreachable"), param(-9, id="killed")])
