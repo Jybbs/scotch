@@ -8,6 +8,14 @@ const entries = files.entriesOf(SAMPLE_LISTED)
 const years   = [1845, 2030] as const
 const bands   = axes.bandsOf(files.sectionOf(entries, 'Openings'))
 
+/**
+ * Lists the room between every two discs of a swarm, past their two radii.
+ */
+function gapsOf(discs: ReturnType<typeof axes.swarm>): number[] {
+  return discs.flatMap((a, place) => discs.slice(place + 1)
+    .map(b => Math.hypot(a.box.x - b.box.x, a.box.y - b.box.y) - a.box.r - b.box.r))
+}
+
 describe('bandsOf', () => {
   it('lays the first moves out busiest first, each the width of the games its files hold', () => {
     expect(bands.firsts.map(band => [band.label, band.from, band.to]))
@@ -86,8 +94,35 @@ describe('swarm', () => {
 
   it('shrinks no disc past the least scale, however high the swarm rises', () => {
     const layout = { axis: 26, gap: 0.7, least: 0.9, shrink: 0.5, side: 14 }
-    const [disc] = axes.swarm(60, crowd, 688, years, layout)
-    expect(disc!.box.r).toBeCloseTo(6.5 * 0.5)
+    const discs  = axes.swarm(60, crowd, 688, years, layout)
+    expect(discs[0]!.box.r).toBeCloseTo(6.5 * 0.5)
+    expect(discs).toHaveLength(crowd.length)
+  })
+
+  it('lays every disc of the scale it keeps, none overlapping another', () => {
+    const discs = axes.swarm(60, crowd, 688, years)
+    expect(discs).toHaveLength(crowd.length)
+    expect(Math.min(...gapsOf(discs))).toBeGreaterThanOrEqual(0.7)
+  })
+
+  it('sets every disc at no radius, and discs years apart on the axis line, at no width', () => {
+    expect(axes.swarm(184, players, 0, years).map(disc => [disc.box.r, disc.box.y, disc.rise]))
+      .toEqual([[0, 78, 0], [0, 78, 0], [0, 78, 0]])
+  })
+})
+
+describe('swarm across nearby years', () => {
+  const [, carlsen] = files.sectionOf(entries, 'Players')
+  const spread      = Array.from({ length: 40 }, (_, place) => ({
+    ...carlsen!,
+    listed : { ...carlsen!.listed, decades: { 2000: 40 - place, 2010: 20 + place } },
+    stem   : `S${place}`
+  }))
+
+  it('keeps the gap between discs a fraction of a year apart, as between discs of one year', () => {
+    const discs = axes.swarm(184, spread, 688, years)
+    expect(new Set(discs.map(disc => disc.box.x)).size).toBe(spread.length)
+    expect(Math.min(...gapsOf(discs))).toBeGreaterThanOrEqual(0.7)
   })
 })
 
