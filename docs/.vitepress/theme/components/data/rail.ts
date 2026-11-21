@@ -147,7 +147,7 @@ function titleRow(entry: files.Entry, games: number, settled: (node: unknown) =>
   return h('div', { class: 'grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3' }, [
     h('p', {
       class : 'm-0! min-w-0 overflow-hidden font-display text-[1.32rem]/[1.15]! font-normal text-ellipsis '
-            + 'whitespace-nowrap!',
+            + 'whitespace-nowrap',
       ref   : settled,
       title : entry.listed.title
     }, entry.listed.title),

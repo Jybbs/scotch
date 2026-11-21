@@ -28,8 +28,8 @@ const KIND = [
  * the track's ends.
  */
 const NAME = [
-  'absolute left-[calc(var(--sc-sieve-i)/3*100%)] m-0! grid font-code text-[0.75rem]/[20px] font-medium',
-  'tracking-[0.1em] whitespace-nowrap! text-(--sc-data-quiet) uppercase transition-colors duration-fade',
+  'absolute left-[calc(var(--sc-sieve-i)/3*100%)] grid font-code text-[0.75rem]/[20px] font-medium',
+  'tracking-[0.1em] whitespace-nowrap text-(--sc-data-quiet) uppercase transition-colors duration-fade',
   'ease-glide data-on:text-(--sc-data-ink)'
 ]
 /**
@@ -82,9 +82,11 @@ function cells(at: number): VNode[] {
 function key(): VNode {
   return h('ul', {
     'aria-label' : 'What each square stands for',
-    'class'      : 'm-0! flex list-none! flex-wrap gap-x-[18px] gap-y-1.5 p-0! font-code '
-                 + 'text-[0.75rem]/[18px] font-medium tracking-[0.1em] text-(--sc-data-quiet) uppercase '
-                 + '*:m-0! *:inline-flex *:items-center *:gap-[7px]'
+    'class'      : [
+      parts.BARE,
+      'flex flex-wrap gap-x-[18px] gap-y-1.5 font-code text-[0.75rem]/[18px] font-medium tracking-[0.1em]',
+      'text-(--sc-data-quiet) uppercase *:inline-flex *:items-center *:gap-[7px]'
+    ]
   }, sieve.KEY.map(({ kind, label }) => h('li', [h('svg', {
       'aria-hidden' : 'true',
       'class'       : [KIND, kind === 'stored' ? 'h-[13px] w-[28px]' : 'size-[13px]'],
@@ -189,7 +191,7 @@ function steps(at: number): VNode {
   const last = sieve.STEPS.length - 1
   return h('ol', {
     'aria-hidden' : 'true',
-    'class'       : 'relative m-0! h-[42px] list-none! p-0!'
+    'class'       : [parts.BARE, 'relative h-[42px]']
   }, sieve.STEPS.map(({ figure, name }, index) => h('li', {
     'class'   : [
       NAME, {

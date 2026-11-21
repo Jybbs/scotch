@@ -6,6 +6,7 @@ import * as sieve                    from '../../../../lib/data/sieve.ts'
 import { Sieve }                     from '../../../../theme/components/data/sieve.ts'
 import { test }                      from '../../../common/clock.ts'
 import { pressed }                   from '../../../common/keys.ts'
+import * as markdown                 from '../../../common/markdown.ts'
 import { pauseMotion, reduceMotion } from '../../../common/motion.ts'
 import { onScreen }                  from '../../../common/unfold.ts'
 
@@ -42,15 +43,27 @@ describe('Sieve', () => {
     expect(rail.attributes('aria-valuetext')).toBe(`${sieve.STEPS[2]!.name}: ${sieve.STEPS[2]!.say}`)
   })
 
-  it('keeps each step’s name on one line over the text-wrap the doc column sets on a list item', () => {
-    const names = mount(Sieve).findAll('ol[aria-hidden] > li')
-    expect(names.map(name => name.classes('whitespace-nowrap!'))).toEqual(sieve.STEPS.map(() => true))
-  })
-
   it('rests on the stored games while the site’s drawings hold still', () => {
     reduceMotion()
     expect(mount(Sieve).find('[role="slider"]').attributes('aria-valuenow')).toBe(String(sieve.STEPS.length))
   })
+})
+
+describe('Sieve in the doc column', () => {
+  it('keeps each step’s name on one line through an unmarked whitespace utility', async () => {
+    const drawn = await markdown.columned(Sieve)
+    const names = drawn.findAll('ol[aria-hidden] > li')
+    expect(names.map(name => [name.classes('whitespace-nowrap'), getComputedStyle(name.element).whiteSpace]))
+      .toEqual(sieve.STEPS.map(() => [true, 'nowrap']))
+  })
+
+  it.each([['key', 'ul[aria-label]'], ['step names', 'ol[aria-hidden]']])(
+    'sets its %s flush past the column’s list rules',
+    async (_, selector) => {
+      const drawn = await markdown.columned(Sieve)
+      expect((await markdown.spacing(drawn.get(selector).element)).marked).toEqual(markdown.FLUSH.marked)
+    }
+  )
 })
 
 describe('Sieve under a pause', () => {

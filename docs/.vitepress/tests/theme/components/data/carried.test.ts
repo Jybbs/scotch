@@ -2,9 +2,10 @@
 import { mount }                from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import * as tags   from '../../../../lib/data/tags.ts'
-import { TagGaps } from '../../../../theme/components/data/carried.ts'
-import { pressed } from '../../../common/keys.ts'
+import * as tags     from '../../../../lib/data/tags.ts'
+import { TagGaps }   from '../../../../theme/components/data/carried.ts'
+import { pressed }   from '../../../common/keys.ts'
+import * as markdown from '../../../common/markdown.ts'
 
 describe('TagGaps', () => {
   it('opens on the Round tag of the 1980s, naming its gap and listing its files', () => {
@@ -41,5 +42,10 @@ describe('TagGaps', () => {
     await drawn.findAll('[role=listitem]')[0]!.trigger('pointerenter')
     expect(drawn.find('[data-k="carried"]').attributes('data-off')).toBe('')
     expect(drawn.find('[data-k="gap"]').attributes('data-off')).toBeUndefined()
+  })
+
+  it('lists its files flush in the doc column, each row 22px tall', async () => {
+    const drawn = await markdown.columned(TagGaps)
+    expect(await markdown.spacing(drawn.get('ol').element)).toEqual(markdown.FLUSH)
   })
 })

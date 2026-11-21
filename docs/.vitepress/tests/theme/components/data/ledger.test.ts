@@ -6,6 +6,7 @@ import * as numbers   from '../../../../lib/data/numbers.ts'
 import * as omitted   from '../../../../lib/data/omitted.ts'
 import { GameLedger } from '../../../../theme/components/data/ledger.ts'
 import { pressed }    from '../../../common/keys.ts'
+import * as markdown  from '../../../common/markdown.ts'
 import { styled }     from '../../../common/tailwind.ts'
 
 vi.mock('../../../../lib/rendered/omissions.json', async original => {
@@ -53,6 +54,11 @@ describe('GameLedger', () => {
     expect(drawn.find('p').text()).toBe(omitted.ledgerSentence('repeat', players))
     expect(drawn.findAll('details li').length).toBe(files.length)
     expect(drawn.find('summary').text()).toContain(numbers.counted(files.length))
+  })
+
+  it('lists its files flush in the doc column, each row 22px tall', async () => {
+    const drawn = await markdown.columned(GameLedger)
+    expect(await markdown.spacing(drawn.get('ol').element)).toEqual(markdown.FLUSH)
   })
 
   it('presses the segment beside it on an arrow key and focuses it, and answers no other key', async () => {

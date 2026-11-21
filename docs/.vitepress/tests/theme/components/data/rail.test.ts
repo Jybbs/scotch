@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import * as files        from '../../../../lib/data/files.ts'
 import { Rail }          from '../../../../theme/components/data/rail.ts'
+import * as markdown     from '../../../common/markdown.ts'
 import { reduceMotion }  from '../../../common/motion.ts'
 import { onScreen }      from '../../../common/unfold.ts'
 import { SAMPLE_LISTED } from '../../../lib/data/fixtures/listed.ts'
@@ -34,10 +35,6 @@ describe('Rail', () => {
     expect(rail.findAll('i')).toHaveLength(decades.length)
     expect(rail.findAll('span[data-side]').map(span => span.text())).toEqual(['1850s', '1880s'])
     expect(rail.element.lastElementChild!.textContent).toBe('Also underOpeningsopenings/Bird.zip40 held')
-  })
-
-  it('keeps a file’s title on one line, clipped at an ellipsis, over the doc column’s text-wrap', () => {
-    expect(railed('players/Bird.zip').get('p').classes()).toContain('whitespace-nowrap!')
   })
 
   it('sets the first decade left of its cell and the last right of its where the two sit close', () => {
@@ -73,5 +70,14 @@ describe('Rail', () => {
     await rail.setProps({ entry: at('players/Morphy.zip') })
     expect(Element.prototype.animate).not.toHaveBeenCalled()
     expect(rail.find('b').text()).toBe('10held')
+  })
+})
+
+describe('Rail in the doc column', () => {
+  it('keeps a file’s title on one line through an unmarked whitespace utility', async () => {
+    const rail  = await markdown.columned(Rail, { decades, entries, entry: at('players/Bird.zip') })
+    const title = rail.get('p')
+    expect([title.classes('whitespace-nowrap'), getComputedStyle(title.element).whiteSpace])
+      .toEqual([true, 'nowrap'])
   })
 })

@@ -33,14 +33,14 @@ describe('Figure', () => {
 
   it('draws the widget a placement names inside a figure carrying that name', () => {
     const figure = mount(Figure, { props: { name: 'probe' } })
-    expect(figure.find('figure.sc-figure').attributes('data-name')).toBe('probe')
+    expect(figure.find('figure').attributes('data-name')).toBe('probe')
     expect(figure.find('svg.probe').exists()).toBe(true)
     expect(figure.find('details').exists()).toBe(false)
   })
 
   it("folds what a region's markers enclose shut beneath the widget, for a reader without scripts", () => {
     const figure = mount(Figure, { props: { name: 'probe' }, slots: { default: () => h('table', 'rows') } })
-    expect(figure.find('details.sc-folded').attributes('open')).toBeUndefined()
+    expect(figure.find('details').attributes('open')).toBeUndefined()
     expect(figure.find('details summary').text()).toBe('The table beneath')
     expect(figure.find('details table').text()).toBe('rows')
   })
@@ -48,7 +48,7 @@ describe('Figure', () => {
   it('finds the rows of what it folds once scripts run, hiding the rest', async () => {
     const figure = mount(Figure, { props: { name: 'probe' }, slots: { default: rows } })
     await nextTick()
-    await figure.find('details input.sc-folded-find').setValue('  NAJDORF ')
+    await figure.find("details input[type='search']").setValue('  NAJDORF ')
     expect(figure.findAll('tbody tr').map(row => row.attributes('hidden'))).toEqual([undefined, ''])
   })
 

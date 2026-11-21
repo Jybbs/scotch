@@ -68,8 +68,9 @@ describe('the stops', () => {
   })
 
   it('state the sizes the site and the README set each drawing at', () => {
-    expect(read('docs/.vitepress/theme/styles/page.css')).toContain(`height       : ${stopNamed('Nav mark').height}px`)
-    expect(read('docs/.vitepress/theme/layout.ts')).toContain(`w-[min(${stopNamed('Wordmark').width / 16}rem`)
+    const layout = read('docs/.vitepress/theme/layout.ts')
+    expect(layout).toContain(` h-${stopNamed('Nav mark').height / 4} `)
+    expect(layout).toContain(`w-[min(${stopNamed('Wordmark').width / 16}rem`)
     expect(read('.github/README.md')).toContain(`width="${stopNamed('Lockup').width}"`)
   })
 })

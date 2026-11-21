@@ -46,15 +46,16 @@ export const Figure = defineComponent({
 
     return () => {
       const widget = WIDGETS[props.name]
-      return h('figure', { class: 'sc-figure', 'data-name': props.name }, [
+      return h('figure', { class: 'my-6', 'data-name': props.name }, [
         widget ? h(widget) : null,
         slots.default
-          ? h('details', { class: 'sc-folded', ref: folded }, [
+          ? h('details', { ref: folded }, [
             h('summary', 'The table beneath'),
             live.value
               ? h('input', {
                 'aria-label' : 'Find a row',
-                class        : 'sc-folded-find',
+                class        : 'mt-3 w-full rounded-md border border-rule bg-raised px-2.5 py-2 font-body '
+                             + 'text-[0.95rem]/none font-normal text-inherit',
                 onInput      : finding(folded),
                 placeholder  : 'Find a row',
                 type         : 'search'
