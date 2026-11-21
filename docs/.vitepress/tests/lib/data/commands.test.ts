@@ -75,7 +75,7 @@ describe('readingsOf', () => {
       aim      : { file: 'index/games.parquet' },
       readings : [
         ['File', 'games.parquet'], ['Written by', 'index games'], ['Read by', '5', 'commands'],
-        ['Folder', '462.0 MB']
+        ['Folder', '459.9 MB']
       ],
       tab      : 'all'
     },

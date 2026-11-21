@@ -62,6 +62,8 @@ def test_an_index_adds_the_files_written_from_it(
     - The examples, holding the front page's and the Methods page's alone
     - The files the Data page lists, each beside its games by decade
     - The store the Data pages, the store page, and the Viewer read
+    - The measures of the longest-run rule, each beside the sampled match it
+      picks, which the Methods pages read
     - The output of each example run of the Guide, and the size of each folder
       under the data directory
     - The Viewer's match beside the demo game alone
@@ -144,7 +146,7 @@ def test_an_index_adds_the_files_written_from_it(
         (Document, "docs/.vitepress/lib/rendered/files.json"),
         *(
             (Document, f"docs/.vitepress/lib/rendered/{name}.json")
-            for name in ("omissions", "shared", "store", "tags", "tie")
+            for name in ("omissions", "rules", "shared", "store", "tags", "tie")
         ),
         (Document, "docs/.vitepress/lib/rendered/runs.json"),
         (Document, "docs/.vitepress/lib/rendered/disk.json"),
@@ -196,7 +198,7 @@ def test_an_index_adds_the_files_written_from_it(
         tally.outcomes
     )
     assert tally.archives in text["guide/store.md"]
-    assert text["methods/reading.md"] == marked("illegal")
+    assert text["methods/reading.md"] == "<!-- illegal -->\n\n<!-- /illegal -->\n\n"
     assert loads((root / "docs/public/matches/demo.json").read_text())["stored"][
         "headers"
     ]["White"] == "Kasparov, Gary"

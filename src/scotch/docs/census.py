@@ -25,11 +25,11 @@ from random          import Random
 from scotch.docs.omitted    import Floor, Ledger, Omissions
 from scotch.docs.shared     import Crowd, Line, Parting, Shared
 from scotch.docs.tags       import Bin, Gap, Tagged, Tags
-from scotch.docs.tallies    import Archive, Era, Rules, Tally
+from scotch.docs.tallies    import Archive, Era, Picked, Rules, Tally
 from scotch.docs.ties       import Tie, Tied
 from scotch.games           import readers
 from scotch.games.schemas   import Game, Origin
-from scotch.index.schemas   import REASONS, ROWS, RUNS
+from scotch.index.schemas   import REASONS, ROWS, RUNS, Span
 from scotch.index.tables    import Batch, PositionIndex
 from scotch.sources.schemas import Sources
 
@@ -275,8 +275,11 @@ class Census:
             list(self.measured()),
             schema = {
                 "crowded"    : Boolean,
+                "game"       : RUNS["game"],
                 "length"     : RUNS["length"],
+                "rarer"      : RUNS["game"],
                 "start"      : RUNS["start"],
+                "stored"     : RUNS["game"],
                 "tied"       : Boolean,
                 "transposed" : Boolean
             }
@@ -293,7 +296,17 @@ class Census:
                         .sort()
                         .to_list()
             ),
-            matched    = measured.height,
+            matched = measured.height,
+            picked  = {
+                name: self.picked(*rows.row(0))
+                for name, counted, stored in (
+                    ("crowded", col("crowded"), "stored"),
+                    ("later", col("start") > 0, "stored"),
+                    ("tied", col("tied"), "stored"),
+                    ("transposed", col("transposed"), "rarer")
+                )
+                if (rows := measured.filter(counted).select("game", stored)).height
+            },
             sample     = len(self.sampled),
             tied       = measured.get_column("tied").sum(),
             transposed = measured.get_column("transposed").sum()
@@ -638,14 +651,17 @@ class Census:
             ""
         )
 
-    def measured(self) -> Iterator[dict[str, bool | int]]:
+    def measured(self) -> Iterator[dict[str, bool | int | None]]:
         """
-        Matches each sampled game and yields, under `tied`, `crowded`,
-        and `transposed`, whether its longest run ties, lies wholly in
-        crowded positions, and leaves out a rarer position a shorter run
-        reaches by another move order, and under `length` and `start` the
-        positions that run holds and the ply of the sampled game it starts
-        at, for each one some other stored game, save one holding its whole
+        Matches each sampled game and yields, under `tied`, `crowded`, and
+        `transposed`, whether its longest run ties, lies wholly in crowded
+        positions, and leaves out a rarer position a shorter run reaches by
+        another move order, under `length` and `start` the positions that
+        run holds and the ply of the sampled game it starts at, and under
+        `game`, `stored`, and `rarer` the sampled game, the stored game of
+        that run, and the stored game of the shorter run reaching the rarest
+        position by another order, or `None` where no shorter run does,
+        for each one some other stored game, save one holding its whole
         mainline, shares a position with.
         """
         for number in self.sampled:
@@ -669,23 +685,30 @@ class Census:
                 col("length") < best["length"],
                 (col("start") > 0) | (col("offset") != 0)
             ).select(
+                "game",
                 ply = int_ranges("start", col("start") + col("length"))
             ).explode("ply", empty_as_null=False)
+            rarer = (
+                reached.with_columns(reaching=counts.gather(reached.get_column("ply")))
+                       .sort("reaching", maintain_order=True)
+                       .rows(named=True)
+            )
+            fewest = rarer[0] if rarer else {"game": None, "reaching": rarest}
 
             yield {
                 "crowded"    : rarest > self.crowd,
+                "game"       : number,
                 "length"     : best["length"],
+                "rarer"      : fewest["game"],
                 "start"      : best["start"],
+                "stored"     : best["game"],
                 "tied"       : (
                     runs.filter(col("length") == best["length"])
                         .get_column("game")
                         .n_unique()
                 )
                 > 1,
-                "transposed" : not reached.is_empty()
-                               and counts.gather(
-                                   reached.get_column("ply")
-                               ).min() < rarest
+                "transposed" : fewest["reaching"] < rarest
             }
 
     def named(self, decade: Expr) -> Expr:
@@ -720,4 +743,23 @@ class Census:
             name    = name,
             playing = [rows.filter(col("plies") >= 2 * move).height for move in moves],
             sharing = [*sharing[::2], *[0] * len(moves)][: len(moves)]
+        )
+
+    def picked(self, number: int, stored: int) -> Picked:
+        """
+        Sets the stored game numbered `number` against the stored game
+        numbered `stored`, as the grid of their shared positions draws them.
+        """
+        game = self.index.game(number)
+        runs = (
+            self.index.runs(game)
+                .filter(col("game") == stored)
+                .drop("game")
+        )
+
+        return Picked(
+            game   = number,
+            plies  = (len(game.moves), len(self.index.game(stored).moves)),
+            runs   = tuple(Span(**run) for run in runs.iter_rows(named=True)),
+            stored = stored
         )

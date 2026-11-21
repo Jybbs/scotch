@@ -16,9 +16,9 @@ from polars          import DataFrame, LazyFrame
 from pytest          import mark, param
 
 from scotch.docs.census     import Census
-from scotch.docs.tallies    import Archive, Era, Rules, Tally
+from scotch.docs.tallies    import Archive, Era, Picked, Rules, Tally
 from scotch.games.schemas   import Game, Origin
-from scotch.index.schemas   import LEFT
+from scotch.index.schemas   import LEFT, Span
 from scotch.index.tables    import Batch, PositionIndex
 from scotch.sources.schemas import Source, Sources
 
@@ -261,18 +261,42 @@ def test_rules_count_what_the_longest_run_leaves_out(
     and the third's alone holds one position. Only the third game's run lies
     wholly in positions more than two other games reach, and only the first
     game finds a shorter run reaching, in another order, a position rarer
-    than any of its longest run's.
+    than any of its longest run's. The crowded run and the tie each pick the
+    third game, the first the seeded sample counts, set against the first
+    game, and the transposition picks the first game set against the third,
+    whose shorter run reaches the rarer position.
     """
     keys = {*game.keys for game in counted[0]}
 
     assert census.rules == Rules(
-        accidents  = len(keys) * (len(keys) - 1) / 2**65,
-        crowd      = 2,
-        crowded    = 1,
-        keys       = len(keys),
-        later      = 0,
-        lengths    = [1, 5, 5, 5],
-        matched    = 4,
+        accidents = len(keys) * (len(keys) - 1) / 2**65,
+        crowd     = 2,
+        crowded   = 1,
+        keys      = len(keys),
+        later     = 0,
+        lengths   = [1, 5, 5, 5],
+        matched   = 4,
+        picked    = {
+            "crowded"    : (crowded := Picked(
+                game  = 2,
+                plies = (5, 5),
+                runs  = (
+                    Span(length=1, offset=0, start=0),
+                    Span(length=1, offset=0, start=5)
+                ),
+                stored = 0
+            )),
+            "tied"       : crowded,
+            "transposed" : Picked(
+                game  = 0,
+                plies = (5, 5),
+                runs  = (
+                    Span(length=1, offset=0, start=0),
+                    Span(length=1, offset=0, start=5)
+                ),
+                stored = 2
+            )
+        },
         sample     = 5,
         tied       = 4,
         transposed = 1
@@ -291,7 +315,8 @@ def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
     same order reaches nothing by another order of moves, however rare. That
     first game's longest run alone starts past its first position, at its
     third ply, holding three positions against the second game's two and the
-    six the last two games share.
+    six the last two games share, so each of its three measures picks it,
+    set against the third game and the two runs they share.
     """
     games = [
         line("e4", "e5", "Nf3", "Nc6", "Bc4"),
@@ -303,6 +328,18 @@ def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
 
     assert (rules.crowded, rules.matched, rules.tied, rules.transposed) == (1, 4, 1, 0)
     assert (rules.later, rules.lengths) == (1, [2, 3, 6, 6])
+    assert rules.picked == dict.fromkeys(
+        ("crowded", "later", "tied"),
+        Picked(
+            game  = 0,
+            plies = (5, 6),
+            runs  = (
+                Span(length=3, offset=0, start=3),
+                Span(length=1, offset=0, start=0)
+            ),
+            stored = 2
+        )
+    )
 
 
 def test_rules_sample_as_many_games_as_named_drawing_the_same_with_one_seed(
@@ -623,7 +660,7 @@ def test_the_illegal_line_is_empty_where_no_game_left_out_plays_an_illegal_move(
     """
     sources = (land(tmp_path, "Bad.pgn", body=b'[FEN "garbage"]\n\n1. e4 *\n'),)
     census  = Census(
-        index   = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
+        index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
         sources = Sources(sources=sources)
     )
 
@@ -652,7 +689,7 @@ def test_the_illegal_line_is_the_first_the_build_prints_for_an_illegal_move(
         land(tmp_path, "Second.pgn", body=b"1. d4 d5 2. Qxd5 *\n")
     )
     census = Census(
-        index   = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
+        index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
         sources = Sources(sources=sources)
     )
 

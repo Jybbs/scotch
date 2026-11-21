@@ -23,6 +23,7 @@ from typing          import Annotated, ClassVar, Self
 from urllib.parse    import unquote
 
 from scotch.identity.schemas import Identity
+from scotch.index.schemas    import Span
 from scotch.sources.schemas  import Source
 
 
@@ -110,6 +111,34 @@ class Era(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True)
         return f"{self.decade}s"
 
 
+class Picked(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    A sampled game one measure of the longest-run rule counts, beside the
+    stored game the grid of their shared positions sets it against.
+    """
+
+    game: NonNegativeInt
+    """
+    The sampled game's number in the index.
+    """
+
+    plies: tuple[NonNegativeInt, NonNegativeInt]
+    """
+    The plies the sampled game plays, then the plies the stored game plays.
+    """
+
+    runs: tuple[Span, ...]
+    """
+    Every run the two games share, in the order `PositionIndex.runs` ranks
+    them.
+    """
+
+    stored: NonNegativeInt
+    """
+    The stored game's number in the index.
+    """
+
+
 class Rank(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     One row of the archives the store keeps the most games from, either one
@@ -136,107 +165,6 @@ class Rank(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     """
     Whether the row gathers every other file together.
     """
-
-
-class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
-    """
-    What the longest-run rule leaves out over a sample of stored games, each
-    matched against every other stored game save those holding its whole
-    mainline, beside the count of the distinct keys of the index the sample
-    is drawn from.
-    """
-
-    accidents: float
-    """
-    The number of pairs of distinct positions expected to share a key by
-    accident, the chance one pair does being one in 2 to the power of 64.
-    """
-
-    crowd: NonNegativeInt
-    """
-    The count of other stored games past which a position counts as
-    crowded.
-    """
-
-    crowded: NonNegativeInt
-    """
-    The count of matched games whose longest run lies wholly in crowded
-    positions.
-    """
-
-    keys: NonNegativeInt
-    """
-    The count of distinct keys the index holds.
-    """
-
-    later: NonNegativeInt
-    """
-    The count of matched games whose longest run starts past their first
-    position.
-    """
-
-    lengths: list[PositiveInt]
-    """
-    The positions the longest run of each matched game holds, the shortest
-    first.
-    """
-
-    matched: NonNegativeInt
-    """
-    The count of sampled games some other stored game, save one holding the
-    whole mainline, shares a position with.
-    """
-
-    sample: NonNegativeInt
-    """
-    The count of stored games sampled.
-    """
-
-    tied: NonNegativeInt
-    """
-    The count of matched games sharing their longest run with more than one
-    stored game.
-    """
-
-    transposed: NonNegativeInt
-    """
-    The count of matched games sharing a shorter run that reaches, by
-    another order of moves, a position rarer than every position of the
-    longest run.
-    """
-
-    @property
-    def figures(self) -> dict[str, str]:
-        """
-        Writes each figure the Methods pages set inside their sentences, the
-        counts with a comma between each group of three digits, each measure
-        as its share of the matched games, the lower median and the most
-        positions a longest run holds, and the accidents as the odds against
-        any two distinct positions of the index sharing a key, rounded to
-        two figures. A share, the median, and the most are empty where no
-        sampled game matched, and the odds are empty where the index holds
-        fewer than two keys, since none of them then has a value.
-        """
-        return {
-            "accidents" :
-                f"{float(f'{1 / self.accidents:.2g}'):,.0f}" if self.accidents else "",
-            "crowd"     : f"{self.crowd:,}",
-            "keys"      : f"{self.keys:,}",
-            "sample"    : f"{self.sample:,}",
-            **{
-                f"reach-{name}": f"{measure(self.lengths):,}" if self.lengths else ""
-                for name, measure in (("longest", max), ("median", median_low))
-            },
-            **{
-                name: f"{count / self.matched:.0%}" if self.matched else ""
-                for name, count in (
-                    ("crowded", self.crowded),
-                    ("reach-later", self.later),
-                    ("tied", self.tied),
-                    ("transposed", self.transposed)
-                )
-            }
-        }
 
 
 class Listed(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -303,6 +231,115 @@ class Listed(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
             title   = source.title,
             year    = archive.year
         )
+
+
+class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    What the longest-run rule leaves out over a sample of stored games, each
+    matched against every other stored game save those holding its whole
+    mainline, beside the count of the distinct keys of the index the sample
+    is drawn from.
+    """
+
+    accidents: float
+    """
+    The number of pairs of distinct positions expected to share a key by
+    accident, the chance one pair does being one in 2 to the power of 64.
+    """
+
+    crowd: NonNegativeInt
+    """
+    The count of other stored games past which a position counts as
+    crowded.
+    """
+
+    crowded: NonNegativeInt
+    """
+    The count of matched games whose longest run lies wholly in crowded
+    positions.
+    """
+
+    keys: NonNegativeInt
+    """
+    The count of distinct keys the index holds.
+    """
+
+    later: NonNegativeInt
+    """
+    The count of matched games whose longest run starts past their first
+    position.
+    """
+
+    lengths: list[PositiveInt]
+    """
+    The positions the longest run of each matched game holds, the shortest
+    first.
+    """
+
+    matched: NonNegativeInt
+    """
+    The count of sampled games some other stored game, save one holding the
+    whole mainline, shares a position with.
+    """
+
+    picked: dict[str, Picked]
+    """
+    The first sampled game each of `crowded`, `later`, `tied`, and
+    `transposed` counts, under that name, set against the stored game of
+    its longest run, or for `transposed` the stored game of the shorter
+    run reaching the rarer position, a measure counting no game left out.
+    """
+
+    sample: NonNegativeInt
+    """
+    The count of stored games sampled.
+    """
+
+    tied: NonNegativeInt
+    """
+    The count of matched games sharing their longest run with more than one
+    stored game.
+    """
+
+    transposed: NonNegativeInt
+    """
+    The count of matched games sharing a shorter run that reaches, by
+    another order of moves, a position rarer than every position of the
+    longest run.
+    """
+
+    @property
+    def figures(self) -> dict[str, str]:
+        """
+        Writes each figure the Methods pages set inside their sentences, the
+        counts with a comma between each group of three digits, each measure
+        as its share of the matched games, the lower median and the most
+        positions a longest run holds, and the accidents as the odds against
+        any two distinct positions of the index sharing a key, rounded to
+        two figures. A share, the median, and the most are empty where no
+        sampled game matched, and the odds are empty where the index holds
+        fewer than two keys, since none of them then has a value.
+        """
+        return {
+            "accidents" :
+                f"{float(f'{1 / self.accidents:.2g}'):,.0f}" if self.accidents else "",
+            "crowd"     : f"{self.crowd:,}",
+            "keys"      : f"{self.keys:,}",
+            "sample"    : f"{self.sample:,}",
+            **{
+                f"reach-{name}": f"{measure(self.lengths):,}" if self.lengths else ""
+                for name, measure in (("longest", max), ("median", median_low))
+            },
+            **{
+                name: f"{count / self.matched:.0%}" if self.matched else ""
+                for name, count in (
+                    ("crowded", self.crowded),
+                    ("reach-later", self.later),
+                    ("tied", self.tied),
+                    ("transposed", self.transposed)
+                )
+            }
+        }
 
 
 class Tally(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):

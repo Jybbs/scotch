@@ -197,7 +197,7 @@ class Outputs(RootModel[list[Output]]):
                         mode = "json"
                     )
                 )
-                for name in ("omissions", "shared", "store", "tags", "tie")
+                for name in ("omissions", "rules", "shared", "store", "tags", "tie")
             ),
             Document.from_value(
                 path  = Outputs.rendered / "runs.json",

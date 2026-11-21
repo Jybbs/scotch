@@ -290,6 +290,7 @@ def test_rules_write_each_figure_the_methods_pages_name():
         later      = 3,
         lengths    = [2, 9, 12, 1203],
         matched    = 4,
+        picked     = {},
         sample     = 1000,
         tied       = 4,
         transposed = 2
@@ -514,6 +515,7 @@ def test_rules_leave_empty_each_figure_holding_no_value(
         crowded    = 0,
         later      = 0,
         lengths    = [],
+        picked     = {},
         sample     = 1,
         tied       = 0,
         transposed = 0,

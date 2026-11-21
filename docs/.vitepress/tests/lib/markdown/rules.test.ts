@@ -32,6 +32,12 @@ describe('markdownRules', () => {
       .toContain('<li id="footnote-fide2023"')
   })
 
+  it('adds its rules once to a renderer it is handed twice', () => {
+    markdownRules(md)
+    expect(md.render('A claim.[^fide2023]\n\n[^fide2023]: FIDE.\n', { relativePath: 'methods/keys.md' }))
+      .toContain('<li id="footnote-fide2023" class="footnote-item" data-shade="light" tabindex="-1">')
+  })
+
   it("sets the front page's sections as entries, each holding its widget", () => {
     const page = ['Data', 'Guide', 'Methods', 'Viewer'].map(label => `## ${label}\n\nText.\n`).join('\n')
     const html = md.render(`# Scotch\n\nTagline.\n\n${page}`, { relativePath: 'index.md' })

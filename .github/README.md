@@ -27,7 +27,7 @@
 
 The store holds <!-- games -->1,147,017<!-- /games --> games read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes under its Players, Events, and Openings sections, an Openings game kept only where one of its players reaches the rating floor **[Data](https://scotch.fyi/data/)** sets out, each file declared once in `src/scotch/sources/sources.toml`, which **[The Source Files](https://scotch.fyi/data/sources)** lists file by file. A source joins the store as a row added there, then fetched and indexed again, as **[The Store](https://scotch.fyi/guide/store)** shows.
 
-## 🗜️ Install
+## ⌨️ Install
 
 [mise](https://mise.jdx.dev) installs the tools the repository pins, Python and [uv](https://docs.astral.sh/uv/) among them, and the commands below clone it, print the help of the `scotch` command, and report anything the clone still needs, as the **[Guide](https://scotch.fyi/guide/)** explains.
 
@@ -74,6 +74,6 @@ With `--json` and a path, the same command writes the match to a file the **[Vie
 - **[Viewer](https://scotch.fyi/viewer/)** matches a game pasted or dropped in as PGN right in the browser, against the published store, with no clone at all
 - **[Methods](https://scotch.fyi/methods/)** measures how often two positions share a key by accident and how often the longest run passes over a match a reader would also want
 
-## 📗 License
+## ©️ License
 
 *Scotch* is released under the [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html), version 3 or any later version, which [`LICENSE.md`](../LICENSE.md) carries. The **[colophon](https://scotch.fyi/#colophon)** closing each page of the site names the license of every part *Scotch* draws on, the crate it links, the site's faces, and the chess pieces among them.
