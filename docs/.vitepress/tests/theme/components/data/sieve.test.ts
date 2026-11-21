@@ -43,17 +43,27 @@ describe('Sieve', () => {
     expect(rail.attributes('aria-valuetext')).toBe(`${sieve.STEPS[2]!.name}: ${sieve.STEPS[2]!.say}`)
   })
 
-  it('keeps each step’s name on one line under the doc column’s list-item rule, unmarked', async () => {
+  it('rests on the stored games while the site’s drawings hold still', () => {
+    reduceMotion()
+    expect(mount(Sieve).find('[role="slider"]').attributes('aria-valuenow')).toBe(String(sieve.STEPS.length))
+  })
+})
+
+describe('Sieve in the doc column', () => {
+  it('keeps each step’s name on one line through an unmarked whitespace utility', async () => {
     const drawn = await markdown.columned(Sieve)
     const names = drawn.findAll('ol[aria-hidden] > li')
     expect(names.map(name => [name.classes('whitespace-nowrap'), getComputedStyle(name.element).whiteSpace]))
       .toEqual(sieve.STEPS.map(() => [true, 'nowrap']))
   })
 
-  it('rests on the stored games while the site’s drawings hold still', () => {
-    reduceMotion()
-    expect(mount(Sieve).find('[role="slider"]').attributes('aria-valuenow')).toBe(String(sieve.STEPS.length))
-  })
+  it.each([['key', 'ul[aria-label]'], ['step names', 'ol[aria-hidden]']])(
+    'sets its %s flush past the column’s list rules',
+    async (_, selector) => {
+      const drawn = await markdown.columned(Sieve)
+      expect((await markdown.spacing(drawn.get(selector).element)).marked).toEqual(markdown.FLUSH.marked)
+    }
+  )
 })
 
 describe('Sieve under a pause', () => {

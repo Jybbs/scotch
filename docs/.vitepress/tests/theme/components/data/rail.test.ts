@@ -74,7 +74,7 @@ describe('Rail', () => {
 })
 
 describe('Rail in the doc column', () => {
-  it('keeps a file’s title on one line under the paragraph rule, unmarked', async () => {
+  it('keeps a file’s title on one line through an unmarked whitespace utility', async () => {
     const rail  = await markdown.columned(Rail, { decades, entries, entry: at('players/Bird.zip') })
     const title = rail.get('p')
     expect([title.classes('whitespace-nowrap'), getComputedStyle(title.element).whiteSpace])
