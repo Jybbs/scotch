@@ -191,9 +191,9 @@ export function shadeOf(entry: Entry): number {
  * games the store holds, the largest placed first and each later one moved up
  * or down half a pixel at a time until it overlaps none placed before it, every
  * radius shrunk while the swarm would rise past the drawing's half height. Each
- * disc is tested only against the placed discs within reach along the axis, and
- * a scale is left at the first disc rising past it. An archive with no dated
- * game takes no disc.
+ * disc is tested only against the placed discs within its reach along the axis,
+ * and a trial scale is dropped at the first disc rising past that height. An
+ * archive with no dated game takes no disc.
  */
 export function swarm(
   height  : number,
@@ -213,7 +213,7 @@ export function swarm(
   const risen = (box: Disc): boolean => Math.abs(box.y - base) + box.r > base - 4
   const laid  = (scale: number): Mark<Disc>[] => {
     const placed: Mark<Disc>[] = []
-    const discs  = dated.map(({ entry, size, x }) => ({ entry, r: size * scale, x }))
+    const discs                = dated.map(({ entry, size, x }) => ({ entry, r: size * scale, x }))
       .toSorted((a, b) => b.r - a.r)
 
     for (const { entry, r, x } of discs) {
@@ -222,9 +222,9 @@ export function swarm(
       const crowded = (): boolean =>
         near.some(({ box }) => Math.hypot(box.x - x, box.y - y) < box.r + r + layout.gap)
       for (let step = 1; crowded(); step++) y = base + (step % 2 ? 1 : -1) * Math.ceil(step / 2) * 0.5
-      const disc    = { box: { r, x, y }, delay: Math.round(x / width * 900), entry, rise: base - y }
-      placed.push(disc)
-      if (scale > layout.least && risen(disc.box)) break
+      const box = { r, x, y }
+      placed.push({ box, delay: Math.round(x / width * 900), entry, rise: base - y })
+      if (scale > layout.least && risen(box)) break
     }
 
     return placed

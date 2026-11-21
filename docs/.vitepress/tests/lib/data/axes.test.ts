@@ -98,6 +98,11 @@ describe('swarm', () => {
     expect(discs).toHaveLength(crowd.length)
     expect(Math.min(...gaps)).toBeGreaterThanOrEqual(0.7)
   })
+
+  it('sets every disc on the axis line at no radius while the drawing has no width', () => {
+    expect(axes.swarm(184, players, 0, years).map(disc => [disc.box.r, disc.box.y, disc.rise]))
+      .toEqual([[0, 78, 0], [0, 78, 0], [0, 78, 0]])
+  })
 })
 
 describe('bricks', () => {
