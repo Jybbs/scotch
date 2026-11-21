@@ -35,6 +35,8 @@ Stepping through a match sets the two games' positions on one board, each square
 
 The longest run wins, and stored games sharing runs as long rank by the mean of the ratings their `WhiteElo` and `BlackElo` tags give, the highest first, then those carrying one rating by that rating, then the unrated in the order the index holds them, which is the archive `sources.toml` declares first and, within one archive, the order that archive holds them in.[^edwards1994b] A rating tag reads as a rating only where it holds digits alone naming a whole number from 1 to <!-- rating-ceiling -->2900<!-- /rating-ceiling -->, the next hundred above 2882, the highest standard rating FIDE has published,[^fide2026] and any other tag reads as no rating, here and on the Data pages alike. The match names the first of them and counts the rest, and `scotch match game --top` lists the next, each a different stored game at its longest run in the same order. A game holding several runs as long takes the one starting earliest in the submitted game, then the one starting earliest in the stored game.
 
+[^gibbs1970]: Gibbs, Adrian J., and George A. McIntyre. 1970. "The Diagram, a Method for Comparing Sequences: Its Use with Amino Acid and Nucleotide Sequences," European Journal of Biochemistry, volume 16, number 1, pages 1 to 11. <https://doi.org/10.1111/j.1432-1033.1970.tb01046.x>
+
 [^gusfield1997]: Gusfield, Dan. 1997. "Algorithms on Strings, Trees, and Sequences: Computer Science and Computational Biology," Section 7.4. <https://doi.org/10.1017/CBO9780511574931>
 
 [^wagner1974]: Wagner, Robert A., and Michael J. Fischer. 1974. "The String-to-String Correction Problem," Journal of the ACM, volume 21, number 1, pages 168 to 173. <https://doi.org/10.1145/321796.321811>

@@ -1,6 +1,6 @@
 # Data
 
-How many games does the store hold, where does each one come from, and when were they played? *Scotch* matches a game against the <!-- games -->1,150,156<!-- /games --> games the store holds, read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes across three sections of its site.
+How many games does the store hold, where does each one come from, and when were they played? *Scotch* matches a game against the <!-- games -->1,147,017<!-- /games --> games the store holds, read from the <!-- files -->1,465<!-- /files --> files [PGN Mentor](https://www.pgnmentor.com/files.html) publishes across three sections of its site.
 
 Each page of this section answers one question about the store:
 
@@ -42,11 +42,11 @@ The stored games run from the <!-- earliest -->1740s<!-- /earliest --> to the pr
 | 1950s | 12,067 | 4.2% |
 | 1960s | 17,753 | 5.8% |
 | 1970s | 25,845 | 8.0% |
-| 1980s | 48,522 | 12.2% |
-| 1990s | 137,036 | 24.1% |
-| 2000s | 191,385 | 40.8% |
-| 2010s | 300,702 | 66.9% |
-| 2020s | 380,433 | 100.0% |
+| 1980s | 48,522 | 12.3% |
+| 1990s | 137,035 | 24.2% |
+| 2000s | 191,385 | 40.9% |
+| 2010s | 300,701 | 67.1% |
+| 2020s | 377,296 | 100.0% |
 <!-- /decades -->
 
 ## Counting Again

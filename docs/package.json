@@ -20,6 +20,7 @@
         "gifenc"      : "1.0.3",
         "happy-dom"   : "21.0.4",
         "knip"        : "6.45.1",
+        "markdown-it-mathjax3" : "4.3.2",
         "oxlint"      : "1.94.0",
         "satori"      : "0.63.2",
         "smol-toml"   : "1.9.1",

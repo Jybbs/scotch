@@ -623,7 +623,7 @@ def test_the_illegal_line_is_empty_where_no_game_left_out_plays_an_illegal_move(
     """
     sources = (land(tmp_path, "Bad.pgn", body=b'[FEN "garbage"]\n\n1. e4 *\n'),)
     census  = Census(
-        index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
+        index   = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
         sources = Sources(sources=sources)
     )
 
@@ -652,7 +652,7 @@ def test_the_illegal_line_is_the_first_the_build_prints_for_an_illegal_move(
         land(tmp_path, "Second.pgn", body=b"1. d4 d5 2. Qxd5 *\n")
     )
     census = Census(
-        index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
+        index   = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
         sources = Sources(sources=sources)
     )
 
@@ -660,3 +660,19 @@ def test_the_illegal_line_is_the_first_the_build_prints_for_an_illegal_move(
         f"Left out game 2 of {sources[1].address}, C vs. D: illegal san: 'Qxf7'"
         " in rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
     )
+
+
+def test_tie_lists_the_games_sharing_the_whole_line_in_match_order(census: Census):
+    """
+    Asserts that the tie holds each game playing every position of the line
+    in the order a match shows them, the game reaching its last position by
+    another order left out, each beside the move it plays next.
+    """
+    tie = replace(census, line="1. Nf3 d5 2. d4 Nf6").tie
+
+    assert tie.line == ["Nf3", "d5", "d4", "Nf6"]
+    assert [(tied.game, tied.next) for tied in tie.games] == [
+        (0, ["c4"]),
+        (1, ["Bf4"]),
+        (3, ["g3"])
+    ]

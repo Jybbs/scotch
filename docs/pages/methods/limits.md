@@ -4,11 +4,11 @@ How often does the longest run pass over a match a reader would also want? The l
 
 ## How Far the Longest Run Reaches
 
-The longest run of a sampled game holds <!-- reach-median -->12<!-- /reach-median --> positions at the median and <!-- reach-longest -->200<!-- /reach-longest --> at the most. In <!-- reach-later -->10%<!-- /reach-later --> of the sampled games it starts past the game's first position, so the match reads none of the positions the game reached before the run.
+The longest run of a sampled game holds <!-- reach-median -->19<!-- /reach-median --> positions at the median and <!-- reach-longest -->47<!-- /reach-longest --> at the most. In <!-- reach-later -->9%<!-- /reach-later --> of the sampled games it starts past the game's first position, so the match reads none of the positions the game reached before the run.
 
 ## Ties on the Longest Run
 
-The measure counts the sampled games sharing a run as long as their longest with more than one stored game. In <!-- tied -->50%<!-- /tied --> of the sampled games one does, and the match names the first of them beside the count of the rest, as [The Longest Run](runs.md) sets out.
+The measure counts the sampled games sharing a run as long as their longest with more than one stored game. In <!-- tied -->48%<!-- /tied --> of the sampled games one does, and the match names the first of them beside the count of the rest, as [The Longest Run](runs.md) sets out.
 
 ## Runs Through Crowded Positions
 
@@ -16,7 +16,7 @@ The measure counts the sampled games whose longest run lies wholly in positions 
 
 ## Rarer Positions by Another Order
 
-The measure counts the sampled games where a shorter run with some stored game reaches, by another order of moves, a position fewer other stored games reach than reach any position of the longest run. In <!-- transposed -->57%<!-- /transposed --> of the sampled games one does, which the rule passes over because it counts positions rather than weighing how rare each one is.
+The measure counts the sampled games where a shorter run with some stored game reaches, by another order of moves, a position fewer other stored games reach than reach any position of the longest run. In <!-- transposed -->56%<!-- /transposed --> of the sampled games one does, which the rule passes over because it counts positions rather than weighing how rare each one is.
 
 ## What a Match Cannot Show
 

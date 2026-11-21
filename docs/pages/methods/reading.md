@@ -15,13 +15,16 @@ A game starts from the standard starting position unless its `FEN` tag sets up a
 The reader plays each move against the position it was played from, and a game holding a move illegal there is left out whole rather than cut short at that move, since the positions after it would follow no game that was played. `scotch index games` prints one line for each game it leaves out this way, naming its file, its place there, its players, and the problem, and the line below is the first the build prints for a move illegal where it was played, which `mise run docs:render` reads from the files the index was built from.
 
 <!-- illegal -->
+```text
+Left out game 3,334 of https://www.pgnmentor.com/players/Gelfand.zip, Gelfand,B vs. Gareev,T: illegal san: 'Qxe1' in r2k3r/2pPp3/p4n2/3b2B1/1p5P/2qP4/3RQ1P1/4K2R w - - 2 31
+```
 <!-- /illegal -->
 
 The index leaves out <!-- left-unread -->7<!-- /left-unread --> games whose moves the reader cannot play, as [Games Left Out](../data/omitted.md) counts them.
 
 ## What a Position Records
 
-A position is recorded as its key, a 64-bit number computed from the pieces on their squares, the side to move, the castling rights, and the file a pawn could capture en passant on, which [Position Keys](keys.md) sets out. The index keeps each stored game's moves beside the keys its positions take, so the positions themselves are played again from the moves wherever a page or a command draws them. The index holds <!-- positions -->98,542,793<!-- /positions --> positions of its <!-- games -->1,149,926<!-- /games --> games, each game counting one more position than it plays plies.
+A position is recorded as its key, a 64-bit number computed from the pieces on their squares, the side to move, the castling rights, and the file a pawn could capture en passant on, which [Position Keys](keys.md) sets out. The index keeps each stored game's moves beside the keys its positions take, so the positions themselves are played again from the moves wherever a page or a command draws them. The index holds <!-- positions -->98,072,952<!-- /positions --> positions of its <!-- games -->1,147,017<!-- /games --> games, each game counting one more position than it plays plies.
 
 [^edwards1994a]: Edwards, Steven J., coordinator. 1994. "Standard: Portable Game Notation Specification and Implementation Guide," Section 8.2.5, Movetext RAV (Recursive Annotation Variation). <https://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.2.5>
 

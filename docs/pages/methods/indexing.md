@@ -1,6 +1,6 @@
 # Building the Index
 
-What does a match search? It searches the index, which `scotch index games` builds once from every file `sources.toml` declares, so a match reads one prepared store rather than the files themselves. The index holds <!-- games -->1,149,926<!-- /games --> games and the <!-- positions -->98,542,793<!-- /positions --> positions they reach, as `mise run docs:render` counts them.
+What does a match search? It searches the index, which `scotch index games` builds once from every file `sources.toml` declares, so a match reads one prepared store rather than the files themselves. The index holds <!-- games -->1,147,017<!-- /games --> games and the <!-- positions -->98,072,952<!-- /positions --> positions they reach, as `mise run docs:render` counts them.
 
 ## What the Index Holds
 
@@ -8,7 +8,7 @@ The index is two files. `games.parquet` holds one row for each stored game, nami
 
 ## One Copy of a Repeated Game
 
-A game several files hold is kept once, since PGN Mentor's player, event, and opening files overlap, and a game counted twice would tie with itself on every run it shares. Two copies count as one game where they carry the same Seven Tag Roster,[^edwards1994] start from the same position, and play the same moves, so two games of one event and the same moves that differ in a player's name or the round stay two games. The index leaves out <!-- left-repeat -->438,048<!-- /left-repeat --> repeats this way, as [Games Left Out](../data/omitted.md) counts them.
+A game several files hold is kept once, since PGN Mentor's player, event, and opening files overlap, and a game counted twice would tie with itself on every run it shares. Two copies count as one game where they carry the same Seven Tag Roster,[^edwards1994] start from the same position, and play the same moves, so two games of one event and the same moves that differ in a player's name or the round stay two games. The index leaves out <!-- left-repeat -->437,913<!-- /left-repeat --> repeats this way, as [Games Left Out](../data/omitted.md) counts them.
 
 ## The Order Files Are Read In
 
