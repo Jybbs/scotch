@@ -112,8 +112,8 @@ describe('swarm', () => {
 })
 
 describe('swarm across nearby years', () => {
-  const [, , carlsen] = files.sectionOf(entries, 'Players')
-  const spread        = Array.from({ length: 40 }, (_, place) => ({
+  const [, carlsen] = files.sectionOf(entries, 'Players')
+  const spread      = Array.from({ length: 40 }, (_, place) => ({
     ...carlsen!,
     listed : { ...carlsen!.listed, decades: { 2000: 40 - place, 2010: 20 + place } },
     stem   : `S${place}`
