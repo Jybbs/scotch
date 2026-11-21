@@ -1,6 +1,19 @@
 # The Longest Run
 
-The index holds each stored game's moves beside enough of each position's key to narrow a lookup to a few candidate lists of games, and it plays games from those lists through and compares their full keys to confirm the list holding the key, so a lookup returns every position holding the key and no other. `scotch match game` looks up every key the submitted game reaches, which leaves the positions the two games share.
+How does the search find the stored game sharing the longest run? It looks up every position of the submitted game in the index, as [Building the Index](indexing.md) sets out, and follows each stored game reaching one of them for as long as the two games keep reaching the same positions ply after ply.
+
+## The Search, Step by Step
+
+1. Read the submitted game into the key of each position it reaches, from the one it starts at to the one after its last move
+2. Look up the first key, which names the stored games reaching that position and the ply each reaches it at, each opening a run
+3. Look up each next key in turn, keeping each run whose stored game reaches that position one ply after its last, and ending each run whose stored game does not
+4. Open a run wherever a stored game reaches that position at a ply no open run continues into, so a game reaching a position by another order of moves meets the submitted game there
+5. End every run still open once the submitted game's last position is read, which leaves each run with its stored game, the ply it starts at in each game, and the positions it holds
+6. Rank the runs, the longest first, then by the ratings of each run's stored game, as Choosing Among Runs below sets out, and name the first as the match
+
+## The Grid of Shared Positions
+
+Setting the submitted game's plies along one side of a grid and the stored game's along the other shows each position the two share as a cell, the way a dot plot sets two sequences against each other.[^gibbs1970] A run is then a line of cells running down the diagonal, one ply further in each game at each step, and the stored game's ply less the submitted game's ply, the run's offset, sets how far that diagonal stands from the main one. Two games played in the same order share their runs on the main diagonal, whereas a game reaching the same position by another order of moves shares a run on a diagonal set off from it.
 
 ## Following a Run
 

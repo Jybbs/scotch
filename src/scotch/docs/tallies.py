@@ -17,7 +17,8 @@ from collections     import defaultdict
 from collections.abc import Iterable, Sequence
 from itertools       import accumulate
 from pathlib         import PurePosixPath
-from pydantic        import BaseModel, Field, NonNegativeInt, computed_field
+from pydantic        import BaseModel, Field, NonNegativeInt, PositiveInt, computed_field
+from statistics      import median_low
 from typing          import Annotated, ClassVar, Self
 from urllib.parse    import unquote
 
@@ -168,6 +169,18 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     The count of distinct keys the index holds.
     """
 
+    later: NonNegativeInt
+    """
+    The count of matched games whose longest run starts past their first
+    position.
+    """
+
+    lengths: list[PositiveInt]
+    """
+    The positions the longest run of each matched game holds, the shortest
+    first.
+    """
+
     matched: NonNegativeInt
     """
     The count of sampled games some other stored game, save one holding the
@@ -195,13 +208,14 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     @property
     def figures(self) -> dict[str, str]:
         """
-        Writes each figure the Methods pages set inside their sentences,
-        the counts with a comma between each group of three digits, each
-        measure as its share of the matched games, and the accidents as
-        the odds against any two distinct positions of the index sharing a
-        key, rounded to two figures. A share is empty where no sampled game
-        matched, and the odds are empty where the index holds fewer than two
-        keys, since neither then has a value.
+        Writes each figure the Methods pages set inside their sentences, the
+        counts with a comma between each group of three digits, each measure
+        as its share of the matched games, the lower median and the most
+        positions a longest run holds, and the accidents as the odds against
+        any two distinct positions of the index sharing a key, rounded to
+        two figures. A share, the median, and the most are empty where no
+        sampled game matched, and the odds are empty where the index holds
+        fewer than two keys, since none of them then has a value.
         """
         return {
             "accidents" :
@@ -210,9 +224,14 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
             "keys"      : f"{self.keys:,}",
             "sample"    : f"{self.sample:,}",
             **{
+                f"reach-{name}": f"{measure(self.lengths):,}" if self.lengths else ""
+                for name, measure in (("longest", max), ("median", median_low))
+            },
+            **{
                 name: f"{count / self.matched:.0%}" if self.matched else ""
                 for name, count in (
                     ("crowded", self.crowded),
+                    ("reach-later", self.later),
                     ("tied", self.tied),
                     ("transposed", self.transposed)
                 )

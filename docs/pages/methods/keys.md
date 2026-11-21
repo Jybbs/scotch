@@ -1,6 +1,6 @@
 # Position Keys
 
-Every position is named in the index by a 64-bit key, its Zobrist hash under Polyglot's random numbers, which combines one fixed random number for each piece standing on each square with one each for the side to move, each castling right, and the file a pawn could capture en passant on.[^zobrist1970] Two positions share a key where they agree on all of these, which is when FIDE's Laws of Chess count them as the same position, since the Laws require the same player to have the move, the same pieces to stand on the same squares, and every piece to have the same moves.[^fide2023] The crate under `rust/` computes each key through shakmaty as it reads each game, from the standard starting position or from the position a `FEN` tag sets up, under the rule below for the en passant file.[^fiekas2026]
+What does a key cover, and how often do two positions share one by accident? Every position is named in the index by a 64-bit key, its Zobrist hash under Polyglot's random numbers, which combines one fixed random number for each piece standing on each square with one each for the side to move, each castling right, and the file a pawn could capture en passant on.[^zobrist1970] Two positions share a key where they agree on all of these, which is when FIDE's Laws of Chess count them as the same position, since the Laws require the same player to have the move, the same pieces to stand on the same squares, and every piece to have the same moves.[^fide2023] The crate under `rust/` computes each key through shakmaty as it reads each game, from the standard starting position or from the position a `FEN` tag sets up, under the rule below for the en passant file.[^fiekas2026]
 
 ## The En Passant File
 
@@ -8,7 +8,13 @@ The hash reads the en passant file only where a legal move plays the capture, be
 
 ## Keys Shared by Accident
 
-Two different positions share a key by accident with a chance of one in 2 to the power of 64. The index holds <!-- positions -->98,542,793<!-- /positions --> positions of its games, <!-- keys -->72,721,379<!-- /keys --> of them distinct, as `mise run docs:render` counts them, so the chance that any two distinct positions it holds share a key comes to about one in <!-- accidents -->7,000<!-- /accidents -->. A match through such a pair would still need the positions after it to agree before its run grew past one ply.
+Two different positions share a key by accident with a chance of one in $2^{64}$, since each key is one of $2^{64}$ numbers. An index holding $k$ distinct keys holds $`\binom{k}{2}`$ pairs of them, so the count of pairs expected to share a key by accident is
+
+$$
+\frac{\binom{k}{2}}{2^{64}} = \frac{k(k - 1)}{2^{65}}
+$$
+
+The index holds <!-- positions -->98,542,793<!-- /positions --> positions of its games, $k =$ <!-- keys -->72,721,379<!-- /keys --> of them distinct, as `mise run docs:render` counts them, so the chance that any two distinct positions it holds share a key comes to about one in <!-- accidents -->7,000<!-- /accidents -->. A match through such a pair would still need the positions after it to agree before its run grew past one ply.
 
 [^zobrist1970]: Zobrist, Albert L. 1970. "A New Hashing Method with Application for Game Playing," Technical Report 88, Computer Sciences Department, University of Wisconsin. <https://minds.wisc.edu/handle/1793/57624>
 

@@ -69,6 +69,8 @@ def test_an_index_adds_the_files_written_from_it(
       the demo line meets
     - The tables the Data pages, the store page, and the identity page set
       beneath their widgets, each the one its region names
+    - The line the build prints for a game left out for an illegal move,
+      empty for an index leaving out no such game
     - The demo game's match file
     - The example run of each command whose output the index sets, the
       commands page's
@@ -123,6 +125,7 @@ def test_an_index_adds_the_files_written_from_it(
         "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
         "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
         "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
+        "methods/reading.md"    : marked("illegal"),
         "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n",
         **walked()
     }
@@ -154,6 +157,7 @@ def test_an_index_adds_the_files_written_from_it(
         *[(Region, "docs/pages/data/tags.md")] * 2,
         (Region, "docs/pages/guide/store.md"),
         (Region, "docs/pages/identity/palette.md"),
+        (Region, "docs/pages/methods/reading.md"),
         (Region, "docs/pages/data/tags.md"),
         *[(Region, "docs/pages/reference/commands.md")] * len(RUNS),
         (Region, "docs/pages/guide/matching.md"),
@@ -192,6 +196,7 @@ def test_an_index_adds_the_files_written_from_it(
         tally.outcomes
     )
     assert tally.archives in text["guide/store.md"]
+    assert text["methods/reading.md"] == marked("illegal")
     assert loads((root / "docs/public/matches/demo.json").read_text())["stored"][
         "headers"
     ]["White"] == "Kasparov, Gary"
@@ -428,6 +433,7 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
 
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
             "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
+            "methods/reading.md"    : marked("illegal"),
             "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
             **walked()
         }

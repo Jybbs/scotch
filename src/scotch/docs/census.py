@@ -15,8 +15,9 @@ from dataclasses     import dataclass, field
 from functools       import cached_property
 from itertools       import pairwise
 from math            import ceil
+from pathlib         import Path
 from polars          import (
-    DataFrame, Expr, Series, UInt16, col, concat, concat_str, element, int_ranges, lit, max_horizontal,
+    Boolean, DataFrame, Expr, Series, UInt16, col, concat, concat_str, element, int_ranges, lit, max_horizontal,
     when
 )
 from random          import Random
@@ -28,8 +29,8 @@ from scotch.docs.tallies    import Archive, Era, Rules, Tally
 from scotch.docs.ties       import Tie, Tied
 from scotch.games           import readers
 from scotch.games.schemas   import Game, Origin
-from scotch.index.schemas   import REASONS, ROWS
-from scotch.index.tables    import PositionIndex
+from scotch.index.schemas   import REASONS, ROWS, RUNS
+from scotch.index.tables    import Batch, PositionIndex
 from scotch.sources.schemas import Sources
 
 
@@ -265,21 +266,37 @@ class Census:
         """
         Measures what the longest-run rule leaves out over `sample` stored
         games drawn with `seed`, each matched against every other stored
-        game save those holding its whole mainline, beside the count of the
-        distinct keys of the index the sample is drawn from.
+        game save those holding its whole mainline, and how far and from
+        where each longest run reaches, beside the count of the distinct
+        keys of the index the sample is drawn from.
         """
         keys     = self.index.positions.keys
-        measured = list(self.measured())
+        measured = DataFrame(
+            list(self.measured()),
+            schema = {
+                "crowded"    : Boolean,
+                "length"     : RUNS["length"],
+                "start"      : RUNS["start"],
+                "tied"       : Boolean,
+                "transposed" : Boolean
+            }
+        )
 
         return Rules(
-            accidents  = keys * (keys - 1) / 2**65,
-            crowd      = self.crowd,
-            crowded    = sum(crowded for _, crowded, _ in measured),
-            keys       = keys,
-            matched    = len(measured),
+            accidents = keys * (keys - 1) / 2**65,
+            crowd     = self.crowd,
+            crowded   = measured.get_column("crowded").sum(),
+            keys      = keys,
+            later     = (measured.get_column("start") > 0).sum(),
+            lengths   = (
+                measured.get_column("length")
+                        .sort()
+                        .to_list()
+            ),
+            matched    = measured.height,
             sample     = len(self.sampled),
-            tied       = sum(tied for tied, _, _ in measured),
-            transposed = sum(transposed for _, _, transposed in measured)
+            tied       = measured.get_column("tied").sum(),
+            transposed = measured.get_column("transposed").sum()
         )
 
     @cached_property
@@ -597,13 +614,39 @@ class Census:
 
         return [tally.get(moves, 0) for moves in range(longest + 1)]
 
-    def measured(self) -> Iterator[tuple[bool, bool, bool]]:
+    def illegal(self, downloads: Path) -> str:
         """
-        Matches each sampled game and yields whether its longest run ties,
-        lies wholly in crowded positions, and leaves out a rarer position a
-        shorter run reaches by another move order, for each one some other
-        stored game, save one holding its whole mainline, shares a position
-        with.
+        Reads the line `scotch index games` prints for the first game it
+        leaves out for a move illegal where it was played, reading the files
+        that hold such a game under `downloads` in the order the build reads
+        them, or nothing where the index leaves out no such game.
+        """
+        sources = {str(source.address): source for source in self.sources.sources}
+        unread  = (
+            self.left.filter(col("reason") == "unread")
+                .get_column("address")
+                .unique(maintain_order=True)
+        )
+
+        return next(
+            (
+                line
+                for address in unread
+                for line in Batch.read(downloads, sources[address]).summary.splitlines()
+                if line.startswith("Left out game") and ": illegal san" in line
+            ),
+            ""
+        )
+
+    def measured(self) -> Iterator[dict[str, bool | int]]:
+        """
+        Matches each sampled game and yields, under `tied`, `crowded`,
+        and `transposed`, whether its longest run ties, lies wholly in
+        crowded positions, and leaves out a rarer position a shorter run
+        reaches by another move order, and under `length` and `start` the
+        positions that run holds and the ply of the sampled game it starts
+        at, for each one some other stored game, save one holding its whole
+        mainline, shares a position with.
         """
         for number in self.sampled:
             game  = self.index.game(number)
@@ -629,17 +672,21 @@ class Census:
                 ply = int_ranges("start", col("start") + col("length"))
             ).explode("ply", empty_as_null=False)
 
-            yield (
-                (
+            yield {
+                "crowded"    : rarest > self.crowd,
+                "length"     : best["length"],
+                "start"      : best["start"],
+                "tied"       : (
                     runs.filter(col("length") == best["length"])
                         .get_column("game")
                         .n_unique()
                 )
                 > 1,
-                rarest > self.crowd,
-                not reached.is_empty()
-                and counts.gather(reached.get_column("ply")).min() < rarest
-            )
+                "transposed" : not reached.is_empty()
+                               and counts.gather(
+                                   reached.get_column("ply")
+                               ).min() < rarest
+            }
 
     def named(self, decade: Expr) -> Expr:
         """

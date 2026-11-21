@@ -250,6 +250,15 @@ class Outputs(RootModel[list[Output]]):
                 )
             ),
             Region(
+                name   = "illegal",
+                path   = Path("docs/pages/methods/reading.md"),
+                render = lambda: (
+                    f"```text\n{line}\n```"
+                    if (line := census.illegal(settings.downloads))
+                    else ""
+                )
+            ),
+            Region(
                 name   = "order",
                 path   = Path("docs/pages/data/tags.md"),
                 render = lambda: f"{census.tie.order}\n\n{census.tags.rated}"
