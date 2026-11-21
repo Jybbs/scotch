@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-# MISE description = "Cut the draft release a version bump on `main` calls for"
+# MISE description = "Create or refresh the draft release of the version on `main`"
 """
-Cuts the draft release that a push to `main` moving `[project].version`
-calls for, writing the path the cut took to the outputs of the `♟️ Draft`
-job, which the gate's summary reads.
+Holds one draft release for the `[project].version` that `pyproject.toml`
+carries, creating it where no release carries the version, refreshing its
+notes where a draft does, and failing where a published release does. It
+writes the path it took to the job's outputs, which the gate's summary
+reads.
 
 The job runs this script on the runner's own `python3` and the `gh` it
 carries, so it imports the standard library alone.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum        import StrEnum, auto
 from json        import loads as from_json
 from os          import environ
@@ -26,9 +28,8 @@ class State(StrEnum):
     """
 
     CREATED   = auto()
-    KEPT      = auto()
     PUBLISHED = auto()
-    UNCHANGED = auto()
+    REFRESHED = auto()
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -40,6 +41,11 @@ class Release:
     draft: bool
     """
     Whether the release is still a draft, which reserves no tag.
+    """
+
+    target: str
+    """
+    The branch or commit the release's tag is written at.
     """
 
     url: str
@@ -55,16 +61,18 @@ class Release:
         place its tag is written, so publishing writes the tag at whatever
         `main` holds at that moment.
         """
-        created = run(
-            [
-                "gh", "release", "create", version, "--draft",
-                "--generate-notes", "--target", "main", "--title", version
-            ],
-            capture_output = True,
-            check          = True,
-            text           = True
+        url = gh(
+            "release",
+            "create",
+            version,
+            "--draft",
+            "--generate-notes",
+            "--target",
+            "main",
+            "--title",
+            version
         )
-        return cls(draft=True, url=created.stdout.strip())
+        return cls(draft=True, target="main", url=url)
 
     @classmethod
     def find(cls, version: str) -> Self | None:
@@ -81,7 +89,7 @@ class Release:
                         would leave two drafts for one version.
         """
         view = run(
-            ["gh", "release", "view", version, "--json", "isDraft,url"],
+            ["gh", "release", "view", version, "--json", "isDraft,targetCommitish,url"],
             capture_output = True,
             check          = False,
             text           = True
@@ -89,25 +97,53 @@ class Release:
 
         if view.returncode == 0:
             release = from_json(view.stdout)
-            return cls(draft=release["isDraft"], url=release["url"])
+            return cls(
+                draft  = release["isDraft"],
+                target = release["targetCommitish"],
+                url    = release["url"]
+            )
 
         if "release not found" in view.stderr:
             return None
 
         raise SystemExit(view.stderr)
 
+    def refresh(self, version: str) -> Self:
+        """
+        Replaces the draft's notes with the ones GitHub's `generate-notes`
+        call writes for `version` at the draft's target now, leaving its
+        title and target as they are.
+
+        Returns:
+            The draft at the address `gh release edit` prints, since GitHub
+            writes a new `untagged-` address on each edit of a draft.
+        """
+        notes = gh(
+            "api",
+            "repos/{owner}/{repo}/releases/generate-notes",
+            "--raw-field",
+            f"tag_name={version}",
+            "--raw-field",
+            f"target_commitish={self.target}",
+            "--jq",
+            ".body"
+        )
+        return replace(
+            self,
+            url = gh("release", "edit", version, "--notes-file", "-", stdin=notes)
+        )
+
 
 @dataclass(frozen=True, kw_only=True)
 class Outcome:
     """
-    The path a cut took, beside the release it created or found and the
-    version it read.
+    The path a cut took, beside the release it created, refreshed, or found
+    and the version it read.
     """
 
-    release: Release | None
+    release: Release
     """
-    The release the cut created or found, `None` where the version did not
-    move.
+    The release the cut created, refreshed, or found.
     """
 
     state: State
@@ -117,117 +153,71 @@ class Outcome:
 
     version: str
     """
-    The version at `HEAD`.
+    The `[project].version` the cut read.
     """
+
+    @classmethod
+    def cut(cls, version: str) -> Self:
+        """
+        Takes the cut for `version`, creating a draft where no release
+        carries it, refreshing the notes of the draft that does, and keeping
+        a published release carrying it as found.
+        """
+        match Release.find(version):
+            case None: release, state = Release.create(version), State.CREATED
+            case Release(draft=True) as found:
+                release, state = found.refresh(version), State.REFRESHED
+            case found: release, state = found, State.PUBLISHED
+
+        return cls(release=release, state=state, version=version)
 
     def write(self, outputs: Path):
         """
         Appends the `state`, `url`, and `version` outputs to the file
-        `outputs` names, printing the warning annotation GitHub Actions
-        shows where a published release already carries the version.
+        `outputs` names.
+
+        Raises:
+            SystemExit: Where a published release already carries the
+                        version, after printing the error annotation GitHub
+                        Actions shows, so the gate reports the failure.
         """
-        url = self.release.url if self.release else ""
+        with outputs.open("a") as file:
+            file.write(
+                f"state={self.state}\nurl={self.release.url}\nversion={self.version}\n"
+            )
 
         if self.state is State.PUBLISHED:
             print(
-                f"::warning::The published release {url} already carries {self.version}"
+                f"::error::The published release {self.release.url} already "
+                f"carries {self.version}, so run `mise bump` with `patch`, "
+                "`minor`, or `major` to move `[project].version` to the next version"
             )
-
-        with outputs.open("a") as file:
-            file.write(f"state={self.state}\nurl={url}\nversion={self.version}\n")
+            raise SystemExit(1)
 
 
-@dataclass(frozen=True, kw_only=True)
-class Cut:
+def gh(*arguments: str, stdin: str | None = None) -> str:
     """
-    The version `pyproject.toml` carries at `HEAD` beside the one it carried
-    at `HEAD~1`, and whether the workflow run was started by hand.
+    Runs `gh` with `arguments`, sending `stdin` on its standard input where
+    given, and reads what it prints, stripped.
+
+    Raises:
+        CalledProcessError: Where `gh` exits nonzero.
     """
+    return run(
+        ["gh", *arguments],
+        capture_output = True,
+        check          = True,
+        input          = stdin,
+        text           = True
+    ).stdout.strip()
 
-    current: str
+
+def version(manifest: Path) -> str:
     """
-    The version at `HEAD`, which names the release and its tag.
+    Reads the `[project].version` that the manifest at `manifest` carries.
     """
-
-    dispatched: bool
-    """
-    Whether the workflow run was started through `workflow_dispatch`, which
-    reads the releases whether or not the version moved.
-    """
-
-    previous: str
-    """
-    The version at `HEAD~1`.
-    """
-
-    @property
-    def moved(self) -> bool:
-        """
-        Reads whether the cut reads the releases at all, which it does where
-        the version moved or the run was started by hand.
-        """
-        return self.dispatched or self.current != self.previous
-
-    @classmethod
-    def from_git(cls, event: str) -> Self:
-        """
-        Reads `[project].version` out of `pyproject.toml` at `HEAD` and
-        at `HEAD~1` through `git show`, the job having checked out both
-        commits.
-
-        Args:
-            event: The name of the event that started the workflow run, as
-                   `GITHUB_EVENT_NAME` gives it.
-        """
-        current, previous = (
-            loads(
-                run(
-                    ["git", "show", f"{ref}:pyproject.toml"],
-                    capture_output = True,
-                    check          = True,
-                    text           = True
-                ).stdout
-            )["project"]["version"]
-            for ref in ("HEAD", "HEAD~1")
-        )
-        return cls(
-            current    = current,
-            dispatched = event == "workflow_dispatch",
-            previous   = previous
-        )
-
-    def outcome(self) -> Outcome:
-        """
-        Takes the cut, looking the release up where the version moved and
-        creating a draft where no release carries it.
-        """
-        found = Release.find(self.current) if self.moved else None
-        state = self.state(found)
-
-        return Outcome(
-            release = Release.create(self.current) if state is State.CREATED else found,
-            state   = state,
-            version = self.current
-        )
-
-    def state(self, found: Release | None) -> State:
-        """
-        Decides the path the cut takes from whether the version moved and
-        the release `found` names, `None` where no release carries the
-        version.
-        """
-        if not self.moved:
-            return State.UNCHANGED
-
-        if found is None:
-            return State.CREATED
-
-        return State.KEPT if found.draft else State.PUBLISHED
+    return loads(manifest.read_text())["project"]["version"]
 
 
 if __name__ == "__main__":
-    (
-        Cut.from_git(environ["GITHUB_EVENT_NAME"])
-           .outcome()
-           .write(Path(environ["GITHUB_OUTPUT"]))
-    )
+    Outcome.cut(version(Path("pyproject.toml"))).write(Path(environ["GITHUB_OUTPUT"]))

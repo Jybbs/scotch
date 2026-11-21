@@ -28,7 +28,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
-| `gha:cut` |  | Cut the draft release a version bump on `main` calls for |
+| `gha:cut` |  | Create or refresh the draft release of the version on `main` |
 | `gha:order` |  | Decide which commit a `♟️ Deploy` run builds, if any |
 | `gha:prune` |  | Delete each tool cache and Cargo cache a newer one replaced |
 | `gha:retire` |  | Delete each store file R2 holds past the newest earlier ones |
@@ -60,6 +60,7 @@ Every task the repository declares sits below beside its alias and its descripti
 | **Task** | **Alias** | **Description** |
 |---|---|---|
 | `repo:audit` | `audit` | Report every place the repository's configuration drifts from itself, as annotations under GitHub Actions |
+| `repo:bump` | `bump` | Move `[project].version` to its next patch, minor, or major version and relock `uv.lock` |
 | `repo:ci` | `ci` | Run every check a pull request runs, from the lockfiles to the site's links |
 | `repo:labels` | `labels` | Create or update every label `.github/labels.toml` declares on GitHub, listing each live label it omits |
 | `repo:lint` |  | Audit every workflow and action manifest through zizmor, online wherever a GitHub token is set, as annotations under GitHub Actions |

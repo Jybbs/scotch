@@ -34,7 +34,7 @@ license-files   = ["LICENSE.md"]
 name            = "scotch"
 readme          = ".github/README.md"
 requires-python = ">=3.15"
-version         = "0.1.0"
+version         = "0.2.0"
 
 [project.scripts]
 scotch = "scotch.cli:app"

@@ -17,7 +17,7 @@ from markdown_it.tree import SyntaxTreeNode
 from math             import cbrt, sumprod
 from mdit_py_plugins.front_matter import front_matter_plugin
 from pydantic import AliasPath, BaseModel, BeforeValidator, Field, JsonValue, TypeAdapter
-from typing   import Annotated, ClassVar
+from typing   import Annotated, ClassVar, Self
 from yaml     import SafeLoader, load
 
 from scotch.repo.schemas import ConfigFile, Pyproject
@@ -204,6 +204,18 @@ class Request(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         return None if self.body is None else TypeAdapter(JsonValue).dump_json(
             self.body
         ).decode()
+
+    @classmethod
+    def toggled(cls, endpoint: str, on: bool) -> Self:
+        """
+        Builds the call turning the feature at `endpoint` under the
+        repository on through `PUT` where `on` holds and off through
+        `DELETE` otherwise.
+        """
+        return cls(
+            method = HTTPMethod.PUT if on else HTTPMethod.DELETE,
+            path   = f"repos/{{owner}}/{{repo}}/{endpoint}"
+        )
 
 
 class Scope(StrEnum):
@@ -447,10 +459,7 @@ class Dependabot(
         Dependabot opens a security update only where its alerts are on.
         """
         return [
-            Request(
-                method = HTTPMethod.PUT if on else HTTPMethod.DELETE,
-                path   = f"repos/{{owner}}/{{repo}}/{endpoint}"
-            )
+            Request.toggled(endpoint, on)
             for endpoint, on in (
                 ("vulnerability-alerts", self.vulnerability_alerts),
                 ("automated-security-fixes", self.automated_security_fixes)
@@ -466,6 +475,47 @@ class Feature(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     status: Toggle
     """
     Whether the feature runs.
+    """
+
+
+class Releases(
+    BaseModel,
+    alias_generator          = lambda name: name.replace("_", "-"),
+    extra                    = "forbid",
+    frozen                   = True,
+    use_attribute_docstrings = True
+):
+    """
+    The release settings `[releases]` declares, keyed by the endpoint that
+    turns each on through `PUT` and off through `DELETE`.
+    """
+
+    immutable_releases: bool
+    """
+    Whether a published release's tag and files stay as published.
+    """
+
+    @property
+    def request(self) -> Request:
+        """
+        Writes the call turning immutable releases on or off.
+        """
+        return Request.toggled("immutable-releases", self.immutable_releases)
+
+
+class Analysis(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The security features `[repository.security_and_analysis]` declares.
+    """
+
+    secret_scanning: Feature
+    """
+    Whether GitHub scans the repository for a committed secret.
+    """
+
+    secret_scanning_push_protection: Feature
+    """
+    Whether GitHub refuses a push carrying a secret it recognizes.
     """
 
 
@@ -548,22 +598,6 @@ class Token(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     default_workflow_permissions: Scope
     """
     The scope the token takes where a workflow sets no `permissions`.
-    """
-
-
-class Analysis(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
-    """
-    The security features `[repository.security_and_analysis]` declares.
-    """
-
-    secret_scanning: Feature
-    """
-    Whether GitHub scans the repository for a committed secret.
-    """
-
-    secret_scanning_push_protection: Feature
-    """
-    Whether GitHub refuses a push carrying a secret it recognizes.
     """
 
 
@@ -689,6 +723,11 @@ class GithubSettings(ConfigFile, extra="forbid"):
     The Dependabot features.
     """
 
+    releases: Releases
+    """
+    The release settings.
+    """
+
     repository: Repository
     """
     The repository's own settings.
@@ -701,10 +740,11 @@ class GithubSettings(ConfigFile, extra="forbid"):
 
     def requests(self, node: str, pyproject: Pyproject) -> list[Request]:
         """
-        Writes every call sending the settings, meaning the repository's own
-        settings and Discussions on the repository whose node ID is `node`,
-        the keywords `pyproject` declares as the topics, Dependabot, the
-        Actions permissions, and the token's defaults, in that order.
+        Writes every call sending the settings, meaning the repository's
+        own settings and Discussions on the repository whose node ID is
+        `node`, the keywords `pyproject` declares as the topics, Dependabot,
+        immutable releases, the Actions permissions, and the token's
+        defaults, in that order.
         """
         return [
             *self.repository.requests(node, pyproject),
@@ -714,6 +754,7 @@ class GithubSettings(ConfigFile, extra="forbid"):
                 path   = "repos/{owner}/{repo}/topics"
             ),
             *self.dependabot.requests,
+            self.releases.request,
             Request(
                 body   = self.actions.model_dump(mode="json"),
                 method = HTTPMethod.PUT,

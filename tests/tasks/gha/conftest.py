@@ -71,21 +71,64 @@ def task(request: FixtureRequest) -> ModuleType:
 
 
 @fixture
-def versions(fp: FakeProcess) -> Callable[[str, str], None]:
+def created(fp: FakeProcess):
     """
-    Builds a registrar answering `git show` for `pyproject.toml`
-    at `HEAD` and at `HEAD~1` with the two versions it is given as
-    `[project].version`.
+    Answers `gh release create` with the address of the new draft.
     """
-    def register(current: str, previous: str):
+    fp.register(
+        ["gh", "release", "create", fp.any()],
+        stdout = "https://example.test/untagged-1\n"
+    )
+
+
+@fixture
+def refreshed(fp: FakeProcess) -> list[str]:
+    """
+    Answers the `generate-notes` call with fresh notes and `gh release edit`
+    with the draft's new address.
+
+    Returns:
+        The notes `gh release edit` reads from its standard input.
+    """
+    notes = []
+    fp.register(
+        ["gh", "api", "repos/{owner}/{repo}/releases/generate-notes", fp.any()],
+        stdout = "Fresh notes\n"
+    )
+    fp.register(
+        ["gh", "release", "edit", "0.2.0", "--notes-file", "-"],
+        stdin_callable = notes.append,
+        stdout         = "https://example.test/untagged-2\n"
+    )
+    return notes
+
+
+@fixture
+def viewed(fp: FakeProcess) -> Callable[..., None]:
+    """
+    Builds a registrar answering `gh release view` for `0.2.0` with a
+    release, or failing on the `stderr` it is given.
+    """
+    def register(
+        *,
+        draft  : bool = True,
+        stderr : str  = "",
+        target : str  = "main",
+        url    : str  = ""
+    ):
         """
-        Registers `current` at `HEAD` and `previous` at `HEAD~1`.
+        Registers the release whose draft flag is `draft`, targeting
+        `target` at `url`, or a failure printing `stderr` where one is
+        given.
         """
-        for ref, version in {"HEAD": current, "HEAD~1": previous}.items():
-            fp.register(
-                ["git", "show", f"{ref}:pyproject.toml"],
-                stdout = f'[project]\nname = "scotch"\nversion = "{version}"\n'
+        fp.register(
+            ["gh", "release", "view", "0.2.0", "--json", "isDraft,targetCommitish,url"],
+            returncode = 1 if stderr else 0,
+            stderr     = stderr,
+            stdout     = dumps(
+                {"isDraft": draft, "targetCommitish": target, "url": url}
             )
+        )
 
     return register
 

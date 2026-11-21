@@ -210,7 +210,7 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
                 "draft",
                 {
                     "draft": {
-                        "result"  : "success",
+                        "result"  : result,
                         "outputs" : {
                             "state"   : state,
                             "url"     : "https://example.test/0.2.0",
@@ -220,7 +220,11 @@ def test_the_gate_passes_only_where_every_job_succeeded_or_was_skipped(
                 },
                 id = f"draft-{state}"
             )
-            for state in ("created", "kept", "published", "unchanged")
+            for state, result in (
+                ("created", "success"),
+                ("published", "failure"),
+                ("refreshed", "success")
+            )
         ),
         param(
             "warm",
