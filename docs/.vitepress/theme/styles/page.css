@@ -4,7 +4,7 @@
   font-weight : 400;
 }
 
-.vp-doc :is(p, li, td) { text-wrap-style: pretty; }
+.vp-doc :is(p, li, td) { text-wrap-style : pretty; }
 
 .VPHome {
   --sc-front-fade   : 1;
@@ -32,7 +32,7 @@
   mask-image     : linear-gradient(#000 40%, transparent 96%);
 }
 
-.VPHome .VPHomeHero .main { width: 100%; }
+.VPHome .VPHomeHero .main { width : 100%; }
 
 .VPHome .VPHomeContent {
   position       : relative;
@@ -41,7 +41,7 @@
 }
 
 @media (width < 40rem) {
-  .VPHome { --sc-front-side: 48px; }
+  .VPHome { --sc-front-side : 48px; }
 }
 
 .vp-doc table {

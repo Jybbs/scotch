@@ -6,7 +6,7 @@ import { type VueWrapper, mount } from '@vue/test-utils'
 import { onTestFinished }         from 'vitest'
 import type { Component }         from 'vue'
 
-import { built, styled } from './tailwind.ts'
+import { styled, utilities } from './tailwind.ts'
 
 /**
  * The spacing a list and its rows end with.
@@ -21,9 +21,10 @@ interface Spacing {
 /**
  * The spacing of a list drawn flush in its plate, with no outer margin, no
  * start padding, and no marker, each row 22px tall and set against the one
- * above it. happy-dom resolves neither a logical property nor a rule under
- * `:is()`, so the start padding and the rows' margins read as the utilities
- * that outrank the doc column's list rules by their important mark.
+ * above it. happy-dom maps no shorthand onto a logical property and applies no
+ * rule the `*:` variant writes, so the start padding and the rows' margins read
+ * as the utilities that outrank the doc column's list rules by their important
+ * mark.
  */
 export const FLUSH: Spacing = {
   margin : ['0px', '0px'],
@@ -73,7 +74,7 @@ export async function columned(
  */
 export async function spacing(list: Element): Promise<Spacing> {
   const style = getComputedStyle(list)
-  const rules = (await built([...list.classList])).matchAll(/([^{};]+)\{([^{}]*)\}/gu)
+  const rules = (await utilities([...list.classList])).matchAll(/([^{};]+)\{([^{}]*)\}/gu)
   return {
     margin : [style.marginTop, style.marginBottom],
     marker : style.listStyleType,

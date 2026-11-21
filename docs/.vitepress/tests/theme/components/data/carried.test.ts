@@ -44,7 +44,7 @@ describe('TagGaps', () => {
     expect(drawn.find('[data-k="gap"]').attributes('data-off')).toBeUndefined()
   })
 
-  it('lists its files flush, each row 22px tall above its hairline, over the doc column', async () => {
+  it('lists its files flush in the doc column, each row 22px tall', async () => {
     const drawn = await markdown.columned(TagGaps)
     expect(await markdown.spacing(drawn.get('ol').element)).toEqual(markdown.FLUSH)
   })

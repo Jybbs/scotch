@@ -38,7 +38,7 @@ export const Layout = (): VNode => h(DefaultTheme.Layout, null, {
   'nav-bar-content-after' : () => h(MotionSwitch),
   'nav-bar-title-before'  : () => h('span', {
     'aria-hidden' : 'true',
-    'class'       : 'mr-2 inline-flex h-6 text-run [&_svg]:h-full [&_svg]:w-auto',
-    'innerHTML'   : mark
+    class         : 'mr-2 inline-flex h-6 text-run [&_svg]:h-full [&_svg]:w-auto',
+    innerHTML     : mark
   })
 })

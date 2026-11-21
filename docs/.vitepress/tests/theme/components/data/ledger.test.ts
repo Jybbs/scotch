@@ -56,7 +56,7 @@ describe('GameLedger', () => {
     expect(drawn.find('summary').text()).toContain(numbers.counted(files.length))
   })
 
-  it('lists its files flush, each row 22px tall above its hairline, over the doc column', async () => {
+  it('lists its files flush in the doc column, each row 22px tall', async () => {
     const drawn = await markdown.columned(GameLedger)
     expect(await markdown.spacing(drawn.get('ol').element)).toEqual(markdown.FLUSH)
   })
