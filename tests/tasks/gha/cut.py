@@ -219,6 +219,6 @@ def test_the_version_comes_from_the_manifest(task: ModuleType, tmp_path: Path):
     is given.
     """
     manifest = tmp_path / "pyproject.toml"
-    manifest.write_text('[project]\nname = "scotch"\nversion = "0.2.0"\n')
+    manifest.write_text('[project]\nname = "scotch"\nversion = "4.7.1"\n')
 
-    assert task.version(manifest) == "0.2.0"
+    assert task.version(manifest) == "4.7.1"

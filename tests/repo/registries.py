@@ -7,7 +7,7 @@ from common.sample import Sample
 from http          import HTTPMethod
 from pathlib       import Path
 from pydantic      import ValidationError
-from pytest        import approx, mark, param, raises
+from pytest        import Config, approx, mark, param, raises
 
 from scotch.repo.registries import (
     Changelog,
