@@ -61,18 +61,18 @@ def test_a_draft_refreshed_takes_the_notes_github_generates_now(
     draft's own target, sends them as the draft's notes and nothing else,
     and reads the address `gh release edit` prints.
     """
-    draft = task.Release(draft=True, target="main", url="https://example.test/old")
+    draft = task.Release(draft=True, target="4f1c2e9", url="https://example.test/old")
 
     assert draft.refresh("0.2.0") == task.Release(
         draft  = True,
-        target = "main",
+        target = "4f1c2e9",
         url    = "https://example.test/untagged-2"
     )
     assert list(fp.calls) == [
         [
             "gh", "api", "repos/{owner}/{repo}/releases/generate-notes",
             "--raw-field", "tag_name=0.2.0", "--raw-field",
-            "target_commitish=main", "--jq", ".body"
+            "target_commitish=4f1c2e9", "--jq", ".body"
         ],
         ["gh", "release", "edit", "0.2.0", "--notes-file", "-"]
     ]
@@ -89,7 +89,8 @@ def test_a_published_release_fails_the_run_naming_the_bump(
     """
     Asserts that a version a published release carries ends the run nonzero
     after writing its outputs, printing an error annotation naming the
-    version and `mise bump`, and sends GitHub nothing past the read.
+    version and `mise bump` with its parts, and sends GitHub nothing past
+    the read.
     """
     viewed(draft=False, url="https://example.test/0.2.0")
     outputs = tmp_path / "outputs"
@@ -101,8 +102,8 @@ def test_a_published_release_fails_the_run_naming_the_bump(
     assert "state=published\n" in outputs.read_text()
     assert capsys.readouterr().out == (
         "::error::The published release https://example.test/0.2.0 already "
-        "carries 0.2.0, so run `mise bump` to move `[project].version` to the "
-        "next version\n"
+        "carries 0.2.0, so run `mise bump` with `patch`, `minor`, or `major` "
+        "to move `[project].version` to the next version\n"
     )
     assert len(fp.calls) == 1
 
@@ -130,11 +131,11 @@ def test_a_release_gh_finds_reads_as_a_record(
     Asserts that a release `gh release view` reports reads as whether it is
     a draft, the target of its tag, and its address.
     """
-    viewed(draft=True, url="https://example.test/0.2.0")
+    viewed(draft=True, target="4f1c2e9", url="https://example.test/0.2.0")
 
     assert task.Release.find("0.2.0") == task.Release(
         draft  = True,
-        target = "main",
+        target = "4f1c2e9",
         url    = "https://example.test/0.2.0"
     )
 
@@ -149,12 +150,12 @@ def test_a_version_a_draft_carries_refreshes_its_notes(
     Asserts that the cut of a version a draft carries refreshes that draft
     and creates none.
     """
-    viewed(draft=True, url="https://example.test/old")
+    viewed(draft=True, target="4f1c2e9", url="https://example.test/old")
 
     assert task.Outcome.cut("0.2.0") == task.Outcome(
         release = task.Release(
             draft  = True,
-            target = "main",
+            target = "4f1c2e9",
             url    = "https://example.test/untagged-2"
         ),
         state   = "refreshed",
@@ -210,3 +211,14 @@ def test_the_outputs_name_the_path_the_address_and_the_version(
             "url=https://example.test/0.2.0", "version=0.2.0", ""
         ]
     )
+
+
+def test_the_version_comes_from_the_manifest(task: ModuleType, tmp_path: Path):
+    """
+    Asserts that the cut reads `[project].version` out of the manifest it
+    is given.
+    """
+    manifest = tmp_path / "pyproject.toml"
+    manifest.write_text('[project]\nname = "scotch"\nversion = "0.2.0"\n')
+
+    assert task.version(manifest) == "0.2.0"

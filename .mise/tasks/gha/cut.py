@@ -189,8 +189,8 @@ class Outcome:
         if self.state is State.PUBLISHED:
             print(
                 f"::error::The published release {self.release.url} already "
-                f"carries {self.version}, so run `mise bump` to move "
-                "`[project].version` to the next version"
+                f"carries {self.version}, so run `mise bump` with `patch`, "
+                "`minor`, or `major` to move `[project].version` to the next version"
             )
             raise SystemExit(1)
 
@@ -212,8 +212,12 @@ def gh(*arguments: str, stdin: str | None = None) -> str:
     ).stdout.strip()
 
 
+def version(manifest: Path) -> str:
+    """
+    Reads the `[project].version` that the manifest at `manifest` carries.
+    """
+    return loads(manifest.read_text())["project"]["version"]
+
+
 if __name__ == "__main__":
-    (
-        Outcome.cut(loads(Path("pyproject.toml").read_text())["project"]["version"])
-               .write(Path(environ["GITHUB_OUTPUT"]))
-    )
+    Outcome.cut(version(Path("pyproject.toml"))).write(Path(environ["GITHUB_OUTPUT"]))

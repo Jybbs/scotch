@@ -107,19 +107,26 @@ def refreshed(fp: FakeProcess) -> list[str]:
 def viewed(fp: FakeProcess) -> Callable[..., None]:
     """
     Builds a registrar answering `gh release view` for `0.2.0` with a
-    release targeting `main`, or failing on the `stderr` it is given.
+    release, or failing on the `stderr` it is given.
     """
-    def register(*, draft: bool = True, stderr: str = "", url: str = ""):
+    def register(
+        *,
+        draft  : bool = True,
+        stderr : str  = "",
+        target : str  = "main",
+        url    : str  = ""
+    ):
         """
-        Registers the release whose draft flag is `draft` at `url`, or a
-        failure printing `stderr` where one is given.
+        Registers the release whose draft flag is `draft`, targeting
+        `target` at `url`, or a failure printing `stderr` where one is
+        given.
         """
         fp.register(
             ["gh", "release", "view", "0.2.0", "--json", "isDraft,targetCommitish,url"],
             returncode = 1 if stderr else 0,
             stderr     = stderr,
             stdout     = dumps(
-                {"isDraft": draft, "targetCommitish": "main", "url": url}
+                {"isDraft": draft, "targetCommitish": target, "url": url}
             )
         )
 

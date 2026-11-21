@@ -299,6 +299,16 @@ def test_a_request_reads_its_body_from_standard_input(
     assert (call.arguments, call.payload) == (arguments, payload)
 
 
+def test_the_repository_declares_its_releases_immutable(pytestconfig: Config):
+    """
+    Asserts that the repository's own settings turn immutable releases on,
+    so a published release's tag and files never change.
+    """
+    path = pytestconfig.rootpath / ".github" / "settings.toml"
+
+    assert GithubSettings.read(path).releases.immutable_releases
+
+
 @mark.parametrize(
     ("immutable", "method"),
     [param(True, "PUT", id="on"), param(False, "DELETE", id="off")]
