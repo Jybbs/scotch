@@ -192,8 +192,8 @@ export function shadeOf(entry: Entry): number {
  * or down half a pixel at a time until it overlaps none placed before it, every
  * radius shrunk while the swarm would rise past the drawing's half height. Each
  * disc is tested only against the placed discs within its reach along the axis,
- * and a trial scale is dropped at the first disc rising past that height. An
- * archive with no dated game takes no disc.
+ * and a trial scale above the least is dropped at the first disc rising past
+ * that height. An archive with no dated game takes no disc.
  */
 export function swarm(
   height  : number,
