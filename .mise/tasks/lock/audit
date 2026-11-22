@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves or for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists while no release fixes it, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`"
+#MISE description = "Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, or for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists while no release fixes it, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`"
 
 source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 
