@@ -1,5 +1,5 @@
-import { clamp, useTimeoutFn }         from '@vueuse/core'
-import { type Ref, shallowRef, watch } from 'vue'
+import { clamp, isClient, useTimeoutFn } from '@vueuse/core'
+import { type Ref, shallowRef, watch }   from 'vue'
 
 import { useMotion } from '../motion/control.ts'
 
@@ -26,7 +26,8 @@ export const PACE = { interval: 1100, rest: 2600 } as const
  * resting on the last ply before it starts again, and opens on the ply `still`
  * names wherever they hold still. A step or a jump stops the line where it
  * lands, and a toggle plays it again, from the start once it stands on the
- * last ply.
+ * last ply. The line plays only in a browser, so a page rendered on the
+ * server arms no timer.
  *
  * Args:
  *   last  : The last ply.
@@ -43,7 +44,7 @@ export function usePlayer(last: number, still: number): Player {
 
   function tick(): void {
     timer.stop()
-    if (playing.value) timer.start()
+    if (playing.value && isClient) timer.start()
   }
   const land = (to: number): void => {
     ply.value     = clamp(to, 0, last)

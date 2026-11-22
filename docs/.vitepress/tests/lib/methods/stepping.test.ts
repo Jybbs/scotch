@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest'
-import { nextTick }             from 'vue'
+import { describe, expect, it, vi } from 'vitest'
+import { nextTick }                 from 'vue'
 
 import { PACE, usePlayer }           from '../../../lib/methods/stepping.ts'
 import { test }                      from '../../common/clock.ts'
@@ -29,6 +29,15 @@ describe('usePlayer as played', () => {
     expect(player.ply.value).toBe(0)
   })
 
+  test('arms no timer where no browser exists, as on the server', async ({ clock }) => {
+    vi.resetModules()
+    vi.doMock('@vueuse/core', async original =>
+      ({ ...await original<typeof import('@vueuse/core')>(), isClient: false }))
+    const served = await import('../../../lib/methods/stepping.ts')
+    expect(served.usePlayer(18, 12).playing.value).toBe(true)
+    expect(clock.getTimerCount()).toBe(0)
+    vi.doUnmock('@vueuse/core')
+  })
 })
 
 describe('usePlayer as stepped', () => {

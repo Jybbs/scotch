@@ -53,7 +53,7 @@ def test_a_turn_reads_what_one_position_holds_and_the_other_does_not():
     """
     a, b, c = (Term(index=index, name=str(index)) for index in (1, 2, 3))
 
-    assert Turn.between((a, b), (b, c)) == Turn(joins=(c,), leaves=(a,))
+    assert Turn.between((b, c), (a, b)) == Turn(joins=(c,), leaves=(a,))
 
 
 @mark.parametrize(

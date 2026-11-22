@@ -161,7 +161,7 @@ class Turn(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     """
 
     @classmethod
-    def between(cls, before: tuple[Term, ...], after: tuple[Term, ...]) -> Self:
+    def between(cls, after: tuple[Term, ...], before: tuple[Term, ...]) -> Self:
         """
         Reads the numbers `after` holds and `before` does not as joining,
         and those `before` holds and `after` does not as leaving.
@@ -206,7 +206,7 @@ class Hashing(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
         return cls(
             line = tuple(
-                Turn.between(before, after)
+                Turn.between(after, before)
                 for before, after in pairwise(((), *combined))
             ),
             passant = tuple(map(Passant.from_fen, cls.passants))
