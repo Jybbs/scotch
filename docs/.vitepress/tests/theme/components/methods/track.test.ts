@@ -58,8 +58,8 @@ describe('Track as pressed', () => {
   })
 
   it('clips each line short of the plies past the one in view', () => {
-    const strong = track({ at: 18 }).findAll('path.stroke-submitted')[1]!.element as SVGElement
-    expect(strong.style.clipPath).toBe('inset(-4px 0px -4px -4px)')
+    const strong = track({ at: 9 }).findAll('path.stroke-submitted')[1]!.element as SVGElement
+    expect(strong.style.clipPath).toBe('inset(-4px 144px -4px -4px)')
   })
 
   it('holds its marker still where the reader prefers reduced motion', () => {

@@ -2,7 +2,7 @@ import { type PropType, type VNode, defineComponent, h } from 'vue'
 
 import { type Drawn, drawnOf }                   from '../../../lib/methods/drawn.ts'
 import { type Example, exampleOf }               from '../../../lib/methods/example.ts'
-import type { Pair } from '../../../lib/methods/runs.ts'
+import type { Pair }                             from '../../../lib/methods/runs.ts'
 import * as squares                              from '../../../lib/methods/squares.ts'
 import { type Player, usePlayer }                from '../../../lib/methods/stepping.ts'
 import { useMotion }                             from '../../../lib/motion/control.ts'
@@ -17,11 +17,6 @@ type Game = keyof Drawn['moves']
  */
 const JOINS = 'Where the lines join, the two games stand on one position. The search follows each join as '
             + 'far as it runs, and the stored game sharing the longest run is the match.'
-/**
- * The ply the widget opens on while the site's drawings hold still, inside the
- * run.
- */
-const STILL = 12
 
 /**
  * Draws the line's board at a ply, each square the stored game differs on
@@ -121,9 +116,10 @@ export const Run = defineComponent({
   },
 
   setup: props => {
-    const drawn      = drawnOf(props.example)
-    const player     = usePlayer(drawn.last, STILL)
-    const { moving } = useMotion()
+    const drawn             = drawnOf(props.example)
+    const { length, start } = drawn.pair.longest
+    const player            = usePlayer(drawn.last, start + Math.floor(length / 2))
+    const { moving }        = useMotion()
 
     return (): VNode => {
       const ply = player.ply.value

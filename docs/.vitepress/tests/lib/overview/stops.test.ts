@@ -31,6 +31,12 @@ describe('routeOf', () => {
     expect(route.players).toBe('Kasparov – Sosonko, Tilburg 1981')
   })
 
+  it('refuses a match whose run is offset', () => {
+    const offset = { ...EXAMPLES.match, span: { ...EXAMPLES.match.span!, offset: 2 } }
+    expect(() => routeOf(offset, keys.viewer, { games: '1', positions: '9' }))
+      .toThrow("the demo match's run is offset by 2 plies")
+  })
+
   it('leaves a player the stored game does not tag unnamed', () => {
     const { White: _, ...headers } = EXAMPLES.match.stored!.headers
     const untagged                 = { ...EXAMPLES.match, stored: { ...EXAMPLES.match.stored!, headers } }

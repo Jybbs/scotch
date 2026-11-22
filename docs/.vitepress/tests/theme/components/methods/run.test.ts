@@ -46,9 +46,16 @@ describe('Run as drawn', () => {
     expect(still().text()).toContain('Of 11, the longest run the two games share')
   })
 
-  it('writes each game\'s move at the ply in view', () => {
-    const moves = still().findAll('.tabular-nums').map(node => node.text())
-    expect(moves.filter(move => move === '6...d6')).toHaveLength(2)
+  it('writes each game\'s move at the ply in view', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[7]!.trigger('click')
+    const moves = wrapper.findAll('.tabular-nums').map(node => node.text())
+    expect(moves).toContain('4. e4')
+    expect(moves).toContain('4. d4')
+  })
+
+  it('names the last ply under the track', () => {
+    expect(still().text()).toContain('Ply 18')
   })
 
   it('stamps one position under the board while the two games share it', () => {
@@ -80,6 +87,7 @@ describe('Run as stepped', () => {
     await wrapper.findAll('svg rect')[18]!.trigger('click')
     expect(status(wrapper)).toBe('Ply 18 · they part')
     expect(wrapper.find('[aria-live]').text()).toBe('0')
+    expect(wrapper.text()).toContain('Positions differ, the count starts over')
   })
 
   test('plays a ply on each interval while the drawings move', async ({ clock }) => {
@@ -94,5 +102,28 @@ describe('Run as stepped', () => {
     const wrapper = mount(Run)
     await pauseMotion()
     expect(wrapper.find('button').text()).toBe('Play')
+  })
+})
+
+describe('Run at a picked ply', () => {
+  it('washes each square the stored game differs on, on the line\'s board', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[6]!.trigger('click')
+    const marked = wrapper.findAll('i[data-mark]').map(square => square.attributes('data-mark'))
+    expect(marked.toSorted()).toEqual(['stored', 'stored', 'submitted', 'submitted'])
+    expect((wrapper.find("[data-id='11']").element as HTMLElement).style.transform).toBe('translate(300%, 400%)')
+  })
+
+  it('heads the count as the first shared position where a run begins', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[7]!.trigger('click')
+    expect(wrapper.text()).toContain('Position shared, the first in a row')
+  })
+
+  it.each([[0, 1], [18, 2]])('quiets the button stepping past ply %i', async (ply, button) => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[ply]!.trigger('click')
+    expect(wrapper.findAll('button').map(one => one.attributes('disabled') !== undefined))
+      .toEqual([false, button === 1, button === 2])
   })
 })

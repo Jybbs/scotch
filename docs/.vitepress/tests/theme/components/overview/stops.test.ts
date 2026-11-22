@@ -3,6 +3,7 @@ import { flushPromises, mount }     from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h }       from 'vue'
 
+import { TRACK }            from '../../../../lib/methods/runs.ts'
 import { OVERVIEW_WIDGETS } from '../../../../theme/components/overview/index.ts'
 import { Stops }            from '../../../../theme/components/overview/stops.ts'
 
@@ -55,6 +56,7 @@ describe('Stops as stepped', () => {
 
   it.each([
     ['ArrowRight', 'The Longest Run'], ['ArrowLeft', 'Building the Index'],
+    ['ArrowDown', 'The Longest Run'], ['ArrowUp', 'Building the Index'],
     ['End', 'Matches the Rule Passes Over'], ['Home', 'Reading a Game']
   ])('steps on %s to %s and moves the focus there', async (key, title) => {
     const wrapper = mount(Stops, { attachTo: document.body })
@@ -74,6 +76,27 @@ describe('Stops as stepped', () => {
     const wrapper = mount(Stops)
     await wrapper.find('[role=tablist]').trigger('keydown', { key: 'End' })
     expect(wrapper.findAll('[role=img]').at(-1)!.attributes('aria-label')).toBe('The stored game at ply 43')
+  })
+
+})
+
+describe('Stops at each stop', () => {
+  it.each([
+    [0, 'The demo game at ply 107', 0],
+    [1, 'The demo game at ply 0', 0],
+    [2, 'The demo game at ply 7', 7],
+    [3, 'The demo game at ply 42', 25],
+    [4, 'The stored game at ply 43', 43]
+  ])('stands stop %i at its board and its marker', async (index, board, ply) => {
+    const wrapper = mount(Stops)
+    await wrapper.findAll('[role=tab]')[index]!.trigger('click')
+    expect(wrapper.findAll('[role=img]').at(-1)!.attributes('aria-label')).toBe(board)
+    const rider = wrapper.find('circle.fill-ink').element as SVGElement
+    expect(rider.style.transform.startsWith(`translate(${ply * TRACK.step}px, `)).toBe(true)
+  })
+
+  it('names the run under the track', () => {
+    expect(mount(Stops).text()).toContain('Run of 36')
   })
 })
 

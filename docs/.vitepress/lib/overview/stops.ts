@@ -107,6 +107,10 @@ export function questionsOf(overview: string): Map<string, { question: string, t
  *   keys   : The key of each position the demo game reaches.
  *   counts : The games and the positions the index holds, as the page writes
  *     them.
+ *
+ * Raises:
+ *   Error: Where the match's run pairs ply n of one game with another ply of
+ *     the other, which the track cannot draw.
  */
 export function routeOf(
   match  : Match,
@@ -122,6 +126,7 @@ export function routeOf(
   const pairing = `${surname(stored.headers.White ?? '')} – ${surname(stored.headers.Black ?? '')}`
   const players = `${pairing}, ${stored.headers.Event} ${stored.headers.Date?.slice(0, 4)}`
   const key     = hexOf(keys[span.start]!).toUpperCase().match(/.{4}/gu)!.join(' ')
+  if (span.offset !== 0) throw new Error(`the demo match's run is offset by ${span.offset} plies`)
   return {
     moves   : moves,
     names   : { stored: pairing, submitted: 'Demo game' },
