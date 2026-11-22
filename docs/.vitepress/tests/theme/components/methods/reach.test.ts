@@ -143,6 +143,7 @@ describe('Reach as read aloud', () => {
     const wrapper = still()
     await point(wrapper, 'pointermove', 10 * (REACH.counts.indexOf(0) + 1) - 5)
     expect(read(wrapper)).toMatch(/^0games hold a longest run of /u)
+    expect(wrapper.find('[role=slider]').attributes('aria-valuetext')).toMatch(/^0 games with /u)
   })
 })
 
