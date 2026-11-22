@@ -49,7 +49,7 @@ describe('PASSED', () => {
 })
 
 describe('PASSED as read from its picks', () => {
-  it('names the transposed game\'s own match, apart from the tie\'s', async () => {
+  it('names the tie\'s and the transposed game\'s matches each from its own pick', async () => {
     vi.resetModules()
     vi.doMock('../../../lib/rendered/rules.json', () => ({
       default: {
