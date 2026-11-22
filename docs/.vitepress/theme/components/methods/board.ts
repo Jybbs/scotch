@@ -22,15 +22,23 @@ export const LAYER = 'pointer-events-none absolute inset-0'
 /**
  * A board's square in its shade, beneath a wash in the color of
  * the game its mark names, or both colors split along the diagonal where each
- * game stands a different piece there, fading in and out as the mark changes.
+ * game stands a different piece there, or faint on the square a move leaves
+ * and in the run's color on the one it enters, fading in and out as the mark
+ * changes.
  */
 const SQUARE = [
   'relative data-[shade=dark]:bg-primary data-[shade=light]:bg-light',
   'after:absolute after:inset-0 after:opacity-0 after:transition-opacity after:duration-glide',
   'data-mark:after:opacity-100',
   'data-[mark=submitted]:after:bg-submitted/55 data-[mark=stored]:after:bg-stored/55',
-  'data-[mark=both]:after:split-wash'
+  'data-[mark=both]:after:split-wash data-[mark=from]:after:bg-ink/18 data-[mark=to]:after:bg-run/40'
 ]
+
+/**
+ * What a square is washed for: a mark of the two games, or the square a move
+ * leaves or enters.
+ */
+export type Wash = squares.Mark | 'from' | 'to'
 
 /**
  * Draws one piece of a board's layer on its square, named for the piece it
@@ -52,7 +60,7 @@ export function drawPiece(id: string, placed: squares.Placed): VNode {
  * Draws a board's squares in the order the page reads them, the eighth rank
  * first, each square a mark names washed in that mark's color.
  */
-export function drawSquares(marks: readonly (squares.Mark | undefined)[] = []): VNode {
+export function drawSquares(marks: readonly (Wash | undefined)[] = []): VNode {
   return h('div', { class: GRID }, readingOrder.map(square => h('i', {
     'class'      : SQUARE,
     'data-mark'  : marks[square],
@@ -71,7 +79,7 @@ export const GlidingBoard = defineComponent({
 
   props: {
     label    : { required: true, type: String },
-    marks    : { default: () => [], type: Array as PropType<readonly (squares.Mark | undefined)[]> },
+    marks    : { default: () => [], type: Array as PropType<readonly (Wash | undefined)[]> },
     standing : { required: true, type: Array as PropType<readonly Standing[]> }
   },
 

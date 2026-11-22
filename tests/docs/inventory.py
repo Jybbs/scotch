@@ -536,9 +536,10 @@ def test_shipped_declares_the_files_written_from_declarations(
     this order:
 
     - The identity's JSON, the commands and data files, the match file's
-      fields, the games matching refuses, the home squares of the pieces, the
-      keys of each game the site serves, the marks' JSON, the pieces' JSON,
-      and the terms' JSON
+      fields, the games matching refuses, the numbers each move of the
+      Methods page's line turns in its key, the home squares of the pieces,
+      the keys of each game the site serves, the marks' JSON, the pieces'
+      JSON, and the terms' JSON
     - The favicon and each lockup
     - The README's badges, then the install steps of the README and of the
       Guide's setup walkthrough
@@ -560,6 +561,7 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/commands.json"),
         (Document, "docs/.vitepress/lib/rendered/exported.json"),
         (Document, "docs/.vitepress/lib/rendered/refused.json"),
+        (Document, "docs/.vitepress/lib/rendered/hashing.json"),
         (Document, "docs/.vitepress/lib/rendered/homes.json"),
         (Document, "docs/.vitepress/lib/rendered/keys.json"),
         (Document, "docs/.vitepress/lib/rendered/marks.json"),

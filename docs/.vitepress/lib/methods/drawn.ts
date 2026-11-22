@@ -19,10 +19,11 @@ export interface Shown {
 
 /**
  * The example as The Longest Run's widget shows it, with the last ply both
- * games play.
+ * games play and the stored game's players.
  */
 export interface Drawn extends Shown {
-  last : number
+  last    : number
+  players : string
 }
 
 /**
@@ -34,10 +35,11 @@ export function drawnOf(example: Example): Drawn {
   const moves  = (game: Game): string[] =>
     movesOf({ headers: {}, moves: example[game].slice(1).map(position => position.san!) })
   return {
-    last   : Math.min(example.submitted.length, example.stored.length) - 1,
-    moves  : { stored: moves('stored'), submitted: moves('submitted') },
-    names  : { stored: `${stored}, ${figureOf(page, 'methods-year')}`, submitted: 'The line' },
-    pair   : new Pair([example.submitted.length - 1, example.stored.length - 1], example.runs),
-    pieces : { stored: framed(example.stored), submitted: framed(example.submitted) }
+    last    : Math.min(example.submitted.length, example.stored.length) - 1,
+    moves   : { stored: moves('stored'), submitted: moves('submitted') },
+    names   : { stored: `${stored}, ${figureOf(page, 'methods-year')}`, submitted: 'The line' },
+    pair    : new Pair([example.submitted.length - 1, example.stored.length - 1], example.runs),
+    pieces  : { stored: framed(example.stored), submitted: framed(example.submitted) },
+    players : stored
   }
 }

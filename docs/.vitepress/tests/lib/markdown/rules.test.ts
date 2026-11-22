@@ -28,13 +28,13 @@ function compiled(html: string, comments: boolean): string {
 
 describe('markdownRules', () => {
   it('numbers a citation by its source', () => {
-    expect(md.render('A claim.[^fide2023]\n\n[^fide2023]: FIDE.\n', { relativePath: 'methods/keys.md' }))
+    expect(md.render('A claim.[^fide2023]\n\n[^fide2023]: FIDE.\n', { relativePath: 'methods/indexing.md' }))
       .toContain('<li id="footnote-fide2023"')
   })
 
   it('adds its rules once to a renderer it is handed twice', () => {
     markdownRules(md)
-    expect(md.render('A claim.[^fide2023]\n\n[^fide2023]: FIDE.\n', { relativePath: 'methods/keys.md' }))
+    expect(md.render('A claim.[^fide2023]\n\n[^fide2023]: FIDE.\n', { relativePath: 'methods/indexing.md' }))
       .toContain('<li id="footnote-fide2023" class="footnote-item" data-shade="light" tabindex="-1">')
   })
 

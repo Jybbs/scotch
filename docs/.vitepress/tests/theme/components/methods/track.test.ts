@@ -66,4 +66,14 @@ describe('Track as pressed', () => {
     reduceMotion()
     expect(track({ at: 3 }).find('circle.fill-ink').classes()).not.toContain('duration-glide')
   })
+
+  it('boxes the plies it names, both counted, across both lines', () => {
+    const box = track({ box: [2, 5] }).find('rect[class*=stroke-dasharray]')
+    expect([box.attributes('x'), box.attributes('width')]).toEqual([`${1.5 * TRACK.step}`, `${4 * TRACK.step}`])
+    expect(box.attributes('height')).toBe(`${TRACK.apart + 2 * TRACK.margin - 2}`)
+  })
+
+  it('draws no box where it names no plies', () => {
+    expect(track().findAll('rect[class*=stroke-dasharray]')).toHaveLength(0)
+  })
 })

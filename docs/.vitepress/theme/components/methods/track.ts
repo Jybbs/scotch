@@ -57,6 +57,23 @@ function lines(drawn: Drawn): VNode[] {
 }
 
 /**
+ * Draws the dashed box a track sets around the plies from `from` to `to`, both
+ * counted, or nothing where it boxes none.
+ */
+function boxed(box: readonly number[] | undefined): VNode[] {
+  if (!box) return []
+  const [from = 0, to = 0] = box
+  return [h('rect', {
+    class  : 'fill-ink/6 stroke-ink stroke-[1.1] [stroke-dasharray:3_2]',
+    height : TRACK.apart + 2 * TRACK.margin - 2,
+    rx     : 3,
+    width  : (to - from + 1) * TRACK.step,
+    x      : (from - 0.5) * TRACK.step,
+    y      : 1 - TRACK.margin
+  })]
+}
+
+/**
  * Draws the marker riding each game's line at the ply in view.
  */
 function riders({ at, bold, moving, pair }: Drawn): VNode[] {
@@ -102,7 +119,7 @@ function shared(drawn: Drawn): VNode[] {
  * Two games as two lines, a station for each position, running apart where the
  * games differ and joining into one line in the run's color wherever they
  * stand on one position, a marker riding both to the ply in view and each line
- * past it faint.
+ * past it faint, over a dashed box around the plies `box` names.
  */
 export const Track = defineComponent({
   name: 'ScotchTrack',
@@ -110,6 +127,7 @@ export const Track = defineComponent({
   props: {
     at     : { default: undefined, type: Number },
     bold   : { default: false, type: Boolean },
+    box    : { default: undefined, type: Array as PropType<number[]> },
     label  : { required: true, type: String },
     onPick : { default: undefined, type: Function as PropType<(ply: number) => void> },
     pair   : { required: true, type: Object as PropType<Pair> }
@@ -134,7 +152,7 @@ export const Track = defineComponent({
         'class'      : 'block h-auto w-full overflow-visible',
         'role'       : 'img',
         'viewBox'    : `${-margin} ${-margin} ${last * TRACK.step + 2 * margin} ${TRACK.apart + 2 * margin}`
-      }, [...lines(drawn), ...shared(drawn), ...riders(drawn), ...hits(props.pair, props.onPick)])
+      }, [...boxed(props.box), ...lines(drawn), ...shared(drawn), ...riders(drawn), ...hits(props.pair, props.onPick)])
     }
   }
 })

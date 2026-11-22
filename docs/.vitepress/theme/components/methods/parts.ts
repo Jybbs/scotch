@@ -6,7 +6,7 @@ import type { Player } from '../../../lib/methods/stepping.ts'
  * A step button, a pill in the run's color, filled while it plays and quieted
  * while it goes nowhere.
  */
-const BUTTON = [
+export const BUTTON = [
   'h-[26px] cursor-pointer rounded-[999px] border border-rule bg-raised px-3 py-0 font-code',
   'text-[0.6rem]/[24px] font-semibold tracking-[0.1em] text-run uppercase duration-move ease-glide',
   'transition-[border-color,background-color,color] hover:border-run disabled:cursor-default',
@@ -62,4 +62,15 @@ export function controls(player: Player, last: number): VNode {
     stepper(player, -1, player.ply.value === 0),
     stepper(player, 1, player.ply.value === last)
   ])
+}
+
+/**
+ * Sets each layer in one cell and shows only the one at `shown`, so the cell
+ * keeps the height of its tallest layer whichever is in view.
+ */
+export function stacked(shown: number, layers: readonly VNode[], place = ''): VNode {
+  return h('div', { class: ['grid', place] }, layers.map((layer, at) => h('div', {
+    'aria-hidden' : at === shown ? undefined : 'true',
+    'class'       : ['min-w-0 [grid-area:1/1]', at === shown ? '' : 'invisible']
+  }, [layer])))
 }

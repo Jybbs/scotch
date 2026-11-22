@@ -18,6 +18,7 @@ from scotch.cli.settings      import Settings
 from scotch.docs.census       import Census
 from scotch.docs.commands     import Commands, commands
 from scotch.docs.examples     import Example
+from scotch.docs.hashing      import Hashing
 from scotch.docs.marks        import Marks
 from scotch.docs.outputs      import Document, Figures, Footnotes, Output, Region
 from scotch.docs.project      import Project
@@ -365,6 +366,12 @@ class Outputs(RootModel[list[Output]]):
                         stop.model_dump(exclude={"commands"})
                         for stop in stops.printed("match game", naming="<pgn>")
                     ]
+                ),
+                Document.from_value(
+                    path  = cls.rendered / "hashing.json",
+                    value = lambda: Hashing.from_game(
+                        Game.first(root / cls.games / "methods.pgn")
+                    ).model_dump(mode="json")
                 ),
                 Document.from_value(
                     path  = cls.rendered / "homes.json",

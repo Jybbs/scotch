@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { exampleOf }                               from '../../../../lib/methods/example.ts'
 import { marksAt }                                 from '../../../../lib/methods/squares.ts'
 import { framed }                                  from '../../../../lib/methods/standing.ts'
-import { GlidingBoard, drawPiece, drawSquares }    from '../../../../theme/components/methods/board.ts'
+import { GlidingBoard, type Wash, drawPiece, drawSquares } from '../../../../theme/components/methods/board.ts'
 import { reduceMotion }                            from '../../../common/motion.ts'
 
 const methods  = exampleOf()
@@ -85,5 +85,13 @@ describe('drawPiece', () => {
 describe('drawSquares', () => {
   it('draws the 64 squares in their shades', () => {
     expect(drawSquares().children).toHaveLength(64)
+  })
+
+  it('washes the squares a move leaves and enters, apart from the two games\' marks', () => {
+    const marks: Wash[] = []
+    marks[12] = 'from'
+    marks[28] = 'to'
+    const board = mount(GlidingBoard, { props: { label: 'Ply 1', marks, standing: standing[0]! } })
+    expect(board.findAll('i[data-mark]').map(square => square.attributes('data-mark'))).toEqual(['to', 'from'])
   })
 })

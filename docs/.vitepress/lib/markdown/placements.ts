@@ -26,6 +26,8 @@ export const PLACED: Readonly<Record<string, readonly Placement[]>> = {
   'identity/faces.md'     : [{ draw: 'faces', region: 'faces' }, { draw: 'pieces', region: 'pieces' }],
   'identity/index.md'     : [{ after: 'Identity', draw: 'rails' }],
   'methods/index.md'      : [{ after: 'Methods', draw: 'stops' }],
+  'methods/keys.md'       : [{ after: 'Position Keys', draw: 'keys' }],
+  'methods/limits.md'     : [{ after: 'Matches the Rule Passes Over', draw: 'passes' }],
   'methods/runs.md'       : [{ after: 'Stepping Through a Match', draw: 'run' }],
   'reference/commands.md' : [{ after: 'The Commands', draw: 'commands' }],
   'reference/index.md'    : [{ after: 'Reference', draw: 'rails' }],
