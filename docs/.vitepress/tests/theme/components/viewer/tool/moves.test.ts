@@ -15,7 +15,6 @@ vi.mock('vitepress', () => ({
   useData: () => ({ frontmatter: shallowRef({ stats: [{ label: 'Games', value: '435,321' }] }) })
 }))
 
-const length = EXAMPLES.match.span!.length
 const stored = EXAMPLES.match.stored!
 
 clearAfterEach()
@@ -25,7 +24,7 @@ describe('Tool as a reader moves through it', () => {
     const { wrapper } = mountedTool()
     await wrapper.findAll('button[data-party][data-party="submitted"]')[19]!.trigger('click')
     expect(wrapper.find('p:has(> button[title])').text())
-      .toBe(`Same position · ${20 - matches.meet + 1} of ${length}`)
+      .toBe(`Same position · ${20 - matches.meet + 1} of ${matches.shared}`)
     await wrapper.find('[data-control="end"]').trigger('click')
     await flushPromises()
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow'))
@@ -74,7 +73,7 @@ describe('Tool showing the squares the boards differ on', () => {
     await wrapper.find('[data-control="next"]').trigger('click')
     await flushPromises()
     expect([wrapper.find('p:has(> button[title])').text(), count.hidden])
-      .toEqual([`Parted at ply ${matches.meet + length} · 4 squares differ`, false])
+      .toEqual([`Parted at ply ${matches.meet + matches.shared} · 4 squares differ`, false])
     count.dispatchEvent(new PointerEvent('pointerenter'))
     await flushPromises()
     clock.advanceTimersByTime(10)
@@ -116,7 +115,7 @@ describe('Tool matching a pasted game', () => {
     await flushPromises()
     expect(submitted).toHaveBeenCalledWith('the pasted game', '1. Nf3 *')
     expect([wrapper.find('[aria-label="The two games"] > span').text(), wrapper.find('b').text()])
-      .toEqual(['the pasted game', String(length)])
+      .toEqual(['the pasted game', String(matches.shared)])
     await wrapper.find('button[aria-pressed][title]:not([data-control])').trigger('click')
     await flushPromises()
     expect([wrapper.find('[aria-label="The two games"] > span').text(), wrapper.find('b').text()])

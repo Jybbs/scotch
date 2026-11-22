@@ -12,7 +12,6 @@ vi.mock('vitepress', () => ({
   useData: () => ({ frontmatter: shallowRef({ stats: [{ label: 'Games', value: '435,321' }] }) })
 }))
 
-const length = EXAMPLES.match.span!.length
 const stored = EXAMPLES.match.stored!
 
 clearAfterEach()
@@ -21,7 +20,7 @@ describe('Tool as a reader steps it', () => {
   test('steps on the controls’ keys, marking whether the boards share a position', async ({ clock }) => {
     const { root, wrapper } = mountedTool()
     expect(await pressed(root, 'ArrowRight')).toBe(true)
-    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 2 of ${length}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 2 of ${matches.shared}`)
     expect(root.style.getPropertyValue('--sc-viewer-step')).not.toBe('0ms')
     expect(await pressed(root, 'Home')).toBe(true)
     expect([wrapper.find('p:has(> button[title])').text(), root.dataset.shared])
@@ -55,7 +54,7 @@ describe('Tool as a reader steps it', () => {
   ] as const)('leaves a key pressed %s to the page', async ([, key, held]) => {
     const { root, wrapper } = mountedTool()
     expect(await pressed(root, key, held)).toBe(false)
-    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 1 of ${length}`)
+    expect(wrapper.find('p:has(> button[title])').text()).toBe(`Same position · 1 of ${matches.shared}`)
   })
 
   test('leaves a key pressed inside a field to the field', async () => {

@@ -13,7 +13,6 @@ vi.mock('vitepress', () => ({
   useData: () => ({ frontmatter: shallowRef({ stats: [{ label: 'Games', value: '435,321' }] }) })
 }))
 
-const length = EXAMPLES.match.span!.length
 const stored = EXAMPLES.match.stored!
 
 clearAfterEach()
@@ -26,8 +25,8 @@ describe('Tool as the build renders it', () => {
     expect([...host.querySelectorAll('[aria-current="step"] > span:first-child')]
       .map(move => move.textContent))
       .toEqual([EXAMPLES.match.submitted.moves[matches.meet - 1], stored.moves[matches.meet - 1]])
-    expect(host.querySelector('b')?.textContent).toBe(String(length))
-    expect(host.querySelector('p:has(> button[title])')?.textContent).toBe(`Same position · 1 of ${length}`)
+    expect(host.querySelector('b')?.textContent).toBe(String(matches.shared))
+    expect(host.querySelector('p:has(> button[title])')?.textContent).toBe(`Same position · 1 of ${matches.shared}`)
     expect(host.querySelector('dl')?.textContent).toBe('Games435,321')
   })
 
