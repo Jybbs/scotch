@@ -1,0 +1,92 @@
+// @vitest-environment happy-dom
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, vi } from 'vitest'
+
+import { PLACED }   from '../../../../../docs/.vitepress/lib/markdown/placements.ts'
+import { MARKS }    from '../../../../../docs/.vitepress/lib/reference/marks.ts'
+import { cardOf }   from '../../../../../docs/.vitepress/lib/site/routes.ts'
+import { Marks }    from '../../../../../docs/.vitepress/theme/components/reference/marks.ts'
+import { test }     from '../../../common/clock.ts'
+import { reduceMotion } from '../../../common/motion.ts'
+import { resized, unsized } from '../../../common/size.ts'
+import { onScreen } from '../../../common/unfold.ts'
+
+vi.mock('@vueuse/core', async original => ({
+  ...await original<typeof import('@vueuse/core')>(),
+  useElementSize: (await import('../../../common/size.ts')).useElementSize
+}))
+
+function settled(clock: typeof vi): ReturnType<typeof mount> {
+  onScreen()
+  reduceMotion()
+  const drawn = mount(Marks)
+  clock.runAllTimers()
+  return drawn
+}
+
+describe('Marks', () => {
+  test('rests on the lockup, widest of the stops, each stop stating its width', ({ clock }) => {
+    const drawn = settled(clock)
+    expect(drawn.find('b').text()).toBe('Lockup')
+    expect(drawn.findAll('button').map(stop => stop.text()).join()).toContain('12 wide')
+    expect(drawn.findAll('button').map(stop => stop.find('span').text()))
+      .toEqual(MARKS.stops.map(stop => stop.name))
+    expect(drawn.find('[data-at] > p').text()).toBe(MARKS.stops.at(-1)!.sentence)
+  })
+
+  test('spaces the stops evenly', ({ clock }) => {
+    expect(settled(clock).findAll('button').map(stop => stop.attributes('style')))
+      .toEqual(['left: 0%;', 'left: 25%;', 'left: 50%;', 'left: 75%;', 'left: 100%;'])
+  })
+
+  test('lays nothing out before it is measured', ({ clock }) => {
+    unsized()
+    expect(settled(clock).find('svg').exists()).toBe(false)
+  })
+
+  test('follows the range to any place, reading the size at that scale', async ({ clock }) => {
+    const drawn = settled(clock)
+    await drawn.find('input').setValue(0)
+    expect(`${drawn.find('b').text()} ${drawn.find('small').text()}`).toBe('Favicon 12 by 16 px')
+    expect(drawn.find('[data-at] > p').text()).toBe(MARKS.stops[0]!.sentence)
+  })
+})
+
+describe('Marks, at each place', () => {
+  test('states the scale a mark too wide for the column is shown at', ({ clock }) => {
+    resized(342)
+    const { height, width } = MARKS.stops.at(-1)!
+    expect(settled(clock).find('small').text())
+      .toMatch(new RegExp(`^${width} by ${height} px, shown at \\d+%$`, 'u'))
+  })
+
+  test("reads the link card's own size at its stop and shows the card", async ({ clock }) => {
+    const drawn = settled(clock)
+    await drawn.findAll('button')[3]!.trigger('click')
+    await flushPromises()
+    expect(drawn.find('b').text()).toBe('Link card')
+    expect(drawn.find('small').text()).toBe('400 by 200 px')
+    expect(drawn.find('img').attributes('style')).toContain('opacity: 1')
+  })
+
+  test('shows the link card of the page that places it', ({ clock }) => {
+    const [page] = Object.entries(PLACED).find(([, list]) => list.some(({ draw }) => draw === 'marks'))!
+    expect(settled(clock).find('img').attributes('src')).toBe(cardOf(page))
+  })
+
+  test('marks the stop it stands nearest', ({ clock }) => {
+    expect(settled(clock).findAll('button').map(stop => stop.attributes('data-at') !== undefined))
+      .toEqual([false, false, false, false, true])
+  })
+
+  test('grows from the favicon and ends on the lockup as it unfolds', async ({ clock }) => {
+    const show  = onScreen()
+    const drawn = mount(Marks)
+    await show()
+    await flushPromises()
+    expect(drawn.find('b').text()).toBe('Favicon')
+    clock.advanceTimersByTime(5600)
+    await flushPromises()
+    expect(drawn.find('b').text()).toBe('Lockup')
+  })
+})

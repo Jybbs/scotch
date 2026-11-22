@@ -5,4 +5,4 @@
 format=text
 [[ -z "${GITHUB_ACTIONS:-}" ]] || format=github
 
-prose check --output-format "$format" "$@" .mise/tasks src tests
+prose check --output-format "$format" "$@" .mise/tasks src tests/py

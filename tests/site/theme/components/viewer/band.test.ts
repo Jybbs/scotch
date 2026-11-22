@@ -1,0 +1,257 @@
+// @vitest-environment happy-dom
+import { flushPromises, mount }                from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { EXAMPLES, type Match, type Sample } from '../../../../../docs/.vitepress/lib/viewer/examples.ts'
+import * as games                            from '../../../../../docs/.vitepress/lib/viewer/games.ts'
+import { Loaded }                            from '../../../../../docs/.vitepress/lib/viewer/loaded.ts'
+import { Band }                              from '../../../../../docs/.vitepress/theme/components/viewer/band.ts'
+import { fileOf, picked }                    from '../../../common/files.ts'
+import { endedAt }                           from '../../../common/matches.ts'
+
+const loaded = new Loaded(EXAMPLES.match)
+
+/**
+ * Builds a drag event carrying the files given, as a drag over the band from
+ * the desktop does.
+ */
+function dragged(type: string, files: readonly File[]): Event {
+  const event = new Event(type, { bubbles: true, cancelable: true })
+  const types = files.length > 0 ? ['Files'] : ['text/plain']
+  Object.defineProperty(event, 'dataTransfer', { value: { files, types } })
+  return event
+}
+
+/**
+ * Mounts the band naming a match, the example `sample` names pressed in the
+ * intake.
+ */
+function mounted(match = loaded, sample: Sample | null = 'match'): ReturnType<typeof mount<typeof Band>> {
+  return mount(Band, {
+    attachTo : document.body,
+    props    : {
+      link    : () => Promise.resolve('https://scotch.fyi/viewer'),
+      loaded  : match,
+      problem : '',
+      sample  : sample ?? undefined
+    }
+  })
+}
+
+afterEach(() => {
+  document.body.replaceChildren()
+})
+
+describe('Band naming the match', () => {
+  it('counts the positions the two share beside the stored game’s players', () => {
+    const wrapper = mounted()
+    expect(wrapper.find('b').text()).toBe(String(loaded.shared!.length))
+    expect(wrapper.find('b + span > span:last-child').text()).toBe(games.nameOf(EXAMPLES.match.stored!))
+  })
+
+  it('names where the stored game was played, the run’s plies, and the two moves where they part', () => {
+    const { last, meet } = loaded.shared!
+    const where          = games.whereOf(EXAMPLES.match.stored!)
+    expect(mounted().find('p + p').text())
+      .toBe(`${where} · plies ${meet} to ${last} · then ${loaded.leaving} against ${loaded.parting}`)
+  })
+
+  it.each([
+    [2, 36, 'one of 3 stored games sharing 36 positions'],
+    [1, 1, 'one of 2 stored games sharing 1 position']
+  ])('names how many stored games tie with %i others over %i positions', (ties, length, phrase) => {
+    const span = { ...EXAMPLES.match.span!, length }
+    const tied = new Loaded({ ...EXAMPLES.match, span, ties } as Match)
+    expect(mounted(tied).find('p + p').text()).toContain(phrase)
+  })
+
+  it('names no stored game where none shares a position', () => {
+    const wrapper = mounted(new Loaded(EXAMPLES.alone), 'alone')
+    expect([wrapper.find('b'), wrapper.find('b + span > span:last-child'), wrapper.find('p + p')]
+      .map(part => part.text()))
+      .toEqual(['0', 'no stored game', 'No stored game shares a position with this game'])
+  })
+
+  it('names an unknown event and leaves out the parting where the stored game ends with the run', () => {
+    const { last, meet } = loaded.shared!
+    const ended          = endedAt(last, 'stored')
+    const headers        = { ...ended.stored!.headers, Date: '????.??.??', Event: '?' }
+    const unknown        = { ...ended.stored!, headers }
+    expect(mounted(new Loaded({ ...ended, stored: unknown })).find('p + p').text())
+      .toBe(`Unknown event · plies ${meet} to ${last}`)
+  })
+
+  it('draws the match afresh for each match it loads', async () => {
+    const wrapper = mounted()
+    const was     = wrapper.find('section > div').element
+    await wrapper.setProps({ loaded: new Loaded(EXAMPLES.match) })
+    expect(wrapper.find('section > div').element).not.toBe(was)
+  })
+})
+
+describe('Band tallying the tied games', () => {
+  it('sets a tally of the tied games in place of their count where the match lists them', async () => {
+    const ties    = [{ headers: { WhiteElo: '2700' } }, { headers: {} }, { headers: { BlackElo: '2550' } }]
+    const wrapper = mount(Band, {
+      attachTo : document.body,
+      props    : { at: 1, link: () => Promise.resolve(''), loaded: new Loaded({ ...EXAMPLES.match, ties: 2 } as Match),
+                   problem: '', ties }
+    })
+    expect(wrapper.find('p + p').text()).not.toContain('stored games sharing')
+    expect(wrapper.find('p + p + div > p').text()).toContain(`3 games tied on ${loaded.shared!.length}`)
+    await wrapper.findAll('button[aria-pressed][title]')[0]!.trigger('click')
+    expect(wrapper.emitted('show')).toEqual([[0]])
+  })
+
+  it.each([
+    ['one tied game', [{ headers: {} }], EXAMPLES.match],
+    ['no stored game', [{ headers: {} }, { headers: {} }], EXAMPLES.alone]
+  ])('draws no tally for %s', (_, ties, match) => {
+    const wrapper = mount(Band, {
+      attachTo : document.body,
+      props    : { link: () => Promise.resolve(''), loaded: new Loaded(match), problem: '', ties }
+    })
+    expect(wrapper.find('button[aria-pressed][title]').exists()).toBe(false)
+  })
+})
+
+describe('Band taking a match', () => {
+  it.each([
+    ['alone', EXAMPLES.alone, 'demo.pgn', 2],
+    ['match', EXAMPLES.match, 'viewer.pgn', 1]
+  ] as const)('loads the %s example its chip names', async (name, match, source, chip) => {
+    const wrapper = mounted(loaded, null)
+    await wrapper.find(`[aria-label="Examples"] button:nth-child(${chip})`).trigger('click')
+    expect(wrapper.emitted('load')).toEqual([[match, source, name]])
+  })
+
+  it('shows the opening of the example match’s own moves in the PGN entry', () => {
+    expect(mounted().find('textarea[placeholder]').attributes('placeholder'))
+      .toBe('1. Nf3 Nf6 2. c4 e6 3. Nc3 d5 4. d4 Bb4 5. cxd5 exd5 …')
+  })
+
+  it('presses the chip of the example it shows', () => {
+    expect(mounted().findAll('[aria-label="Examples"] button').map(chip => chip.attributes('aria-pressed')))
+      .toEqual(['true', 'false'])
+  })
+})
+
+describe('Band taking a file', () => {
+  it('opens the file picker from its chip', async () => {
+    const opened  = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {})
+    const wrapper = mounted()
+    await wrapper.find('[aria-label="Examples"] + button').trigger('click')
+    expect(opened).toHaveBeenCalledOnce()
+  })
+
+  it('loads a match file picked, then clears the picker', async () => {
+    const wrapper = mounted()
+    const input   = await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
+    expect(wrapper.emitted('load')).toEqual([[EXAMPLES.alone, 'mine.json']])
+    expect(input.value).toBe('')
+  })
+
+  it('names what a picked file lacks', async () => {
+    const wrapper = mounted()
+    await picked(wrapper, [fileOf('{"submitted": 1}')])
+    expect(wrapper.emitted('problem')?.[0]?.[0])
+      .toBe("game.json: `submitted` holds a number rather than an object")
+  })
+
+  it('takes nothing where the picker closes with no file', async () => {
+    const wrapper = mounted()
+    await picked(wrapper, [])
+    expect([wrapper.emitted('load'), wrapper.emitted('problem')]).toEqual([undefined, undefined])
+  })
+})
+
+describe('Band taking a game in PGN', () => {
+  it('sends a game typed into the entry once Enter is pressed', async () => {
+    const wrapper = mounted()
+    const field   = wrapper.find('textarea[placeholder]')
+    await field.setValue('1. e4 *')
+    await field.trigger('keydown', { key: 'Enter' })
+    expect(wrapper.emitted('pgn')).toEqual([['1. e4 *', 'the pasted game']])
+  })
+
+  it.each([
+    ['Shift and Enter', '1. e4 *', { key: 'Enter', shiftKey: true }],
+    ['Enter ending a composition', '1. e4 *', { isComposing: true, key: 'Enter' }],
+    ['another key', '1. e4 *', { key: 'a' }],
+    ['Enter on an empty entry', '  ', { key: 'Enter' }]
+  ])('sends nothing for %s', async (_, text, key) => {
+    const wrapper = mounted()
+    const field   = wrapper.find('textarea[placeholder]')
+    await field.setValue(text)
+    await field.trigger('keydown', key)
+    expect(wrapper.emitted('pgn')).toBeUndefined()
+  })
+
+  it('sends a game pasted into the entry once the paste lands', async () => {
+    const wrapper = mounted()
+    const field   = wrapper.find('textarea[placeholder]')
+    await field.setValue('1. d4 *')
+    await field.trigger('input', { inputType: 'insertFromPaste' })
+    expect(wrapper.emitted('pgn')).toEqual([['1. d4 *', 'the pasted game']])
+  })
+
+  it('sends nothing for text typed into the entry', async () => {
+    const wrapper = mounted()
+    const field   = wrapper.find('textarea[placeholder]')
+    await field.setValue('1. d4 *')
+    await field.trigger('input', { inputType: 'insertText' })
+    expect(wrapper.emitted('pgn')).toBeUndefined()
+  })
+
+  it('sends a game file picked, naming the file it came from', async () => {
+    const wrapper = mounted()
+    await picked(wrapper, [new File(['1. c4 *'], 'Mine.PGN')])
+    expect([wrapper.emitted('pgn'), wrapper.emitted('load')]).toEqual([[['1. c4 *', 'Mine.PGN']], undefined])
+  })
+})
+
+describe('Band taking a dropped file', () => {
+  it('marks itself while a file is dragged over it and loads the file dropped', async () => {
+    const wrapper = mounted()
+    const band    = wrapper.element as HTMLElement
+    const file    = fileOf(JSON.stringify(EXAMPLES.alone), 'dropped.json')
+    band.dispatchEvent(dragged('dragenter', [file]))
+    await flushPromises()
+    expect('drag' in band.dataset).toBe(true)
+    const over = dragged('dragover', [file])
+    band.dispatchEvent(over)
+    band.dispatchEvent(dragged('drop', [file]))
+    await flushPromises()
+    expect([over.defaultPrevented, 'drag' in band.dataset, wrapper.emitted('load')])
+      .toEqual([true, false, [[EXAMPLES.alone, 'dropped.json']]])
+  })
+
+  it('leaves a drag carrying no file to the page', async () => {
+    const wrapper = mounted()
+    const band    = wrapper.element as HTMLElement
+    const over    = dragged('dragover', [])
+    band.dispatchEvent(dragged('dragenter', []))
+    band.dispatchEvent(over)
+    band.dispatchEvent(dragged('drop', []))
+    await flushPromises()
+    expect(['drag' in band.dataset, over.defaultPrevented, wrapper.emitted('load')])
+      .toEqual([false, false, undefined])
+  })
+
+  it('unmarks itself once a drag leaves it', async () => {
+    const wrapper = mounted()
+    const band    = wrapper.element as HTMLElement
+    const file    = fileOf('{}')
+    band.dispatchEvent(dragged('dragenter', [file]))
+    band.dispatchEvent(dragged('dragleave', [file]))
+    band.dispatchEvent(dragged('dragleave', [file]))
+    await flushPromises()
+    expect('drag' in band.dataset).toBe(false)
+  })
+
+  it('names the problem it is handed under the intake', () => {
+    const props   = { link: () => Promise.resolve(''), loaded, problem: 'The link holds no match' }
+    const wrapper = mount(Band, { props })
+    expect(wrapper.find('[role="alert"]').text()).toBe('The link holds no match')
+  })
+})

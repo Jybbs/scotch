@@ -1,8 +1,7 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "cruft"
 #MISE depends     = ["rs:wasm", "site:install"]
-#MISE description = "Report an unused file, export, or dependency in the site, and an import cycle, passing any further arguments to knip"
-#MISE dir         = "docs"
+#MISE description = "Report an unused file, export, or dependency in the site and its suite, and an import cycle, passing any further arguments to knip"
 
-node_modules/.bin/knip "$@"
-node_modules/.bin/knip --cycles "$@"
+docs/node_modules/.bin/knip "$@"
+docs/node_modules/.bin/knip --cycles "$@"

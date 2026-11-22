@@ -34,8 +34,9 @@
     "knip"            : {
         "ignoreDependencies" : ["oxlint", "@fontsource/.+"],
         "rules"              : { "cycles": "error" },
-        "typescript"         : { "config": [".vitepress/tsconfig.json"] },
-        "vitest"             : { "config": [".vitepress/config/vitest.config.ts"] }
+        "typescript"         : { "config": ["docs/.vitepress/tsconfig.json"] },
+        "vitepress"          : { "entry": ["docs/.vitepress/config/index.ts", "docs/.vitepress/theme/index.ts"] },
+        "vitest"             : { "config": ["docs/.vitepress/config/vitest.config.ts"] }
     },
     "overrides"       : {
         "fflate"    : "0.8.3",

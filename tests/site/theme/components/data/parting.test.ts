@@ -1,0 +1,59 @@
+// @vitest-environment happy-dom
+import { mount }                    from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
+
+import * as numbers      from '../../../../../docs/.vitepress/lib/data/numbers.ts'
+import * as parting      from '../../../../../docs/.vitepress/lib/data/parting.ts'
+import { SharedParting } from '../../../../../docs/.vitepress/theme/components/data/parting.ts'
+import { pressed }       from '../../../common/keys.ts'
+import { unsized }       from '../../../common/size.ts'
+
+vi.mock('@vueuse/core', async original => ({
+  ...await original<typeof import('@vueuse/core')>(),
+  useElementSize: (await import('../../../common/size.ts')).useElementSize
+}))
+
+const every  = parting.SHARED.every
+const layout = parting.partingLayout(600)
+
+describe('SharedParting', () => {
+  it('draws nothing until the chart has a width', () => {
+    unsized()
+    expect(mount(SharedParting).find('svg').exists()).toBe(false)
+  })
+
+  it('opens on move 10, lighting its bar and naming its shares', () => {
+    const drawn = mount(SharedParting)
+    expect(drawn.find('span').text()).toBe(numbers.percent(parting.sharingAt(every, 10)))
+    expect(drawn.find('p').text()).toBe(parting.partingSentence(10))
+    expect(drawn.findAll('rect[data-k=alone]').findIndex(bar => bar.attributes('data-on') === '')).toBe(10)
+    expect(drawn.find('circle + text').attributes('text-anchor')).toBe('start')
+  })
+
+  it('follows the pointer to the move nearest it, turning the tag to the left past move 30', async () => {
+    const drawn  = mount(SharedParting)
+    const slider = drawn.find('[role="slider"]')
+    slider.element.dispatchEvent(new PointerEvent('pointermove', { clientX: parting.moveOn(layout, 35) }))
+    await drawn.vm.$nextTick()
+    expect(slider.attributes('aria-valuenow')).toBe('35')
+    expect(drawn.find('circle + text').attributes('text-anchor')).toBe('end')
+  })
+
+  it('steps along the moves on an arrow key and answers no other key', async () => {
+    const drawn  = mount(SharedParting)
+    const slider = drawn.find('[role="slider"]')
+    expect(await pressed(slider.element, 'ArrowRight')).toBe(true)
+    expect(slider.attributes('aria-valuenow')).toBe('11')
+    expect(await pressed(slider.element, 'End')).toBe(true)
+    expect(slider.attributes('aria-valuenow')).toBe(String(parting.LAST_MOVE))
+    expect(await pressed(slider.element, 'Tab')).toBe(false)
+  })
+
+  it('dims every part but the one a corner mark lights', async () => {
+    const drawn = mount(SharedParting)
+    await drawn.findAll('[role=listitem]')[1]!.trigger('pointerenter')
+    expect(drawn.findAll('path[data-k=sharing]')[1]!.attributes('data-off')).toBe('')
+    expect(drawn.find('g[data-k=half]').attributes('data-off')).toBe('')
+    expect(drawn.find('rect[data-k=alone]').attributes('data-off')).toBeUndefined()
+  })
+})
