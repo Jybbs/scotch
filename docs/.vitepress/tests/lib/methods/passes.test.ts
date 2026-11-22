@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { MATCHED, PASSED } from '../../../lib/methods/passes.ts'
 import rules               from '../../../lib/rendered/rules.json' with { type: 'json' }
@@ -45,5 +45,17 @@ describe('PASSED', () => {
 
   it('draws a passed-over match only where a match shows what the rule passes over', () => {
     expect(PASSED.map(({ over }) => over !== undefined)).toEqual([false, true, false, true])
+  })
+})
+
+describe('PASSED as read from its picks', () => {
+  it('names the transposed game\'s own match, apart from the tie\'s', async () => {
+    vi.resetModules()
+    vi.doMock('../../../lib/rendered/rules.json', () => ({
+      default: { ...rules, picked: { ...rules.picked, passing: { ...rules.picked.passing, stored: -1 } } }
+    }))
+    const { PASSED: moved } = await import('../../../lib/methods/passes.ts')
+    expect(moved[3]!.named.stored).toBe(-1)
+    vi.doUnmock('../../../lib/rendered/rules.json')
   })
 })
