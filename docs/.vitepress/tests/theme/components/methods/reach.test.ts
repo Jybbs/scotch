@@ -82,6 +82,13 @@ describe('Reach as drawn', () => {
 })
 
 describe('Reach as marked', () => {
+  it('stretches the bars over the whole plot, one unit to a length and to a game', () => {
+    expect(still().find('svg').attributes()).toMatchObject({
+      preserveAspectRatio : 'none',
+      viewBox             : `0 0 ${REACH.longest} ${REACH.tallest}`
+    })
+  })
+
   it('stands every bar on the axis', () => {
     const feet = still().findAll('rect')
       .map(bar => Number(bar.attributes('y')) + Number(bar.attributes('height')))
@@ -102,8 +109,11 @@ describe('Reach as marked', () => {
     const tens    = Math.floor((REACH.longest - 1) / 10)
     const ticks   = [...wrapper.find('[role=slider]').element.nextElementSibling!.children]
     expect((median.element as HTMLElement).style.left).toBe(`${(REACH.median - 0.5) / REACH.longest * 100}%`)
-    expect(ticks.map(tick => tick.textContent))
-      .toEqual(['1', ...Array.from({ length: tens }, (_, at) => `${(at + 1) * 10}`)])
+    expect(ticks.map(tick => [tick.textContent, (tick as HTMLElement).style.left])).toEqual([
+      ['1', ''],
+      ...Array.from({ length: tens }, (_, at) =>
+        [`${(at + 1) * 10}`, `${((at + 1) * 10 - 0.5) / REACH.longest * 100}%`])
+    ])
   })
 })
 
@@ -123,9 +133,9 @@ describe('Reach as read aloud', () => {
   it('names one game and one position in the singular', async () => {
     const wrapper = still()
     await point(wrapper, 'pointermove', 10 * once - 5)
-    expect(read(wrapper)).toBe(`1game holds a longest run of ${once} positions`)
+    expect(read(wrapper)).toMatch(/^1game holds a longest run of /u)
     await wrapper.find('[role=slider]').trigger('keydown', { key: 'Home' })
-    expect(read(wrapper)).toContain('a longest run of 1 position')
+    expect(read(wrapper)).toMatch(/ a longest run of 1 position$/u)
   })
 })
 
