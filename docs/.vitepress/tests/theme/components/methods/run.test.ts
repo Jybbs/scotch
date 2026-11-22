@@ -10,12 +10,12 @@ import { test }                      from '../../../common/clock.ts'
 import { pauseMotion, reduceMotion } from '../../../common/motion.ts'
 
 /**
- * Mounts the widget holding still, as a reader preferring reduced motion
- * meets it.
+ * Mounts the widget on an example, holding still, as a reader preferring
+ * reduced motion meets it.
  */
-function still(): ReturnType<typeof mount<typeof Run>> {
+function still(example = exampleOf()): ReturnType<typeof mount<typeof Run>> {
   reduceMotion()
-  return mount(Run)
+  return mount(Run, { props: { example } })
 }
 
 const status = (wrapper: ReturnType<typeof mount<typeof Run>>): string => wrapper.find('[role=status]').text()
@@ -29,9 +29,9 @@ describe('Run as drawn', () => {
   })
 
   it('opens on the middle of the example\'s longest run where the drawings hold still', () => {
-    reduceMotion()
-    const example = { ...exampleOf(), runs: [{ length: 4, offset: 0, start: 3 }] }
-    expect(status(mount(Run, { props: { example } }))).toBe('Ply 5 · one position, 3 in a row')
+    const wrapper = still({ ...exampleOf(), runs: [{ length: 1, offset: 0, start: 0 }, { length: 4, offset: 0, start: 3 }] })
+    expect(status(wrapper)).toBe('Ply 5 · one position, 3 in a row')
+    expect(wrapper.text()).toContain('Run of 4 · plies 3 to 6')
   })
 
   it('opens on the start and plays where the drawings move', () => {
