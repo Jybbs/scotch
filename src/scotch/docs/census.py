@@ -282,7 +282,8 @@ class Census:
                 "start"      : RUNS["start"],
                 "stored"     : RUNS["game"],
                 "tied"       : Boolean,
-                "transposed" : Boolean
+                "transposed" : Boolean,
+                "twin"       : RUNS["game"]
             }
         )
 
@@ -303,8 +304,10 @@ class Census:
                 for name, counted, stored in (
                     ("crowded", col("crowded"), "stored"),
                     ("later", col("start") > 0, "stored"),
+                    ("passing", col("transposed"), "stored"),
                     ("tied", col("tied"), "stored"),
-                    ("transposed", col("transposed"), "rarer")
+                    ("transposed", col("transposed"), "rarer"),
+                    ("twin", col("tied"), "twin")
                 )
                 if (rows := measured.filter(counted).select("game", stored)).height
             },
@@ -663,11 +666,12 @@ class Census:
         positions, and leaves out a rarer position a shorter run reaches by
         another move order, under `length` and `start` the positions that
         run holds and the ply of the sampled game it starts at, and under
-        `game`, `stored`, and `rarer` the sampled game, the stored game of
-        that run, and the stored game of the shorter run reaching the rarest
-        position by another order, or `None` where no shorter run does,
-        for each one some other stored game, save one holding its whole
-        mainline, shares a position with.
+        `game`, `stored`, `twin`, and `rarer` the sampled game, the stored
+        game of that run, the first other stored game sharing a run as long,
+        or `None` where none does, and the stored game of the shorter run
+        reaching the rarest position by another order, or `None` where no
+        shorter run does, for each one some other stored game, save one
+        holding its whole mainline, shares a position with.
         """
         for number in self.sampled:
             game  = self.index.game(number)
@@ -705,6 +709,15 @@ class Census:
                 {"game": None, "reaching": rarest}
             )
 
+            twin = (
+                runs.filter(
+                    col("length") == best["length"],
+                    col("game") != best["game"]
+                )
+                    .get_column("game")
+                    .first()
+            )
+
             yield {
                 "crowded"    : rarest > self.crowd,
                 "game"       : number,
@@ -712,13 +725,9 @@ class Census:
                 "rarer"      : fewest["game"],
                 "start"      : best["start"],
                 "stored"     : best["game"],
-                "tied"       : (
-                    runs.filter(col("length") == best["length"])
-                        .get_column("game")
-                        .n_unique()
-                )
-                > 1,
-                "transposed" : fewest["reaching"] < rarest
+                "tied"       : twin is not None,
+                "transposed" : fewest["reaching"] < rarest,
+                "twin"       : twin
             }
 
     def named(self, decade: Expr) -> Expr:

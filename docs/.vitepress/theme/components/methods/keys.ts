@@ -71,8 +71,9 @@ function turns(keyed: Keyed, ply: number, live: boolean, moving: boolean): VNode
 /**
  * Draws the key a move writes worked as a sum in columns: the key before, each
  * number the move turns, and the key after rolling to its new digits, each
- * column the move turns washed down its length, every ply's numbers set in one
- * cell so the sum keeps one height from the first ply to the last.
+ * column the move turns washed in the key before and the key after, every
+ * ply's numbers set in one cell so the sum keeps one height from the first ply
+ * to the last.
  */
 function sum(keyed: Keyed, ply: number, moving: boolean): VNode {
   const shown  = Math.max(ply, 1)

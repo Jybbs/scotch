@@ -1043,6 +1043,21 @@
       ],
       "stored": 619785
     },
+    "passing": {
+      "game": 571700,
+      "plies": [
+        19,
+        41
+      ],
+      "runs": [
+        {
+          "length": 19,
+          "offset": 0,
+          "start": 0
+        }
+      ],
+      "stored": 389884
+    },
     "tied": {
       "game": 571700,
       "plies": [
@@ -1077,6 +1092,21 @@
         }
       ],
       "stored": 27605
+    },
+    "twin": {
+      "game": 571700,
+      "plies": [
+        19,
+        28
+      ],
+      "runs": [
+        {
+          "length": 19,
+          "offset": 0,
+          "start": 0
+        }
+      ],
+      "stored": 571456
     }
   },
   "sample": 1000,

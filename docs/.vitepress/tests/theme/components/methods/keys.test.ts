@@ -3,6 +3,7 @@ import { mount }                from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick }             from 'vue'
 
+import { keyedOf }                   from '../../../../lib/methods/keys.ts'
 import { PACE }                      from '../../../../lib/methods/stepping.ts'
 import { Keys }                      from '../../../../theme/components/methods/keys.ts'
 import { test }                      from '../../../common/clock.ts'
@@ -65,6 +66,13 @@ describe('Keys as drawn', () => {
     expect(marks.map(square => square.attributes('data-mark')).toSorted()).toEqual(['from', 'to'])
   })
 
+  it('washes in the key before exactly the digits the move turns', () => {
+    const [start, first] = keyedOf().keys as [string, string]
+    const before         = still().findAll('[role=img][aria-label]')[0]!.findAll('[aria-hidden] > span')
+    expect(before.map(digit => digit.classes().includes('bg-run/35')))
+      .toEqual([...start].map((digit, at) => digit !== first[at]))
+  })
+
   it('writes the stored game\'s order and its key once the line meets it', async () => {
     const wrapper = still()
     expect(showing(wrapper, 'by another order')).toBe(false)
@@ -122,5 +130,16 @@ describe('Keys as stepped', () => {
     const wrapper = mount(Keys)
     await pauseMotion()
     expect(wrapper.find('button').text()).toBe('Play')
+  })
+})
+
+describe('Keys with the en passant file', () => {
+  it('washes d6 as the capture square on the free board and as left out on the pinned one', async () => {
+    const wrapper = still()
+    await press(wrapper, 'The en passant file')
+    const boards  = ['A pawn free', 'A pinned pawn'].map(label => wrapper.find(`[aria-label^="${label}"]`))
+    expect(boards.map(board => board.findAll('i').findIndex(square => square.attributes('data-mark'))))
+      .toEqual([19, 19])
+    expect(boards.map(board => board.find('i[data-mark]').attributes('data-mark'))).toEqual(['to', 'from'])
   })
 })

@@ -288,6 +288,9 @@ class Rules(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     `transposed` counts, under that name, set against the stored game of
     its longest run, or for `transposed` the stored game of the shorter
     run reaching the rarer position, a measure counting no game left out.
+    Under `twin` the tied game is set against the other stored game sharing
+    a run as long, and under `passing` the transposed game against the
+    stored game of its longest run.
     """
 
     sample: NonNegativeInt

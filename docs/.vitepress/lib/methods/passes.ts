@@ -77,7 +77,7 @@ export const PASSED: readonly Passed[] = [{
   clause : 'another stored game shares a run as long',
   name   : 'Ties',
   named  : sampledOf('tied'),
-  over   : sampledOf('tied', undefined, true),
+  over   : sampledOf('twin', undefined, true),
   says   : 'Another stored game shares a run as long, which the match counts beside its own and does not draw.',
   share  : shareOf('tied')
 }, {
@@ -90,7 +90,7 @@ export const PASSED: readonly Passed[] = [{
 }, {
   clause : 'a shorter run reaches a rarer position by another order',
   name   : 'Rarer by another order',
-  named  : sampledOf('tied'),
+  named  : sampledOf('passing'),
   over   : sampledOf('transposed', runOf('transposed')),
   says   : 'A shorter run with another stored game reaches, by another order of moves, a position fewer stored '
          + 'games reach than any of the longest run.',

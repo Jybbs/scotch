@@ -263,8 +263,10 @@ def test_rules_count_what_the_longest_run_leaves_out(
     game finds a shorter run reaching, in another order, a position rarer
     than any of its longest run's. The crowded run and the tie each pick the
     third game, the first the seeded sample counts, set against the first
-    game, and the transposition picks the first game set against the third,
-    whose shorter run reaches the rarer position.
+    game, and against the second as the other stored game tying it, and the
+    transposition picks the first game set against the third, whose shorter
+    run reaches the rarer position, and against the second, whose run is
+    longest.
     """
     keys = {*game.keys for game in counted[0]}
 
@@ -286,6 +288,12 @@ def test_rules_count_what_the_longest_run_leaves_out(
                 ),
                 stored = 0
             )),
+            "passing"    : Picked(
+                game   = 0,
+                plies  = (5, 5),
+                runs   = (Span(length=5, offset=0, start=0),),
+                stored = 1
+            ),
             "tied"       : crowded,
             "transposed" : Picked(
                 game  = 0,
@@ -295,6 +303,12 @@ def test_rules_count_what_the_longest_run_leaves_out(
                     Span(length=1, offset=0, start=5)
                 ),
                 stored = 2
+            ),
+            "twin"       : Picked(
+                game   = 2,
+                plies  = (5, 5),
+                runs   = (Span(length=1, offset=0, start=0),),
+                stored = 1
             )
         },
         sample     = 5,
@@ -316,7 +330,8 @@ def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
     first game's longest run alone starts past its first position, at its
     third ply, holding three positions against the second game's two and the
     six the last two games share, so each of its three measures picks it,
-    set against the third game and the two runs they share.
+    set against the third game and the two runs they share, and its tie sets
+    it against the fourth, which shares the same two runs.
     """
     games = [
         line("e4", "e5", "Nf3", "Nc6", "Bc4"),
@@ -339,7 +354,17 @@ def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
             ),
             stored = 2
         )
-    )
+    ) | {
+        "twin": Picked(
+            game  = 0,
+            plies = (5, 6),
+            runs  = (
+                Span(length=3, offset=0, start=3),
+                Span(length=1, offset=0, start=0)
+            ),
+            stored = 3
+        )
+    }
 
 
 def test_rules_sample_as_many_games_as_named_drawing_the_same_with_one_seed(

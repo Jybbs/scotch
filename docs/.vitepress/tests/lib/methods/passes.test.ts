@@ -30,6 +30,19 @@ describe('PASSED', () => {
     expect(PASSED[1]!.named.other).toBe(false)
   })
 
+  it('sets the tied game against another stored game sharing a run as long', () => {
+    const [named, over] = [PASSED[1]!.named, PASSED[1]!.over!]
+    expect(over.game).toBe(named.game)
+    expect(over.stored).not.toBe(named.stored)
+    expect(over.pair.longest.length).toBe(named.pair.longest.length)
+  })
+
+  it('sets the transposed game against the stored game of its longest run and of the rarer run', () => {
+    const [named, over] = [PASSED[3]!.named, PASSED[3]!.over!]
+    expect(over.game).toBe(named.game)
+    expect(named.pair.longest.length).toBeGreaterThan(over.pair.longest.length)
+  })
+
   it('draws a passed-over match only where a match shows what the rule passes over', () => {
     expect(PASSED.map(({ over }) => over !== undefined)).toEqual([false, true, false, true])
   })
