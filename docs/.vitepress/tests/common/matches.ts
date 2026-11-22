@@ -8,9 +8,9 @@ import { Loaded, type Party }              from '../../lib/viewer/loaded.ts'
 export const loaded = new Loaded(EXAMPLES.match)
 /**
  * The first and the last position the example match's two games share, in the
- * submitted game's plies.
+ * submitted game's plies, and the count of positions they share.
  */
-export const { last, meet } = loaded.shared!
+export const { last, length: shared, meet } = loaded.shared!
 
 /**
  * Answers a game with the matches `found`, in the order they rank, holding the

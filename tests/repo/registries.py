@@ -7,7 +7,7 @@ from common.sample import Sample
 from http          import HTTPMethod
 from pathlib       import Path
 from pydantic      import ValidationError
-from pytest        import approx, mark, param, raises
+from pytest        import Config, approx, mark, param, raises
 
 from scotch.repo.registries import (
     Changelog,
@@ -16,6 +16,7 @@ from scotch.repo.registries import (
     GithubSettings,
     Label,
     Labels,
+    Releases,
     Request,
     Ruleset,
     Template
@@ -296,6 +297,35 @@ def test_a_request_reads_its_body_from_standard_input(
     standard input, and that one sending none passes no input.
     """
     assert (call.arguments, call.payload) == (arguments, payload)
+
+
+def test_the_repository_declares_its_releases_immutable(pytestconfig: Config):
+    """
+    Asserts that the repository's own settings turn immutable releases on,
+    so a published release's tag and files never change.
+    """
+    path = pytestconfig.rootpath / ".github" / "settings.toml"
+
+    assert GithubSettings.read(path).releases.immutable_releases
+
+
+@mark.parametrize(
+    ("immutable", "method"),
+    [param(True, "PUT", id="on"), param(False, "DELETE", id="off")]
+)
+def test_immutable_releases_turn_on_or_off_on_their_endpoint(
+    immutable : bool,
+    method    : str
+):
+    """
+    Asserts that `immutable-releases` turns immutable releases on through
+    `PUT` and off through `DELETE` on their own endpoint.
+    """
+    request = Releases.model_validate({"immutable-releases": immutable}).request
+
+    assert (request.method, request.path) == (
+        method, "repos/{owner}/{repo}/immutable-releases"
+    )
 
 
 @mark.parametrize(

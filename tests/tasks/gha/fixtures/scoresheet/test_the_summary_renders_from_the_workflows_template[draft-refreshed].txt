@@ -4,6 +4,6 @@
 |---|---|
 | `draft` | success |
 
-The cut left the [draft release](https://example.test/0.2.0) already carrying `0.2.0` as it stands.
+The cut refreshed the notes of the [draft release](https://example.test/0.2.0) for `0.2.0`.
 
 The run checked `560c4d8` on `4/ci-gate`.

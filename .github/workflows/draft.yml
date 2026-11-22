@@ -12,12 +12,11 @@ jobs:
       contents: write
     runs-on: ubuntu-26.04
     steps:
-      - name: Check out the last two commits
+      - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          fetch-depth: 2
           persist-credentials: false
-      - name: Cut the draft release
+      - name: Create or refresh the draft release
         id: cut
         env:
           GH_REPO: ${{ github.repository }}
@@ -44,8 +43,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - pyproject.toml
   workflow_dispatch:
 permissions:
   contents: read

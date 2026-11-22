@@ -1,0 +1,8 @@
+#!/usr/bin/env -S bash -euo pipefail
+#MISE alias       = "bump"
+#MISE description = "Move `[project].version` to its next patch, minor, or major version and relock `uv.lock`"
+#USAGE arg "<part>" help="The part of the version to move" {
+#USAGE   choices "major" "minor" "patch"
+#USAGE }
+
+uv version --bump "$1" --no-locked
