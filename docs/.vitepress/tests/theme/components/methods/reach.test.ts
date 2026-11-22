@@ -2,8 +2,10 @@
 import { mount }                    from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
+import { counted }      from '../../../../lib/data/numbers.ts'
 import { REACH }        from '../../../../lib/methods/reach.ts'
 import { Reach }        from '../../../../theme/components/methods/reach.ts'
+import { prevented }    from '../../../common/keys.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 
 type Wrapper = ReturnType<typeof mount<typeof Reach>>
@@ -29,8 +31,12 @@ async function point(wrapper: Wrapper, type: string, x: number, kind = 'mouse'):
   await wrapper.vm.$nextTick()
 }
 
-const now  = (wrapper: Wrapper): number => Number(wrapper.find('[role=slider]').attributes('aria-valuenow'))
-const read = (wrapper: Wrapper): string => wrapper.find('[aria-live=polite]').text()
+/**
+ * Mounts the widget and reads whether its bars glide from one fill to the next.
+ */
+const glides = (): boolean => mount(Reach).find('rect').classes().includes('duration-glide')
+const now    = (wrapper: Wrapper): number => Number(wrapper.find('[role=slider]').attributes('aria-valuenow'))
+const read   = (wrapper: Wrapper): string => wrapper.find('[aria-live=polite]').text()
 
 describe('Reach as drawn', () => {
   it('draws a bar for each length, the median filled in the run\'s color', () => {
@@ -50,7 +56,12 @@ describe('Reach as drawn', () => {
   it('draws each bar as tall as its count, none where no game holds the length', () => {
     const heights = still().findAll('rect').map(bar => Number(bar.attributes('height')))
     expect(heights).toEqual(REACH.counts)
-    expect(heights[1]).toBe(0)
+  })
+
+  it('glides each bar while the drawings move and holds it still under reduced motion', () => {
+    expect(glides()).toBe(true)
+    reduceMotion()
+    expect(glides()).toBe(false)
   })
 
   it('opens on the median, reading out its count', () => {
@@ -63,26 +74,56 @@ describe('Reach as drawn', () => {
   it.each([
     `Median ${REACH.median}`,
     `Longest ${REACH.longest}`,
-    `Middle half, ${REACH.low} to ${REACH.high}`
+    `Middle half, ${REACH.low} to ${REACH.high}`,
+    `counting the ${counted(REACH.games)} sampled games`
   ])('names %s', words => {
     expect(still().text()).toContain(words)
   })
 })
 
-describe('Reach as read aloud', () => {
-  it.each([
-    ['Home', `${REACH.counts[0]} games with a longest run of 1`],
-    ['End', `1 game with a longest run of ${REACH.longest}`]
-  ])('tells a screen reader the count at the length %s steps to', async (key, text) => {
+describe('Reach as marked', () => {
+  it('stands every bar on the axis', () => {
+    const feet = still().findAll('rect')
+      .map(bar => Number(bar.attributes('y')) + Number(bar.attributes('height')))
+    expect(new Set(feet)).toEqual(new Set([REACH.tallest]))
+  })
+
+  it('runs a hairline from the top down to the bar of the median and of the longest', () => {
+    const lines = still().findAll('[role=slider] > i').map(line => (line.element as HTMLElement).style)
+    expect(lines.map(({ height, left }) => [left, height])).toEqual([REACH.median, REACH.longest].map(at => [
+      `${(at - 0.5) / REACH.longest * 100}%`,
+      `${(1 - REACH.counts[at - 1]! / REACH.tallest) * 100}%`
+    ]))
+  })
+
+  it('names the median over its bar and every tenth length short of the longest under the bars', () => {
     const wrapper = still()
-    await wrapper.find('[role=slider]').trigger('keydown', { key })
+    const median  = wrapper.findAll('span').find(span => span.text() === `Median ${REACH.median}`)!
+    const tens    = Math.floor((REACH.longest - 1) / 10)
+    const ticks   = [...wrapper.find('[role=slider]').element.nextElementSibling!.children]
+    expect((median.element as HTMLElement).style.left).toBe(`${(REACH.median - 0.5) / REACH.longest * 100}%`)
+    expect(ticks.map(tick => tick.textContent))
+      .toEqual(['1', ...Array.from({ length: tens }, (_, at) => `${(at + 1) * 10}`)])
+  })
+})
+
+describe('Reach as read aloud', () => {
+  const once = REACH.counts.indexOf(1) + 1
+  const many = REACH.counts.findIndex(count => count > 1) + 1
+
+  it.each([
+    [once, `1 game with a longest run of ${once}`],
+    [many, `${REACH.counts[many - 1]} games with a longest run of ${many}`]
+  ])('tells a screen reader the count at length %i', async (length, text) => {
+    const wrapper = still()
+    await point(wrapper, 'pointermove', 10 * length - 5)
     expect(wrapper.find('[role=slider]').attributes('aria-valuetext')).toBe(text)
   })
 
   it('names one game and one position in the singular', async () => {
     const wrapper = still()
-    await wrapper.find('[role=slider]').trigger('keydown', { key: 'End' })
-    expect(read(wrapper)).toBe(`1game holds a longest run of ${REACH.longest} positions`)
+    await point(wrapper, 'pointermove', 10 * once - 5)
+    expect(read(wrapper)).toBe(`1game holds a longest run of ${once} positions`)
     await wrapper.find('[role=slider]').trigger('keydown', { key: 'Home' })
     expect(read(wrapper)).toContain('a longest run of 1 position')
   })
@@ -136,5 +177,19 @@ describe('Reach as stepped', () => {
     const wrapper = still()
     await wrapper.find('[role=slider]').trigger('keydown', { key: 'Enter' })
     expect(now(wrapper)).toBe(REACH.median)
+  })
+
+  it('steps as a slider across every length from the tab order', () => {
+    expect(still().find('[role=slider]').attributes()).toMatchObject({
+      'aria-label'    : 'Length of the longest run',
+      'aria-valuemax' : String(REACH.longest),
+      'aria-valuemin' : '1',
+      'tabindex'      : '0'
+    })
+  })
+
+  it('keeps the page from scrolling on a key it answers and lets any other key through', () => {
+    const slider = still().find('[role=slider]').element
+    expect([prevented(slider, 'Home'), prevented(slider, 'a')]).toEqual([true, false])
   })
 })

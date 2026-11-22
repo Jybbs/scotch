@@ -30,6 +30,7 @@ describe('reachOf', () => {
 describe('REACH', () => {
   it('counts every sampled game', () => {
     expect(REACH.counts.reduce((sum, count) => sum + count, 0)).toBe(rules.lengths.length)
+    expect(REACH.games).toBe(rules.lengths.length)
   })
 
   it('sets the longest at the longest sampled length, holding at least one game', () => {
