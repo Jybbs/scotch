@@ -52,10 +52,17 @@ describe('PASSED as read from its picks', () => {
   it('names the transposed game\'s own match, apart from the tie\'s', async () => {
     vi.resetModules()
     vi.doMock('../../../lib/rendered/rules.json', () => ({
-      default: { ...rules, picked: { ...rules.picked, passing: { ...rules.picked.passing, stored: -1 } } }
+      default: {
+        ...rules,
+        picked: {
+          ...rules.picked,
+          passing : { ...rules.picked.passing, stored: -1 },
+          tied    : { ...rules.picked.tied, stored: -2 }
+        }
+      }
     }))
     const { PASSED: moved } = await import('../../../lib/methods/passes.ts')
-    expect(moved[3]!.named.stored).toBe(-1)
     vi.doUnmock('../../../lib/rendered/rules.json')
+    expect([moved[1]!.named.stored, moved[3]!.named.stored]).toEqual([-2, -1])
   })
 })
