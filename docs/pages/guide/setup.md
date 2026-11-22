@@ -40,7 +40,7 @@ Each line does what the list below sets out, written from the package's own meta
 
 ## Building the Store
 
-A fresh clone holds no games, so two tasks build the store under `.cache/data`, which git leaves untracked. `mise run data:fetch` runs `scotch fetch games`, downloading each file `src/scotch/sources/sources.toml` declares, and `mise run data:index` runs `scotch index games`, reading every game of those files into the index a match reads. The downloads take <!-- downloads-size -->1.1 GB<!-- /downloads-size --> on disk and the index <!-- index-size -->462.0 MB<!-- /index-size -->, each measured under the data directory by `mise run docs:render`, and [The Store](store.md) sets out what each task writes there.
+A fresh clone holds no games, so two tasks build the store under `.cache/data`, which git leaves untracked. `mise run data:fetch` runs `scotch fetch games`, downloading each file `src/scotch/sources/sources.toml` declares, and `mise run data:index` runs `scotch index games`, reading every game of those files into the index a match reads. The downloads take <!-- downloads-size -->1.1 GB<!-- /downloads-size --> on disk and the index <!-- index-size -->459.9 MB<!-- /index-size -->, each measured under the data directory by `mise run docs:render`, and [The Store](store.md) sets out what each task writes there.
 
 ## A Step That Stops
 

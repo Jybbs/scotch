@@ -21,7 +21,7 @@ describe('Commands', () => {
     expect(grid.find('td[data-kind] span').text())
       .toBe('scotch fetch games writes downloads/www.pgnmentor.com/')
     expect(grid.findAll('thead th[scope=colgroup]').map(folder => folder.text()))
-      .toEqual(['downloads/1.1 GB', 'index/462.0 MB'])
+      .toEqual(['downloads/1.1 GB', 'index/459.9 MB'])
   })
 
   it('lights the rows a verb tab picks and moves between the tabs by the arrow keys', async () => {

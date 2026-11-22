@@ -62,6 +62,8 @@ def test_an_index_adds_the_files_written_from_it(
     - The examples, holding the front page's and the Methods page's alone
     - The files the Data page lists, each beside its games by decade
     - The store the Data pages, the store page, and the Viewer read
+    - The measures of the longest-run rule, each beside the sampled match it
+      picks, which the Methods pages read
     - The output of each example run of the Guide, and the size of each folder
       under the data directory
     - The Viewer's match beside the demo game alone
@@ -69,6 +71,8 @@ def test_an_index_adds_the_files_written_from_it(
       the demo line meets
     - The tables the Data pages, the store page, and the identity page set
       beneath their widgets, each the one its region names
+    - The line the build prints for a game left out for an illegal move,
+      set in a text block
     - The demo game's match file
     - The example run of each command whose output the index sets, the
       commands page's
@@ -80,6 +84,7 @@ def test_an_index_adds_the_files_written_from_it(
       length of the demo's address, and the bytes the downloads and the
       index take
     """
+    monkeypatch.setattr(Census, "illegal", lambda _, downloads: "Left out game 1")
     monkeypatch.setattr(Census, "store", tally)
     index = scanned(
         game.model_copy(
@@ -123,6 +128,7 @@ def test_an_index_adds_the_files_written_from_it(
         "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
         "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
         "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
+        "methods/reading.md"    : marked("illegal"),
         "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n",
         **walked()
     }
@@ -141,7 +147,7 @@ def test_an_index_adds_the_files_written_from_it(
         (Document, "docs/.vitepress/lib/rendered/files.json"),
         *(
             (Document, f"docs/.vitepress/lib/rendered/{name}.json")
-            for name in ("omissions", "shared", "store", "tags", "tie")
+            for name in ("omissions", "rules", "shared", "store", "tags", "tie")
         ),
         (Document, "docs/.vitepress/lib/rendered/runs.json"),
         (Document, "docs/.vitepress/lib/rendered/disk.json"),
@@ -154,6 +160,7 @@ def test_an_index_adds_the_files_written_from_it(
         *[(Region, "docs/pages/data/tags.md")] * 2,
         (Region, "docs/pages/guide/store.md"),
         (Region, "docs/pages/identity/palette.md"),
+        (Region, "docs/pages/methods/reading.md"),
         (Region, "docs/pages/data/tags.md"),
         *[(Region, "docs/pages/reference/commands.md")] * len(RUNS),
         (Region, "docs/pages/guide/matching.md"),
@@ -192,6 +199,9 @@ def test_an_index_adds_the_files_written_from_it(
         tally.outcomes
     )
     assert tally.archives in text["guide/store.md"]
+    assert text["methods/reading.md"] == (
+        "<!-- illegal -->\n```text\nLeft out game 1\n```\n<!-- /illegal -->\n\n"
+    )
     assert loads((root / "docs/public/matches/demo.json").read_text())["stored"][
         "headers"
     ]["White"] == "Kasparov, Gary"
@@ -428,6 +438,7 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
 
             "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
             "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
+            "methods/reading.md"    : marked("illegal"),
             "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
             **walked()
         }
@@ -444,6 +455,9 @@ def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
             output.write(root)
 
     assert (root / "docs/pages/data/index.md").read_text().endswith(sentence)
+    assert (root / "docs/pages/methods/reading.md").read_text() == (
+        "<!-- illegal -->\n\n<!-- /illegal -->\n\n"
+    )
 
 
 @mark.parametrize(
@@ -522,9 +536,10 @@ def test_shipped_declares_the_files_written_from_declarations(
     this order:
 
     - The identity's JSON, the commands and data files, the match file's
-      fields, the games matching refuses, the home squares of the pieces, the
-      keys of each game the site serves, the marks' JSON, the pieces' JSON,
-      and the terms' JSON
+      fields, the games matching refuses, the numbers each move of the
+      Methods page's line turns in its key, the home squares of the pieces,
+      the keys of each game the site serves, the marks' JSON, the pieces'
+      JSON, and the terms' JSON
     - The favicon and each lockup
     - The README's badges, then the install steps of the README and of the
       Guide's setup walkthrough
@@ -546,6 +561,7 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/commands.json"),
         (Document, "docs/.vitepress/lib/rendered/exported.json"),
         (Document, "docs/.vitepress/lib/rendered/refused.json"),
+        (Document, "docs/.vitepress/lib/rendered/hashing.json"),
         (Document, "docs/.vitepress/lib/rendered/homes.json"),
         (Document, "docs/.vitepress/lib/rendered/keys.json"),
         (Document, "docs/.vitepress/lib/rendered/marks.json"),

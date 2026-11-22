@@ -11721,9 +11721,9 @@
       "variant": 0
     },
     {
-      "below": 3895,
+      "below": 3913,
       "files": 1,
-      "kept": 533,
+      "kept": 515,
       "name": "openings/Alekhine4Pawns.zip",
       "repeat": 134,
       "section": "Openings",
@@ -11731,9 +11731,9 @@
       "variant": 0
     },
     {
-      "below": 8464,
+      "below": 8474,
       "files": 1,
-      "kept": 1264,
+      "kept": 1254,
       "name": "openings/AlekhineExchange.zip",
       "repeat": 219,
       "section": "Openings",
@@ -11741,9 +11741,9 @@
       "variant": 0
     },
     {
-      "below": 13777,
+      "below": 13813,
       "files": 1,
-      "kept": 2883,
+      "kept": 2847,
       "name": "openings/AlekhineModern.zip",
       "repeat": 1058,
       "section": "Openings",
@@ -11751,19 +11751,19 @@
       "variant": 0
     },
     {
-      "below": 9378,
+      "below": 9382,
       "files": 1,
       "kept": 500,
       "name": "openings/AlekhineOther3.zip",
-      "repeat": 661,
+      "repeat": 657,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 57612,
+      "below": 57740,
       "files": 1,
-      "kept": 10172,
+      "kept": 10044,
       "name": "openings/BenkoGambit.zip",
       "repeat": 2800,
       "section": "Openings",
@@ -11771,9 +11771,9 @@
       "variant": 0
     },
     {
-      "below": 24133,
+      "below": 24143,
       "files": 1,
-      "kept": 1899,
+      "kept": 1889,
       "name": "openings/Bird.zip",
       "repeat": 397,
       "section": "Openings",
@@ -11801,9 +11801,9 @@
       "variant": 0
     },
     {
-      "below": 15540,
+      "below": 15546,
       "files": 1,
-      "kept": 5256,
+      "kept": 5250,
       "name": "openings/Bogo4Bd2.zip",
       "repeat": 1731,
       "section": "Openings",
@@ -11821,9 +11821,9 @@
       "variant": 0
     },
     {
-      "below": 11460,
+      "below": 11486,
       "files": 1,
-      "kept": 1031,
+      "kept": 1005,
       "name": "openings/BudapestGambit.zip",
       "repeat": 229,
       "section": "Openings",
@@ -11831,9 +11831,9 @@
       "variant": 0
     },
     {
-      "below": 19327,
+      "below": 19339,
       "files": 1,
-      "kept": 4799,
+      "kept": 4787,
       "name": "openings/Caro-Kann2Knight.zip",
       "repeat": 1369,
       "section": "Openings",
@@ -11841,9 +11841,9 @@
       "variant": 0
     },
     {
-      "below": 11297,
+      "below": 11301,
       "files": 1,
-      "kept": 2772,
+      "kept": 2768,
       "name": "openings/Caro-Kann2c4.zip",
       "repeat": 970,
       "section": "Openings",
@@ -11851,9 +11851,9 @@
       "variant": 0
     },
     {
-      "below": 10007,
+      "below": 10017,
       "files": 1,
-      "kept": 1630,
+      "kept": 1620,
       "name": "openings/Caro-Kann4Nd7.zip",
       "repeat": 895,
       "section": "Openings",
@@ -11861,9 +11861,9 @@
       "variant": 0
     },
     {
-      "below": 17748,
+      "below": 17774,
       "files": 1,
-      "kept": 2633,
+      "kept": 2607,
       "name": "openings/Caro-Kann4Nf6.zip",
       "repeat": 671,
       "section": "Openings",
@@ -11871,9 +11871,9 @@
       "variant": 0
     },
     {
-      "below": 44876,
+      "below": 44940,
       "files": 1,
-      "kept": 12738,
+      "kept": 12674,
       "name": "openings/Caro-KannAdv.zip",
       "repeat": 4308,
       "section": "Openings",
@@ -11891,9 +11891,9 @@
       "variant": 0
     },
     {
-      "below": 17538,
+      "below": 17542,
       "files": 1,
-      "kept": 2924,
+      "kept": 2920,
       "name": "openings/Caro-KannEx.zip",
       "repeat": 873,
       "section": "Openings",
@@ -11901,9 +11901,9 @@
       "variant": 0
     },
     {
-      "below": 19367,
+      "below": 19369,
       "files": 1,
-      "kept": 2913,
+      "kept": 2911,
       "name": "openings/Caro-KannPan-Bot.zip",
       "repeat": 1587,
       "section": "Openings",
@@ -11921,9 +11921,9 @@
       "variant": 0
     },
     {
-      "below": 5189,
+      "below": 5195,
       "files": 1,
-      "kept": 2240,
+      "kept": 2234,
       "name": "openings/Catalan3c5.zip",
       "repeat": 652,
       "section": "Openings",
@@ -11931,9 +11931,9 @@
       "variant": 0
     },
     {
-      "below": 21255,
+      "below": 21257,
       "files": 1,
-      "kept": 6702,
+      "kept": 6700,
       "name": "openings/CatalanClosed.zip",
       "repeat": 2462,
       "section": "Openings",
@@ -11941,9 +11941,9 @@
       "variant": 0
     },
     {
-      "below": 2736,
+      "below": 2738,
       "files": 1,
-      "kept": 972,
+      "kept": 970,
       "name": "openings/CatalanOpen.zip",
       "repeat": 411,
       "section": "Openings",
@@ -11951,9 +11951,9 @@
       "variant": 0
     },
     {
-      "below": 7397,
+      "below": 7403,
       "files": 1,
-      "kept": 574,
+      "kept": 568,
       "name": "openings/CenterGame-Danish.zip",
       "repeat": 188,
       "section": "Openings",
@@ -11961,9 +11961,9 @@
       "variant": 0
     },
     {
-      "below": 16459,
+      "below": 16461,
       "files": 1,
-      "kept": 1712,
+      "kept": 1710,
       "name": "openings/Colle.zip",
       "repeat": 576,
       "section": "Openings",
@@ -11971,11 +11971,11 @@
       "variant": 0
     },
     {
-      "below": 4862,
+      "below": 4904,
       "files": 1,
       "kept": 8,
       "name": "openings/CzechBenoni.zip",
-      "repeat": 1059,
+      "repeat": 1017,
       "section": "Openings",
       "unread": 0,
       "variant": 0
@@ -11991,9 +11991,9 @@
       "variant": 0
     },
     {
-      "below": 5488,
+      "below": 5502,
       "files": 1,
-      "kept": 848,
+      "kept": 834,
       "name": "openings/Dutch3Nc3.zip",
       "repeat": 222,
       "section": "Openings",
@@ -12001,9 +12001,9 @@
       "variant": 0
     },
     {
-      "below": 6074,
+      "below": 6086,
       "files": 1,
-      "kept": 1417,
+      "kept": 1405,
       "name": "openings/DutchClassical.zip",
       "repeat": 438,
       "section": "Openings",
@@ -12011,9 +12011,9 @@
       "variant": 0
     },
     {
-      "below": 5858,
+      "below": 5866,
       "files": 1,
-      "kept": 1470,
+      "kept": 1462,
       "name": "openings/DutchLeningrad.zip",
       "repeat": 431,
       "section": "Openings",
@@ -12021,9 +12021,9 @@
       "variant": 0
     },
     {
-      "below": 12061,
+      "below": 12082,
       "files": 1,
-      "kept": 2074,
+      "kept": 2053,
       "name": "openings/DutchOther.zip",
       "repeat": 542,
       "section": "Openings",
@@ -12031,9 +12031,9 @@
       "variant": 0
     },
     {
-      "below": 1801,
+      "below": 1805,
       "files": 1,
-      "kept": 837,
+      "kept": 833,
       "name": "openings/EngSymDoubleFianchetto.zip",
       "repeat": 480,
       "section": "Openings",
@@ -12041,9 +12041,9 @@
       "variant": 0
     },
     {
-      "below": 19944,
+      "below": 19977,
       "files": 1,
-      "kept": 3057,
+      "kept": 3024,
       "name": "openings/English1Nf6-2Nc3.zip",
       "repeat": 1032,
       "section": "Openings",
@@ -12051,9 +12051,9 @@
       "variant": 0
     },
     {
-      "below": 10816,
+      "below": 10819,
       "files": 1,
-      "kept": 2437,
+      "kept": 2434,
       "name": "openings/English1Nf6-2Nf3.zip",
       "repeat": 1127,
       "section": "Openings",
@@ -12061,9 +12061,9 @@
       "variant": 0
     },
     {
-      "below": 17744,
+      "below": 17754,
       "files": 1,
-      "kept": 2931,
+      "kept": 2921,
       "name": "openings/English1Nf6-2g3.zip",
       "repeat": 720,
       "section": "Openings",
@@ -12071,9 +12071,9 @@
       "variant": 0
     },
     {
-      "below": 4374,
+      "below": 4388,
       "files": 1,
-      "kept": 1291,
+      "kept": 1277,
       "name": "openings/English1b6.zip",
       "repeat": 383,
       "section": "Openings",
@@ -12081,9 +12081,9 @@
       "variant": 0
     },
     {
-      "below": 19765,
+      "below": 19767,
       "files": 1,
-      "kept": 4716,
+      "kept": 4714,
       "name": "openings/English1c6.zip",
       "repeat": 3384,
       "section": "Openings",
@@ -12091,9 +12091,9 @@
       "variant": 0
     },
     {
-      "below": 9208,
+      "below": 9210,
       "files": 1,
-      "kept": 3629,
+      "kept": 3627,
       "name": "openings/English1e6-2Nc3-d5.zip",
       "repeat": 1634,
       "section": "Openings",
@@ -12101,9 +12101,9 @@
       "variant": 0
     },
     {
-      "below": 17571,
+      "below": 17577,
       "files": 1,
-      "kept": 5342,
+      "kept": 5336,
       "name": "openings/English1e6-2Nf3-d5.zip",
       "repeat": 1748,
       "section": "Openings",
@@ -12111,9 +12111,9 @@
       "variant": 0
     },
     {
-      "below": 11782,
+      "below": 11784,
       "files": 1,
-      "kept": 4531,
+      "kept": 4529,
       "name": "openings/English1e6Main.zip",
       "repeat": 2339,
       "section": "Openings",
@@ -12121,19 +12121,19 @@
       "variant": 0
     },
     {
-      "below": 8968,
+      "below": 8976,
       "files": 1,
-      "kept": 1008,
+      "kept": 1006,
       "name": "openings/English1f5.zip",
-      "repeat": 639,
+      "repeat": 633,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 20505,
+      "below": 20519,
       "files": 1,
-      "kept": 5090,
+      "kept": 5076,
       "name": "openings/English1g6.zip",
       "repeat": 1914,
       "section": "Openings",
@@ -12141,9 +12141,9 @@
       "variant": 0
     },
     {
-      "below": 5846,
+      "below": 5854,
       "files": 1,
-      "kept": 1312,
+      "kept": 1304,
       "name": "openings/EnglishFlohr-Mikenas.zip",
       "repeat": 513,
       "section": "Openings",
@@ -12151,9 +12151,9 @@
       "variant": 0
     },
     {
-      "below": 20056,
+      "below": 20067,
       "files": 1,
-      "kept": 5934,
+      "kept": 5923,
       "name": "openings/EnglishSicRev2g3.zip",
       "repeat": 1926,
       "section": "Openings",
@@ -12161,9 +12161,9 @@
       "variant": 0
     },
     {
-      "below": 12351,
+      "below": 12357,
       "files": 1,
-      "kept": 4957,
+      "kept": 4951,
       "name": "openings/EnglishSicRev4Knights.zip",
       "repeat": 2935,
       "section": "Openings",
@@ -12171,9 +12171,9 @@
       "variant": 0
     },
     {
-      "below": 11520,
+      "below": 11524,
       "files": 1,
-      "kept": 1669,
+      "kept": 1665,
       "name": "openings/EnglishSicRevBremen.zip",
       "repeat": 711,
       "section": "Openings",
@@ -12181,9 +12181,9 @@
       "variant": 0
     },
     {
-      "below": 13037,
+      "below": 13050,
       "files": 1,
-      "kept": 1782,
+      "kept": 1769,
       "name": "openings/EnglishSicRevClosed.zip",
       "repeat": 1346,
       "section": "Openings",
@@ -12191,9 +12191,9 @@
       "variant": 0
     },
     {
-      "below": 7943,
+      "below": 7953,
       "files": 1,
-      "kept": 2468,
+      "kept": 2458,
       "name": "openings/EnglishSicRevOtherB2.zip",
       "repeat": 986,
       "section": "Openings",
@@ -12211,9 +12211,9 @@
       "variant": 0
     },
     {
-      "below": 7610,
+      "below": 7613,
       "files": 1,
-      "kept": 2839,
+      "kept": 2836,
       "name": "openings/EnglishSymFourKnights.zip",
       "repeat": 1477,
       "section": "Openings",
@@ -12221,9 +12221,9 @@
       "variant": 0
     },
     {
-      "below": 4638,
+      "below": 4639,
       "files": 1,
-      "kept": 1259,
+      "kept": 1258,
       "name": "openings/EnglishSymHedgehog.zip",
       "repeat": 421,
       "section": "Openings",
@@ -12231,9 +12231,9 @@
       "variant": 0
     },
     {
-      "below": 13021,
+      "below": 13028,
       "files": 1,
-      "kept": 2329,
+      "kept": 2322,
       "name": "openings/EnglishSymMain.zip",
       "repeat": 1761,
       "section": "Openings",
@@ -12241,9 +12241,9 @@
       "variant": 0
     },
     {
-      "below": 12140,
+      "below": 12143,
       "files": 1,
-      "kept": 4347,
+      "kept": 4344,
       "name": "openings/EnglishSymOtherB3.zip",
       "repeat": 2828,
       "section": "Openings",
@@ -12251,9 +12251,9 @@
       "variant": 0
     },
     {
-      "below": 33363,
+      "below": 33377,
       "files": 1,
-      "kept": 8198,
+      "kept": 8184,
       "name": "openings/FourKnights.zip",
       "repeat": 2279,
       "section": "Openings",
@@ -12261,9 +12261,9 @@
       "variant": 0
     },
     {
-      "below": 24998,
+      "below": 25042,
       "files": 1,
-      "kept": 3251,
+      "kept": 3207,
       "name": "openings/FrTarrasch3Nf6.zip",
       "repeat": 737,
       "section": "Openings",
@@ -12271,9 +12271,9 @@
       "variant": 0
     },
     {
-      "below": 21139,
+      "below": 21147,
       "files": 1,
-      "kept": 5355,
+      "kept": 5347,
       "name": "openings/FrTarrasch3c5.zip",
       "repeat": 2116,
       "section": "Openings",
@@ -12281,9 +12281,9 @@
       "variant": 0
     },
     {
-      "below": 13795,
+      "below": 13819,
       "files": 1,
-      "kept": 3165,
+      "kept": 3141,
       "name": "openings/FrTarraschOther3.zip",
       "repeat": 871,
       "section": "Openings",
@@ -12291,9 +12291,9 @@
       "variant": 0
     },
     {
-      "below": 21847,
+      "below": 21890,
       "files": 1,
-      "kept": 3972,
+      "kept": 3929,
       "name": "openings/FrWinawerMain.zip",
       "repeat": 1592,
       "section": "Openings",
@@ -12301,9 +12301,9 @@
       "variant": 0
     },
     {
-      "below": 9218,
+      "below": 9313,
       "files": 1,
-      "kept": 2152,
+      "kept": 2057,
       "name": "openings/FrWinawerOtherB4.zip",
       "repeat": 843,
       "section": "Openings",
@@ -12311,9 +12311,9 @@
       "variant": 0
     },
     {
-      "below": 11547,
+      "below": 11555,
       "files": 1,
-      "kept": 1989,
+      "kept": 1981,
       "name": "openings/FrWinawerOtherW4.zip",
       "repeat": 560,
       "section": "Openings",
@@ -12321,9 +12321,9 @@
       "variant": 0
     },
     {
-      "below": 33811,
+      "below": 33831,
       "files": 1,
-      "kept": 5276,
+      "kept": 5256,
       "name": "openings/FrenchAdvance.zip",
       "repeat": 1688,
       "section": "Openings",
@@ -12341,9 +12341,9 @@
       "variant": 0
     },
     {
-      "below": 8250,
+      "below": 8256,
       "files": 1,
-      "kept": 956,
+      "kept": 950,
       "name": "openings/FrenchClassical.zip",
       "repeat": 268,
       "section": "Openings",
@@ -12361,9 +12361,9 @@
       "variant": 0
     },
     {
-      "below": 20053,
+      "below": 20055,
       "files": 1,
-      "kept": 2470,
+      "kept": 2468,
       "name": "openings/FrenchKIA.zip",
       "repeat": 633,
       "section": "Openings",
@@ -12371,9 +12371,9 @@
       "variant": 0
     },
     {
-      "below": 5311,
+      "below": 5323,
       "files": 1,
-      "kept": 970,
+      "kept": 958,
       "name": "openings/FrenchMacCutcheon.zip",
       "repeat": 253,
       "section": "Openings",
@@ -12381,9 +12381,9 @@
       "variant": 0
     },
     {
-      "below": 25324,
+      "below": 25336,
       "files": 1,
-      "kept": 2748,
+      "kept": 2736,
       "name": "openings/FrenchOther2.zip",
       "repeat": 627,
       "section": "Openings",
@@ -12391,9 +12391,9 @@
       "variant": 0
     },
     {
-      "below": 17037,
+      "below": 17045,
       "files": 1,
-      "kept": 3383,
+      "kept": 3375,
       "name": "openings/FrenchRubinstein.zip",
       "repeat": 1160,
       "section": "Openings",
@@ -12411,9 +12411,9 @@
       "variant": 0
     },
     {
-      "below": 17721,
+      "below": 17753,
       "files": 1,
-      "kept": 4369,
+      "kept": 4337,
       "name": "openings/FrenchSteinitz.zip",
       "repeat": 1823,
       "section": "Openings",
@@ -12421,9 +12421,9 @@
       "variant": 0
     },
     {
-      "below": 43580,
+      "below": 43596,
       "files": 1,
-      "kept": 9051,
+      "kept": 9035,
       "name": "openings/GiuocoPiano.zip",
       "repeat": 4369,
       "section": "Openings",
@@ -12441,9 +12441,9 @@
       "variant": 0
     },
     {
-      "below": 14394,
+      "below": 14401,
       "files": 1,
-      "kept": 3897,
+      "kept": 3890,
       "name": "openings/Grunfeld4Nf3.zip",
       "repeat": 1796,
       "section": "Openings",
@@ -12451,9 +12451,9 @@
       "variant": 0
     },
     {
-      "below": 16795,
+      "below": 16804,
       "files": 1,
-      "kept": 4960,
+      "kept": 4951,
       "name": "openings/GrunfeldExchange.zip",
       "repeat": 2466,
       "section": "Openings",
@@ -12461,9 +12461,9 @@
       "variant": 0
     },
     {
-      "below": 7667,
+      "below": 7673,
       "files": 1,
-      "kept": 1984,
+      "kept": 1978,
       "name": "openings/GrunfeldFianchetto.zip",
       "repeat": 839,
       "section": "Openings",
@@ -12471,9 +12471,9 @@
       "variant": 0
     },
     {
-      "below": 8794,
+      "below": 8798,
       "files": 1,
-      "kept": 2583,
+      "kept": 2579,
       "name": "openings/GrunfeldOther.zip",
       "repeat": 1091,
       "section": "Openings",
@@ -12491,9 +12491,9 @@
       "variant": 0
     },
     {
-      "below": 4192,
+      "below": 4196,
       "files": 1,
-      "kept": 237,
+      "kept": 233,
       "name": "openings/Hungarian.zip",
       "repeat": 77,
       "section": "Openings",
@@ -12501,9 +12501,9 @@
       "variant": 0
     },
     {
-      "below": 7808,
+      "below": 7814,
       "files": 1,
-      "kept": 869,
+      "kept": 863,
       "name": "openings/KID4pawns.zip",
       "repeat": 280,
       "section": "Openings",
@@ -12511,9 +12511,9 @@
       "variant": 0
     },
     {
-      "below": 8298,
+      "below": 8312,
       "files": 1,
-      "kept": 1429,
+      "kept": 1415,
       "name": "openings/KIDAverbakh.zip",
       "repeat": 875,
       "section": "Openings",
@@ -12521,19 +12521,19 @@
       "variant": 0
     },
     {
-      "below": 18119,
+      "below": 18193,
       "files": 1,
-      "kept": 3968,
+      "kept": 3898,
       "name": "openings/KIDClassical.zip",
-      "repeat": 2070,
+      "repeat": 2066,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 19669,
+      "below": 19701,
       "files": 1,
-      "kept": 5125,
+      "kept": 5093,
       "name": "openings/KIDFianchetto.zip",
       "repeat": 1950,
       "section": "Openings",
@@ -12541,9 +12541,9 @@
       "variant": 0
     },
     {
-      "below": 14523,
+      "below": 14562,
       "files": 1,
-      "kept": 3217,
+      "kept": 3178,
       "name": "openings/KIDOther56.zip",
       "repeat": 1081,
       "section": "Openings",
@@ -12551,29 +12551,29 @@
       "variant": 0
     },
     {
-      "below": 33935,
+      "below": 34005,
       "files": 1,
-      "kept": 9141,
+      "kept": 9097,
       "name": "openings/KIDOther7.zip",
-      "repeat": 3386,
+      "repeat": 3360,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 7177,
+      "below": 7185,
       "files": 1,
       "kept": 0,
       "name": "openings/KIDPetrosian.zip",
-      "repeat": 1756,
+      "repeat": 1748,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 24755,
+      "below": 24873,
       "files": 1,
-      "kept": 3475,
+      "kept": 3357,
       "name": "openings/KIDSaemisch.zip",
       "repeat": 1956,
       "section": "Openings",
@@ -12581,9 +12581,9 @@
       "variant": 0
     },
     {
-      "below": 14657,
+      "below": 14691,
       "files": 1,
-      "kept": 1014,
+      "kept": 980,
       "name": "openings/KingsGambit.zip",
       "repeat": 498,
       "section": "Openings",
@@ -12591,9 +12591,9 @@
       "variant": 0
     },
     {
-      "below": 1549,
+      "below": 1551,
       "files": 1,
-      "kept": 48,
+      "kept": 46,
       "name": "openings/Latvian-Elephant.zip",
       "repeat": 15,
       "section": "Openings",
@@ -12611,9 +12611,9 @@
       "variant": 0
     },
     {
-      "below": 12870,
+      "below": 12872,
       "files": 1,
-      "kept": 1942,
+      "kept": 1940,
       "name": "openings/London2g6.zip",
       "repeat": 601,
       "section": "Openings",
@@ -12621,19 +12621,19 @@
       "variant": 0
     },
     {
-      "below": 14335,
+      "below": 14368,
       "files": 1,
-      "kept": 1678,
+      "kept": 1655,
       "name": "openings/Modern.zip",
-      "repeat": 2003,
+      "repeat": 1993,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 11283,
+      "below": 11307,
       "files": 1,
-      "kept": 2240,
+      "kept": 2216,
       "name": "openings/Modern3Nc3-c6.zip",
       "repeat": 760,
       "section": "Openings",
@@ -12641,9 +12641,9 @@
       "variant": 0
     },
     {
-      "below": 32193,
+      "below": 32271,
       "files": 1,
-      "kept": 6234,
+      "kept": 6156,
       "name": "openings/Modern3Nc3-d6.zip",
       "repeat": 1900,
       "section": "Openings",
@@ -12651,9 +12651,9 @@
       "variant": 0
     },
     {
-      "below": 5424,
+      "below": 5435,
       "files": 1,
-      "kept": 1333,
+      "kept": 1322,
       "name": "openings/Modern3Nc3Other.zip",
       "repeat": 305,
       "section": "Openings",
@@ -12661,9 +12661,9 @@
       "variant": 0
     },
     {
-      "below": 18277,
+      "below": 18305,
       "files": 1,
-      "kept": 4584,
+      "kept": 4556,
       "name": "openings/Modern3Nf3.zip",
       "repeat": 1470,
       "section": "Openings",
@@ -12671,29 +12671,29 @@
       "variant": 0
     },
     {
-      "below": 12180,
+      "below": 12218,
       "files": 1,
-      "kept": 2382,
+      "kept": 2348,
       "name": "openings/ModernBenoni6Nf3.zip",
-      "repeat": 2370,
+      "repeat": 2366,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 11176,
+      "below": 11195,
       "files": 1,
-      "kept": 442,
+      "kept": 439,
       "name": "openings/ModernBenoni6e4.zip",
-      "repeat": 1780,
+      "repeat": 1764,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 7028,
+      "below": 7032,
       "files": 1,
-      "kept": 799,
+      "kept": 795,
       "name": "openings/ModernOther3.zip",
       "repeat": 304,
       "section": "Openings",
@@ -12701,9 +12701,9 @@
       "variant": 0
     },
     {
-      "below": 7294,
+      "below": 7300,
       "files": 1,
-      "kept": 3233,
+      "kept": 3227,
       "name": "openings/Nimzo4Nf3.zip",
       "repeat": 1459,
       "section": "Openings",
@@ -12711,9 +12711,9 @@
       "variant": 0
     },
     {
-      "below": 7320,
+      "below": 7332,
       "files": 1,
-      "kept": 2349,
+      "kept": 2337,
       "name": "openings/Nimzo4f3.zip",
       "repeat": 675,
       "section": "Openings",
@@ -12721,9 +12721,9 @@
       "variant": 0
     },
     {
-      "below": 11127,
+      "below": 11142,
       "files": 1,
-      "kept": 4650,
+      "kept": 4635,
       "name": "openings/NimzoCl4O-O.zip",
       "repeat": 2216,
       "section": "Openings",
@@ -12731,9 +12731,9 @@
       "variant": 0
     },
     {
-      "below": 6040,
+      "below": 6042,
       "files": 1,
-      "kept": 1670,
+      "kept": 1668,
       "name": "openings/NimzoCl4c5.zip",
       "repeat": 722,
       "section": "Openings",
@@ -12741,9 +12741,9 @@
       "variant": 0
     },
     {
-      "below": 8916,
+      "below": 8922,
       "files": 1,
-      "kept": 3593,
+      "kept": 3587,
       "name": "openings/NimzoClOther.zip",
       "repeat": 1344,
       "section": "Openings",
@@ -12751,9 +12751,9 @@
       "variant": 0
     },
     {
-      "below": 17346,
+      "below": 17368,
       "files": 1,
-      "kept": 2513,
+      "kept": 2491,
       "name": "openings/NimzoDefense.zip",
       "repeat": 640,
       "section": "Openings",
@@ -12771,9 +12771,9 @@
       "variant": 0
     },
     {
-      "below": 5313,
+      "below": 5315,
       "files": 1,
-      "kept": 1332,
+      "kept": 1330,
       "name": "openings/NimzoOther4.zip",
       "repeat": 404,
       "section": "Openings",
@@ -12781,9 +12781,9 @@
       "variant": 0
     },
     {
-      "below": 19205,
+      "below": 19221,
       "files": 1,
-      "kept": 9115,
+      "kept": 9099,
       "name": "openings/NimzoRub4O-O.zip",
       "repeat": 3382,
       "section": "Openings",
@@ -12791,9 +12791,9 @@
       "variant": 0
     },
     {
-      "below": 7130,
+      "below": 7138,
       "files": 1,
-      "kept": 1755,
+      "kept": 1747,
       "name": "openings/NimzoRub4c5.zip",
       "repeat": 1079,
       "section": "Openings",
@@ -12801,9 +12801,9 @@
       "variant": 0
     },
     {
-      "below": 9265,
+      "below": 9279,
       "files": 1,
-      "kept": 2534,
+      "kept": 2520,
       "name": "openings/NimzoRubOther.zip",
       "repeat": 941,
       "section": "Openings",
@@ -12811,9 +12811,9 @@
       "variant": 0
     },
     {
-      "below": 4621,
+      "below": 4633,
       "files": 1,
-      "kept": 786,
+      "kept": 774,
       "name": "openings/NimzoSaemisch.zip",
       "repeat": 238,
       "section": "Openings",
@@ -12821,9 +12821,9 @@
       "variant": 0
     },
     {
-      "below": 30827,
+      "below": 30839,
       "files": 1,
-      "kept": 6996,
+      "kept": 6984,
       "name": "openings/Nimzowitsch-Larsen.zip",
       "repeat": 2551,
       "section": "Openings",
@@ -12831,19 +12831,19 @@
       "variant": 0
     },
     {
-      "below": 16812,
+      "below": 16874,
       "files": 1,
-      "kept": 2919,
+      "kept": 2859,
       "name": "openings/OldIndian.zip",
-      "repeat": 1725,
+      "repeat": 1723,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 7394,
+      "below": 7420,
       "files": 1,
-      "kept": 797,
+      "kept": 771,
       "name": "openings/OwenDefense.zip",
       "repeat": 323,
       "section": "Openings",
@@ -12851,9 +12851,9 @@
       "variant": 0
     },
     {
-      "below": 17976,
+      "below": 17980,
       "files": 1,
-      "kept": 5253,
+      "kept": 5249,
       "name": "openings/PetroffMain.zip",
       "repeat": 3309,
       "section": "Openings",
@@ -12861,9 +12861,9 @@
       "variant": 0
     },
     {
-      "below": 22088,
+      "below": 22090,
       "files": 1,
-      "kept": 2558,
+      "kept": 2556,
       "name": "openings/PetroffOther3.zip",
       "repeat": 3056,
       "section": "Openings",
@@ -12871,9 +12871,9 @@
       "variant": 0
     },
     {
-      "below": 15716,
+      "below": 15744,
       "files": 1,
-      "kept": 1858,
+      "kept": 1830,
       "name": "openings/Philidor.zip",
       "repeat": 456,
       "section": "Openings",
@@ -12881,9 +12881,9 @@
       "variant": 0
     },
     {
-      "below": 9583,
+      "below": 9599,
       "files": 1,
-      "kept": 1147,
+      "kept": 1131,
       "name": "openings/PircAustrian.zip",
       "repeat": 480,
       "section": "Openings",
@@ -12891,9 +12891,9 @@
       "variant": 0
     },
     {
-      "below": 9736,
+      "below": 9756,
       "files": 1,
-      "kept": 1622,
+      "kept": 1602,
       "name": "openings/PircClassical.zip",
       "repeat": 696,
       "section": "Openings",
@@ -12901,9 +12901,9 @@
       "variant": 0
     },
     {
-      "below": 34947,
+      "below": 34971,
       "files": 1,
-      "kept": 7889,
+      "kept": 7865,
       "name": "openings/PircOtherBlack3.zip",
       "repeat": 1598,
       "section": "Openings",
@@ -12911,9 +12911,9 @@
       "variant": 0
     },
     {
-      "below": 7255,
+      "below": 7259,
       "files": 1,
-      "kept": 1648,
+      "kept": 1644,
       "name": "openings/PircOtherWhite3.zip",
       "repeat": 527,
       "section": "Openings",
@@ -12921,9 +12921,9 @@
       "variant": 0
     },
     {
-      "below": 16462,
+      "below": 16498,
       "files": 1,
-      "kept": 2391,
+      "kept": 2355,
       "name": "openings/PircOtherWhite4.zip",
       "repeat": 848,
       "section": "Openings",
@@ -12931,9 +12931,9 @@
       "variant": 0
     },
     {
-      "below": 4138,
+      "below": 4140,
       "files": 1,
-      "kept": 462,
+      "kept": 460,
       "name": "openings/Ponziani.zip",
       "repeat": 173,
       "section": "Openings",
@@ -12941,9 +12941,9 @@
       "variant": 0
     },
     {
-      "below": 5171,
+      "below": 5173,
       "files": 1,
-      "kept": 524,
+      "kept": 522,
       "name": "openings/QG-Albin.zip",
       "repeat": 122,
       "section": "Openings",
@@ -12951,9 +12951,9 @@
       "variant": 0
     },
     {
-      "below": 5784,
+      "below": 5810,
       "files": 1,
-      "kept": 1023,
+      "kept": 997,
       "name": "openings/QG-Chigorin.zip",
       "repeat": 230,
       "section": "Openings",
@@ -12961,9 +12961,9 @@
       "variant": 0
     },
     {
-      "below": 5259,
+      "below": 5277,
       "files": 1,
-      "kept": 2033,
+      "kept": 2015,
       "name": "openings/QGA3e4.zip",
       "repeat": 1086,
       "section": "Openings",
@@ -12971,9 +12971,9 @@
       "variant": 0
     },
     {
-      "below": 7653,
+      "below": 7657,
       "files": 1,
-      "kept": 3046,
+      "kept": 3042,
       "name": "openings/QGAMain.zip",
       "repeat": 1275,
       "section": "Openings",
@@ -12981,9 +12981,9 @@
       "variant": 0
     },
     {
-      "below": 3101,
+      "below": 3107,
       "files": 1,
-      "kept": 1101,
+      "kept": 1095,
       "name": "openings/QGAOther3.zip",
       "repeat": 428,
       "section": "Openings",
@@ -12991,9 +12991,9 @@
       "variant": 0
     },
     {
-      "below": 8796,
+      "below": 8800,
       "files": 1,
-      "kept": 1700,
+      "kept": 1696,
       "name": "openings/QGAOther4.zip",
       "repeat": 1013,
       "section": "Openings",
@@ -13001,9 +13001,9 @@
       "variant": 0
     },
     {
-      "below": 9799,
+      "below": 9811,
       "files": 1,
-      "kept": 3134,
+      "kept": 3122,
       "name": "openings/QGD5Bf4.zip",
       "repeat": 2338,
       "section": "Openings",
@@ -13011,9 +13011,9 @@
       "variant": 0
     },
     {
-      "below": 28765,
+      "below": 28777,
       "files": 1,
-      "kept": 6805,
+      "kept": 6793,
       "name": "openings/QGDExchange.zip",
       "repeat": 3372,
       "section": "Openings",
@@ -13021,19 +13021,19 @@
       "variant": 0
     },
     {
-      "below": 13634,
+      "below": 13654,
       "files": 1,
-      "kept": 1169,
+      "kept": 1151,
       "name": "openings/QGDOrthoMain.zip",
-      "repeat": 734,
+      "repeat": 732,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 6708,
+      "below": 6714,
       "files": 1,
-      "kept": 372,
+      "kept": 366,
       "name": "openings/QGDOrthoOther4.zip",
       "repeat": 200,
       "section": "Openings",
@@ -13041,9 +13041,9 @@
       "variant": 0
     },
     {
-      "below": 35522,
+      "below": 35530,
       "files": 1,
-      "kept": 11153,
+      "kept": 11145,
       "name": "openings/QGDOther34.zip",
       "repeat": 6482,
       "section": "Openings",
@@ -13051,9 +13051,9 @@
       "variant": 0
     },
     {
-      "below": 9214,
+      "below": 9224,
       "files": 1,
-      "kept": 1321,
+      "kept": 1311,
       "name": "openings/QGDTarrasch.zip",
       "repeat": 761,
       "section": "Openings",
@@ -13071,9 +13071,9 @@
       "variant": 0
     },
     {
-      "below": 6165,
+      "below": 6173,
       "files": 1,
-      "kept": 1958,
+      "kept": 1950,
       "name": "openings/QID4Nc3.zip",
       "repeat": 1373,
       "section": "Openings",
@@ -13081,9 +13081,9 @@
       "variant": 0
     },
     {
-      "below": 8625,
+      "below": 8663,
       "files": 1,
-      "kept": 3615,
+      "kept": 3577,
       "name": "openings/QID4a3.zip",
       "repeat": 1892,
       "section": "Openings",
@@ -13091,9 +13091,9 @@
       "variant": 0
     },
     {
-      "below": 3233,
+      "below": 3239,
       "files": 1,
-      "kept": 886,
+      "kept": 880,
       "name": "openings/QID4e3.zip",
       "repeat": 440,
       "section": "Openings",
@@ -13101,9 +13101,9 @@
       "variant": 0
     },
     {
-      "below": 10586,
+      "below": 10620,
       "files": 1,
-      "kept": 5689,
+      "kept": 5655,
       "name": "openings/QID4g3-Ba6.zip",
       "repeat": 3018,
       "section": "Openings",
@@ -13111,9 +13111,9 @@
       "variant": 0
     },
     {
-      "below": 13558,
+      "below": 13584,
       "files": 1,
-      "kept": 4565,
+      "kept": 4539,
       "name": "openings/QID4g3Other.zip",
       "repeat": 2215,
       "section": "Openings",
@@ -13121,9 +13121,9 @@
       "variant": 0
     },
     {
-      "below": 1677,
+      "below": 1679,
       "files": 1,
-      "kept": 435,
+      "kept": 433,
       "name": "openings/QIDOther.zip",
       "repeat": 199,
       "section": "Openings",
@@ -13141,19 +13141,19 @@
       "variant": 0
     },
     {
-      "below": 24296,
+      "below": 24300,
       "files": 1,
-      "kept": 4190,
+      "kept": 4188,
       "name": "openings/Reti2c4.zip",
-      "repeat": 4323,
+      "repeat": 4321,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 46801,
+      "below": 46807,
       "files": 1,
-      "kept": 16879,
+      "kept": 16873,
       "name": "openings/RetiKIA.zip",
       "repeat": 6034,
       "section": "Openings",
@@ -13161,9 +13161,9 @@
       "variant": 0
     },
     {
-      "below": 3642,
+      "below": 3646,
       "files": 1,
-      "kept": 1186,
+      "kept": 1182,
       "name": "openings/RuyLopezAntiMarshall.zip",
       "repeat": 807,
       "section": "Openings",
@@ -13171,9 +13171,9 @@
       "variant": 0
     },
     {
-      "below": 3188,
+      "below": 3194,
       "files": 1,
-      "kept": 1033,
+      "kept": 1027,
       "name": "openings/RuyLopezArchangelsk.zip",
       "repeat": 420,
       "section": "Openings",
@@ -13181,9 +13181,9 @@
       "variant": 0
     },
     {
-      "below": 18972,
+      "below": 18998,
       "files": 1,
-      "kept": 8831,
+      "kept": 8805,
       "name": "openings/RuyLopezBerlin.zip",
       "repeat": 6386,
       "section": "Openings",
@@ -13191,9 +13191,9 @@
       "variant": 0
     },
     {
-      "below": 5129,
+      "below": 5132,
       "files": 1,
-      "kept": 1991,
+      "kept": 1988,
       "name": "openings/RuyLopezBreyer.zip",
       "repeat": 1041,
       "section": "Openings",
@@ -13201,9 +13201,9 @@
       "variant": 0
     },
     {
-      "below": 8554,
+      "below": 8608,
       "files": 1,
-      "kept": 2105,
+      "kept": 2051,
       "name": "openings/RuyLopezChigorin.zip",
       "repeat": 923,
       "section": "Openings",
@@ -13211,9 +13211,9 @@
       "variant": 0
     },
     {
-      "below": 5130,
+      "below": 5132,
       "files": 1,
-      "kept": 534,
+      "kept": 532,
       "name": "openings/RuyLopezClassical.zip",
       "repeat": 210,
       "section": "Openings",
@@ -13221,9 +13221,9 @@
       "variant": 0
     },
     {
-      "below": 13854,
+      "below": 13864,
       "files": 1,
-      "kept": 2734,
+      "kept": 2724,
       "name": "openings/RuyLopezExchange.zip",
       "repeat": 916,
       "section": "Openings",
@@ -13231,9 +13231,9 @@
       "variant": 0
     },
     {
-      "below": 3269,
+      "below": 3287,
       "files": 1,
-      "kept": 1122,
+      "kept": 1104,
       "name": "openings/RuyLopezFlohr-Zaitsev.zip",
       "repeat": 779,
       "section": "Openings",
@@ -13241,9 +13241,9 @@
       "variant": 0
     },
     {
-      "below": 897,
+      "below": 901,
       "files": 1,
-      "kept": 297,
+      "kept": 293,
       "name": "openings/RuyLopezKar-Smy-Khol.zip",
       "repeat": 206,
       "section": "Openings",
@@ -13251,9 +13251,9 @@
       "variant": 0
     },
     {
-      "below": 2922,
+      "below": 2924,
       "files": 1,
-      "kept": 543,
+      "kept": 541,
       "name": "openings/RuyLopezMarshall.zip",
       "repeat": 590,
       "section": "Openings",
@@ -13261,19 +13261,19 @@
       "variant": 0
     },
     {
-      "below": 9598,
+      "below": 9610,
       "files": 1,
-      "kept": 2385,
+      "kept": 2374,
       "name": "openings/RuyLopezModSteinitz.zip",
-      "repeat": 958,
+      "repeat": 957,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 7448,
+      "below": 7454,
       "files": 1,
-      "kept": 2001,
+      "kept": 1995,
       "name": "openings/RuyLopezOpen.zip",
       "repeat": 1319,
       "section": "Openings",
@@ -13281,9 +13281,9 @@
       "variant": 0
     },
     {
-      "below": 14257,
+      "below": 14265,
       "files": 1,
-      "kept": 2510,
+      "kept": 2502,
       "name": "openings/RuyLopezOther3.zip",
       "repeat": 782,
       "section": "Openings",
@@ -13291,9 +13291,9 @@
       "variant": 0
     },
     {
-      "below": 17565,
+      "below": 17569,
       "files": 1,
-      "kept": 3437,
+      "kept": 3433,
       "name": "openings/RuyLopezOther5.zip",
       "repeat": 1385,
       "section": "Openings",
@@ -13301,9 +13301,9 @@
       "variant": 0
     },
     {
-      "below": 8667,
+      "below": 8669,
       "files": 1,
-      "kept": 3757,
+      "kept": 3755,
       "name": "openings/RuyLopezOther6.zip",
       "repeat": 1787,
       "section": "Openings",
@@ -13321,9 +13321,9 @@
       "variant": 0
     },
     {
-      "below": 7556,
+      "below": 7560,
       "files": 1,
-      "kept": 1007,
+      "kept": 1003,
       "name": "openings/RuyLopezSchliemann.zip",
       "repeat": 383,
       "section": "Openings",
@@ -13331,9 +13331,9 @@
       "variant": 0
     },
     {
-      "below": 1683,
+      "below": 1685,
       "files": 1,
-      "kept": 908,
+      "kept": 906,
       "name": "openings/RuyMoeller-SteinDef.zip",
       "repeat": 521,
       "section": "Openings",
@@ -13341,9 +13341,9 @@
       "variant": 0
     },
     {
-      "below": 11190,
+      "below": 11202,
       "files": 1,
-      "kept": 753,
+      "kept": 741,
       "name": "openings/Scand2Nf6-3d4.zip",
       "repeat": 166,
       "section": "Openings",
@@ -13351,9 +13351,9 @@
       "variant": 0
     },
     {
-      "below": 15071,
+      "below": 15084,
       "files": 1,
-      "kept": 711,
+      "kept": 698,
       "name": "openings/Scand2Nf6Other.zip",
       "repeat": 481,
       "section": "Openings",
@@ -13361,9 +13361,9 @@
       "variant": 0
     },
     {
-      "below": 20791,
+      "below": 20812,
       "files": 1,
-      "kept": 2531,
+      "kept": 2510,
       "name": "openings/Scand2Qxd5-3Qa5.zip",
       "repeat": 671,
       "section": "Openings",
@@ -13371,9 +13371,9 @@
       "variant": 0
     },
     {
-      "below": 15767,
+      "below": 15787,
       "files": 1,
-      "kept": 2491,
+      "kept": 2471,
       "name": "openings/Scand3Qd6-Qd8.zip",
       "repeat": 677,
       "section": "Openings",
@@ -13381,9 +13381,9 @@
       "variant": 0
     },
     {
-      "below": 12082,
+      "below": 12086,
       "files": 1,
-      "kept": 2134,
+      "kept": 2130,
       "name": "openings/Scotch4Bc5.zip",
       "repeat": 968,
       "section": "Openings",
@@ -13401,9 +13401,9 @@
       "variant": 0
     },
     {
-      "below": 12442,
+      "below": 12444,
       "files": 1,
-      "kept": 801,
+      "kept": 799,
       "name": "openings/ScotchGambit.zip",
       "repeat": 215,
       "section": "Openings",
@@ -13411,9 +13411,9 @@
       "variant": 0
     },
     {
-      "below": 6711,
+      "below": 6713,
       "files": 1,
-      "kept": 1065,
+      "kept": 1063,
       "name": "openings/ScotchOther4.zip",
       "repeat": 326,
       "section": "Openings",
@@ -13421,9 +13421,9 @@
       "variant": 0
     },
     {
-      "below": 5026,
+      "below": 5042,
       "files": 1,
-      "kept": 547,
+      "kept": 531,
       "name": "openings/SemiBenoni.zip",
       "repeat": 133,
       "section": "Openings",
@@ -13431,19 +13431,19 @@
       "variant": 0
     },
     {
-      "below": 15907,
+      "below": 15925,
       "files": 1,
-      "kept": 4611,
+      "kept": 4595,
       "name": "openings/SemiSlavBotvinnik.zip",
-      "repeat": 2783,
+      "repeat": 2781,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 30509,
+      "below": 30539,
       "files": 1,
-      "kept": 8749,
+      "kept": 8719,
       "name": "openings/SemiSlavMeran.zip",
       "repeat": 5429,
       "section": "Openings",
@@ -13461,19 +13461,19 @@
       "variant": 0
     },
     {
-      "below": 5173,
+      "below": 5175,
       "files": 1,
       "kept": 507,
       "name": "openings/SemiTarr5e3-Nc6.zip",
-      "repeat": 1286,
+      "repeat": 1284,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 4613,
+      "below": 4615,
       "files": 1,
-      "kept": 1640,
+      "kept": 1638,
       "name": "openings/SemiTarraschMain.zip",
       "repeat": 1079,
       "section": "Openings",
@@ -13481,9 +13481,9 @@
       "variant": 0
     },
     {
-      "below": 7619,
+      "below": 7627,
       "files": 1,
-      "kept": 2256,
+      "kept": 2248,
       "name": "openings/Sic2Nc6-4Qc7-4Qb6.zip",
       "repeat": 597,
       "section": "Openings",
@@ -13501,9 +13501,9 @@
       "variant": 0
     },
     {
-      "below": 15917,
+      "below": 15919,
       "files": 1,
-      "kept": 3087,
+      "kept": 3085,
       "name": "openings/Sicilian2Nc3-d6.zip",
       "repeat": 1108,
       "section": "Openings",
@@ -13511,9 +13511,9 @@
       "variant": 0
     },
     {
-      "below": 16802,
+      "below": 16804,
       "files": 1,
-      "kept": 2522,
+      "kept": 2520,
       "name": "openings/Sicilian2Nc3-e6.zip",
       "repeat": 766,
       "section": "Openings",
@@ -13531,9 +13531,9 @@
       "variant": 0
     },
     {
-      "below": 46539,
+      "below": 46557,
       "files": 1,
-      "kept": 7245,
+      "kept": 7227,
       "name": "openings/Sicilian2Nf3Other2.zip",
       "repeat": 1687,
       "section": "Openings",
@@ -13541,9 +13541,9 @@
       "variant": 0
     },
     {
-      "below": 13065,
+      "below": 13069,
       "files": 1,
-      "kept": 3074,
+      "kept": 3070,
       "name": "openings/Sicilian2d6-4Qxd4.zip",
       "repeat": 766,
       "section": "Openings",
@@ -13551,9 +13551,9 @@
       "variant": 0
     },
     {
-      "below": 6709,
+      "below": 6711,
       "files": 1,
-      "kept": 478,
+      "kept": 476,
       "name": "openings/Sicilian2f4.zip",
       "repeat": 172,
       "section": "Openings",
@@ -13561,9 +13561,9 @@
       "variant": 0
     },
     {
-      "below": 31364,
+      "below": 31368,
       "files": 1,
-      "kept": 2805,
+      "kept": 2801,
       "name": "openings/SicilianAccelDragon.zip",
       "repeat": 1734,
       "section": "Openings",
@@ -13581,9 +13581,9 @@
       "variant": 0
     },
     {
-      "below": 24477,
+      "below": 24479,
       "files": 1,
-      "kept": 3847,
+      "kept": 3845,
       "name": "openings/SicilianAlapin2d5.zip",
       "repeat": 959,
       "section": "Openings",
@@ -13591,9 +13591,9 @@
       "variant": 0
     },
     {
-      "below": 18835,
+      "below": 18843,
       "files": 1,
-      "kept": 2001,
+      "kept": 1993,
       "name": "openings/SicilianAlapinOther2.zip",
       "repeat": 742,
       "section": "Openings",
@@ -13601,9 +13601,9 @@
       "variant": 0
     },
     {
-      "below": 16672,
+      "below": 16680,
       "files": 1,
-      "kept": 2994,
+      "kept": 2986,
       "name": "openings/SicilianClassicalOther6.zip",
       "repeat": 953,
       "section": "Openings",
@@ -13611,9 +13611,9 @@
       "variant": 0
     },
     {
-      "below": 11224,
+      "below": 11240,
       "files": 1,
-      "kept": 2274,
+      "kept": 2258,
       "name": "openings/SicilianClassicalSozin.zip",
       "repeat": 756,
       "section": "Openings",
@@ -13631,9 +13631,9 @@
       "variant": 0
     },
     {
-      "below": 33127,
+      "below": 33139,
       "files": 1,
-      "kept": 7801,
+      "kept": 7789,
       "name": "openings/SicilianClosedOther3.zip",
       "repeat": 2903,
       "section": "Openings",
@@ -13641,9 +13641,9 @@
       "variant": 0
     },
     {
-      "below": 5709,
+      "below": 5713,
       "files": 1,
-      "kept": 432,
+      "kept": 428,
       "name": "openings/SicilianDragonOther6.zip",
       "repeat": 184,
       "section": "Openings",
@@ -13651,11 +13651,11 @@
       "variant": 0
     },
     {
-      "below": 22481,
+      "below": 22531,
       "files": 1,
-      "kept": 2678,
+      "kept": 2630,
       "name": "openings/SicilianDragonYugoslav.zip",
-      "repeat": 1089,
+      "repeat": 1087,
       "section": "Openings",
       "unread": 0,
       "variant": 0
@@ -13671,9 +13671,9 @@
       "variant": 0
     },
     {
-      "below": 17724,
+      "below": 17750,
       "files": 1,
-      "kept": 4950,
+      "kept": 4924,
       "name": "openings/SicilianKan5Bd3.zip",
       "repeat": 1751,
       "section": "Openings",
@@ -13681,9 +13681,9 @@
       "variant": 0
     },
     {
-      "below": 20820,
+      "below": 20834,
       "files": 1,
-      "kept": 4401,
+      "kept": 4387,
       "name": "openings/SicilianKan5Nc3.zip",
       "repeat": 1876,
       "section": "Openings",
@@ -13691,9 +13691,9 @@
       "variant": 0
     },
     {
-      "below": 8223,
+      "below": 8235,
       "files": 1,
-      "kept": 1803,
+      "kept": 1791,
       "name": "openings/SicilianKan5c4.zip",
       "repeat": 627,
       "section": "Openings",
@@ -13711,9 +13711,9 @@
       "variant": 0
     },
     {
-      "below": 17348,
+      "below": 17354,
       "files": 1,
-      "kept": 2546,
+      "kept": 2540,
       "name": "openings/SicilianLowenthal.zip",
       "repeat": 619,
       "section": "Openings",
@@ -13721,9 +13721,9 @@
       "variant": 0
     },
     {
-      "below": 32654,
+      "below": 32669,
       "files": 1,
-      "kept": 3806,
+      "kept": 3791,
       "name": "openings/SicilianMisc2.zip",
       "repeat": 1324,
       "section": "Openings",
@@ -13731,9 +13731,9 @@
       "variant": 0
     },
     {
-      "below": 37800,
+      "below": 37802,
       "files": 1,
-      "kept": 11530,
+      "kept": 11528,
       "name": "openings/SicilianMoscow.zip",
       "repeat": 3718,
       "section": "Openings",
@@ -13741,9 +13741,9 @@
       "variant": 0
     },
     {
-      "below": 12436,
+      "below": 12442,
       "files": 1,
-      "kept": 1877,
+      "kept": 1871,
       "name": "openings/SicilianNajdorf6Bc4.zip",
       "repeat": 713,
       "section": "Openings",
@@ -13751,9 +13751,9 @@
       "variant": 0
     },
     {
-      "below": 20438,
+      "below": 20458,
       "files": 1,
-      "kept": 4650,
+      "kept": 4630,
       "name": "openings/SicilianNajdorf6Be2.zip",
       "repeat": 2077,
       "section": "Openings",
@@ -13761,9 +13761,9 @@
       "variant": 0
     },
     {
-      "below": 21714,
+      "below": 21782,
       "files": 1,
-      "kept": 7135,
+      "kept": 7067,
       "name": "openings/SicilianNajdorf6Be3.zip",
       "repeat": 3440,
       "section": "Openings",
@@ -13771,9 +13771,9 @@
       "variant": 0
     },
     {
-      "below": 26116,
+      "below": 26154,
       "files": 1,
-      "kept": 5332,
+      "kept": 5294,
       "name": "openings/SicilianNajdorf6Bg5.zip",
       "repeat": 1850,
       "section": "Openings",
@@ -13781,9 +13781,9 @@
       "variant": 0
     },
     {
-      "below": 3182,
+      "below": 3183,
       "files": 1,
-      "kept": 792,
+      "kept": 791,
       "name": "openings/SicilianNajdorf6a4.zip",
       "repeat": 516,
       "section": "Openings",
@@ -13791,9 +13791,9 @@
       "variant": 0
     },
     {
-      "below": 6830,
+      "below": 6857,
       "files": 1,
-      "kept": 1278,
+      "kept": 1251,
       "name": "openings/SicilianNajdorf6f3.zip",
       "repeat": 789,
       "section": "Openings",
@@ -13801,9 +13801,9 @@
       "variant": 0
     },
     {
-      "below": 5619,
+      "below": 5621,
       "files": 1,
-      "kept": 1140,
+      "kept": 1138,
       "name": "openings/SicilianNajdorf6f4.zip",
       "repeat": 628,
       "section": "Openings",
@@ -13821,19 +13821,19 @@
       "variant": 0
     },
     {
-      "below": 23290,
+      "below": 23332,
       "files": 1,
-      "kept": 7558,
+      "kept": 7518,
       "name": "openings/SicilianRichter-Rauzer.zip",
-      "repeat": 3327,
+      "repeat": 3325,
       "section": "Openings",
       "unread": 0,
       "variant": 0
     },
     {
-      "below": 46348,
+      "below": 46376,
       "files": 1,
-      "kept": 13891,
+      "kept": 13863,
       "name": "openings/SicilianRossolimo.zip",
       "repeat": 4365,
       "section": "Openings",
@@ -13841,9 +13841,9 @@
       "variant": 0
     },
     {
-      "below": 19673,
+      "below": 19743,
       "files": 1,
-      "kept": 3571,
+      "kept": 3501,
       "name": "openings/SicilianScheveningen.zip",
       "repeat": 1602,
       "section": "Openings",
@@ -13851,9 +13851,9 @@
       "variant": 0
     },
     {
-      "below": 14938,
+      "below": 14940,
       "files": 1,
-      "kept": 785,
+      "kept": 783,
       "name": "openings/SicilianSmith-Morra.zip",
       "repeat": 182,
       "section": "Openings",
@@ -13861,9 +13861,9 @@
       "variant": 0
     },
     {
-      "below": 27647,
+      "below": 27651,
       "files": 1,
-      "kept": 4061,
+      "kept": 4057,
       "name": "openings/SicilianSveshnikov.zip",
       "repeat": 1877,
       "section": "Openings",
@@ -13871,9 +13871,9 @@
       "variant": 0
     },
     {
-      "below": 4137,
+      "below": 4141,
       "files": 1,
-      "kept": 851,
+      "kept": 847,
       "name": "openings/SicilianTaimanov5Nb5.zip",
       "repeat": 421,
       "section": "Openings",
@@ -13881,9 +13881,9 @@
       "variant": 0
     },
     {
-      "below": 37303,
+      "below": 37341,
       "files": 1,
-      "kept": 11229,
+      "kept": 11191,
       "name": "openings/SicilianTaimanovMain.zip",
       "repeat": 5974,
       "section": "Openings",
@@ -13891,9 +13891,9 @@
       "variant": 0
     },
     {
-      "below": 5569,
+      "below": 5571,
       "files": 1,
-      "kept": 587,
+      "kept": 585,
       "name": "openings/SicilianTaimanovOther5.zip",
       "repeat": 161,
       "section": "Openings",
@@ -13901,9 +13901,9 @@
       "variant": 0
     },
     {
-      "below": 7483,
+      "below": 7501,
       "files": 1,
-      "kept": 3290,
+      "kept": 3272,
       "name": "openings/Slav4a6.zip",
       "repeat": 1911,
       "section": "Openings",
@@ -13911,9 +13911,9 @@
       "variant": 0
     },
     {
-      "below": 9766,
+      "below": 9784,
       "files": 1,
-      "kept": 1723,
+      "kept": 1705,
       "name": "openings/SlavExchange.zip",
       "repeat": 913,
       "section": "Openings",
@@ -13921,9 +13921,9 @@
       "variant": 0
     },
     {
-      "below": 12788,
+      "below": 12800,
       "files": 1,
-      "kept": 3911,
+      "kept": 3899,
       "name": "openings/SlavMain.zip",
       "repeat": 2336,
       "section": "Openings",
@@ -13941,9 +13941,9 @@
       "variant": 0
     },
     {
-      "below": 5392,
+      "below": 5424,
       "files": 1,
-      "kept": 1507,
+      "kept": 1475,
       "name": "openings/SlavOther5.zip",
       "repeat": 825,
       "section": "Openings",
@@ -13971,9 +13971,9 @@
       "variant": 0
     },
     {
-      "below": 12013,
+      "below": 12015,
       "files": 1,
-      "kept": 2087,
+      "kept": 2085,
       "name": "openings/Torre2e6.zip",
       "repeat": 689,
       "section": "Openings",
@@ -13991,9 +13991,9 @@
       "variant": 0
     },
     {
-      "below": 10658,
+      "below": 10666,
       "files": 1,
-      "kept": 2017,
+      "kept": 2009,
       "name": "openings/Trompowsky2Ne4.zip",
       "repeat": 586,
       "section": "Openings",
@@ -14001,9 +14001,9 @@
       "variant": 0
     },
     {
-      "below": 8948,
+      "below": 8950,
       "files": 1,
-      "kept": 1934,
+      "kept": 1932,
       "name": "openings/Trompowsky2e6.zip",
       "repeat": 769,
       "section": "Openings",
@@ -14011,9 +14011,9 @@
       "variant": 0
     },
     {
-      "below": 17791,
+      "below": 17799,
       "files": 1,
-      "kept": 4136,
+      "kept": 4128,
       "name": "openings/TrompowskyOther.zip",
       "repeat": 1555,
       "section": "Openings",
@@ -14021,9 +14021,9 @@
       "variant": 0
     },
     {
-      "below": 39596,
+      "below": 39600,
       "files": 1,
-      "kept": 9082,
+      "kept": 9078,
       "name": "openings/TwoKnights.zip",
       "repeat": 3052,
       "section": "Openings",
@@ -14031,9 +14031,9 @@
       "variant": 0
     },
     {
-      "below": 22092,
+      "below": 22136,
       "files": 1,
-      "kept": 2499,
+      "kept": 2455,
       "name": "openings/Vienna.zip",
       "repeat": 1151,
       "section": "Openings",
@@ -14306,7 +14306,7 @@
         1142,
         1924,
         3074,
-        4090,
+        4091,
         21589,
         49173,
         113139,
@@ -14315,7 +14315,7 @@
         91781,
         23257,
         3837,
-        524,
+        523,
         152574
       ],
       [
@@ -14356,12 +14356,12 @@
         74792,
         104227,
         136366,
-        165657,
+        165658,
         185060,
         155960,
         90703,
         30262,
-        3765,
+        3764,
         11271
       ],
       [
@@ -14384,8 +14384,8 @@
         167527,
         127777,
         42442,
-        8370,
-        8559
+        5098,
+        11831
       ]
     ],
     "decades": [
@@ -14428,11 +14428,11 @@
       "variant": 0
     },
     {
-      "below": 3218362,
+      "below": 3221636,
       "files": 233,
-      "kept": 683630,
+      "kept": 680491,
       "name": "Openings",
-      "repeat": 291349,
+      "repeat": 291214,
       "section": "Openings",
       "unread": 4,
       "variant": 0

@@ -1,209 +1,137 @@
 // @vitest-environment happy-dom
-import { mount }                                from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick }                             from 'vue'
+import { mount }                from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
+import { nextTick }             from 'vue'
 
-import { RUN_TUNING, exampleOf, timelineAt } from '../../../../lib/methods/example.ts'
-import { Run }                               from '../../../../theme/components/methods/run.ts'
-import { test }                              from '../../../common/clock.ts'
-import { reduceMotion }                      from '../../../common/motion.ts'
+import { exampleOf }                 from '../../../../lib/methods/example.ts'
+import { PACE }                      from '../../../../lib/methods/stepping.ts'
+import { Run }                       from '../../../../theme/components/methods/run.ts'
+import { test }                      from '../../../common/clock.ts'
+import { pauseMotion, reduceMotion } from '../../../common/motion.ts'
 
 /**
- * Mounts the widget into the document, so the list it scrolls has a layout.
+ * Mounts the widget on an example, holding still, as a reader preferring
+ * reduced motion meets it.
  */
-function mounted(): ReturnType<typeof mount<typeof Run>> {
-  return mount(Run, { attachTo: document.body })
+function still(example = exampleOf()): ReturnType<typeof mount<typeof Run>> {
+  reduceMotion()
+  return mount(Run, { props: { example } })
 }
 
-beforeEach(() => {
-  const finished = { cancel: vi.fn<() => void>(), playState: 'finished' } as unknown as Animation
-  vi.spyOn(Element.prototype, 'animate').mockImplementation(() => finished)
-})
+const status = (wrapper: ReturnType<typeof mount<typeof Run>>): string => wrapper.find('[role=status]').text()
 
 describe('Run as drawn', () => {
-  it('opens on the ply before the two games meet', () => {
-    const wrapper = mounted()
-    expect(wrapper.find('[role=status]').text()).toBe('Ply 6 · the positions differ')
-    expect(wrapper.find('[aria-selected=true]').text()).toContain('Bg7')
+  it('opens inside the run where the drawings hold still', () => {
+    const wrapper = still()
+    expect(status(wrapper)).toBe('Ply 12 · one position, 6 in a row')
+    expect(wrapper.find('[aria-live]').text()).toBe('6')
+    expect(wrapper.text()).toContain('Positions shared in a row')
   })
 
-  it('draws the timeline in lanes that join through the run, a column per ply', () => {
-    const drawn = mounted().findAll('i[data-cell]').map(cell => cell.element as HTMLElement)
-    const cells = drawn.map(cell => `${cell.dataset.cell} ${cell.style.gridRow}`)
-    expect(cells.filter(cell => cell === 'run 1 / -1')).toHaveLength(11)
-    expect(cells.filter(cell => cell === 'stored 2')).toHaveLength(7)
-    expect(new Set(cells)).toEqual(new Set(['start 1 / -1', 'submitted 1', 'stored 2', 'run 1 / -1']))
-    expect(new Set(drawn.map(cell => cell.style.gridColumn)))
-      .toEqual(new Set(Array.from({ length: 19 }, (_, ply) => String(ply + 1))))
+  it('opens on the middle of the example\'s longest run where the drawings hold still', () => {
+    const wrapper = still({ ...exampleOf(), runs: [{ length: 1, offset: 0, start: 0 }, { length: 4, offset: 0, start: 3 }] })
+    expect(status(wrapper)).toBe('Ply 5 · one position, 3 in a row')
+    expect(wrapper.text()).toContain('Run of 4 · plies 3 to 6')
   })
 
-  it('labels the ruler where the two games start, meet, and part, the last ending at its column', () => {
-    const marks = [...mounted().get('[data-end]').element.parentElement!.children] as HTMLElement[]
-    expect(marks.map(mark => [mark.textContent, mark.style.gridColumn, mark.dataset.end])).toEqual([
-      ['Start', '1', undefined],
-      ['Meets', '8', undefined],
-      ['Parts', '19', '']
-    ])
+  it('opens on the start and plays where the drawings move', () => {
+    const wrapper = mount(Run)
+    expect(status(wrapper)).toBe('Ply 0 · one position, 1 in a row')
+    expect(wrapper.find('[aria-pressed=true]').text()).toBe('Pause')
   })
 
-  test('takes an example and tuning of its own', async ({ clock }) => {
-    const full    = exampleOf()
-    const example = {
-      ...full,
-      run       : { length: 2, start: 7 },
-      stored    : full.stored.slice(0, 9),
-      submitted : full.submitted.slice(0, 9)
-    }
-    const wrapper = mount(Run, { props: { example, tuning: { gap: 1, interval: 100 } } })
-    expect(wrapper.attributes('style')).toBe('--sc-run-cells: 9; --sc-run-gap: 1px;')
-    await wrapper.findAll('button')[2]!.trigger('click')
-    clock.advanceTimersByTime(100)
-    await nextTick()
-    expect(wrapper.find('[role=status]').text()).toBe('Ply 1 · the positions differ')
+  it('names the run the match counts under the track', () => {
+    expect(still().text()).toContain('Run of 11 · plies 7 to 17')
   })
 
-  it('sets the note next to the key as prose', () => {
-    expect(mounted().find('p').text()).toReadAsProse()
+  it('names the stored game as the page names it', () => {
+    expect(still().text()).toContain('Timman – Klein, 2015')
   })
-})
 
-describe('Run to a screen reader', () => {
-  it('hides the board, its key, and the timeline from a screen reader, which reads the list', () => {
-    const wrapper = mounted()
-    const parts   = [
-      '[data-layer]', 'i[data-cell]', 'span[data-kind]', '[data-end]', '[role=status] + div > span'
-    ].map(part => wrapper.get(part).element.parentElement!)
-    const heads   = wrapper.get('[role=listbox]').element.previousElementSibling!
-    expect([...parts, heads].map(part => part.getAttribute('aria-hidden'))).toAllEqual('true')
+  it('fills the meter to the count in a row, of the longest run', () => {
+    const meter = still().findAll('i.bg-run')
+    expect(meter).toHaveLength(6)
+    expect(still().text()).toContain('Of 11, the longest run the two games share')
+  })
+
+  it('writes each game\'s move at the ply in view', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[7]!.trigger('click')
+    const moves = wrapper.findAll('.tabular-nums').map(node => node.text())
+    expect(moves).toContain('4. e4')
+    expect(moves).toContain('4. d4')
+  })
+
+  it('names the last ply under the track', () => {
+    expect(still().text()).toContain('Ply 18')
+  })
+
+  it('stamps one position under the board while the two games share it', () => {
+    expect(still().text()).toContain('One position')
   })
 })
 
 describe('Run as stepped', () => {
-  it('steps with the buttons', async () => {
-    const wrapper          = mounted()
-    const [previous, next] = wrapper.findAll('button')
+  it('steps back and on through its buttons', async () => {
+    const wrapper = still()
+    const [, back, next] = wrapper.findAll('button')
+    await back!.trigger('click')
+    expect(status(wrapper)).toBe('Ply 11 · one position, 5 in a row')
     await next!.trigger('click')
-    expect(wrapper.find('[role=status]').text()).toBe('Ply 7 · one position')
-    await previous!.trigger('click')
-    expect(wrapper.find('[role=status]').text()).toBe('Ply 6 · the positions differ')
+    await next!.trigger('click')
+    expect(status(wrapper)).toBe('Ply 13 · one position, 7 in a row')
   })
 
-  it.each([['0', 0], ['18', 1]])('disables the button pointing past ply %s', async (ply, button) => {
-    const wrapper = mounted()
-    await wrapper.find(`[id$='-ply-${ply}']`).trigger('click')
-    expect(wrapper.findAll('button')[button]!.attributes('disabled')).toBe('')
+  it('names the washes the board shows once the two games stand apart', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[6]!.trigger('click')
+    expect(status(wrapper)).toBe('Ply 6 · two positions')
+    expect(wrapper.text()).toContain('Line alone')
+    expect(wrapper.text()).toContain('Stored alone')
   })
 
-  it('steps to a ply the reader picks from the list and keys through it from the tab order', async () => {
-    const wrapper = mounted()
-    await wrapper.find("[id$='-ply-12']").trigger('click')
-    expect(wrapper.find('[role=listbox]').attributes('tabindex')).toBe('0')
-    expect(wrapper.find('[role=listbox]').attributes('aria-activedescendant')).toMatch(/-ply-12$/u)
-    await wrapper.find('[role=listbox]').trigger('keydown', { key: 'Home' })
-    expect(wrapper.find('[role=status]').text()).toBe('Both open on the starting position')
+  it('names the parting once past the run', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[18]!.trigger('click')
+    expect(status(wrapper)).toBe('Ply 18 · they part')
+    expect(wrapper.find('[aria-live]').text()).toBe('0')
+    expect(wrapper.text()).toContain('Positions differ, the count starts over')
   })
 
-  test('plays the line through from the start', async ({ clock }) => {
-    const wrapper = mounted()
-    const play    = wrapper.findAll('button')[2]!
-    await play.trigger('click')
-    expect(play.attributes('aria-pressed')).toBe('true')
-    clock.advanceTimersByTime(RUN_TUNING.interval * 19)
+  test('plays a ply on each interval while the drawings move', async ({ clock }) => {
+    const wrapper = mount(Run)
     await nextTick()
-    expect([wrapper.find('[role=status]').text(), play.attributes('aria-pressed')])
-      .toEqual(['Ply 18 · parted', 'false'])
+    clock.advanceTimersByTime(PACE.interval * 7)
+    await nextTick()
+    expect(status(wrapper)).toBe('Ply 7 · one position, 1 in a row')
   })
 
-  it('moves the board to the ply in view', async () => {
-    const wrapper = mounted()
-    await wrapper.findAll('button')[1]!.trigger('click')
-    expect((wrapper.find('[data-stamp]').element as HTMLElement).style.opacity).toBe('1')
-  })
-
-  it('moves the timeline marker to the ply in view', async () => {
-    const wrapper = mounted()
-    await wrapper.findAll('button')[1]!.trigger('click')
-    expect((wrapper.find('i[data-cell] ~ span').element as HTMLElement).style.transform)
-      .toBe('translate(calc(700% + 21px), 0)')
+  it('stops playing once the reader pauses the motion switch', async () => {
+    const wrapper = mount(Run)
+    await pauseMotion()
+    expect(wrapper.find('button').text()).toBe('Play')
   })
 })
 
-describe('Run, its list', () => {
-  it('lists every ply of both games, the run marked where it meets and where it parts', () => {
-    const wrapper = mounted()
-    expect(wrapper.findAll('[role=option]')).toHaveLength(19)
-    expect(wrapper.findAll("[role=option][data-cell='run']")).toHaveLength(11)
-    const marks = wrapper.findAll('[role=option] [data-game] > span:not([data-start])')
-      .map(mark => [mark.text(), mark.element.closest('[role=option]')?.id.replace(/^.*-ply-/u, '')])
-    expect(marks).toEqual([['meets', '7'], ['parts', '18']])
+describe('Run at a picked ply', () => {
+  it('washes each square the stored game differs on, on the line\'s board', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[6]!.trigger('click')
+    const marked = wrapper.findAll('i[data-mark]').map(square => square.attributes('data-mark'))
+    expect(marked.toSorted()).toEqual(['stored', 'stored', 'submitted', 'submitted'])
+    expect((wrapper.find("[data-id='11']").element as HTMLElement).style.transform).toBe('translate(300%, 400%)')
   })
 
-  it.each([
-    [0, 'The starting position', 'Start'],
-    [7, 'Ply 7, e4 in the line and d4 in the stored game', 'd4']
-  ])("names ply %i as %j, the stored game's move in its own column", (ply, label, stored) => {
-    const option = mounted().find(`[id$='-ply-${ply}']`)
-    expect([option.attributes('aria-label'), option.find("[data-game='stored']").text()])
-      .toEqual([label, stored])
+  it('heads the count as the first shared position where a run begins', async () => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[7]!.trigger('click')
+    expect(wrapper.text()).toContain('Position shared, the first in a row')
   })
 
-  it('sets the start mark in both games’ columns of the starting position alone', () => {
-    const wrapper = mounted()
-    expect([0, 1].map(ply => wrapper.find(`[id$='-ply-${ply}']`).findAll('[data-start]').length))
-      .toEqual([2, 0])
-  })
-
-  it('centers the row of the ply in view in the list', async () => {
-    const scrolled = vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
-    vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockReturnValue(400)
-    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(20)
-    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(200)
-    await mounted().findAll('button')[1]!.trigger('click')
-    expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ top: 400 - (200 - 20) / 2 }))
-  })
-})
-
-describe('Run in motion', () => {
-  it('ends the head motion one step left running before the next', async () => {
-    vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
-    const wrapper = mounted()
-    const cancel  = vi.fn<() => void>()
-    const head    = wrapper.find('i[data-cell] ~ span').element as HTMLElement
-    head.animate  = vi.fn<() => Animation>(() => ({ cancel, playState: 'finished' }) as unknown as Animation)
-    const next    = wrapper.findAll('button')[1]!
-    await next.trigger('click')
-    expect(cancel).not.toHaveBeenCalled()
-    await next.trigger('click')
-    expect(cancel).toHaveBeenCalled()
-  })
-
-  it('glides the timeline marker from the ply it opens on', async () => {
-    vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
-    const wrapper    = mounted()
-    const head       = wrapper.find('i[data-cell] ~ span').element
-    const animate    = vi.mocked(Element.prototype.animate)
-    const [from, to] = [6, 7].map(ply => ({ transform: timelineAt(RUN_TUNING.gap, ply) }))
-    await wrapper.findAll('button')[1]!.trigger('click')
-    const glides = animate.mock.calls.filter((_, call) => animate.mock.contexts[call] === head)
-    expect(glides.map(([frames]) => frames)).toEqual([[from, to]])
-  })
-
-  it('writes every step at once for a reader who prefers reduced motion', async () => {
-    reduceMotion()
-    const scrolled = vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
-    const wrapper  = mounted()
-    vi.mocked(Element.prototype.animate).mockClear()
-    await wrapper.find("[id$='-ply-18']").trigger('click')
-    expect(Element.prototype.animate).not.toHaveBeenCalled()
-    expect(wrapper.find('[role=status]').text()).toBe('Ply 18 · parted')
-    expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'auto' }))
-  })
-
-  it('animates a step for a reader who does not', async () => {
-    const scrolled = vi.spyOn(Element.prototype, 'scrollTo').mockImplementation(() => {})
-    const wrapper  = mounted()
-    await wrapper.findAll('button')[1]!.trigger('click')
-    expect(Element.prototype.animate).toHaveBeenCalled()
-    expect(scrolled).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'smooth' }))
+  it.each([[0, 1], [18, 2]])('quiets the button stepping past ply %i', async (ply, button) => {
+    const wrapper = still()
+    await wrapper.findAll('svg rect')[ply]!.trigger('click')
+    expect(wrapper.findAll('button').map(one => one.attributes('disabled') !== undefined))
+      .toEqual([false, button === 1, button === 2])
   })
 })

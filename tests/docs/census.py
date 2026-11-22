@@ -9,15 +9,17 @@ short lines a case indexes to pose one rule.
 
 from collections.abc import Callable, Iterable
 from common.games    import line
+from common.sources  import land
 from dataclasses     import replace
+from pathlib         import Path
 from polars          import DataFrame, LazyFrame
 from pytest          import mark, param
 
 from scotch.docs.census     import Census
-from scotch.docs.tallies    import Archive, Era, Rules, Tally
+from scotch.docs.tallies    import Archive, Era, Picked, Rules, Tally
 from scotch.games.schemas   import Game, Origin
-from scotch.index.schemas   import LEFT
-from scotch.index.tables    import PositionIndex
+from scotch.index.schemas   import LEFT, Span
+from scotch.index.tables    import Batch, PositionIndex
 from scotch.sources.schemas import Source, Sources
 
 
@@ -252,22 +254,63 @@ def test_rules_count_what_the_longest_run_leaves_out(
 ):
     """
     Asserts what the longest-run rule leaves out over all five games,
-    beside the count of their keys. The game from the kings alone shares no
-    position and goes unmatched, and each of the four others ties, the three
-    sharing an opening on their five-position runs and the third on the
-    starting position. Only the third game's run lies wholly in positions
-    more than two other games reach, and only the first game finds a shorter
-    run reaching, in another order, a position rarer than any of its longest
-    run's.
+    beside the count of their keys. The game from the kings alone shares
+    no position and goes unmatched, and each of the four others ties, the
+    three sharing an opening on their five-position runs and the third on
+    the starting position, so every longest run starts at the first position
+    and the third's alone holds one position. Only the third game's run lies
+    wholly in positions more than two other games reach, and only the first
+    game finds a shorter run reaching, in another order, a position rarer
+    than any of its longest run's. The crowded run and the tie each pick the
+    third game, the first the seeded sample counts, set against the first
+    game, and against the second as the other stored game tying it, and the
+    transposition picks the first game set against the third, whose shorter
+    run reaches the rarer position, and against the second, whose run is
+    longest.
     """
     keys = {*game.keys for game in counted[0]}
 
     assert census.rules == Rules(
-        accidents  = len(keys) * (len(keys) - 1) / 2**65,
-        crowd      = 2,
-        crowded    = 1,
-        keys       = len(keys),
-        matched    = 4,
+        accidents = len(keys) * (len(keys) - 1) / 2**65,
+        crowd     = 2,
+        crowded   = 1,
+        keys      = len(keys),
+        later     = 0,
+        lengths   = [1, 5, 5, 5],
+        matched   = 4,
+        picked    = {
+            "crowded"    : (crowded := Picked(
+                game  = 2,
+                plies = (5, 5),
+                runs  = (
+                    Span(length=1, offset=0, start=0),
+                    Span(length=1, offset=0, start=5)
+                ),
+                stored = 0
+            )),
+            "passing"    : Picked(
+                game   = 0,
+                plies  = (5, 5),
+                runs   = (Span(length=5, offset=0, start=0),),
+                stored = 1
+            ),
+            "tied"       : crowded,
+            "transposed" : Picked(
+                game  = 0,
+                plies = (5, 5),
+                runs  = (
+                    Span(length=1, offset=0, start=0),
+                    Span(length=1, offset=0, start=5)
+                ),
+                stored = 2
+            ),
+            "twin"       : Picked(
+                game   = 2,
+                plies  = (5, 5),
+                runs   = (Span(length=1, offset=0, start=0),),
+                stored = 1
+            )
+        },
         sample     = 5,
         tied       = 4,
         transposed = 1
@@ -280,10 +323,15 @@ def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
     """
     Asserts the measures over four games where 1. e4 e5 2. Nf3 Nc6 3. Bc4
     meets two games reaching its last three positions from 1. Nf3 and one
-    sharing only its opening move. That first game alone ties and alone runs
-    through positions more than one other game reaches, and no game counts
-    as transposed, since a run opening on the first position in the same
-    order reaches nothing by another order of moves, however rare.
+    sharing only its opening move. That first game alone ties and alone
+    runs through positions more than one other game reaches, and no game
+    counts as transposed, since a run opening on the first position in the
+    same order reaches nothing by another order of moves, however rare. That
+    first game's longest run alone starts past its first position, at its
+    third ply, holding three positions against the second game's two and the
+    six the last two games share, so each of its three measures picks it,
+    set against the third game and the two runs they share, and its tie sets
+    it against the fourth, which shares the same two runs.
     """
     games = [
         line("e4", "e5", "Nf3", "Nc6", "Bc4"),
@@ -294,6 +342,29 @@ def test_rules_leave_out_a_same_order_opening_and_a_lone_longest_run(
     rules = Census(crowd=1, index=scanned(games)).rules
 
     assert (rules.crowded, rules.matched, rules.tied, rules.transposed) == (1, 4, 1, 0)
+    assert (rules.later, rules.lengths) == (1, [2, 3, 6, 6])
+    assert rules.picked == dict.fromkeys(
+        ("crowded", "later", "tied"),
+        Picked(
+            game  = 0,
+            plies = (5, 6),
+            runs  = (
+                Span(length=3, offset=0, start=3),
+                Span(length=1, offset=0, start=0)
+            ),
+            stored = 2
+        )
+    ) | {
+        "twin": Picked(
+            game  = 0,
+            plies = (5, 6),
+            runs  = (
+                Span(length=3, offset=0, start=3),
+                Span(length=1, offset=0, start=0)
+            ),
+            stored = 3
+        )
+    }
 
 
 def test_rules_sample_as_many_games_as_named_drawing_the_same_with_one_seed(
@@ -603,6 +674,81 @@ def test_tags_count_each_tag_date_and_rating_carried(census: Census):
         "tag"     : "Event",
         "files"   : [{"count": 1, "path": "Z.zip"}]
     }
+
+
+def test_the_illegal_line_is_empty_where_no_game_left_out_plays_an_illegal_move(
+    tmp_path: Path
+):
+    """
+    Asserts that the line read for an illegal move is empty where every game
+    the index leaves out is left out for another reason.
+    """
+    sources = (land(tmp_path, "Bad.pgn", body=b'[FEN "garbage"]\n\n1. e4 *\n'),)
+    census  = Census(
+        index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
+        sources = Sources(sources=sources)
+    )
+
+    assert census.illegal(tmp_path) == ""
+
+
+def test_the_illegal_line_is_the_first_the_build_prints_for_an_illegal_move(
+    tmp_path: Path
+):
+    """
+    Asserts that the line read for a game left out for an illegal move is
+    the one the build prints for the first such game in the order it reads
+    the files, passing over a game left out for a `FEN` tag it cannot set up
+    and the files holding no game left out.
+    """
+    sources = (
+        land(tmp_path, "Clean.pgn", body=b"1. e4 e5 *\n"),
+        land(
+            tmp_path,
+            "First.pgn",
+            body = (
+                b'[White "A"]\n[Black "B"]\n[FEN "garbage"]\n\n1. e4 *\n\n'
+                b'[White "C"]\n[Black "D"]\n\n1. e4 e5 2. Qxf7 *\n'
+            )
+        ),
+        land(tmp_path, "Earlier.pgn", body=b"1. d4 d5 2. Qxd5 *\n")
+    )
+    census = Census(
+        index = PositionIndex.merge(Batch.read(tmp_path, source) for source in sources),
+        sources = Sources(sources=sources)
+    )
+
+    assert census.illegal(tmp_path) == (
+        f"Left out game 2 of {sources[1].address}, C vs. D: illegal san: 'Qxf7'"
+        " in rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
+    )
+
+
+def test_the_illegal_line_passes_over_a_game_rated_below_its_files_floor(
+    tmp_path: Path
+):
+    """
+    Asserts that the line read for an illegal move passes over a game rated
+    below the floor of its file's section, which the build leaves out for
+    its rating and prints no problem for.
+    """
+    source = land(
+        tmp_path,
+        "Opening.pgn",
+        body = (
+            b'[WhiteElo "2000"]\n[BlackElo "2000"]\n\n1. e4 e5 2. Qxf7 *\n\n'
+            b'[WhiteElo "2700"]\n[BlackElo "2700"]\n[FEN "garbage"]\n\n1. e4 *\n'
+        )
+    ).model_copy(update={"section": "Openings"})
+    sources = Sources(floors={"Openings": 2500}, sources=(source,))
+    census  = Census(
+        index = PositionIndex.merge(
+            [Batch.read(tmp_path, source, sources.floor(source))]
+        ),
+        sources = sources
+    )
+
+    assert census.illegal(tmp_path) == ""
 
 
 def test_tie_lists_the_games_sharing_the_whole_line_in_match_order(census: Census):

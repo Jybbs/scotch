@@ -274,27 +274,27 @@
       "dates": {
         "day": 27748,
         "month": 109,
-        "year": 109179,
+        "year": 109178,
         "none": 0
       },
-      "games": 137036,
+      "games": 137035,
       "name": "1990s",
       "ratings": {
-        "both": 126992,
+        "both": 126991,
         "one": 8917,
         "neither": 1127
       },
       "tags": {
-        "Event": 137036,
-        "Site": 134346,
-        "Date": 137036,
-        "Round": 110587,
-        "White": 137036,
-        "Black": 137036,
-        "Result": 137002,
-        "WhiteElo": 131774,
-        "BlackElo": 131127,
-        "ECO": 137007
+        "Event": 137035,
+        "Site": 134345,
+        "Date": 137035,
+        "Round": 110586,
+        "White": 137035,
+        "Black": 137035,
+        "Result": 137001,
+        "WhiteElo": 131773,
+        "BlackElo": 131126,
+        "ECO": 137006
       }
     },
     {
@@ -326,84 +326,84 @@
     },
     {
       "dates": {
-        "day": 300701,
+        "day": 300700,
         "month": 0,
         "year": 1,
         "none": 0
       },
-      "games": 300702,
+      "games": 300701,
       "name": "2010s",
       "ratings": {
-        "both": 299144,
+        "both": 299143,
         "one": 1531,
         "neither": 27
       },
       "tags": {
-        "Event": 300701,
-        "Site": 300702,
-        "Date": 300702,
-        "Round": 300530,
-        "White": 300702,
-        "Black": 300702,
-        "Result": 300688,
-        "WhiteElo": 299966,
-        "BlackElo": 299855,
-        "ECO": 300598
+        "Event": 300700,
+        "Site": 300701,
+        "Date": 300701,
+        "Round": 300529,
+        "White": 300701,
+        "Black": 300701,
+        "Result": 300687,
+        "WhiteElo": 299965,
+        "BlackElo": 299854,
+        "ECO": 300597
       }
     },
     {
       "dates": {
-        "day": 380422,
+        "day": 377285,
         "month": 11,
         "year": 0,
         "none": 0
       },
-      "games": 380433,
+      "games": 377296,
       "name": "2020s",
       "ratings": {
-        "both": 379368,
-        "one": 1058,
+        "both": 376444,
+        "one": 845,
         "neither": 7
       },
       "tags": {
-        "Event": 380433,
-        "Site": 380433,
-        "Date": 380433,
-        "Round": 376663,
-        "White": 380433,
-        "Black": 380433,
-        "Result": 380432,
-        "WhiteElo": 379896,
-        "BlackElo": 379898,
-        "ECO": 380238
+        "Event": 377296,
+        "Site": 377296,
+        "Date": 377296,
+        "Round": 373526,
+        "White": 377296,
+        "Black": 377296,
+        "Result": 377295,
+        "WhiteElo": 376866,
+        "BlackElo": 376867,
+        "ECO": 377101
       }
     }
   ],
   "every": {
     "dates": {
-      "day": 901512,
+      "day": 898374,
       "month": 261,
-      "year": 248382,
+      "year": 248381,
       "none": 1
     },
-    "games": 1150156,
+    "games": 1147017,
     "name": "Every game",
     "ratings": {
-      "both": 1058594,
-      "one": 18529,
+      "both": 1055668,
+      "one": 18316,
       "neither": 73033
     },
     "tags": {
-      "Event": 1150115,
-      "Site": 1145688,
-      "Date": 1150155,
-      "Round": 1063446,
-      "White": 1150155,
-      "Black": 1150155,
-      "Result": 1150029,
-      "WhiteElo": 1068479,
-      "BlackElo": 1067240,
-      "ECO": 1149463
+      "Event": 1146976,
+      "Site": 1142549,
+      "Date": 1147016,
+      "Round": 1060307,
+      "White": 1147016,
+      "Black": 1147016,
+      "Result": 1146890,
+      "WhiteElo": 1065447,
+      "BlackElo": 1064207,
+      "ECO": 1146324
     }
   },
   "gaps": [
@@ -1530,10 +1530,6 @@
       "decade": "2020s",
       "files": [
         {
-          "count": 12,
-          "path": "openings/Caro-KannAdv.zip"
-        },
-        {
           "count": 11,
           "path": "openings/Nimzowitsch-Larsen.zip"
         },
@@ -1544,9 +1540,13 @@
         {
           "count": 10,
           "path": "openings/Sicilian2Nf3Other2.zip"
+        },
+        {
+          "count": 9,
+          "path": "openings/London2g6.zip"
         }
       ],
-      "missing": 537,
+      "missing": 430,
       "tag": "WhiteElo"
     },
     {
@@ -1856,19 +1856,19 @@
           "path": "openings/Nimzowitsch-Larsen.zip"
         },
         {
-          "count": 12,
-          "path": "openings/Caro-KannAdv.zip"
-        },
-        {
-          "count": 12,
+          "count": 11,
           "path": "openings/SicilianRossolimo.zip"
         },
         {
           "count": 10,
-          "path": "openings/Modern3Nc3-d6.zip"
+          "path": "players/Kosteniuk.zip"
+        },
+        {
+          "count": 8,
+          "path": "openings/Caro-KannAdv.zip"
         }
       ],
-      "missing": 535,
+      "missing": 429,
       "tag": "BlackElo"
     },
     {
@@ -1979,7 +1979,7 @@
       "low": 2350
     },
     {
-      "games": 137630,
+      "games": 137629,
       "high": 2450,
       "low": 2400
     },
@@ -2024,7 +2024,7 @@
       "low": 2800
     },
     {
-      "games": 2929,
+      "games": 4,
       "high": null,
       "low": 2850
     }

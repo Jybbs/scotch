@@ -277,29 +277,36 @@ def test_numbered_writes_each_item_as_code_beside_its_words():
 def test_rules_write_each_figure_the_methods_pages_name():
     """
     Asserts that the counts take a comma between each group of three digits,
-    each measure its share of the matched games, and the accidents as the
-    odds against any two distinct positions of the index sharing a key,
-    rounded to two figures.
+    each measure its share of the matched games, the reach of the longest
+    runs as their lower median and their most, and the accidents as the odds
+    against any two distinct positions of the index sharing a key, rounded
+    to two figures.
     """
     rules = Rules(
         accidents  = 2.13e-05,
         crowd      = 100,
         crowded    = 1,
         keys       = 14000,
+        later      = 3,
+        lengths    = [2, 9, 12, 1203],
         matched    = 4,
+        picked     = {},
         sample     = 1000,
         tied       = 4,
         transposed = 2
     )
 
     assert rules.figures == {
-        "accidents"  : "47,000",
-        "crowd"      : "100",
-        "crowded"    : "25%",
-        "keys"       : "14,000",
-        "sample"     : "1,000",
-        "tied"       : "100%",
-        "transposed" : "50%"
+        "accidents"     : "47,000",
+        "crowd"         : "100",
+        "crowded"       : "25%",
+        "keys"          : "14,000",
+        "reach-later"   : "75%",
+        "reach-longest" : "1,203",
+        "reach-median"  : "9",
+        "sample"        : "1,000",
+        "tied"          : "100%",
+        "transposed"    : "50%"
     }
 
 
@@ -467,10 +474,13 @@ def test_the_others_row_counts_the_files_it_gathers_with_a_thousands_separator(
                 "matched"   : 0
             },
             {
-                "accidents"  : "47,000",
-                "crowded"    : "",
-                "tied"       : "",
-                "transposed" : ""
+                "accidents"     : "47,000",
+                "crowded"       : "",
+                "reach-later"   : "",
+                "reach-longest" : "",
+                "reach-median"  : "",
+                "tied"          : "",
+                "transposed"    : ""
             },
             id = "no-game-matched"
         ),
@@ -495,11 +505,22 @@ def test_rules_leave_empty_each_figure_holding_no_value(
     figures : dict[str, str]
 ):
     """
-    Asserts that each share of the matched games is empty where no sampled
-    game matched, and the odds against two positions sharing a key are empty
-    where the index holds no two keys, rather than failing.
+    Asserts that each share of the matched games and the reach of their
+    longest runs are empty where no sampled game matched, and the odds
+    against two positions sharing a key are empty where the index holds no
+    two keys, rather than failing.
     """
-    rules = Rules(crowd=100, crowded=0, sample=1, tied=0, transposed=0, **counts)
+    rules = Rules(
+        crowd      = 100,
+        crowded    = 0,
+        later      = 0,
+        lengths    = [],
+        picked     = {},
+        sample     = 1,
+        tied       = 0,
+        transposed = 0,
+        **counts
+    )
 
     assert {name: rules.figures[name] for name in figures} == figures
 

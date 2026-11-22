@@ -12,7 +12,7 @@ Of the stored games, <!-- tags-round -->92%<!-- /tags-round --> carry a `Round` 
 | `Event` | 100.0% | 1920s | 99.4% |
 | `Site` | 99.6% | 1980s | 97.7% |
 | `Date` | 100.0% | – | – |
-| `Round` | 92.5% | 1980s | 43.8% |
+| `Round` | 92.4% | 1980s | 43.8% |
 | `White` | 100.0% | – | – |
 | `Black` | 100.0% | – | – |
 | `Result` | 100.0% | 1920s | 99.8% |
@@ -75,7 +75,7 @@ Of the stored games, <!-- tags-round -->92%<!-- /tags-round --> carry a `Round` 
 | `WhiteElo` | 1990s | 5,262 | events/PCAQual1993.pgn (297), players/Paehtz.zip (133), players/VallejoPons.zip (70), players/Navara.zip (66) |
 | `WhiteElo` | 2000s | 1,506 | players/Bisguier.zip (22), openings/BenkoGambit.zip (21), players/Benjamin.zip (21), players/Ushenina.zip (21) |
 | `WhiteElo` | 2010s | 736 | players/Shirov.zip (21), openings/SicilianMisc2.zip (15), openings/RetiKIA.zip (14), players/Georgiev.zip (14) |
-| `WhiteElo` | 2020s | 537 | openings/Caro-KannAdv.zip (12), openings/Nimzowitsch-Larsen.zip (11), openings/SicilianSmith-Morra.zip (11), openings/Sicilian2Nf3Other2.zip (10) |
+| `WhiteElo` | 2020s | 430 | openings/Nimzowitsch-Larsen.zip (11), openings/SicilianSmith-Morra.zip (11), openings/Sicilian2Nf3Other2.zip (10), openings/London2g6.zip (9) |
 | `BlackElo` | Before 1900 | 7,229 | players/Anderssen.zip (681), players/Blackburne.zip (597), players/Chigorin.zip (399), players/Bird.zip (344) |
 | `BlackElo` | 1900s | 4,648 | players/Marshall.zip (388), players/Janowski.zip (295), players/Lasker.zip (264), players/Chigorin.zip (261) |
 | `BlackElo` | 1910s | 2,719 | players/Marshall.zip (183), players/Alekhine.zip (176), players/Janowski.zip (172), players/Spielmann.zip (168) |
@@ -89,7 +89,7 @@ Of the stored games, <!-- tags-round -->92%<!-- /tags-round --> carry a `Round` 
 | `BlackElo` | 1990s | 5,909 | events/PCAQual1993.pgn (297), players/Kasparov.zip (136), players/Paehtz.zip (134), openings/BenkoGambit.zip (86) |
 | `BlackElo` | 2000s | 1,818 | players/Kramnik.zip (50), players/Kasparov.zip (46), players/Karpov.zip (28), players/Short.zip (26) |
 | `BlackElo` | 2010s | 847 | players/Kasparov.zip (35), players/Carlsen.zip (18), players/Shirov.zip (15), players/Short.zip (15) |
-| `BlackElo` | 2020s | 535 | openings/Nimzowitsch-Larsen.zip (16), openings/Caro-KannAdv.zip (12), openings/SicilianRossolimo.zip (12), openings/Modern3Nc3-d6.zip (10) |
+| `BlackElo` | 2020s | 429 | openings/Nimzowitsch-Larsen.zip (16), openings/SicilianRossolimo.zip (11), players/Kosteniuk.zip (10), openings/Caro-KannAdv.zip (8) |
 | `ECO` | 1990s | 29 | events/PCAQual1993.pgn (29) |
 | `ECO` | 2000s | 365 | players/Adams.zip (14), players/Azmaiparashvili.zip (12), players/Ehlvest.zip (11), players/Gelfand.zip (11) |
 | `ECO` | 2010s | 104 | events/WorldCup2011.pgn (5), events/Gibraltar2019.pgn (3), events/WorldCup2013.pgn (3), openings/RetiKIA.zip (3) |
@@ -113,10 +113,10 @@ Of the stored games, <!-- tags-day -->78%<!-- /tags-day --> carry a `Date` tag n
 | 1960s | 17,753 | 0.7% | 0.0% |
 | 1970s | 25,845 | 1.8% | 74.9% |
 | 1980s | 48,522 | 0.2% | 94.0% |
-| 1990s | 137,036 | 20.2% | 92.7% |
+| 1990s | 137,035 | 20.2% | 92.7% |
 | 2000s | 191,385 | 100.0% | 98.3% |
-| 2010s | 300,702 | 100.0% | 99.5% |
-| 2020s | 380,433 | 100.0% | 99.7% |
+| 2010s | 300,701 | 100.0% | 99.5% |
+| 2020s | 377,296 | 100.0% | 99.8% |
 <!-- /dated -->
 
 ## The Tie Order
@@ -141,8 +141,8 @@ Where several stored games share the longest run with a submitted game, the matc
 | 2250 to under 2300 | 16,412 | 1.6% |
 | 2300 to under 2350 | 34,618 | 3.3% |
 | 2350 to under 2400 | 73,063 | 6.9% |
-| 2400 to under 2450 | 137,630 | 13.0% |
-| 2450 to under 2500 | 217,314 | 20.5% |
+| 2400 to under 2450 | 137,629 | 13.0% |
+| 2450 to under 2500 | 217,314 | 20.6% |
 | 2500 to under 2550 | 207,303 | 19.6% |
 | 2550 to under 2600 | 142,987 | 13.5% |
 | 2600 to under 2650 | 97,023 | 9.2% |
@@ -150,5 +150,5 @@ Where several stored games share the longest run with a submitted game, the matc
 | 2700 to under 2750 | 35,535 | 3.4% |
 | 2750 to under 2800 | 18,225 | 1.7% |
 | 2800 to under 2850 | 2,834 | 0.3% |
-| 2850 or more | 2,929 | 0.3% |
+| 2850 or more | 4 | 0.0% |
 <!-- /order -->

@@ -16,22 +16,22 @@ The store is the files `src/scotch/sources/sources.toml` declares, fetched under
 
 ## The Largest Shares
 
-A Players archive holds every game PGN Mentor collects for its player, an Events file every game of one event, and an Openings archive the games of one opening, of which the store keeps those reaching the floor, and a game two files both hold counts once, under the one `sources.toml` declares first. The store therefore keeps from <!-- smallest -->1<!-- /smallest --> to <!-- largest -->16,879<!-- /largest --> games of each file it keeps any game from, each count read from the index by `mise run docs:render`. Below, each file the store keeps the most games from takes a row, above one row holding every other file, and each row gives its games and the share of the store held down to it. The table beneath adds each one's own share.
+A Players archive holds every game PGN Mentor collects for its player, an Events file every game of one event, and an Openings archive the games of one opening, of which the store keeps those reaching the floor, and a game two files both hold counts once, under the one `sources.toml` declares first. The store therefore keeps from <!-- smallest -->1<!-- /smallest --> to <!-- largest -->16,873<!-- /largest --> games of each file it keeps any game from, each count read from the index by `mise run docs:render`. Below, each file the store keeps the most games from takes a row, above one row holding every other file, and each row gives its games and the share of the store held down to it. The table beneath adds each one's own share.
 
 <!-- archives -->
 | **File** | **Games** | **Share of the Store** | **Held Down to Here** |
 |---|---:|---:|---:|
-| RetiKIA | 16,879 | 1.5% | 1.5% |
-| SicilianRossolimo | 13,891 | 1.2% | 2.7% |
-| Caro-KannAdv | 12,738 | 1.1% | 3.8% |
-| SicilianMoscow | 11,530 | 1.0% | 4.8% |
-| SicilianTaimanovMain | 11,229 | 1.0% | 5.8% |
-| QGDOther34 | 11,153 | 1.0% | 6.7% |
-| BenkoGambit | 10,172 | 0.9% | 7.6% |
-| KIDOther7 | 9,141 | 0.8% | 8.4% |
-| NimzoRub4O-O | 9,115 | 0.8% | 9.2% |
-| TwoKnights | 9,082 | 0.8% | 10.0% |
-| 1,182 others | 1,035,226 | 90.0% | 100.0% |
+| RetiKIA | 16,873 | 1.5% | 1.5% |
+| SicilianRossolimo | 13,863 | 1.2% | 2.7% |
+| Caro-KannAdv | 12,674 | 1.1% | 3.8% |
+| SicilianMoscow | 11,528 | 1.0% | 4.8% |
+| SicilianTaimanovMain | 11,191 | 1.0% | 5.8% |
+| QGDOther34 | 11,145 | 1.0% | 6.7% |
+| BenkoGambit | 10,044 | 0.9% | 7.6% |
+| NimzoRub4O-O | 9,099 | 0.8% | 8.4% |
+| KIDOther7 | 9,097 | 0.8% | 9.2% |
+| TwoKnights | 9,078 | 0.8% | 10.0% |
+| 1,182 others | 1,032,425 | 90.0% | 100.0% |
 <!-- /archives -->
 
 ## Adding a Source

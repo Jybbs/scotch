@@ -16,16 +16,17 @@ export interface Placed {
 
 /**
  * Each mark a square the two games differ on takes, by which game stands a
- * piece there, which the board washes in that game's color and the key names.
+ * piece there, which the board washes in that game's color and its key names.
  */
 export const MARKS = ['submitted', 'stored', 'both'] as const
 /**
- * The name the key gives each mark.
+ * The name the key gives each mark, the submitted game being the line the page
+ * built.
  */
 export const MARK_NAMES = {
   both      : 'Both differ',
   stored    : 'Stored alone',
-  submitted : 'Submitted alone'
+  submitted : 'Line alone'
 } as const satisfies Record<Mark, string>
 /**
  * The copy of a black piece drawn under it, every stroke and fill of it forced
@@ -33,11 +34,6 @@ export const MARK_NAMES = {
  * styles, and hidden under a ghost.
  */
 export const HALO = '[&_*]:fill-light/85! [&_*]:stroke-light/85! [&_*]:stroke-[3.4]! in-data-ghost:hidden'
-/**
- * The opacity a piece takes on a square the two games share, on a square they
- * differ on, and as a stored game's ghost.
- */
-export const OPACITIES = { differing: 1, ghost: 0.95, shared: 0.2 } as const
 
 function occupancy(position: Position): Map<number, pieces.Piece> {
   return new Map(position.standing.map(({ piece, square }) => [square, piece]))
@@ -59,42 +55,12 @@ export function marksAt(example: Example, ply: number): (Mark | undefined)[] {
 }
 
 /**
- * Picks the square the key names a mark at, the lowest-ranked square taking
- * that mark nearest the board's middle files.
- */
-export function nearest(squares: readonly number[]): number | undefined {
-  return squares.toSorted((a, b) =>
-    Math.floor(a / 8) - Math.floor(b / 8) || Math.abs(a % 8 - 3.5) - Math.abs(b % 8 - 3.5))[0]
-}
-
-/**
  * Writes a piece as a whole SVG with no `id` of its own, so the many copies a
  * board draws never share one, a black piece drawn over a copy of itself the
  * `HALO` rings in the light squares' color so it reads on a dark square.
  */
 export function pieceMarkup(piece: pieces.Piece): string {
   return pieces.svgOf(pieces.ringed(piece, HALO))
-}
-
-/**
- * Lists every piece the board shows at a ply under the name its node keeps:
- * each piece of the line, full where the two games differ or where the move
- * reaching the ply landed and faint elsewhere, and the stored game's piece on
- * each square the two differ on as a ghost.
- */
-export function placedAt(example: Example, ply: number): Map<string, Placed> {
-  const marks  = marksAt(example, ply)
-  const landed = example.submitted[ply]!.to
-  const placed = new Map<string, Placed>()
-
-  for (const { id, piece, square } of example.submitted[ply]!.standing) {
-    const opacity = marks[square] || square === landed ? OPACITIES.differing : OPACITIES.shared
-    placed.set(String(id), { ghost: false, opacity, piece, square })
-  }
-  for (const { id, piece, square } of example.stored[ply]!.standing) {
-    if (marks[square]) placed.set(`g${id}`, { ghost: true, opacity: OPACITIES.ghost, piece, square })
-  }
-  return placed
 }
 
 /**
@@ -110,12 +76,4 @@ export function shadeOf(square: number): 'dark' | 'light' {
  */
 export function squareAt(square: number): string {
   return `translate(${(square % 8) * 100}%, ${(7 - Math.floor(square / 8)) * 100}%)`
-}
-
-/**
- * Groups the squares a ply's marks name by the mark each takes, leaving out a
- * mark no square takes.
- */
-export function squaresOf(marks: readonly (Mark | undefined)[]): Partial<Record<Mark, number[]>> {
-  return Object.groupBy([...marks.keys()].filter(square => marks[square]), square => marks[square]!)
 }

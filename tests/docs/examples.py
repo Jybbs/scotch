@@ -24,7 +24,9 @@ def test_a_showing_counts_the_run_in_the_lines_plies_beside_the_longest_other_ru
     """
     Asserts that a line a stored game reaches four plies late names its run
     by the line's own plies, and that the next run is the longest any other
-    stored game shares rather than the shortest.
+    stored game shares rather than the shortest. The stored game's runs
+    with the line are that run and, ahead of it, the starting position its
+    knights return to after four plies, the longest first.
     """
     path  = pgn("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 *\n")
     index = scanned(
@@ -46,9 +48,13 @@ def test_a_showing_counts_the_run_in_the_lines_plies_beside_the_longest_other_ru
             line("d4", "d5")
         ]
     )
-    figures = Example(path=Path(path.name), shown=0).drawn(index, path.parent).figures
+    drawn = Example(path=Path(path.name), shown=0).drawn(index, path.parent)
 
-    assert {name: figures[name] for name in (
+    assert drawn.runs == (
+        Span(length=7, offset=4, start=0),
+        Span(length=1, offset=0, start=0)
+    )
+    assert {name: drawn.figures[name] for name in (
         "end", "next", "parting", "run", "start"
     )} == {
         "end"     : "6",
@@ -145,15 +151,16 @@ def test_a_shown_game_refuses_a_new_value_for_a_header():
 
 def test_an_example_dumps_only_what_the_site_reads(index: PositionIndex, known: Path):
     """
-    Asserts that the JSON the site reads for an example holds the run, the
-    move where the games part, and each game's frames and moves, leaving out
-    the longest other run, the summary, and the tags the figures alone read.
+    Asserts that the JSON the site reads for an example holds the run, every
+    run the two games share, the move where the games part, and each game's
+    frames and moves, leaving out the longest other run, the summary, and
+    the tags the figures alone read.
     """
     dumped = Example(path=Path("demo.pgn"), shown=0).drawn(index, known).model_dump(
         mode = "json"
     )
 
-    assert set(dumped) == {"parting", "span", "stored", "submitted"}
+    assert set(dumped) == {"parting", "runs", "span", "stored", "submitted"}
     assert set(dumped["stored"]) == set(dumped["submitted"]) == {
         "frames", "keys", "played"
     }

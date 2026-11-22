@@ -31,17 +31,6 @@ describe('marksAt', () => {
   })
 })
 
-describe('nearest', () => {
-  it.each([
-    [[50, 44], 44],
-    [[9, 12], 12],
-    [[8, 11, 15], 11],
-    [[], undefined]
-  ])('names %j at %j, the lowest rank first and the middle files next', (list, square) => {
-    expect(squares.nearest(list)).toBe(square)
-  })
-})
-
 describe('pieceMarkup', () => {
   it.each(Object.keys(pieces) as Piece[])('draws the %s with no id of its own', piece => {
     expect(squares.pieceMarkup(piece)).not.toMatch(/ id="/u)
@@ -58,35 +47,6 @@ describe('pieceMarkup', () => {
   })
 })
 
-describe('placedAt', () => {
-  const placed = squares.placedAt(methods, 6)
-
-  it("draws each square's piece full where the two games differ", () => {
-    expect([placed.get('11'), placed.get('12')]).toEqual([
-      { ghost: false, opacity: squares.OPACITIES.differing, piece: 'P', square: 27 },
-      { ghost: false, opacity: squares.OPACITIES.differing, piece: 'P', square: 12 }
-    ])
-  })
-
-  it.each([
-    ['the piece the move reaching the ply set down full', '61', squares.OPACITIES.differing, 'b', 54],
-    ['a piece on a square the two share faint', '0', squares.OPACITIES.shared, 'R', 0]
-  ])('draws %s', (_, key, opacity, piece, square) => {
-    expect(placed.get(key)).toEqual({ ghost: false, opacity, piece, square })
-  })
-
-  it("draws the stored game's piece on each square the two differ on as a ghost", () => {
-    expect([...placed].filter(([, at]) => at.ghost)).toEqual([
-      ['g11', { ghost: true, opacity: squares.OPACITIES.ghost, piece: 'P', square: 11 }],
-      ['g12', { ghost: true, opacity: squares.OPACITIES.ghost, piece: 'P', square: 28 }]
-    ])
-  })
-
-  it('draws no ghost where the two games stand on one position', () => {
-    expect([...squares.placedAt(methods, 7).values()].some(at => at.ghost)).toBe(false)
-  })
-})
-
 describe('squareAt', () => {
   it.each([[0, 'translate(0%, 700%)'], [12, 'translate(400%, 600%)'], [63, 'translate(700%, 0%)']])(
     'stands a piece on square %i from a1 in the lower left',
@@ -94,15 +54,6 @@ describe('squareAt', () => {
       expect(squares.squareAt(square)).toBe(transform)
     }
   )
-})
-
-describe('squaresOf', () => {
-  it.each([
-    ['groups the squares a ply marks by their mark', 18, { both: [35], stored: [44, 50], submitted: [40] }],
-    ['leaves out a mark no square takes', 6, { stored: [11, 28], submitted: [12, 27] }]
-  ])('%s', (_, ply, grouped) => {
-    expect(squares.squaresOf(squares.marksAt(methods, ply))).toEqual(grouped)
-  })
 })
 
 describe('MARK_NAMES', () => {

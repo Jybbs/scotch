@@ -1,0 +1,831 @@
+{
+  "line": [
+    {
+      "joins": [
+        {
+          "index": 448,
+          "name": "White rook a1",
+          "piece": "R",
+          "square": 0,
+          "value": "a09e8c8c35ab96de"
+        },
+        {
+          "index": 193,
+          "name": "White knight b1",
+          "piece": "N",
+          "square": 1,
+          "value": "78e37644e7cad29e"
+        },
+        {
+          "index": 322,
+          "name": "White bishop c1",
+          "piece": "B",
+          "square": 2,
+          "value": "4715ed43e8a45c0a"
+        },
+        {
+          "index": 579,
+          "name": "White queen d1",
+          "piece": "Q",
+          "square": 3,
+          "value": "08dd9bdfd96b9f63"
+        },
+        {
+          "index": 708,
+          "name": "White king e1",
+          "piece": "K",
+          "square": 4,
+          "value": "b5fdfc5d3132c498"
+        },
+        {
+          "index": 325,
+          "name": "White bishop f1",
+          "piece": "B",
+          "square": 5,
+          "value": "b57d2e985e1419c7"
+        },
+        {
+          "index": 198,
+          "name": "White knight g1",
+          "piece": "N",
+          "square": 6,
+          "value": "df1d9f9d784ba010"
+        },
+        {
+          "index": 455,
+          "name": "White rook h1",
+          "piece": "R",
+          "square": 7,
+          "value": "d18d8549d140caea"
+        },
+        {
+          "index": 72,
+          "name": "White pawn a2",
+          "piece": "P",
+          "square": 8,
+          "value": "14acbaf4777d5776"
+        },
+        {
+          "index": 73,
+          "name": "White pawn b2",
+          "piece": "P",
+          "square": 9,
+          "value": "f145b6beccdea195"
+        },
+        {
+          "index": 74,
+          "name": "White pawn c2",
+          "piece": "P",
+          "square": 10,
+          "value": "dabf2ac8201752fc"
+        },
+        {
+          "index": 75,
+          "name": "White pawn d2",
+          "piece": "P",
+          "square": 11,
+          "value": "24c3c94df9c8d3f6"
+        },
+        {
+          "index": 76,
+          "name": "White pawn e2",
+          "piece": "P",
+          "square": 12,
+          "value": "bb6e2924f03912ea"
+        },
+        {
+          "index": 77,
+          "name": "White pawn f2",
+          "piece": "P",
+          "square": 13,
+          "value": "0ce26c0b95c980d9"
+        },
+        {
+          "index": 78,
+          "name": "White pawn g2",
+          "piece": "P",
+          "square": 14,
+          "value": "a49cd132bfbf7cc4"
+        },
+        {
+          "index": 79,
+          "name": "White pawn h2",
+          "piece": "P",
+          "square": 15,
+          "value": "e99d662af4243939"
+        },
+        {
+          "index": 48,
+          "name": "Black pawn a7",
+          "piece": "p",
+          "square": 48,
+          "value": "3253a729b9ba3dde"
+        },
+        {
+          "index": 49,
+          "name": "Black pawn b7",
+          "piece": "p",
+          "square": 49,
+          "value": "8c74c368081b3075"
+        },
+        {
+          "index": 50,
+          "name": "Black pawn c7",
+          "piece": "p",
+          "square": 50,
+          "value": "b9bc6c87167c33e7"
+        },
+        {
+          "index": 51,
+          "name": "Black pawn d7",
+          "piece": "p",
+          "square": 51,
+          "value": "7ef48f2b83024e20"
+        },
+        {
+          "index": 52,
+          "name": "Black pawn e7",
+          "piece": "p",
+          "square": 52,
+          "value": "11d505d4c351bd7f"
+        },
+        {
+          "index": 53,
+          "name": "Black pawn f7",
+          "piece": "p",
+          "square": 53,
+          "value": "6568fca92c76a243"
+        },
+        {
+          "index": 54,
+          "name": "Black pawn g7",
+          "piece": "p",
+          "square": 54,
+          "value": "4de0b0f40f32a7b8"
+        },
+        {
+          "index": 55,
+          "name": "Black pawn h7",
+          "piece": "p",
+          "square": 55,
+          "value": "96d693460cc37e5d"
+        },
+        {
+          "index": 440,
+          "name": "Black rook a8",
+          "piece": "r",
+          "square": 56,
+          "value": "26e6db8ffdf5adfe"
+        },
+        {
+          "index": 185,
+          "name": "Black knight b8",
+          "piece": "n",
+          "square": 57,
+          "value": "e755178d58fc4e76"
+        },
+        {
+          "index": 314,
+          "name": "Black bishop c8",
+          "piece": "b",
+          "square": 58,
+          "value": "a3bc941d0a5061cb"
+        },
+        {
+          "index": 571,
+          "name": "Black queen d8",
+          "piece": "q",
+          "square": 59,
+          "value": "9e21f4f903b33fd9"
+        },
+        {
+          "index": 700,
+          "name": "Black king e8",
+          "piece": "k",
+          "square": 60,
+          "value": "13ae978d09fe5557"
+        },
+        {
+          "index": 317,
+          "name": "Black bishop f8",
+          "piece": "b",
+          "square": 61,
+          "value": "852f54934da55cc9"
+        },
+        {
+          "index": 190,
+          "name": "Black knight g8",
+          "piece": "n",
+          "square": 62,
+          "value": "8ec97d2917456ed0"
+        },
+        {
+          "index": 447,
+          "name": "Black rook h8",
+          "piece": "r",
+          "square": 63,
+          "value": "8fe88b57305e2ab6"
+        },
+        {
+          "index": 768,
+          "name": "White castling short",
+          "piece": null,
+          "square": null,
+          "value": "31d71dce64b2c310"
+        },
+        {
+          "index": 769,
+          "name": "White castling long",
+          "piece": null,
+          "square": null,
+          "value": "f165b587df898190"
+        },
+        {
+          "index": 770,
+          "name": "Black castling short",
+          "piece": null,
+          "square": null,
+          "value": "a57e6339dd2cf3a0"
+        },
+        {
+          "index": 771,
+          "name": "Black castling long",
+          "piece": null,
+          "square": null,
+          "value": "1ef6e6dbb1961ec9"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": []
+    },
+    {
+      "joins": [
+        {
+          "index": 91,
+          "name": "White pawn d4",
+          "piece": "P",
+          "square": 27,
+          "value": "1920c04d47267bbd"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 75,
+          "name": "White pawn d2",
+          "piece": "P",
+          "square": 11,
+          "value": "24c3c94df9c8d3f6"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 173,
+          "name": "Black knight f6",
+          "piece": "n",
+          "square": 45,
+          "value": "2df16f761598aa4f"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 190,
+          "name": "Black knight g8",
+          "piece": "n",
+          "square": 62,
+          "value": "8ec97d2917456ed0"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 90,
+          "name": "White pawn c4",
+          "piece": "P",
+          "square": 26,
+          "value": "ae4a9346cc3f7cf2"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 74,
+          "name": "White pawn c2",
+          "piece": "P",
+          "square": 10,
+          "value": "dabf2ac8201752fc"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 46,
+          "name": "Black pawn g6",
+          "piece": "p",
+          "square": 46,
+          "value": "5c82c505db9ab0fa"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 54,
+          "name": "Black pawn g7",
+          "piece": "p",
+          "square": 54,
+          "value": "4de0b0f40f32a7b8"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 210,
+          "name": "White knight c3",
+          "piece": "N",
+          "square": 18,
+          "value": "7ba2484c8a0fd54e"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 193,
+          "name": "White knight b1",
+          "piece": "N",
+          "square": 1,
+          "value": "78e37644e7cad29e"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 310,
+          "name": "Black bishop g7",
+          "piece": "b",
+          "square": 54,
+          "value": "cd454f8f19c5126a"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 317,
+          "name": "Black bishop f8",
+          "piece": "b",
+          "square": 61,
+          "value": "852f54934da55cc9"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 92,
+          "name": "White pawn e4",
+          "piece": "P",
+          "square": 28,
+          "value": "87bf02c6b49e2ae9"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 76,
+          "name": "White pawn e2",
+          "piece": "P",
+          "square": 12,
+          "value": "bb6e2924f03912ea"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 445,
+          "name": "Black rook f8",
+          "piece": "r",
+          "square": 61,
+          "value": "9bfb227ebdf4c5ce"
+        },
+        {
+          "index": 702,
+          "name": "Black king g8",
+          "piece": "k",
+          "square": 62,
+          "value": "4e4b705b92903ba4"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 700,
+          "name": "Black king e8",
+          "piece": "k",
+          "square": 60,
+          "value": "13ae978d09fe5557"
+        },
+        {
+          "index": 447,
+          "name": "Black rook h8",
+          "piece": "r",
+          "square": 63,
+          "value": "8fe88b57305e2ab6"
+        },
+        {
+          "index": 770,
+          "name": "Black castling short",
+          "piece": null,
+          "square": null,
+          "value": "a57e6339dd2cf3a0"
+        },
+        {
+          "index": 771,
+          "name": "Black castling long",
+          "piece": null,
+          "square": null,
+          "value": "1ef6e6dbb1961ec9"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 339,
+          "name": "White bishop d3",
+          "piece": "B",
+          "square": 19,
+          "value": "18a6a990c8b35ebd"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 325,
+          "name": "White bishop f1",
+          "piece": "B",
+          "square": 5,
+          "value": "b57d2e985e1419c7"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 34,
+          "name": "Black pawn c5",
+          "piece": "p",
+          "square": 34,
+          "value": "a71b9b83461cbd93"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 50,
+          "name": "Black pawn c7",
+          "piece": "p",
+          "square": 50,
+          "value": "b9bc6c87167c33e7"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 99,
+          "name": "White pawn d5",
+          "piece": "P",
+          "square": 35,
+          "value": "5bfea5b4712768e9"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 91,
+          "name": "White pawn d4",
+          "piece": "P",
+          "square": 27,
+          "value": "1920c04d47267bbd"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 43,
+          "name": "Black pawn d6",
+          "piece": "p",
+          "square": 43,
+          "value": "bf983fe0fe5d8244"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 51,
+          "name": "Black pawn d7",
+          "piece": "p",
+          "square": 51,
+          "value": "7ef48f2b83024e20"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 87,
+          "name": "White pawn h3",
+          "piece": "P",
+          "square": 23,
+          "value": "f9b89d3e99a075c2"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 79,
+          "name": "White pawn h2",
+          "piece": "P",
+          "square": 15,
+          "value": "e99d662af4243939"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 44,
+          "name": "Black pawn e6",
+          "piece": "p",
+          "square": 44,
+          "value": "9f74d14f7454a824"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 52,
+          "name": "Black pawn e7",
+          "piece": "p",
+          "square": 52,
+          "value": "11d505d4c351bd7f"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 213,
+          "name": "White knight f3",
+          "piece": "N",
+          "square": 21,
+          "value": "fcaf55c1bf8a4424"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 198,
+          "name": "White knight g1",
+          "piece": "N",
+          "square": 6,
+          "value": "df1d9f9d784ba010"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 168,
+          "name": "Black knight a6",
+          "piece": "n",
+          "square": 40,
+          "value": "51039ab7712457c3"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 185,
+          "name": "Black knight b8",
+          "piece": "n",
+          "square": 57,
+          "value": "e755178d58fc4e76"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 453,
+          "name": "White rook f1",
+          "piece": "R",
+          "square": 5,
+          "value": "ca1e3785a9e724e5"
+        },
+        {
+          "index": 710,
+          "name": "White king g1",
+          "piece": "K",
+          "square": 6,
+          "value": "e87fbb46217a360e"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 708,
+          "name": "White king e1",
+          "piece": "K",
+          "square": 4,
+          "value": "b5fdfc5d3132c498"
+        },
+        {
+          "index": 455,
+          "name": "White rook h1",
+          "piece": "R",
+          "square": 7,
+          "value": "d18d8549d140caea"
+        },
+        {
+          "index": 768,
+          "name": "White castling short",
+          "piece": null,
+          "square": null,
+          "value": "31d71dce64b2c310"
+        },
+        {
+          "index": 769,
+          "name": "White castling long",
+          "piece": null,
+          "square": null,
+          "value": "f165b587df898190"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ]
+    },
+    {
+      "joins": [
+        {
+          "index": 35,
+          "name": "Black pawn d5",
+          "piece": "p",
+          "square": 35,
+          "value": "03488b95b0f1850f"
+        },
+        {
+          "index": 780,
+          "name": "White to move",
+          "piece": null,
+          "square": null,
+          "value": "f8d626aaaf278509"
+        }
+      ],
+      "leaves": [
+        {
+          "index": 99,
+          "name": "White pawn d5",
+          "piece": "P",
+          "square": 35,
+          "value": "5bfea5b4712768e9"
+        },
+        {
+          "index": 44,
+          "name": "Black pawn e6",
+          "piece": "p",
+          "square": 44,
+          "value": "9f74d14f7454a824"
+        }
+      ]
+    }
+  ],
+  "passant": [
+    {
+      "cleared": "38dec8275e26db40",
+      "counted": "244716f4629e4be1",
+      "fen": "r5k1/8/8/3pP3/8/8/8/4K3 w - d6 0 2",
+      "legal": true
+    },
+    {
+      "cleared": "6144d03c8370d3fb",
+      "counted": "6144d03c8370d3fb",
+      "fen": "4r1k1/8/8/3pP3/8/8/8/4K3 w - d6 0 2",
+      "legal": false
+    }
+  ]
+}

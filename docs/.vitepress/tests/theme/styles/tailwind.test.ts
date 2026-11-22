@@ -121,6 +121,12 @@ describe('the sheet’s own variants and utilities', () => {
     expect(css).toContain('outline-offset: 2px;')
     expect(css).toContain('outline-color: var(--sc-run);')
   })
+
+  it('splits a square between the two games’ colors along its diagonal', async () => {
+    const css = await built('split-wash')
+    expect(css).toContain('background-image: linear-gradient(135deg')
+    expect(css).toContain('var(--sc-submitted) 60%, transparent) 0 49.4%')
+  })
 })
 
 describe('Tailwind’s defaults', () => {

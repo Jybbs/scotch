@@ -94,6 +94,12 @@ class Showing(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     share, or `None` where the stored game ends there.
     """
 
+    runs: tuple[Span, ...]
+    """
+    Every run the two games share, in the order `PositionIndex.runs` ranks
+    them, the match's own first.
+    """
+
     span: Span
     """
     The run the two games share.
@@ -168,6 +174,7 @@ class Example(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         return Showing(
             next      = matches[1].span.length if len(matches) > 1 else None,
             parting   = match.parting,
+            runs      = index.spans(index.runs(submitted).item(0, "game"), submitted),
             span      = match.span,
             stored    = Shown.from_game(match.game, self.shown),
             submitted = Shown.from_game(submitted, self.shown),

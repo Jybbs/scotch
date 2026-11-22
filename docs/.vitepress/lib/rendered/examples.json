@@ -1,6 +1,18 @@
 {
   "front": {
     "parting": "7. Qc2",
+    "runs": [
+      {
+        "length": 6,
+        "offset": 0,
+        "start": 7
+      },
+      {
+        "length": 1,
+        "offset": 0,
+        "start": 0
+      }
+    ],
     "span": {
       "length": 6,
       "offset": 0,
@@ -6770,6 +6782,18 @@
   },
   "methods": {
     "parting": "9...Nc7",
+    "runs": [
+      {
+        "length": 11,
+        "offset": 0,
+        "start": 7
+      },
+      {
+        "length": 1,
+        "offset": 0,
+        "start": 0
+      }
+    ],
     "span": {
       "length": 11,
       "offset": 0,

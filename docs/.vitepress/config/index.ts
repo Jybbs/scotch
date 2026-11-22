@@ -22,7 +22,7 @@ export default defineConfig<chrome.SiteTheme>({
   description       : facts.description,
   head              : head.siteHead(TITLE),
   lang              : 'en-US',
-  markdown          : { config: markdownRules },
+  markdown          : { config: markdownRules, math: true },
   sitemap           : { hostname: facts.homepage },
   srcDir            : paths.pagesDir(import.meta.url),
   title             : TITLE,

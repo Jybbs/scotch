@@ -90,10 +90,10 @@ scotch show position 1. d4 Nf6 2. c4 e6 --top 3
 ```
 
 ```text
-124,263 stored games reach this position
-Nc3        56,957  1-0 20,032  1/2-1/2 20,949  0-1 15,972  * 4
-Nf3        56,080  1-0 18,770  1/2-1/2 23,861  0-1 13,443  * 6
-g3         10,898  1-0 3,478  1/2-1/2 4,373  0-1 3,045  * 2
+124,053 stored games reach this position
+Nc3        56,847  1-0 19,994  1/2-1/2 20,878  0-1 15,971  * 4
+Nf3        55,988  1-0 18,740  1/2-1/2 23,799  0-1 13,443  * 6
+g3         10,890  1-0 3,476  1/2-1/2 4,367  0-1 3,045  * 2
 Bg5           182  1-0 111  1/2-1/2 46  0-1 25  * 0
 Bf4            58  1-0 24  1/2-1/2 16  0-1 18  * 0
 a3             45  1-0 19  1/2-1/2 11  0-1 15  * 0
@@ -123,7 +123,7 @@ scotch show store
 
 ```text
 …
-The index holds 1,150,156 games and 98,542,793 positions
+The index holds 1,147,017 games and 98,072,952 positions
 The index was built from the files as fetched
 Next: scotch match game <pgn>
 ```

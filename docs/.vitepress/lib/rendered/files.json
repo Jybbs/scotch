@@ -15175,15 +15175,15 @@
       "1990": 23,
       "2000": 51,
       "2010": 76,
-      "2020": 367
+      "2020": 349
     },
     "file": "openings/Alekhine4Pawns.zip",
-    "games": 533,
+    "games": 515,
     "group": "Modern King Pawn",
     "moves": "1.e4 Nf6 2.e5 Nd5 3.d4 d6 4.c4 Nb6 5.f4",
     "section": "Openings",
     "title": "Alekhine, Four Pawns Attack",
-    "year": 2024
+    "year": 2023
   },
   {
     "decades": {
@@ -15192,10 +15192,10 @@
       "1990": 137,
       "2000": 257,
       "2010": 339,
-      "2020": 523
+      "2020": 513
     },
     "file": "openings/AlekhineExchange.zip",
-    "games": 1264,
+    "games": 1254,
     "group": "Modern King Pawn",
     "moves": "1.e4 Nf6 2.e5 Nd5 3.d4 d6 4.c4 Nb6 5.exd6",
     "section": "Openings",
@@ -15209,10 +15209,10 @@
       "1990": 443,
       "2000": 536,
       "2010": 672,
-      "2020": 1117
+      "2020": 1081
     },
     "file": "openings/AlekhineModern.zip",
-    "games": 2883,
+    "games": 2847,
     "group": "Modern King Pawn",
     "moves": "1.e4 Nf6 2.e5 Nd5 3.d4 d6 4.Nf3",
     "section": "Openings",
@@ -15243,10 +15243,10 @@
       "1990": 1540,
       "2000": 1848,
       "2010": 3224,
-      "2020": 3111
+      "2020": 2983
     },
     "file": "openings/BenkoGambit.zip",
-    "games": 10172,
+    "games": 10044,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 c5 3.d5 b5",
     "section": "Openings",
@@ -15260,10 +15260,10 @@
       "1990": 187,
       "2000": 316,
       "2010": 588,
-      "2020": 791
+      "2020": 781
     },
     "file": "openings/Bird.zip",
-    "games": 1899,
+    "games": 1889,
     "group": "Flank and Unorthodox",
     "moves": "1.f4",
     "section": "Openings",
@@ -15310,10 +15310,10 @@
       "1990": 698,
       "2000": 828,
       "2010": 1757,
-      "2020": 1750
+      "2020": 1744
     },
     "file": "openings/Bogo4Bd2.zip",
-    "games": 5256,
+    "games": 5250,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+ 4.Bd2",
     "section": "Openings",
@@ -15344,10 +15344,10 @@
       "1990": 146,
       "2000": 165,
       "2010": 263,
-      "2020": 423
+      "2020": 397
     },
     "file": "openings/BudapestGambit.zip",
-    "games": 1031,
+    "games": 1005,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e5",
     "section": "Openings",
@@ -15361,10 +15361,10 @@
       "1990": 396,
       "2000": 785,
       "2010": 830,
-      "2020": 703
+      "2020": 699
     },
     "file": "openings/Caro-Kann2c4.zip",
-    "games": 2772,
+    "games": 2768,
     "group": "Modern King Pawn",
     "moves": "1.e4 c6 2.c4",
     "section": "Openings",
@@ -15378,10 +15378,10 @@
       "1990": 133,
       "2000": 265,
       "2010": 1532,
-      "2020": 2848
+      "2020": 2836
     },
     "file": "openings/Caro-Kann2Knight.zip",
-    "games": 4799,
+    "games": 4787,
     "group": "Modern King Pawn",
     "moves": "1.e4 c6 2.Nc3 d5 3.Nf3",
     "section": "Openings",
@@ -15395,10 +15395,10 @@
       "1990": 361,
       "2000": 410,
       "2010": 460,
-      "2020": 266
+      "2020": 256
     },
     "file": "openings/Caro-Kann4Nd7.zip",
-    "games": 1630,
+    "games": 1620,
     "group": "Modern King Pawn",
     "moves": "1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Nd7",
     "section": "Openings",
@@ -15412,15 +15412,15 @@
       "1990": 98,
       "2000": 121,
       "2010": 477,
-      "2020": 1877
+      "2020": 1851
     },
     "file": "openings/Caro-Kann4Nf6.zip",
-    "games": 2633,
+    "games": 2607,
     "group": "Modern King Pawn",
     "moves": "1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4 Nf6",
     "section": "Openings",
     "title": "Caro-Kann, 4...Nf6",
-    "year": 2023
+    "year": 2022
   },
   {
     "decades": {
@@ -15429,10 +15429,10 @@
       "1990": 505,
       "2000": 1490,
       "2010": 3744,
-      "2020": 6965
+      "2020": 6901
     },
     "file": "openings/Caro-KannAdv.zip",
-    "games": 12738,
+    "games": 12674,
     "group": "Modern King Pawn",
     "moves": "1.e4 c6 2.d4 d5 3.e5",
     "section": "Openings",
@@ -15463,10 +15463,10 @@
       "1990": 91,
       "2000": 160,
       "2010": 688,
-      "2020": 1962
+      "2020": 1958
     },
     "file": "openings/Caro-KannEx.zip",
-    "games": 2924,
+    "games": 2920,
     "group": "Modern King Pawn",
     "moves": "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.Bd3",
     "section": "Openings",
@@ -15480,10 +15480,10 @@
       "1990": 447,
       "2000": 739,
       "2010": 800,
-      "2020": 826
+      "2020": 824
     },
     "file": "openings/Caro-KannPan-Bot.zip",
-    "games": 2913,
+    "games": 2911,
     "group": "Modern King Pawn",
     "moves": "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4",
     "section": "Openings",
@@ -15514,10 +15514,10 @@
       "1990": 166,
       "2000": 316,
       "2010": 918,
-      "2020": 747
+      "2020": 741
     },
     "file": "openings/Catalan3c5.zip",
-    "games": 2240,
+    "games": 2234,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.g3 c5",
     "section": "Openings",
@@ -15531,10 +15531,10 @@
       "1990": 420,
       "2000": 787,
       "2010": 2025,
-      "2020": 3341
+      "2020": 3339
     },
     "file": "openings/CatalanClosed.zip",
-    "games": 6702,
+    "games": 6700,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2 Be7 5.Nf3",
     "section": "Openings",
@@ -15548,10 +15548,10 @@
       "1990": 85,
       "2000": 139,
       "2010": 308,
-      "2020": 395
+      "2020": 393
     },
     "file": "openings/CatalanOpen.zip",
-    "games": 972,
+    "games": 970,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2 dxc4",
     "section": "Openings",
@@ -15565,10 +15565,10 @@
       "1990": 32,
       "2000": 92,
       "2010": 128,
-      "2020": 317
+      "2020": 311
     },
     "file": "openings/CenterGame-Danish.zip",
-    "games": 574,
+    "games": 568,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.d4 exd4",
     "section": "Openings",
@@ -15582,10 +15582,10 @@
       "1990": 80,
       "2000": 185,
       "2010": 404,
-      "2020": 1024
+      "2020": 1022
     },
     "file": "openings/Colle.zip",
-    "games": 1712,
+    "games": 1710,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.Nf3 Nf6 3.e3",
     "section": "Openings",
@@ -15630,10 +15630,10 @@
       "1990": 99,
       "2000": 120,
       "2010": 368,
-      "2020": 250
+      "2020": 236
     },
     "file": "openings/Dutch3Nc3.zip",
-    "games": 848,
+    "games": 834,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 f5 2.c4 Nf6 3.Nc3",
     "section": "Openings",
@@ -15647,10 +15647,10 @@
       "1990": 304,
       "2000": 334,
       "2010": 496,
-      "2020": 208
+      "2020": 196
     },
     "file": "openings/DutchClassical.zip",
-    "games": 1417,
+    "games": 1405,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 f5 2.c4 Nf6 3.g3 e6 4.Bg2",
     "section": "Openings",
@@ -15664,10 +15664,10 @@
       "1990": 286,
       "2000": 256,
       "2010": 522,
-      "2020": 347
+      "2020": 339
     },
     "file": "openings/DutchLeningrad.zip",
-    "games": 1470,
+    "games": 1462,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 f5 2.c4 Nf6 3.g3 g6 4.Bg2 Bg7 5.Nf3 O-O 6.O-O",
     "section": "Openings",
@@ -15681,10 +15681,10 @@
       "1990": 253,
       "2000": 389,
       "2010": 729,
-      "2020": 659
+      "2020": 638
     },
     "file": "openings/DutchOther.zip",
-    "games": 2074,
+    "games": 2053,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 f5 2.Nc3, Bg5, e4",
     "section": "Openings",
@@ -15698,10 +15698,10 @@
       "1990": 124,
       "2000": 185,
       "2010": 409,
-      "2020": 552
+      "2020": 538
     },
     "file": "openings/English1b6.zip",
-    "games": 1291,
+    "games": 1277,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 b6",
     "section": "Openings",
@@ -15715,10 +15715,10 @@
       "1990": 434,
       "2000": 623,
       "2010": 1795,
-      "2020": 1760
+      "2020": 1758
     },
     "file": "openings/English1c6.zip",
-    "games": 4716,
+    "games": 4714,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 c6",
     "section": "Openings",
@@ -15732,10 +15732,10 @@
       "1990": 327,
       "2000": 340,
       "2010": 877,
-      "2020": 1983
+      "2020": 1981
     },
     "file": "openings/English1e6-2Nc3-d5.zip",
-    "games": 3629,
+    "games": 3627,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e6 2.Nc3 d5",
     "section": "Openings",
@@ -15749,10 +15749,10 @@
       "1990": 503,
       "2000": 729,
       "2010": 1532,
-      "2020": 2462
+      "2020": 2456
     },
     "file": "openings/English1e6-2Nf3-d5.zip",
-    "games": 5342,
+    "games": 5336,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e6 2.Nf3 d5",
     "section": "Openings",
@@ -15766,10 +15766,10 @@
       "1990": 492,
       "2000": 961,
       "2010": 1486,
-      "2020": 1361
+      "2020": 1359
     },
     "file": "openings/English1e6Main.zip",
-    "games": 4531,
+    "games": 4529,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e6 2.Nc3 Nf6 3.Nf3",
     "section": "Openings",
@@ -15783,10 +15783,10 @@
       "1990": 203,
       "2000": 173,
       "2010": 338,
-      "2020": 241
+      "2020": 239
     },
     "file": "openings/English1f5.zip",
-    "games": 1008,
+    "games": 1006,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 f5",
     "section": "Openings",
@@ -15800,10 +15800,10 @@
       "1990": 825,
       "2000": 651,
       "2010": 1598,
-      "2020": 1719
+      "2020": 1705
     },
     "file": "openings/English1g6.zip",
-    "games": 5090,
+    "games": 5076,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 g6",
     "section": "Openings",
@@ -15817,10 +15817,10 @@
       "1990": 215,
       "2000": 327,
       "2010": 1217,
-      "2020": 1108
+      "2020": 1098
     },
     "file": "openings/English1Nf6-2g3.zip",
-    "games": 2931,
+    "games": 2921,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 Nf6 2.g3",
     "section": "Openings",
@@ -15831,13 +15831,13 @@
     "decades": {
       "1970": 26,
       "1980": 64,
-      "1990": 387,
+      "1990": 386,
       "2000": 402,
       "2010": 935,
-      "2020": 1243
+      "2020": 1211
     },
     "file": "openings/English1Nf6-2Nc3.zip",
-    "games": 3057,
+    "games": 3024,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 Nf6 2.Nc3 g6",
     "section": "Openings",
@@ -15851,10 +15851,10 @@
       "1990": 444,
       "2000": 378,
       "2010": 836,
-      "2020": 664
+      "2020": 661
     },
     "file": "openings/English1Nf6-2Nf3.zip",
-    "games": 2437,
+    "games": 2434,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 Nf6 2.Nf3 g6 3.g3 Bg7 4.Bg2 O-O",
     "section": "Openings",
@@ -15868,10 +15868,10 @@
       "1990": 95,
       "2000": 171,
       "2010": 495,
-      "2020": 531
+      "2020": 523
     },
     "file": "openings/EnglishFlohr-Mikenas.zip",
-    "games": 1312,
+    "games": 1304,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e6 2.Nc3 Nf6 3.e4",
     "section": "Openings",
@@ -15885,15 +15885,15 @@
       "1990": 629,
       "2000": 772,
       "2010": 2233,
-      "2020": 2194
+      "2020": 2183
     },
     "file": "openings/EnglishSicRev2g3.zip",
-    "games": 5934,
+    "games": 5923,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e5 2.g3",
     "section": "Openings",
     "title": "English, Sicilian Reversed, 2.g3",
-    "year": 2023
+    "year": 2024
   },
   {
     "decades": {
@@ -15902,10 +15902,10 @@
       "1990": 503,
       "2000": 743,
       "2010": 1622,
-      "2020": 1891
+      "2020": 1885
     },
     "file": "openings/EnglishSicRev4Knights.zip",
-    "games": 4957,
+    "games": 4951,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e5 2.Nc3 Nf6 3.Nf3 Nc6",
     "section": "Openings",
@@ -15919,10 +15919,10 @@
       "1990": 191,
       "2000": 327,
       "2010": 633,
-      "2020": 472
+      "2020": 468
     },
     "file": "openings/EnglishSicRevBremen.zip",
-    "games": 1669,
+    "games": 1665,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e5 2.Nc3 Nf6 3.g3",
     "section": "Openings",
@@ -15936,10 +15936,10 @@
       "1990": 257,
       "2000": 290,
       "2010": 614,
-      "2020": 536
+      "2020": 523
     },
     "file": "openings/EnglishSicRevClosed.zip",
-    "games": 1782,
+    "games": 1769,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e5 2.Nc3 Nc6",
     "section": "Openings",
@@ -15953,10 +15953,10 @@
       "1990": 284,
       "2000": 270,
       "2010": 713,
-      "2020": 1123
+      "2020": 1113
     },
     "file": "openings/EnglishSicRevOtherB2.zip",
-    "games": 2468,
+    "games": 2458,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 e5 2.Nc3 d6, Bb4",
     "section": "Openings",
@@ -15987,10 +15987,10 @@
       "1990": 391,
       "2000": 384,
       "2010": 919,
-      "2020": 1036
+      "2020": 1033
     },
     "file": "openings/EnglishSymFourKnights.zip",
-    "games": 2839,
+    "games": 2836,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 c5 2.Nc3 Nf6 3.Nf3 Nc6",
     "section": "Openings",
@@ -16004,10 +16004,10 @@
       "1990": 153,
       "2000": 280,
       "2010": 462,
-      "2020": 290
+      "2020": 289
     },
     "file": "openings/EnglishSymHedgehog.zip",
-    "games": 1259,
+    "games": 1258,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 c5 2.Nf3 Nf6 3.g3 b6 4.Bg2 Bb7 5.O-O e6",
     "section": "Openings",
@@ -16021,10 +16021,10 @@
       "1990": 229,
       "2000": 350,
       "2010": 815,
-      "2020": 869
+      "2020": 862
     },
     "file": "openings/EnglishSymMain.zip",
-    "games": 2329,
+    "games": 2322,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 c5 2.Nc3 Nc6 3.g3 g6 4.Bg2 Bg7",
     "section": "Openings",
@@ -16038,10 +16038,10 @@
       "1990": 622,
       "2000": 873,
       "2010": 1400,
-      "2020": 1139
+      "2020": 1136
     },
     "file": "openings/EnglishSymOtherB3.zip",
-    "games": 4347,
+    "games": 4344,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 c5 2.Nc3 Nf6 3.Nf3 e6, d5, g6, b6",
     "section": "Openings",
@@ -16055,15 +16055,15 @@
       "1990": 108,
       "2000": 173,
       "2010": 283,
-      "2020": 206
+      "2020": 202
     },
     "file": "openings/EngSymDoubleFianchetto.zip",
-    "games": 837,
+    "games": 833,
     "group": "Flank and Unorthodox",
     "moves": "1.c4 c5 2.Nf3 Nf6 3.g3 b6 4.Bg2 Bb7 5.O-O g6",
     "section": "Openings",
     "title": "English, Symmetrical Double Fianchetto",
-    "year": 2025
+    "year": 2014
   },
   {
     "decades": {
@@ -16072,10 +16072,10 @@
       "1990": 583,
       "2000": 754,
       "2010": 1786,
-      "2020": 5025
+      "2020": 5011
     },
     "file": "openings/FourKnights.zip",
-    "games": 8198,
+    "games": 8184,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6",
     "section": "Openings",
@@ -16089,10 +16089,10 @@
       "1990": 460,
       "2000": 800,
       "2010": 954,
-      "2020": 2973
+      "2020": 2953
     },
     "file": "openings/FrenchAdvance.zip",
-    "games": 5276,
+    "games": 5256,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.e5 c5 4.c3",
     "section": "Openings",
@@ -16123,10 +16123,10 @@
       "1990": 159,
       "2000": 234,
       "2010": 303,
-      "2020": 229
+      "2020": 223
     },
     "file": "openings/FrenchClassical.zip",
-    "games": 956,
+    "games": 950,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 Be7",
     "section": "Openings",
@@ -16157,10 +16157,10 @@
       "1990": 338,
       "2000": 481,
       "2010": 693,
-      "2020": 906
+      "2020": 904
     },
     "file": "openings/FrenchKIA.zip",
-    "games": 2470,
+    "games": 2468,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d3",
     "section": "Openings",
@@ -16174,10 +16174,10 @@
       "1990": 134,
       "2000": 254,
       "2010": 337,
-      "2020": 233
+      "2020": 221
     },
     "file": "openings/FrenchMacCutcheon.zip",
-    "games": 970,
+    "games": 958,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 Bb4",
     "section": "Openings",
@@ -16191,10 +16191,10 @@
       "1990": 251,
       "2000": 474,
       "2010": 662,
-      "2020": 1330
+      "2020": 1318
     },
     "file": "openings/FrenchOther2.zip",
-    "games": 2748,
+    "games": 2736,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.Nf3, Qe2, Nc3, b3, c4",
     "section": "Openings",
@@ -16208,10 +16208,10 @@
       "1990": 351,
       "2000": 850,
       "2010": 912,
-      "2020": 1241
+      "2020": 1233
     },
     "file": "openings/FrenchRubinstein.zip",
-    "games": 3383,
+    "games": 3375,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nc3 dxe4 4.Nxe4",
     "section": "Openings",
@@ -16240,10 +16240,10 @@
       "1990": 282,
       "2000": 750,
       "2010": 1572,
-      "2020": 1723
+      "2020": 1691
     },
     "file": "openings/FrenchSteinitz.zip",
-    "games": 4369,
+    "games": 4337,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.e5",
     "section": "Openings",
@@ -16257,10 +16257,10 @@
       "1990": 500,
       "2000": 930,
       "2010": 1810,
-      "2020": 1942
+      "2020": 1934
     },
     "file": "openings/FrTarrasch3c5.zip",
-    "games": 5355,
+    "games": 5347,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nd2 c5",
     "section": "Openings",
@@ -16274,10 +16274,10 @@
       "1990": 595,
       "2000": 876,
       "2010": 1147,
-      "2020": 474
+      "2020": 430
     },
     "file": "openings/FrTarrasch3Nf6.zip",
-    "games": 3251,
+    "games": 3207,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nd2 Nf6",
     "section": "Openings",
@@ -16291,10 +16291,10 @@
       "1990": 249,
       "2000": 689,
       "2010": 1342,
-      "2020": 783
+      "2020": 759
     },
     "file": "openings/FrTarraschOther3.zip",
-    "games": 3165,
+    "games": 3141,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nd2 Nc6, Be7, a6",
     "section": "Openings",
@@ -16308,10 +16308,10 @@
       "1990": 493,
       "2000": 963,
       "2010": 1250,
-      "2020": 1125
+      "2020": 1082
     },
     "file": "openings/FrWinawerMain.zip",
-    "games": 3972,
+    "games": 3929,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5 c5",
     "section": "Openings",
@@ -16325,15 +16325,15 @@
       "1990": 339,
       "2000": 588,
       "2010": 634,
-      "2020": 493
+      "2020": 398
     },
     "file": "openings/FrWinawerOtherB4.zip",
-    "games": 2152,
+    "games": 2057,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5 Ne7, b6, Qd7",
     "section": "Openings",
     "title": "French, Winawer Other Black 4th moves",
-    "year": 2023
+    "year": 2020
   },
   {
     "decades": {
@@ -16343,10 +16343,10 @@
       "1990": 211,
       "2000": 346,
       "2010": 605,
-      "2020": 770
+      "2020": 762
     },
     "file": "openings/FrWinawerOtherW4.zip",
-    "games": 1989,
+    "games": 1981,
     "group": "Modern King Pawn",
     "moves": "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.Ne2, exd5, Bd3, a3",
     "section": "Openings",
@@ -16360,10 +16360,10 @@
       "1990": 262,
       "2000": 726,
       "2010": 3281,
-      "2020": 4734
+      "2020": 4718
     },
     "file": "openings/GiuocoPiano.zip",
-    "games": 9051,
+    "games": 9035,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
     "section": "Openings",
@@ -16394,10 +16394,10 @@
       "1990": 502,
       "2000": 632,
       "2010": 1473,
-      "2020": 1048
+      "2020": 1041
     },
     "file": "openings/Grunfeld4Nf3.zip",
-    "games": 3897,
+    "games": 3890,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3",
     "section": "Openings",
@@ -16411,10 +16411,10 @@
       "1990": 699,
       "2000": 782,
       "2010": 1674,
-      "2020": 1592
+      "2020": 1583
     },
     "file": "openings/GrunfeldExchange.zip",
-    "games": 4960,
+    "games": 4951,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5 Nxd5 5.e4 Nxc3 6.bxc3 Bg7",
     "section": "Openings",
@@ -16428,10 +16428,10 @@
       "1990": 146,
       "2000": 161,
       "2010": 646,
-      "2020": 996
+      "2020": 990
     },
     "file": "openings/GrunfeldFianchetto.zip",
-    "games": 1984,
+    "games": 1978,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.g3 d5 4.Bg2 Bg7 5.Nf3 O-O 6.O-O",
     "section": "Openings",
@@ -16445,10 +16445,10 @@
       "1990": 179,
       "2000": 463,
       "2010": 1225,
-      "2020": 612
+      "2020": 608
     },
     "file": "openings/GrunfeldOther.zip",
-    "games": 2583,
+    "games": 2579,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Bf4, Bg5, e3, Qb3",
     "section": "Openings",
@@ -16479,10 +16479,10 @@
       "1990": 32,
       "2000": 49,
       "2010": 68,
-      "2020": 83
+      "2020": 79
     },
     "file": "openings/Hungarian.zip",
-    "games": 237,
+    "games": 233,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Be7",
     "section": "Openings",
@@ -16496,10 +16496,10 @@
       "1990": 223,
       "2000": 215,
       "2010": 228,
-      "2020": 159
+      "2020": 153
     },
     "file": "openings/KID4pawns.zip",
-    "games": 869,
+    "games": 863,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.f4",
     "section": "Openings",
@@ -16513,10 +16513,10 @@
       "1990": 443,
       "2000": 226,
       "2010": 424,
-      "2020": 265
+      "2020": 251
     },
     "file": "openings/KIDAverbakh.zip",
-    "games": 1429,
+    "games": 1415,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Be2 O-O 6.Bg5",
     "section": "Openings",
@@ -16530,10 +16530,10 @@
       "1990": 1018,
       "2000": 931,
       "2010": 1167,
-      "2020": 680
+      "2020": 610
     },
     "file": "openings/KIDClassical.zip",
-    "games": 3968,
+    "games": 3898,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O 6.Be2 e5 7.O-O Nc6",
     "section": "Openings",
@@ -16547,10 +16547,10 @@
       "1990": 921,
       "2000": 940,
       "2010": 1625,
-      "2020": 1449
+      "2020": 1417
     },
     "file": "openings/KIDFianchetto.zip",
-    "games": 5125,
+    "games": 5093,
     "group": "Modern Queen Pawn",
     "moves": "1.c4 Nf6 2.d4 g6 3.g3 Bg7 4.Bg2 d6 5.Nf3 O-O",
     "section": "Openings",
@@ -16564,10 +16564,10 @@
       "1990": 265,
       "2000": 446,
       "2010": 1324,
-      "2020": 1126
+      "2020": 1087
     },
     "file": "openings/KIDOther56.zip",
-    "games": 3217,
+    "games": 3178,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 Bg4, Nbd7, c6, c5 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O 6.h3, Be3, Bg5, Bd3, g3",
     "section": "Openings",
@@ -16581,10 +16581,10 @@
       "1990": 1636,
       "2000": 2074,
       "2010": 2807,
-      "2020": 2347
+      "2020": 2303
     },
     "file": "openings/KIDOther7.zip",
-    "games": 9141,
+    "games": 9097,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O 6.Be2 e5 7.Be3, dxe5, Bg5 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.Nf3 O-O 6.Be2 e5 7.O-O Nbd7, Na6, exd4, c6, Nh5, Qe8",
     "section": "Openings",
@@ -16608,10 +16608,10 @@
       "1990": 736,
       "2000": 665,
       "2010": 1232,
-      "2020": 687
+      "2020": 569
     },
     "file": "openings/KIDSaemisch.zip",
-    "games": 3475,
+    "games": 3357,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 4.e4 d6 5.f3",
     "section": "Openings",
@@ -16625,10 +16625,10 @@
       "1990": 179,
       "2000": 175,
       "2010": 224,
-      "2020": 401
+      "2020": 367
     },
     "file": "openings/KingsGambit.zip",
-    "games": 1014,
+    "games": 980,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.f4",
     "section": "Openings",
@@ -16642,10 +16642,10 @@
       "1990": 12,
       "2000": 5,
       "2010": 4,
-      "2020": 24
+      "2020": 22
     },
     "file": "openings/Latvian-Elephant.zip",
-    "games": 48,
+    "games": 46,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 f5, d5",
     "section": "Openings",
@@ -16676,10 +16676,10 @@
       "1990": 139,
       "2000": 169,
       "2010": 666,
-      "2020": 929
+      "2020": 927
     },
     "file": "openings/London2g6.zip",
-    "games": 1942,
+    "games": 1940,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.Nf3 g6 3.Bf4",
     "section": "Openings",
@@ -16693,15 +16693,15 @@
       "1990": 218,
       "2000": 281,
       "2010": 492,
-      "2020": 630
+      "2020": 607
     },
     "file": "openings/Modern.zip",
-    "games": 1678,
+    "games": 1655,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 d6 2.c4 g6 3.Nc3 Bg7 4.e4",
     "section": "Openings",
     "title": "Modern",
-    "year": 2022
+    "year": 2023
   },
   {
     "decades": {
@@ -16710,10 +16710,10 @@
       "1990": 329,
       "2000": 510,
       "2010": 714,
-      "2020": 636
+      "2020": 612
     },
     "file": "openings/Modern3Nc3-c6.zip",
-    "games": 2240,
+    "games": 2216,
     "group": "Modern King Pawn",
     "moves": "1.e4 g6 2.d4 Bg7 3.Nc3 c6",
     "section": "Openings",
@@ -16727,10 +16727,10 @@
       "1990": 713,
       "2000": 1174,
       "2010": 1957,
-      "2020": 2219
+      "2020": 2141
     },
     "file": "openings/Modern3Nc3-d6.zip",
-    "games": 6234,
+    "games": 6156,
     "group": "Modern King Pawn",
     "moves": "1.e4 g6 2.d4 Bg7 3.Nc3 d6",
     "section": "Openings",
@@ -16744,10 +16744,10 @@
       "1990": 30,
       "2000": 132,
       "2010": 395,
-      "2020": 765
+      "2020": 754
     },
     "file": "openings/Modern3Nc3Other.zip",
-    "games": 1333,
+    "games": 1322,
     "group": "Modern King Pawn",
     "moves": "1.e4 g6 2.d4 Bg7 3.Nc3 c5, a6, d5, Nc6",
     "section": "Openings",
@@ -16761,10 +16761,10 @@
       "1990": 445,
       "2000": 574,
       "2010": 1280,
-      "2020": 2168
+      "2020": 2140
     },
     "file": "openings/Modern3Nf3.zip",
-    "games": 4584,
+    "games": 4556,
     "group": "Modern King Pawn",
     "moves": "1.e4 g6 2.d4 Bg7 3.Nf3",
     "section": "Openings",
@@ -16778,10 +16778,10 @@
       "1990": 48,
       "2000": 107,
       "2010": 135,
-      "2020": 127
+      "2020": 124
     },
     "file": "openings/ModernBenoni6e4.zip",
-    "games": 442,
+    "games": 439,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3 exd5 5.cxd5 d6 6.e4",
     "section": "Openings",
@@ -16795,10 +16795,10 @@
       "1990": 297,
       "2000": 457,
       "2010": 801,
-      "2020": 665
+      "2020": 631
     },
     "file": "openings/ModernBenoni6Nf3.zip",
-    "games": 2382,
+    "games": 2348,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3 exd5 5.cxd5 d6 6.Nf3",
     "section": "Openings",
@@ -16812,10 +16812,10 @@
       "1990": 143,
       "2000": 114,
       "2010": 180,
-      "2020": 332
+      "2020": 328
     },
     "file": "openings/ModernOther3.zip",
-    "games": 799,
+    "games": 795,
     "group": "Modern King Pawn",
     "moves": "1.e4 g6 2.d4 Bg7 3.c3, f4, Be3, Bc4",
     "section": "Openings",
@@ -16829,10 +16829,10 @@
       "1990": 201,
       "2000": 407,
       "2010": 819,
-      "2020": 857
+      "2020": 845
     },
     "file": "openings/Nimzo4f3.zip",
-    "games": 2349,
+    "games": 2337,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.f3",
     "section": "Openings",
@@ -16846,10 +16846,10 @@
       "1990": 210,
       "2000": 713,
       "2010": 1180,
-      "2020": 1007
+      "2020": 1001
     },
     "file": "openings/Nimzo4Nf3.zip",
-    "games": 3233,
+    "games": 3227,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Nf3",
     "section": "Openings",
@@ -16863,10 +16863,10 @@
       "1990": 261,
       "2000": 491,
       "2010": 475,
-      "2020": 359
+      "2020": 357
     },
     "file": "openings/NimzoCl4c5.zip",
-    "games": 1670,
+    "games": 1668,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2 c5",
     "section": "Openings",
@@ -16880,10 +16880,10 @@
       "1990": 629,
       "2000": 1094,
       "2010": 1726,
-      "2020": 1099
+      "2020": 1084
     },
     "file": "openings/NimzoCl4O-O.zip",
-    "games": 4650,
+    "games": 4635,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2 O-O",
     "section": "Openings",
@@ -16897,10 +16897,10 @@
       "1990": 218,
       "2000": 636,
       "2010": 1202,
-      "2020": 1501
+      "2020": 1495
     },
     "file": "openings/NimzoClOther.zip",
-    "games": 3593,
+    "games": 3587,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2 d5, Nc6, b6, d6",
     "section": "Openings",
@@ -16914,10 +16914,10 @@
       "1990": 208,
       "2000": 244,
       "2010": 415,
-      "2020": 1575
+      "2020": 1553
     },
     "file": "openings/NimzoDefense.zip",
-    "games": 2513,
+    "games": 2491,
     "group": "Modern King Pawn",
     "moves": "1.e4 Nc6",
     "section": "Openings",
@@ -16948,10 +16948,10 @@
       "1990": 122,
       "2000": 192,
       "2010": 462,
-      "2020": 513
+      "2020": 511
     },
     "file": "openings/NimzoOther4.zip",
-    "games": 1332,
+    "games": 1330,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.g3, Qb3, Bd2",
     "section": "Openings",
@@ -16965,10 +16965,10 @@
       "1990": 372,
       "2000": 408,
       "2010": 462,
-      "2020": 333
+      "2020": 325
     },
     "file": "openings/NimzoRub4c5.zip",
-    "games": 1755,
+    "games": 1747,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3 c5",
     "section": "Openings",
@@ -16982,10 +16982,10 @@
       "1990": 543,
       "2000": 1012,
       "2010": 2820,
-      "2020": 4555
+      "2020": 4539
     },
     "file": "openings/NimzoRub4O-O.zip",
-    "games": 9115,
+    "games": 9099,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3 O-O",
     "section": "Openings",
@@ -16999,10 +16999,10 @@
       "1990": 230,
       "2000": 460,
       "2010": 816,
-      "2020": 944
+      "2020": 930
     },
     "file": "openings/NimzoRubOther.zip",
-    "games": 2534,
+    "games": 2520,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3 b6, d5, Nc6, Bxc3+",
     "section": "Openings",
@@ -17016,10 +17016,10 @@
       "1990": 29,
       "2000": 77,
       "2010": 166,
-      "2020": 495
+      "2020": 483
     },
     "file": "openings/NimzoSaemisch.zip",
-    "games": 786,
+    "games": 774,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.a3",
     "section": "Openings",
@@ -17033,10 +17033,10 @@
       "1990": 286,
       "2000": 346,
       "2010": 1306,
-      "2020": 5007
+      "2020": 4995
     },
     "file": "openings/Nimzowitsch-Larsen.zip",
-    "games": 6996,
+    "games": 6984,
     "group": "Flank and Unorthodox",
     "moves": "1.b3",
     "section": "Openings",
@@ -17050,10 +17050,10 @@
       "1990": 389,
       "2000": 443,
       "2010": 747,
-      "2020": 1178
+      "2020": 1118
     },
     "file": "openings/OldIndian.zip",
-    "games": 2919,
+    "games": 2859,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 d6",
     "section": "Openings",
@@ -17067,10 +17067,10 @@
       "1990": 47,
       "2000": 92,
       "2010": 135,
-      "2020": 516
+      "2020": 490
     },
     "file": "openings/OwenDefense.zip",
-    "games": 797,
+    "games": 771,
     "group": "Modern King Pawn",
     "moves": "1.e4 b6",
     "section": "Openings",
@@ -17084,10 +17084,10 @@
       "1990": 300,
       "2000": 1042,
       "2010": 1466,
-      "2020": 2320
+      "2020": 2316
     },
     "file": "openings/PetroffMain.zip",
-    "games": 5253,
+    "games": 5249,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nf6 3.Nxe5 d6 4.Nf3 Nxe4",
     "section": "Openings",
@@ -17101,10 +17101,10 @@
       "1990": 236,
       "2000": 417,
       "2010": 474,
-      "2020": 1380
+      "2020": 1378
     },
     "file": "openings/PetroffOther3.zip",
-    "games": 2558,
+    "games": 2556,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nf6 3.Nc3, d4, d3, Bc4",
     "section": "Openings",
@@ -17118,10 +17118,10 @@
       "1990": 269,
       "2000": 470,
       "2010": 482,
-      "2020": 578
+      "2020": 550
     },
     "file": "openings/Philidor.zip",
-    "games": 1858,
+    "games": 1830,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 d6",
     "section": "Openings",
@@ -17135,10 +17135,10 @@
       "1990": 192,
       "2000": 223,
       "2010": 424,
-      "2020": 234
+      "2020": 218
     },
     "file": "openings/PircAustrian.zip",
-    "games": 1147,
+    "games": 1131,
     "group": "Modern King Pawn",
     "moves": "1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.f4",
     "section": "Openings",
@@ -17152,15 +17152,15 @@
       "1990": 314,
       "2000": 300,
       "2010": 472,
-      "2020": 434
+      "2020": 414
     },
     "file": "openings/PircClassical.zip",
-    "games": 1622,
+    "games": 1602,
     "group": "Modern King Pawn",
     "moves": "1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.Nf3",
     "section": "Openings",
     "title": "Pirc, Classical",
-    "year": 2020
+    "year": 2022
   },
   {
     "decades": {
@@ -17169,10 +17169,10 @@
       "1990": 588,
       "2000": 1305,
       "2010": 2659,
-      "2020": 3250
+      "2020": 3226
     },
     "file": "openings/PircOtherBlack3.zip",
-    "games": 7889,
+    "games": 7865,
     "group": "Modern King Pawn",
     "moves": "1.e4 d6 2.d4 Nf6 3.Nc3 c6, e5, Nbd7",
     "section": "Openings",
@@ -17186,10 +17186,10 @@
       "1990": 252,
       "2000": 250,
       "2010": 555,
-      "2020": 572
+      "2020": 568
     },
     "file": "openings/PircOtherWhite3.zip",
-    "games": 1648,
+    "games": 1644,
     "group": "Modern King Pawn",
     "moves": "1.e4 d6 2.d4 Nf6 3.Bd3, f3, Nd2",
     "section": "Openings",
@@ -17203,15 +17203,15 @@
       "1990": 387,
       "2000": 593,
       "2010": 732,
-      "2020": 595
+      "2020": 559
     },
     "file": "openings/PircOtherWhite4.zip",
-    "games": 2391,
+    "games": 2355,
     "group": "Modern King Pawn",
     "moves": "1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.Be3, Bg5, f3, g3, Be2",
     "section": "Openings",
     "title": "Pirc, Other White 4th moves",
-    "year": 2023
+    "year": 2021
   },
   {
     "decades": {
@@ -17220,10 +17220,10 @@
       "1990": 44,
       "2000": 62,
       "2010": 104,
-      "2020": 228
+      "2020": 226
     },
     "file": "openings/Ponziani.zip",
-    "games": 462,
+    "games": 460,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.c3",
     "section": "Openings",
@@ -17236,10 +17236,10 @@
       "1990": 28,
       "2000": 117,
       "2010": 122,
-      "2020": 255
+      "2020": 253
     },
     "file": "openings/QG-Albin.zip",
-    "games": 524,
+    "games": 522,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e5",
     "section": "Openings",
@@ -17253,15 +17253,15 @@
       "1990": 148,
       "2000": 301,
       "2010": 269,
-      "2020": 291
+      "2020": 265
     },
     "file": "openings/QG-Chigorin.zip",
-    "games": 1023,
+    "games": 997,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 Nc6",
     "section": "Openings",
     "title": "Queen's Gambit, Chigorin",
-    "year": 2022
+    "year": 2024
   },
   {
     "decades": {
@@ -17270,10 +17270,10 @@
       "1990": 277,
       "2000": 300,
       "2010": 796,
-      "2020": 630
+      "2020": 612
     },
     "file": "openings/QGA3e4.zip",
-    "games": 2033,
+    "games": 2015,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 dxc4 3.e4",
     "section": "Openings",
@@ -17287,10 +17287,10 @@
       "1990": 561,
       "2000": 671,
       "2010": 616,
-      "2020": 1122
+      "2020": 1118
     },
     "file": "openings/QGAMain.zip",
-    "games": 3046,
+    "games": 3042,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 dxc4 3.Nf3 Nf6 4.e3 e6 5.Bxc4 c5",
     "section": "Openings",
@@ -17304,10 +17304,10 @@
       "1990": 256,
       "2000": 206,
       "2010": 309,
-      "2020": 269
+      "2020": 263
     },
     "file": "openings/QGAOther3.zip",
-    "games": 1101,
+    "games": 1095,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 dxc4 3.Nf3 a6, c5",
     "section": "Openings",
@@ -17321,10 +17321,10 @@
       "1990": 277,
       "2000": 351,
       "2010": 506,
-      "2020": 458
+      "2020": 454
     },
     "file": "openings/QGAOther4.zip",
-    "games": 1700,
+    "games": 1696,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 dxc4 3.Nf3 Nf6 4.Nc3, Qa4+ 1.d4 d5 2.c4 dxc4 3.Nf3 Nf6 4.e3 Bg4, a6, g6, c5",
     "section": "Openings",
@@ -17338,10 +17338,10 @@
       "1990": 234,
       "2000": 576,
       "2010": 1137,
-      "2020": 1133
+      "2020": 1121
     },
     "file": "openings/QGD5Bf4.zip",
-    "games": 3134,
+    "games": 3122,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Nf3 Be7 5.Bf4",
     "section": "Openings",
@@ -17355,10 +17355,10 @@
       "1990": 420,
       "2000": 606,
       "2010": 1525,
-      "2020": 4154
+      "2020": 4142
     },
     "file": "openings/QGDExchange.zip",
-    "games": 6805,
+    "games": 6793,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.cxd5",
     "section": "Openings",
@@ -17372,10 +17372,10 @@
       "1990": 154,
       "2000": 206,
       "2010": 288,
-      "2020": 445
+      "2020": 427
     },
     "file": "openings/QGDOrthoMain.zip",
-    "games": 1169,
+    "games": 1151,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7",
     "section": "Openings",
@@ -17389,10 +17389,10 @@
       "1990": 62,
       "2000": 75,
       "2010": 90,
-      "2020": 124
+      "2020": 118
     },
     "file": "openings/QGDOrthoOther4.zip",
-    "games": 372,
+    "games": 366,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Nbd7, c5, Bb4",
     "section": "Openings",
@@ -17406,10 +17406,10 @@
       "1990": 1009,
       "2000": 1555,
       "2010": 3306,
-      "2020": 5106
+      "2020": 5098
     },
     "file": "openings/QGDOther34.zip",
-    "games": 11153,
+    "games": 11145,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nf3 c5 1.d4 d5 2.c4 e6 3.Nc3 c6 4.e4 1.d4 d5 2.c4 e6 3.Nc3 c6 4.Nf3 dxc4 1.d4 d5 2.c4 e6 3.Nc3 c6 4.cxd5 exd5 1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Nf3 Nbd7, Bb4",
     "section": "Openings",
@@ -17423,10 +17423,10 @@
       "1990": 175,
       "2000": 201,
       "2010": 243,
-      "2020": 656
+      "2020": 646
     },
     "file": "openings/QGDTarrasch.zip",
-    "games": 1321,
+    "games": 1311,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nc3 c5",
     "section": "Openings",
@@ -17457,10 +17457,10 @@
       "1990": 556,
       "2000": 813,
       "2010": 1038,
-      "2020": 1049
+      "2020": 1011
     },
     "file": "openings/QID4a3.zip",
-    "games": 3615,
+    "games": 3577,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.a3",
     "section": "Openings",
@@ -17474,10 +17474,10 @@
       "1990": 206,
       "2000": 285,
       "2010": 260,
-      "2020": 109
+      "2020": 103
     },
     "file": "openings/QID4e3.zip",
-    "games": 886,
+    "games": 880,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.e3",
     "section": "Openings",
@@ -17491,10 +17491,10 @@
       "1990": 885,
       "2000": 1543,
       "2010": 1561,
-      "2020": 1430
+      "2020": 1396
     },
     "file": "openings/QID4g3-Ba6.zip",
-    "games": 5689,
+    "games": 5655,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3 Ba6",
     "section": "Openings",
@@ -17508,10 +17508,10 @@
       "1990": 374,
       "2000": 614,
       "2010": 1875,
-      "2020": 1502
+      "2020": 1476
     },
     "file": "openings/QID4g3Other.zip",
-    "games": 4565,
+    "games": 4539,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3 Bb7, Bb4+",
     "section": "Openings",
@@ -17525,10 +17525,10 @@
       "1990": 374,
       "2000": 746,
       "2010": 457,
-      "2020": 176
+      "2020": 168
     },
     "file": "openings/QID4Nc3.zip",
-    "games": 1958,
+    "games": 1950,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.Nc3",
     "section": "Openings",
@@ -17542,10 +17542,10 @@
       "1990": 38,
       "2000": 81,
       "2010": 161,
-      "2020": 146
+      "2020": 144
     },
     "file": "openings/QIDOther.zip",
-    "games": 435,
+    "games": 433,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.Bg5, Bf4",
     "section": "Openings",
@@ -17576,10 +17576,10 @@
       "1990": 449,
       "2000": 625,
       "2010": 1546,
-      "2020": 1492
+      "2020": 1490
     },
     "file": "openings/Reti2c4.zip",
-    "games": 4190,
+    "games": 4188,
     "group": "Flank and Unorthodox",
     "moves": "1.Nf3 d5 2.c4",
     "section": "Openings",
@@ -17593,10 +17593,10 @@
       "1990": 1242,
       "2000": 1538,
       "2010": 5079,
-      "2020": 8771
+      "2020": 8765
     },
     "file": "openings/RetiKIA.zip",
-    "games": 16879,
+    "games": 16873,
     "group": "Flank and Unorthodox",
     "moves": "1.Nf3 d5 2.g3",
     "section": "Openings",
@@ -17610,10 +17610,10 @@
       "1990": 105,
       "2000": 140,
       "2010": 249,
-      "2020": 636
+      "2020": 632
     },
     "file": "openings/RuyLopezAntiMarshall.zip",
-    "games": 1186,
+    "games": 1182,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 O-O 8.a4, h3, d4, d3",
     "section": "Openings",
@@ -17627,10 +17627,10 @@
       "1990": 157,
       "2000": 277,
       "2010": 307,
-      "2020": 252
+      "2020": 246
     },
     "file": "openings/RuyLopezArchangelsk.zip",
-    "games": 1033,
+    "games": 1027,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O b5 6.Bb3 Bb7",
     "section": "Openings",
@@ -17644,10 +17644,10 @@
       "1990": 425,
       "2000": 1485,
       "2010": 3310,
-      "2020": 3488
+      "2020": 3462
     },
     "file": "openings/RuyLopezBerlin.zip",
-    "games": 8831,
+    "games": 8805,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
     "section": "Openings",
@@ -17661,10 +17661,10 @@
       "1990": 121,
       "2000": 367,
       "2010": 962,
-      "2020": 454
+      "2020": 451
     },
     "file": "openings/RuyLopezBreyer.zip",
-    "games": 1991,
+    "games": 1988,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O 9.h3 Nb8",
     "section": "Openings",
@@ -17678,10 +17678,10 @@
       "1990": 258,
       "2000": 689,
       "2010": 761,
-      "2020": 274
+      "2020": 220
     },
     "file": "openings/RuyLopezChigorin.zip",
-    "games": 2105,
+    "games": 2051,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O 9.h3 Na5 10.Bc2 c5 11.d4",
     "section": "Openings",
@@ -17695,10 +17695,10 @@
       "1990": 74,
       "2000": 117,
       "2010": 147,
-      "2020": 177
+      "2020": 175
     },
     "file": "openings/RuyLopezClassical.zip",
-    "games": 534,
+    "games": 532,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 Bc5",
     "section": "Openings",
@@ -17712,10 +17712,10 @@
       "1990": 377,
       "2000": 769,
       "2010": 818,
-      "2020": 693
+      "2020": 683
     },
     "file": "openings/RuyLopezExchange.zip",
-    "games": 2734,
+    "games": 2724,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Bxc6",
     "section": "Openings",
@@ -17729,10 +17729,10 @@
       "1990": 100,
       "2000": 212,
       "2010": 438,
-      "2020": 293
+      "2020": 275
     },
     "file": "openings/RuyLopezFlohr-Zaitsev.zip",
-    "games": 1122,
+    "games": 1104,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O 9.h3 Bb7",
     "section": "Openings",
@@ -17746,10 +17746,10 @@
       "1990": 76,
       "2000": 72,
       "2010": 88,
-      "2020": 41
+      "2020": 37
     },
     "file": "openings/RuyLopezKar-Smy-Khol.zip",
-    "games": 297,
+    "games": 293,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O 9.h3 Nd7, h6, Be6",
     "section": "Openings",
@@ -17763,10 +17763,10 @@
       "1990": 51,
       "2000": 125,
       "2010": 151,
-      "2020": 195
+      "2020": 193
     },
     "file": "openings/RuyLopezMarshall.zip",
-    "games": 543,
+    "games": 541,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 O-O 8.c3 d5",
     "section": "Openings",
@@ -17780,10 +17780,10 @@
       "1990": 214,
       "2000": 278,
       "2010": 610,
-      "2020": 1222
+      "2020": 1211
     },
     "file": "openings/RuyLopezModSteinitz.zip",
-    "games": 2385,
+    "games": 2374,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 d6",
     "section": "Openings",
@@ -17797,10 +17797,10 @@
       "1990": 285,
       "2000": 384,
       "2010": 435,
-      "2020": 804
+      "2020": 798
     },
     "file": "openings/RuyLopezOpen.zip",
-    "games": 2001,
+    "games": 1995,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Nxe4",
     "section": "Openings",
@@ -17814,10 +17814,10 @@
       "1990": 199,
       "2000": 269,
       "2010": 853,
-      "2020": 1060
+      "2020": 1052
     },
     "file": "openings/RuyLopezOther3.zip",
-    "games": 2510,
+    "games": 2502,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 d6, Nd4, g6, Nge7",
     "section": "Openings",
@@ -17831,10 +17831,10 @@
       "1990": 212,
       "2000": 519,
       "2010": 1084,
-      "2020": 1564
+      "2020": 1560
     },
     "file": "openings/RuyLopezOther5.zip",
-    "games": 3437,
+    "games": 3433,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.d3, d4, Qe2",
     "section": "Openings",
@@ -17848,10 +17848,10 @@
       "1990": 199,
       "2000": 275,
       "2010": 1461,
-      "2020": 1742
+      "2020": 1740
     },
     "file": "openings/RuyLopezOther6.zip",
-    "games": 3757,
+    "games": 3755,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Bxc6, Qe2, d4, d3, Nc3",
     "section": "Openings",
@@ -17882,10 +17882,10 @@
       "1990": 121,
       "2000": 135,
       "2010": 305,
-      "2020": 405
+      "2020": 401
     },
     "file": "openings/RuyLopezSchliemann.zip",
-    "games": 1007,
+    "games": 1003,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 f5",
     "section": "Openings",
@@ -17899,10 +17899,10 @@
       "1990": 53,
       "2000": 128,
       "2010": 170,
-      "2020": 552
+      "2020": 550
     },
     "file": "openings/RuyMoeller-SteinDef.zip",
-    "games": 908,
+    "games": 906,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Bc5, d6",
     "section": "Openings",
@@ -17916,10 +17916,10 @@
       "1990": 211,
       "2000": 159,
       "2010": 132,
-      "2020": 227
+      "2020": 215
     },
     "file": "openings/Scand2Nf6-3d4.zip",
-    "games": 753,
+    "games": 741,
     "group": "Modern King Pawn",
     "moves": "1.e4 d5 2.exd5 Nf6 3.d4",
     "section": "Openings",
@@ -17933,10 +17933,10 @@
       "1990": 124,
       "2000": 177,
       "2010": 146,
-      "2020": 249
+      "2020": 236
     },
     "file": "openings/Scand2Nf6Other.zip",
-    "games": 711,
+    "games": 698,
     "group": "Modern King Pawn",
     "moves": "1.e4 d5 2.exd5 Nf6 3.c4, Bb5+, Nc3, Nf3, Bc4",
     "section": "Openings",
@@ -17950,10 +17950,10 @@
       "1990": 339,
       "2000": 546,
       "2010": 535,
-      "2020": 1091
+      "2020": 1070
     },
     "file": "openings/Scand2Qxd5-3Qa5.zip",
-    "games": 2531,
+    "games": 2510,
     "group": "Modern King Pawn",
     "moves": "1.e4 d5 2.exd5 Qxd5 3.Nc3 Qa5",
     "section": "Openings",
@@ -17966,10 +17966,10 @@
       "1990": 60,
       "2000": 606,
       "2010": 1072,
-      "2020": 752
+      "2020": 732
     },
     "file": "openings/Scand3Qd6-Qd8.zip",
-    "games": 2491,
+    "games": 2471,
     "group": "Modern King Pawn",
     "moves": "1.e4 d5 2.exd5 Qxd5 3.Nc3 Qd6 1.e4 d5 2.exd5 Qxd5 3.Nc3 Qd8",
     "section": "Openings",
@@ -17983,10 +17983,10 @@
       "1990": 199,
       "2000": 508,
       "2010": 761,
-      "2020": 648
+      "2020": 644
     },
     "file": "openings/Scotch4Bc5.zip",
-    "games": 2134,
+    "games": 2130,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Nxd4 Bc5",
     "section": "Openings",
@@ -18017,10 +18017,10 @@
       "1990": 39,
       "2000": 82,
       "2010": 212,
-      "2020": 455
+      "2020": 453
     },
     "file": "openings/ScotchGambit.zip",
-    "games": 801,
+    "games": 799,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4",
     "section": "Openings",
@@ -18034,10 +18034,10 @@
       "1990": 102,
       "2000": 180,
       "2010": 369,
-      "2020": 409
+      "2020": 407
     },
     "file": "openings/ScotchOther4.zip",
-    "games": 1065,
+    "games": 1063,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Nxd4 Qh4, Nxd4, Qf6, Bb4+, d6, g6",
     "section": "Openings",
@@ -18051,10 +18051,10 @@
       "1990": 105,
       "2000": 125,
       "2010": 116,
-      "2020": 172
+      "2020": 156
     },
     "file": "openings/SemiBenoni.zip",
-    "games": 547,
+    "games": 531,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 c5 2.d5 e5",
     "section": "Openings",
@@ -18068,10 +18068,10 @@
       "1990": 546,
       "2000": 1089,
       "2010": 1424,
-      "2020": 1453
+      "2020": 1437
     },
     "file": "openings/SemiSlavBotvinnik.zip",
-    "games": 4611,
+    "games": 4595,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nf3 Nf6 4.Nc3 c6 5.Bg5",
     "section": "Openings",
@@ -18085,10 +18085,10 @@
       "1990": 1244,
       "2000": 2395,
       "2010": 2744,
-      "2020": 2196
+      "2020": 2166
     },
     "file": "openings/SemiSlavMeran.zip",
-    "games": 8749,
+    "games": 8719,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Nf3 c6 5.e3",
     "section": "Openings",
@@ -18136,10 +18136,10 @@
       "1990": 96,
       "2000": 150,
       "2010": 465,
-      "2020": 903
+      "2020": 901
     },
     "file": "openings/SemiTarraschMain.zip",
-    "games": 1640,
+    "games": 1638,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Nf3 c5 5.cxd5",
     "section": "Openings",
@@ -18153,10 +18153,10 @@
       "1990": 415,
       "2000": 681,
       "2010": 764,
-      "2020": 308
+      "2020": 300
     },
     "file": "openings/Sic2Nc6-4Qc7-4Qb6.zip",
-    "games": 2256,
+    "games": 2248,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 Qc7, Qb6",
     "section": "Openings",
@@ -18187,10 +18187,10 @@
       "1990": 217,
       "2000": 277,
       "2010": 887,
-      "2020": 1657
+      "2020": 1653
     },
     "file": "openings/Sicilian2d6-4Qxd4.zip",
-    "games": 3074,
+    "games": 3070,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Qxd4",
     "section": "Openings",
@@ -18204,10 +18204,10 @@
       "1990": 160,
       "2000": 106,
       "2010": 80,
-      "2020": 73
+      "2020": 71
     },
     "file": "openings/Sicilian2f4.zip",
-    "games": 478,
+    "games": 476,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.f4",
     "section": "Openings",
@@ -18221,10 +18221,10 @@
       "1990": 228,
       "2000": 439,
       "2010": 819,
-      "2020": 1553
+      "2020": 1551
     },
     "file": "openings/Sicilian2Nc3-d6.zip",
-    "games": 3087,
+    "games": 3085,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nc3 d6",
     "section": "Openings",
@@ -18238,10 +18238,10 @@
       "1990": 255,
       "2000": 500,
       "2010": 588,
-      "2020": 1142
+      "2020": 1140
     },
     "file": "openings/Sicilian2Nc3-e6.zip",
-    "games": 2522,
+    "games": 2520,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nc3 e6",
     "section": "Openings",
@@ -18272,10 +18272,10 @@
       "1990": 378,
       "2000": 1044,
       "2010": 1889,
-      "2020": 3850
+      "2020": 3832
     },
     "file": "openings/Sicilian2Nf3Other2.zip",
-    "games": 7245,
+    "games": 7227,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 g6, a6, Nf6",
     "section": "Openings",
@@ -18289,10 +18289,10 @@
       "1990": 416,
       "2000": 497,
       "2010": 1011,
-      "2020": 752
+      "2020": 748
     },
     "file": "openings/SicilianAccelDragon.zip",
-    "games": 2805,
+    "games": 2801,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 g6",
     "section": "Openings",
@@ -18306,10 +18306,10 @@
       "1990": 718,
       "2000": 840,
       "2010": 918,
-      "2020": 1271
+      "2020": 1269
     },
     "file": "openings/SicilianAlapin2d5.zip",
-    "games": 3847,
+    "games": 3845,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.c3 d5",
     "section": "Openings",
@@ -18340,10 +18340,10 @@
       "1990": 389,
       "2000": 464,
       "2010": 504,
-      "2020": 573
+      "2020": 565
     },
     "file": "openings/SicilianAlapinOther2.zip",
-    "games": 2001,
+    "games": 1993,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.c3 e6, d6, g6, e5, b6, Nc6, Qa5",
     "section": "Openings",
@@ -18357,10 +18357,10 @@
       "1990": 688,
       "2000": 763,
       "2010": 635,
-      "2020": 748
+      "2020": 740
     },
     "file": "openings/SicilianClassicalOther6.zip",
-    "games": 2994,
+    "games": 2986,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 Nc6 6.Be2, Be3, f3, g3, f4",
     "section": "Openings",
@@ -18374,15 +18374,15 @@
       "1990": 631,
       "2000": 645,
       "2010": 422,
-      "2020": 444
+      "2020": 428
     },
     "file": "openings/SicilianClassicalSozin.zip",
-    "games": 2274,
+    "games": 2258,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 Nc6 6.Bc4",
     "section": "Openings",
     "title": "Sicilian, Classical, Sozin",
-    "year": 2023
+    "year": 2008
   },
   {
     "decades": {
@@ -18408,10 +18408,10 @@
       "1990": 664,
       "2000": 1713,
       "2010": 1982,
-      "2020": 3353
+      "2020": 3341
     },
     "file": "openings/SicilianClosedOther3.zip",
-    "games": 7801,
+    "games": 7789,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nc3 Nc6 3.Nf3, Nge2, Bb5",
     "section": "Openings",
@@ -18425,10 +18425,10 @@
       "1990": 60,
       "2000": 66,
       "2010": 111,
-      "2020": 154
+      "2020": 150
     },
     "file": "openings/SicilianDragonOther6.zip",
-    "games": 432,
+    "games": 428,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 g6 6.g3, f4, f3, Bg5",
     "section": "Openings",
@@ -18442,10 +18442,10 @@
       "1990": 427,
       "2000": 674,
       "2010": 808,
-      "2020": 670
+      "2020": 622
     },
     "file": "openings/SicilianDragonYugoslav.zip",
-    "games": 2678,
+    "games": 2630,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 g6 6.Be3 Bg7 7.f3",
     "section": "Openings",
@@ -18476,10 +18476,10 @@
       "1990": 756,
       "2000": 1454,
       "2010": 1563,
-      "2020": 986
+      "2020": 960
     },
     "file": "openings/SicilianKan5Bd3.zip",
-    "games": 4950,
+    "games": 4924,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 a6 5.Bd3",
     "section": "Openings",
@@ -18493,15 +18493,15 @@
       "1990": 62,
       "2000": 262,
       "2010": 733,
-      "2020": 715
+      "2020": 703
     },
     "file": "openings/SicilianKan5c4.zip",
-    "games": 1803,
+    "games": 1791,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 a6 5.c4",
     "section": "Openings",
     "title": "Sicilian, Kan (Paulsen), 5.c4",
-    "year": 2023
+    "year": 2022
   },
   {
     "decades": {
@@ -18510,10 +18510,10 @@
       "1990": 562,
       "2000": 1384,
       "2010": 1638,
-      "2020": 720
+      "2020": 706
     },
     "file": "openings/SicilianKan5Nc3.zip",
-    "games": 4401,
+    "games": 4387,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 a6 5.Nc3",
     "section": "Openings",
@@ -18544,10 +18544,10 @@
       "1990": 325,
       "2000": 553,
       "2010": 655,
-      "2020": 966
+      "2020": 960
     },
     "file": "openings/SicilianLowenthal.zip",
-    "games": 2546,
+    "games": 2540,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5",
     "section": "Openings",
@@ -18560,11 +18560,11 @@
       "1980": 80,
       "1990": 503,
       "2000": 700,
-      "2010": 1135,
-      "2020": 1380
+      "2010": 1134,
+      "2020": 1366
     },
     "file": "openings/SicilianMisc2.zip",
-    "games": 3806,
+    "games": 3791,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.d3, b3, c4, g3, Ne2, Bc4, b4",
     "section": "Openings",
@@ -18578,10 +18578,10 @@
       "1990": 738,
       "2000": 1509,
       "2010": 3333,
-      "2020": 5819
+      "2020": 5817
     },
     "file": "openings/SicilianMoscow.zip",
-    "games": 11530,
+    "games": 11528,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.Bb5+",
     "section": "Openings",
@@ -18595,10 +18595,10 @@
       "1990": 121,
       "2000": 137,
       "2010": 185,
-      "2020": 308
+      "2020": 307
     },
     "file": "openings/SicilianNajdorf6a4.zip",
-    "games": 792,
+    "games": 791,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.a4",
     "section": "Openings",
@@ -18612,10 +18612,10 @@
       "1990": 363,
       "2000": 480,
       "2010": 465,
-      "2020": 521
+      "2020": 515
     },
     "file": "openings/SicilianNajdorf6Bc4.zip",
-    "games": 1877,
+    "games": 1871,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Bc4",
     "section": "Openings",
@@ -18629,10 +18629,10 @@
       "1990": 628,
       "2000": 1062,
       "2010": 1372,
-      "2020": 1403
+      "2020": 1383
     },
     "file": "openings/SicilianNajdorf6Be2.zip",
-    "games": 4650,
+    "games": 4630,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be2",
     "section": "Openings",
@@ -18646,10 +18646,10 @@
       "1990": 638,
       "2000": 1950,
       "2010": 2255,
-      "2020": 2171
+      "2020": 2103
     },
     "file": "openings/SicilianNajdorf6Be3.zip",
-    "games": 7135,
+    "games": 7067,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Be3",
     "section": "Openings",
@@ -18663,10 +18663,10 @@
       "1990": 368,
       "2000": 1035,
       "2010": 1655,
-      "2020": 2127
+      "2020": 2089
     },
     "file": "openings/SicilianNajdorf6Bg5.zip",
-    "games": 5332,
+    "games": 5294,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.Bg5",
     "section": "Openings",
@@ -18678,10 +18678,10 @@
       "1990": 56,
       "2000": 389,
       "2010": 280,
-      "2020": 553
+      "2020": 526
     },
     "file": "openings/SicilianNajdorf6f3.zip",
-    "games": 1278,
+    "games": 1251,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.f3",
     "section": "Openings",
@@ -18695,10 +18695,10 @@
       "1990": 344,
       "2000": 235,
       "2010": 183,
-      "2020": 257
+      "2020": 255
     },
     "file": "openings/SicilianNajdorf6f4.zip",
-    "games": 1140,
+    "games": 1138,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6 6.f4",
     "section": "Openings",
@@ -18729,10 +18729,10 @@
       "1990": 1253,
       "2000": 1820,
       "2010": 1709,
-      "2020": 2436
+      "2020": 2396
     },
     "file": "openings/SicilianRichter-Rauzer.zip",
-    "games": 7558,
+    "games": 7518,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 Nc6 6.Bg5",
     "section": "Openings",
@@ -18746,10 +18746,10 @@
       "1990": 1168,
       "2000": 2238,
       "2010": 3610,
-      "2020": 6722
+      "2020": 6694
     },
     "file": "openings/SicilianRossolimo.zip",
-    "games": 13891,
+    "games": 13863,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 Nc6 3.Bb5",
     "section": "Openings",
@@ -18763,10 +18763,10 @@
       "1990": 881,
       "2000": 918,
       "2010": 899,
-      "2020": 390
+      "2020": 320
     },
     "file": "openings/SicilianScheveningen.zip",
-    "games": 3571,
+    "games": 3501,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 e6",
     "section": "Openings",
@@ -18780,10 +18780,10 @@
       "1990": 89,
       "2000": 90,
       "2010": 209,
-      "2020": 385
+      "2020": 383
     },
     "file": "openings/SicilianSmith-Morra.zip",
-    "games": 785,
+    "games": 783,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.d4 cxd4 3.c3",
     "section": "Openings",
@@ -18797,10 +18797,10 @@
       "1990": 486,
       "2000": 1189,
       "2010": 843,
-      "2020": 1439
+      "2020": 1435
     },
     "file": "openings/SicilianSveshnikov.zip",
-    "games": 4061,
+    "games": 4057,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 e5 6.Ndb5 d6",
     "section": "Openings",
@@ -18814,10 +18814,10 @@
       "1990": 168,
       "2000": 227,
       "2010": 257,
-      "2020": 142
+      "2020": 138
     },
     "file": "openings/SicilianTaimanov5Nb5.zip",
-    "games": 851,
+    "games": 847,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 Nc6 5.Nb5",
     "section": "Openings",
@@ -18831,10 +18831,10 @@
       "1990": 904,
       "2000": 2257,
       "2010": 4218,
-      "2020": 3556
+      "2020": 3518
     },
     "file": "openings/SicilianTaimanovMain.zip",
-    "games": 11229,
+    "games": 11191,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 Nc6 5.Nc3",
     "section": "Openings",
@@ -18848,10 +18848,10 @@
       "1990": 57,
       "2000": 85,
       "2010": 194,
-      "2020": 236
+      "2020": 234
     },
     "file": "openings/SicilianTaimanovOther5.zip",
-    "games": 587,
+    "games": 585,
     "group": "Modern King Pawn",
     "moves": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 Nc6 5.Be3, Nxc6, c4, Be2, g3",
     "section": "Openings",
@@ -18864,10 +18864,10 @@
       "1990": 302,
       "2000": 1244,
       "2010": 1130,
-      "2020": 608
+      "2020": 590
     },
     "file": "openings/Slav4a6.zip",
-    "games": 3290,
+    "games": 3272,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 a6",
     "section": "Openings",
@@ -18881,10 +18881,10 @@
       "1990": 168,
       "2000": 343,
       "2010": 598,
-      "2020": 548
+      "2020": 530
     },
     "file": "openings/SlavExchange.zip",
-    "games": 1723,
+    "games": 1705,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.cxd5 cxd5 5.Nc3",
     "section": "Openings",
@@ -18898,10 +18898,10 @@
       "1990": 404,
       "2000": 1091,
       "2010": 1520,
-      "2020": 802
+      "2020": 790
     },
     "file": "openings/SlavMain.zip",
-    "games": 3911,
+    "games": 3899,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.a4 Bf5",
     "section": "Openings",
@@ -18932,10 +18932,10 @@
       "1990": 130,
       "2000": 294,
       "2010": 531,
-      "2020": 511
+      "2020": 479
     },
     "file": "openings/SlavOther5.zip",
-    "games": 1507,
+    "games": 1475,
     "group": "Classical Queen Pawn",
     "moves": "1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.e4, e3, Ne5, g3 1.d4 d5 2.c4 c6 3.Nf3 Nf6 4.Nc3 dxc4 5.a4 Bg4, Na6, e6",
     "section": "Openings",
@@ -18981,10 +18981,10 @@
       "1990": 321,
       "2000": 402,
       "2010": 480,
-      "2020": 790
+      "2020": 788
     },
     "file": "openings/Torre2e6.zip",
-    "games": 2087,
+    "games": 2085,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.Nf3 e6 3.Bg5",
     "section": "Openings",
@@ -19015,10 +19015,10 @@
       "1990": 174,
       "2000": 395,
       "2010": 683,
-      "2020": 667
+      "2020": 665
     },
     "file": "openings/Trompowsky2e6.zip",
-    "games": 1934,
+    "games": 1932,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.Bg5 e6",
     "section": "Openings",
@@ -19032,10 +19032,10 @@
       "1990": 321,
       "2000": 488,
       "2010": 590,
-      "2020": 594
+      "2020": 586
     },
     "file": "openings/Trompowsky2Ne4.zip",
-    "games": 2017,
+    "games": 2009,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.Bg5 Ne4",
     "section": "Openings",
@@ -19049,10 +19049,10 @@
       "1990": 266,
       "2000": 545,
       "2010": 1142,
-      "2020": 2140
+      "2020": 2132
     },
     "file": "openings/TrompowskyOther.zip",
-    "games": 4136,
+    "games": 4128,
     "group": "Modern Queen Pawn",
     "moves": "1.d4 Nf6 2.Bg5 d5, c5, g6",
     "section": "Openings",
@@ -19066,10 +19066,10 @@
       "1990": 328,
       "2000": 844,
       "2010": 1907,
-      "2020": 5902
+      "2020": 5898
     },
     "file": "openings/TwoKnights.zip",
-    "games": 9082,
+    "games": 9078,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
     "section": "Openings",
@@ -19083,14 +19083,14 @@
       "1990": 183,
       "2000": 193,
       "2010": 590,
-      "2020": 1490
+      "2020": 1446
     },
     "file": "openings/Vienna.zip",
-    "games": 2499,
+    "games": 2455,
     "group": "Classical King Pawn",
     "moves": "1.e4 e5 2.Nc3",
     "section": "Openings",
     "title": "Vienna",
-    "year": 2024
+    "year": 2025
   }
 ]

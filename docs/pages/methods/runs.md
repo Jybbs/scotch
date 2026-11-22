@@ -1,6 +1,19 @@
 # The Longest Run
 
-The index holds each stored game's moves beside enough of each position's key to narrow a lookup to a few candidate lists of games, and it plays games from those lists through and compares their full keys to confirm the list holding the key, so a lookup returns every position holding the key and no other. `scotch match game` looks up every key the submitted game reaches, which leaves the positions the two games share.
+How does the search find the stored game sharing the longest run? It looks up every position of the submitted game in the index, as [Building the Index](indexing.md) sets out, and follows each stored game reaching one of them for as long as the two games keep reaching the same positions ply after ply.
+
+## The Search, Step by Step
+
+1. Read the submitted game into the key of each position it reaches, from the one it starts at to the one after its last move
+2. Look up the first key, which names the stored games reaching that position and the ply each reaches it at, each opening a run
+3. Look up each next key in turn, keeping each run whose stored game reaches that position one ply after its last, and ending each run whose stored game does not
+4. Open a run wherever a stored game reaches that position at a ply no open run continues into, so a game reaching a position by another order of moves meets the submitted game there
+5. End every run still open once the submitted game's last position is read, which leaves each run with its stored game, the ply it starts at in each game, and the positions it holds
+6. Rank the runs, the longest first, then by the ratings of each run's stored game, as Choosing Among Runs below sets out, and name the first as the match
+
+## The Grid of Shared Positions
+
+Setting the submitted game's plies along one side of a grid and the stored game's along the other shows each position the two share as a cell, the way a dot plot sets two sequences against each other.[^gibbs1970] A run is then a line of cells running down the diagonal, one ply further in each game at each step, and the stored game's ply less the submitted game's ply, the run's offset, sets how far that diagonal stands from the main one. Two games played in the same order share one run down the main diagonal from its first cell, whereas a game reaching a position by another order of moves opens a new run there, further down the main diagonal past a gap where both orders take as many plies, and on a diagonal set off from it where they take a different number.
 
 ## Following a Run
 
@@ -21,6 +34,8 @@ Stepping through a match sets the two games' positions on one board, each square
 ## Choosing Among Runs
 
 The longest run wins, and stored games sharing runs as long rank by the mean of the ratings their `WhiteElo` and `BlackElo` tags give, the highest first, then those carrying one rating by that rating, then the unrated in the order the index holds them, which is the archive `sources.toml` declares first and, within one archive, the order that archive holds them in.[^edwards1994b] A rating tag reads as a rating only where it holds digits alone naming a whole number from 1 to <!-- rating-ceiling -->2900<!-- /rating-ceiling -->, the next hundred above 2882, the highest standard rating FIDE has published,[^fide2026] and any other tag reads as no rating, here and on the Data pages alike. The match names the first of them and counts the rest, and `scotch match game --top` lists the next, each a different stored game at its longest run in the same order. A game holding several runs as long takes the one starting earliest in the submitted game, then the one starting earliest in the stored game.
+
+[^gibbs1970]: Gibbs, Adrian J., and George A. McIntyre. 1970. "The Diagram, a Method for Comparing Sequences: Its Use with Amino Acid and Nucleotide Sequences," European Journal of Biochemistry, volume 16, number 1, pages 1 to 11. <https://doi.org/10.1111/j.1432-1033.1970.tb01046.x>
 
 [^gusfield1997]: Gusfield, Dan. 1997. "Algorithms on Strings, Trees, and Sequences: Computer Science and Computational Biology," Section 7.4. <https://doi.org/10.1017/CBO9780511574931>
 
