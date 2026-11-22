@@ -77,7 +77,6 @@ describe('Stops as stepped', () => {
     await wrapper.find('[role=tablist]').trigger('keydown', { key: 'End' })
     expect(wrapper.findAll('[role=img]').at(-1)!.attributes('aria-label')).toBe('The stored game at ply 43')
   })
-
 })
 
 describe('Stops at each stop', () => {
@@ -93,6 +92,20 @@ describe('Stops at each stop', () => {
     expect(wrapper.findAll('[role=img]').at(-1)!.attributes('aria-label')).toBe(board)
     const rider = wrapper.find('circle.fill-ink').element as SVGElement
     expect(rider.style.transform.startsWith(`translate(${ply * TRACK.step}px, `)).toBe(true)
+  })
+
+  it.each([
+    [0, 'p12', 'translate(400%, 500%)', '54. Qc1#'],
+    [1, 'p11', 'translate(300%, 600%)', 'Start'],
+    [2, 'p11', 'translate(300%, 400%)', '4. d4'],
+    [3, 'p5', 'translate(300%, 500%)', '21...b6'],
+    [4, 'p5', 'translate(200%, 600%)', '22. Bc2']
+  ])('sets stop %i\'s pieces and its move at its ply', async (index, id, square, move) => {
+    const wrapper = mount(Stops)
+    await wrapper.findAll('[role=tab]')[index]!.trigger('click')
+    const piece = wrapper.findAll('[role=img]').at(-1)!.find(`[data-id='${id}']`).element as HTMLElement
+    expect(piece.style.transform).toBe(square)
+    expect(wrapper.find('.tabular-nums').text()).toBe(move)
   })
 
   it('names the run under the track', () => {

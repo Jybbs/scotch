@@ -3,6 +3,7 @@ import { mount }                from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick }             from 'vue'
 
+import { exampleOf }                 from '../../../../lib/methods/example.ts'
 import { PACE }                      from '../../../../lib/methods/stepping.ts'
 import { Run }                       from '../../../../theme/components/methods/run.ts'
 import { test }                      from '../../../common/clock.ts'
@@ -24,6 +25,13 @@ describe('Run as drawn', () => {
     const wrapper = still()
     expect(status(wrapper)).toBe('Ply 12 · one position, 6 in a row')
     expect(wrapper.find('[aria-live]').text()).toBe('6')
+    expect(wrapper.text()).toContain('Positions shared in a row')
+  })
+
+  it('opens on the middle of the example\'s longest run where the drawings hold still', () => {
+    reduceMotion()
+    const example = { ...exampleOf(), runs: [{ length: 4, offset: 0, start: 3 }] }
+    expect(status(mount(Run, { props: { example } }))).toBe('Ply 5 · one position, 3 in a row')
   })
 
   it('opens on the start and plays where the drawings move', () => {
