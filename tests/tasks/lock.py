@@ -12,6 +12,9 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
   release fixes them, and its failure once a release fixes one, its
   stand-in `gh` running the task's own `--jq` filter through `jq` over
   the advisories saved under `fixtures/advisories/`
+- The tools `lock:audit` hands `mise audit`, and its verdict on each
+  advisory the stand-in `mise` reports against them, with and without an
+  `AUDIT_IGNORE` entry and a fixed release
 - The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
@@ -21,15 +24,65 @@ writes lands in a directory the case owns.
 """
 
 from common.stand_ins import Scratch
-from json             import loads
+from json             import dumps, loads
 from pathlib          import Path
 from pytest           import mark, param
+from shlex            import quote
 
 ADVISORIES = Path(__file__).parent / "fixtures" / "advisories"
 ADVISORY   = "GHSA-fc5q-39xc-vjpf"
+ALIAS      = "GHSA-2c4m-59x9-fr2g"
 CARGO = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml"
 DENY  = "cargo-deny --locked --manifest-path rust/Cargo.toml check"
 GH    = f'jq -r "$3" "{ADVISORIES}/${{4##*/}}.json"'
+TOOL  = "CVE-2026-124249"
+TOOLS = {
+    "http:microsoft-teams":
+        [{"version": "1", "source": {"path": "/global/config.toml"}}],
+    "python": [{"version": "3.15.2", "source": {"path": "%s/.mise/config.toml"}}]
+}
+
+
+def mise(
+    *vulnerabilities : dict[str, object],
+    audit            : str               = "",
+    tools            : dict[str, object] = TOOLS
+) -> str:
+    """
+    Writes the stand-in `mise`, which prints `tools` for `mise ls` with the
+    worktree in place of each `%s`, and for `mise audit` runs the shell line
+    `audit` holds, or else prints a report holding `vulnerabilities` beside
+    an unchecked `rust`, exiting one where the report holds any, as `mise
+    audit --json` does.
+    """
+    report = dumps(
+        {
+            "vulnerabilities" : vulnerabilities,
+            "unchecked"       : [{"tool": "rust", "version": "1.100.0"}]
+        }
+    )
+
+    audit = audit or f"echo {quote(report)}; exit {int(bool(vulnerabilities))}"
+
+    return (
+        f'case $1 in ls) printf {quote(dumps(tools))} "$MISE_PROJECT_ROOT";; '
+        f"audit) {audit};; esac"
+    )
+
+
+def vulnerability(*fixed: str, aliases: tuple[str, ...] = ()) -> dict[str, object]:
+    """
+    Writes the record `mise audit --json` gives `TOOL` against Python
+    3.15.2, carrying `aliases` and fixed in each release `fixed` names.
+    """
+    return {
+        "aliases" : aliases,
+        "fixed"   : fixed,
+        "id"      : TOOL,
+        "summary" : "`http.cookiejar` applies expired `Set-Cookie` to cookie store",
+        "tool"    : "python",
+        "version" : "3.15.2"
+    }
 
 
 def test_a_lockfile_matching_its_manifest_passes(scratch: Scratch):
@@ -294,15 +347,18 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     Asserts that `lock:audit` runs `uv audit` over the project's lockfile
     and then over each task script declaring its own dependencies, each
     under the preview flag `uv audit` takes, then `cargo-deny` over the
-    crate, and then `bun audit` over the site's lockfile.
+    crate, then `mise audit` over the one tool `.mise/config.toml` pins
+    beside a tool a global config adds, and then `bun audit` over the site's
+    lockfile.
     """
     scratch.add_script()
 
-    assert scratch.run("audit").returncode == 0
+    assert scratch.run("audit", mise=mise()).returncode == 0
     assert scratch.calls == [
         "uv audit --preview-features audit-command",
         f"uv audit --preview-features audit-command --script {scratch.script}",
-        DENY, "bun audit --cwd docs"
+        DENY, "mise ls --current --json --no-global",
+        "mise audit --json python@3.15.2", "bun audit --cwd docs"
     ]
 
 
@@ -320,6 +376,126 @@ def test_audit_fails_on_an_advisory_or_an_unreachable_service(
 
     assert scratch.run("audit", uv=f"exit {status}").returncode == status
     assert scratch.calls == ["uv audit --preview-features audit-command"]
+
+
+@mark.parametrize(
+    ("ignore", "advisory"),
+    [
+        param(TOOL, vulnerability(), id="listed"),
+        param(ALIAS, vulnerability(aliases=(ALIAS,)), id="listed-alias")
+    ]
+)
+def test_audit_sets_aside_each_tool_advisory_no_release_fixes(
+    advisory : dict[str, object],
+    ignore   : str,
+    scratch  : Scratch
+):
+    """
+    Asserts that `lock:audit` passes where `AUDIT_IGNORE` lists a tool
+    advisory's id or one of its aliases and `mise audit` reports no fixed
+    release, printing the advisory's summary, reading no GitHub advisory for
+    it, even under a `GHSA-` alias, and passing `bun audit` no `--ignore`
+    for it.
+    """
+    result = scratch.run("audit", gh=GH, ignore=ignore, mise=mise(advisory))
+
+    assert result.returncode == 0
+    assert scratch.calls[-1] == "bun audit --cwd docs"
+    assert not any(call.startswith("gh ") for call in scratch.calls)
+    assert result.stderr == (
+        f"Setting {ignore} aside while no release fixes it: {advisory['summary']}\n"
+    )
+
+
+@mark.parametrize(
+    ("ignore", "advisory", "stderr"),
+    [
+        param(
+            "",
+            vulnerability(),
+            f"{TOOL} affects python 3.15.2 and no release fixes it, so add it",
+            id = "unlisted"
+        ),
+        param(
+            "",
+            vulnerability("3.15.3", "3.14.11"),
+            f"{TOOL} affects python 3.15.2 and is fixed in python 3.15.3 or 3.14.11",
+            id = "unlisted-fixed"
+        ),
+        param(
+            TOOL,
+            vulnerability("3.15.3"),
+            f"{TOOL} is fixed in python 3.15.3, so delete it from AUDIT_IGNORE",
+            id = "listed-fixed"
+        ),
+        param(
+            ALIAS,
+            vulnerability("3.15.3", aliases=(ALIAS,)),
+            f"{TOOL} is fixed in python 3.15.3, so delete it from AUDIT_IGNORE",
+            id = "listed-alias-fixed"
+        )
+    ]
+)
+def test_audit_fails_on_a_tool_advisory_unlisted_or_fixed(
+    advisory : dict[str, object],
+    ignore   : str,
+    scratch  : Scratch,
+    stderr   : str
+):
+    """
+    Asserts that `lock:audit` exits one without running `bun audit` on a
+    tool advisory `AUDIT_IGNORE` leaves out, naming the tool, its version,
+    and any fixed release, and on one it lists once `mise audit` reports a
+    fixed release, naming the advisory and the release to lift the tool to.
+    """
+    result = scratch.run("audit", gh=GH, ignore=ignore, mise=mise(advisory))
+
+    assert result.returncode == 1
+    assert not any(call.startswith(("bun ", "gh ")) for call in scratch.calls)
+    assert stderr in result.stderr
+
+
+def test_audit_skips_a_non_github_entry_no_pinned_tool_carries(scratch: Scratch):
+    """
+    Asserts that `lock:audit` passes where `AUDIT_IGNORE` lists a `CVE-`
+    entry against no tool advisory, naming the entry to delete, reading no
+    GitHub advisory for it, and passing `bun audit` no `--ignore` for it,
+    while still reading the `GHSA-` entry beside it.
+    """
+    result = scratch.run("audit", gh=GH, ignore=f"{TOOL} {ADVISORY}", mise=mise())
+
+    assert result.returncode == 0
+    assert scratch.calls[-1] == f"bun audit --cwd docs --ignore={ADVISORY}"
+    assert [call.split()[-1] for call in scratch.calls if "/advisories/" in call] == [
+        f"/advisories/{ADVISORY}"
+    ]
+    assert f"No tool .mise/config.toml pins carries {TOOL}" in result.stderr
+
+
+@mark.parametrize(
+    ("tools", "stderr"),
+    [
+        param({}, "so lock:audit checked none", id="no-pinned-tool"),
+        param(TOOLS, "error sending request", id="unreachable")
+    ]
+)
+def test_audit_fails_where_no_tool_is_checked_or_osv_cannot_be_read(
+    scratch : Scratch,
+    stderr  : str,
+    tools   : dict[str, object]
+):
+    """
+    Asserts that `lock:audit` fails without running `bun audit` where no
+    tool `mise ls` lists comes from `.mise/config.toml`, calling no `mise
+    audit`, and where `mise audit` exits nonzero with no advisory to report.
+    """
+    audit  = "echo 'mise ERROR error sending request to api.osv.dev' >&2; exit 1"
+    result = scratch.run("audit", mise=mise(audit=audit, tools=tools))
+
+    assert result.returncode != 0
+    assert not any(call.startswith("bun ") for call in scratch.calls)
+    assert stderr in result.stderr
+    assert ("mise audit --json python@3.15.2" in scratch.calls) == (tools == TOOLS)
 
 
 def test_lift_hands_its_arguments_to_the_lift_command(scratch: Scratch):
