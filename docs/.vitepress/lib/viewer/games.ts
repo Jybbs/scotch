@@ -8,8 +8,12 @@ export interface Numbered {
   white : boolean
 }
 
-function surname(name: string): string {
-  return name.split(',')[0]!
+/**
+ * Writes the move reaching each position of a game behind its number, the
+ * starting position as `Start`.
+ */
+export function movesOf(side: Pick<Side, 'headers' | 'moves'>): string[] {
+  return ['Start', ...side.moves.map((_, index) => numbered(side, index))]
 }
 
 /**
@@ -40,6 +44,13 @@ export function numberingOf({ headers }: Pick<Side, 'headers'>): (index: number)
   const black  = fields[1] === 'b' ? 1 : 0
   const first  = Number(fields[5]) || 1
   return index => ({ no: first + Math.floor((index + black) / 2), white: (index + black) % 2 === 0 })
+}
+
+/**
+ * Reads a player's surname, the part of a PGN name before its comma.
+ */
+export function surname(name: string): string {
+  return name.split(',')[0]!
 }
 
 /**

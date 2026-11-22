@@ -1,78 +1,89 @@
 // @vitest-environment happy-dom
-import { mount }                    from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { mount }                from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
 
-import { exampleOf }  from '../../../../lib/methods/example.ts'
-import { placedAt }   from '../../../../lib/methods/squares.ts'
-import { RunBoard }   from '../../../../theme/components/methods/board.ts'
-import { standBoard } from '../../../common/board.ts'
+import { exampleOf }                               from '../../../../lib/methods/example.ts'
+import { marksAt }                                 from '../../../../lib/methods/squares.ts'
+import { framed }                                  from '../../../../lib/methods/standing.ts'
+import { GlidingBoard, drawPiece, drawSquares }    from '../../../../theme/components/methods/board.ts'
+import { reduceMotion }                            from '../../../common/motion.ts'
 
-const methods = exampleOf()
+const methods  = exampleOf()
+const standing = framed(methods.submitted)
+
 /**
- * The calls the board hands the resize observer, which a case makes in place of
- * a browser resizing the board.
+ * Mounts the board at a ply of the Methods example, each square the two games
+ * differ on marked.
  */
-const observed = vi.hoisted((): (() => void)[] => [])
+function boardAt(ply: number): ReturnType<typeof mount<typeof GlidingBoard>> {
+  return mount(GlidingBoard, {
+    props: { label: `Ply ${ply}`, marks: marksAt(methods, ply), standing: standing[ply]! }
+  })
+}
 
-vi.mock('@vueuse/core', async original => ({
-  ...await original<typeof import('@vueuse/core')>(),
-  useResizeObserver: (_: unknown, callback: () => void) => {
-    observed.push(callback)
-  }
-}))
+/**
+ * Reads the classes of the layer the board's pieces stand in.
+ */
+const layer = (): string => boardAt(0).find('[role=img] > div:last-child').classes().join(' ')
 
-describe('RunBoard', () => {
-  const wrapper = mount(RunBoard, { props: { example: methods, opening: 6 } })
-
+describe('GlidingBoard', () => {
   it('lays the squares out from a8, the light squares where a1 is dark', () => {
-    const shades = wrapper.findAll('[data-shade]').map(square => square.attributes('data-shade'))
-    expect([shades.length, shades[0], shades[1], shades[56]]).toEqual([64, 'light', 'dark', 'dark'])
+    const shades = boardAt(0).findAll('i[data-shade]').map(square => square.attributes('data-shade'))
+    expect([shades[0], shades[7], shades[56], shades[63]]).toEqual(['light', 'dark', 'dark', 'light'])
   })
 
-  it('draws every piece the opening ply shows, each where it stands', () => {
-    const pieces = wrapper.findAll('[data-piece]')
-    expect(pieces).toHaveLength(placedAt(methods, 6).size)
-    expect(wrapper.find("[data-id='g12']").attributes()).toMatchObject({
-      'data-ghost' : '',
-      'data-piece' : 'P',
-      'style'      : 'opacity: 0.95; transform: translate(400%, 400%);'
-    })
+  it('marks each square the two games differ on with the game standing a piece there', () => {
+    const marked = boardAt(6).findAll('i[data-mark]').map(square => square.attributes('data-mark'))
+    expect(marked.toSorted()).toEqual(['stored', 'stored', 'submitted', 'submitted'])
   })
 
-  it('washes the four squares the two games differ on before they meet', () => {
-    const washed = wrapper.findAll('[data-washes] > i').filter(wash => wash.attributes('data-kind'))
-    expect(washed.map(wash => wash.attributes('data-kind')))
-      .toEqual(['submitted', 'stored', 'stored', 'submitted'])
+  it('marks no square where the two games stand on one position', () => {
+    expect(boardAt(7).findAll('i[data-mark]')).toHaveLength(0)
   })
 
-  it('keeps the stamp hidden while the two games differ', () => {
-    expect(wrapper.find('[data-stamp]').attributes('style')).toBe('opacity: 0;')
+  it('draws each piece the ply shows on its square, under the name it keeps', () => {
+    const piece = boardAt(1).find("[data-id='11']").element as HTMLElement
+    expect(piece.style.transform).toBe('translate(300%, 400%)')
+    expect(piece.style.opacity).toBe('1')
   })
 
-  it('names each kind of square in the key', () => {
-    expect(wrapper.findAll('span[data-kind]').map(tag => tag.text()))
-      .toEqual(['Submitted alone', 'Stored alone', 'Both differ'])
+  it('keeps each piece one node as the board steps, so it glides to its new square', async () => {
+    const board  = boardAt(0)
+    const before = board.find("[data-id='11']").element
+    await board.setProps({ standing: standing[1]! })
+    expect(board.find("[data-id='11']").element).toBe(before)
+  })
+
+  it('fades a captured piece out where it stood', () => {
+    const taken = standing.findIndex(line => line.some(one => one.gone))
+    const gone  = standing[taken]!.find(one => one.gone)!
+    const piece = boardAt(taken).find(`[data-id='${gone.id}']`).element as HTMLElement
+    expect(piece.style.opacity).toBe('0')
+  })
+
+  it(
+    'glides its pieces while the drawings move and holds them still where the reader prefers reduced motion',
+    () => {
+      expect(layer()).toContain('duration-glide')
+      reduceMotion()
+      expect(layer()).not.toContain('duration-glide')
+    }
+  )
+
+  it('names what it draws for a reader who cannot see it', () => {
+    expect(boardAt(3).find('[role=img]').attributes('aria-label')).toBe('Ply 3')
   })
 })
 
-describe('RunBoard as stepped', () => {
-  it('moves the board to a ply through the call it exposes', () => {
-    const shown = mount(RunBoard, { props: { example: methods, opening: 6 } })
-    ;(shown.vm as unknown as { show: (ply: number) => void }).show(7)
-    expect(shown.find('[data-stamp]').attributes('style')).toBe('opacity: 1;')
+describe('drawPiece', () => {
+  it('draws a ghost hollow, named and keyed for the piece it stays', () => {
+    const piece = drawPiece('g4', { ghost: true, opacity: 0.5, piece: 'q', square: 4 })
+    expect([piece.key, piece.props!['data-ghost'], piece.props!['data-piece']]).toEqual(['g4', '', 'q'])
   })
+})
 
-  it('measures the key again whenever the board resizes', () => {
-    const sized = mount(RunBoard, { attachTo: document.body, props: { example: methods, opening: 6 } })
-    const board = sized.find('[data-layer]').element.parentElement!
-    const key   = sized.find('span[data-kind]').element.parentElement!
-    standBoard(board, key)
-    observed.at(-1)!()
-    expect(key.querySelector<HTMLElement>('i[data-kind]')!.style.top).toBe('-256px')
-  })
-
-  it('stamps one position on a board opening where the two games meet', () => {
-    const met = mount(RunBoard, { props: { example: methods, opening: 9 } })
-    expect(met.find('[data-stamp]').attributes('style')).toBe('opacity: 1;')
+describe('drawSquares', () => {
+  it('draws the 64 squares in their shades', () => {
+    expect(drawSquares().children).toHaveLength(64)
   })
 })

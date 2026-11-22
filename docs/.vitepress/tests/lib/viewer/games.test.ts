@@ -35,6 +35,13 @@ describe('numbered', () => {
   })
 })
 
+describe('movesOf', () => {
+  it('writes the start, then each move behind its number', () => {
+    expect(games.movesOf({ headers: {}, moves: ['d4', 'Nf6', 'c4'] }))
+      .toEqual(['Start', '1. d4', '1...Nf6', '2. c4'])
+  })
+})
+
 describe('whereOf', () => {
   it.each([
     [{ Date: '1981.??.??', Event: 'Tilburg' }, 'Tilburg 1981'],

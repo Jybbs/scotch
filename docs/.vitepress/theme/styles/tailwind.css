@@ -19,6 +19,13 @@
   @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-run;
 }
 
+@utility split-wash {
+  background-image : linear-gradient(135deg,
+                       color-mix(in oklab, var(--sc-submitted) 60%, transparent) 0 49.4%,
+                       color-mix(in oklab, var(--sc-ground) 70%, transparent) 49.4% 50.6%,
+                       color-mix(in oklab, var(--sc-stored) 60%, transparent) 50.6%);
+}
+
 @utility veil {
   mask-image     : linear-gradient(90deg, transparent, #000 64px, #000 calc(100% - 64px), transparent),
                    linear-gradient(transparent, #000 56px, #000 calc(100% - 56px), transparent);
