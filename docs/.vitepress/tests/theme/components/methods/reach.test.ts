@@ -109,10 +109,11 @@ describe('Reach as marked', () => {
     const tens    = Math.floor((REACH.longest - 1) / 10)
     const ticks   = [...wrapper.find('[role=slider]').element.nextElementSibling!.children]
     expect((median.element as HTMLElement).style.left).toBe(`${(REACH.median - 0.5) / REACH.longest * 100}%`)
-    expect(ticks.map(tick => [tick.textContent, (tick as HTMLElement).style.left])).toEqual([
-      ['1', ''],
+    expect(median.classes()).toContain('-translate-x-1/2')
+    expect(ticks.map(tick => [tick.textContent, tick.className, (tick as HTMLElement).style.left])).toEqual([
+      ['1', 'absolute left-0', ''],
       ...Array.from({ length: tens }, (_, at) =>
-        [`${(at + 1) * 10}`, `${((at + 1) * 10 - 0.5) / REACH.longest * 100}%`])
+        [`${(at + 1) * 10}`, 'absolute -translate-x-1/2', `${((at + 1) * 10 - 0.5) / REACH.longest * 100}%`])
     ])
   })
 })
@@ -136,6 +137,12 @@ describe('Reach as read aloud', () => {
     expect(read(wrapper)).toMatch(/^1game holds a longest run of /u)
     await wrapper.find('[role=slider]').trigger('keydown', { key: 'Home' })
     expect(read(wrapper)).toMatch(/ a longest run of 1 position$/u)
+  })
+
+  it.runIf(REACH.counts.includes(0))('names no game in the plural', async () => {
+    const wrapper = still()
+    await point(wrapper, 'pointermove', 10 * (REACH.counts.indexOf(0) + 1) - 5)
+    expect(read(wrapper)).toMatch(/^0games hold a longest run of /u)
   })
 })
 
