@@ -65,7 +65,8 @@ def mise(
     audit = audit or f"echo {quote(report)}; exit {int(bool(vulnerabilities))}"
 
     return (
-        f'case $1 in ls) printf {quote(dumps(tools))} "$MISE_PROJECT_ROOT";; '
+        f"case $1 in ls) echo {quote(dumps(tools))} "
+        f'| sed "s|%s|$MISE_PROJECT_ROOT|g";; '
         f"audit) {audit};; esac"
     )
 
@@ -487,14 +488,38 @@ def test_audit_skips_a_non_github_entry_no_pinned_tool_carries(scratch: Scratch)
     assert f"No tool .mise/config.toml pins carries {CVE}" in result.stderr
 
 
+LISTED      = f"echo {quote(dumps({'vulnerabilities': [vulnerability()]}))}; exit 1"
+UNREACHABLE = (
+    f"echo {quote(dumps({'unchecked': [], 'vulnerabilities': []}))}; "
+    "echo 'mise ERROR error sending request to api.osv.dev' >&2; exit 1"
+)
+
+
 @mark.parametrize(
-    ("tools", "audited", "stderr"),
+    ("tools", "audit", "audited", "stderr"),
     [
-        param({}, False, "so lock:audit checked none", id="no-pinned-tool"),
-        param(TOOLS, True, "error sending request", id="unreachable")
+        param(
+            {},
+            UNREACHABLE,
+            False,
+            "so lock:audit checked none",
+            id = "no-pinned-tool"
+        ),
+        param(TOOLS, UNREACHABLE, True, "error sending request", id="unreachable"),
+        param(
+            TOOLS | {
+                "node":
+                    [{"version": "24.0.0", "source": {"path": "%s/.mise/config.toml"}}]
+            },
+            f"case $3 in python@*) {LISTED};; *) {UNREACHABLE};; esac",
+            True,
+            "error sending request",
+            id = "one-unreachable"
+        )
     ]
 )
 def test_audit_fails_where_no_tool_is_checked_or_osv_cannot_be_read(
+    audit   : str,
     audited : bool,
     scratch : Scratch,
     stderr  : str,
@@ -503,10 +528,11 @@ def test_audit_fails_where_no_tool_is_checked_or_osv_cannot_be_read(
     """
     Asserts that `lock:audit` fails without running `bun audit` where no
     tool `mise ls` lists comes from `.mise/config.toml`, calling no `mise
-    audit`, and where `mise audit` exits nonzero with no advisory to report.
+    audit`, and where `mise audit` exits nonzero with no advisory to report
+    for any one tool, even beside a tool whose advisory `AUDIT_IGNORE`
+    lists.
     """
-    audit  = "echo 'mise ERROR error sending request to api.osv.dev' >&2; exit 1"
-    result = scratch.run("audit", mise=mise(audit=audit, tools=tools))
+    result = scratch.run("audit", ignore=CVE, mise=mise(audit=audit, tools=tools))
 
     assert result.returncode != 0
     assert not any(call.startswith("bun ") for call in scratch.calls)

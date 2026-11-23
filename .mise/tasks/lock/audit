@@ -7,7 +7,7 @@ uv audit --preview-features audit-command
 each_script uv audit --preview-features audit-command
 cargo-deny --locked --manifest-path rust/Cargo.toml check
 
-report=$(
+tools=$(
   mise ls --current --json --no-global \
     | jq --arg config "$MISE_PROJECT_ROOT/.mise/config.toml" -r '
       [
@@ -22,9 +22,17 @@ report=$(
           | halt_error
         end
       | .[]
-    ' \
-    | xargs -r mise audit --json
-) || jq -e '.vulnerabilities != []' <<< "$report" > /dev/null
+    '
+)
+
+report=$(
+  for tool in $tools; do
+    audit=$(mise audit --json "$tool") \
+      || jq -e '.vulnerabilities != []' <<< "$audit" > /dev/null \
+      || exit
+    echo "$audit"
+  done | jq -s '{vulnerabilities: map(.vulnerabilities[])}'
+)
 
 failures=$(jq --arg ignore "${AUDIT_IGNORE:-}" -r '
   [$ignore | scan("\\S+")] as $listed

@@ -17,6 +17,7 @@ jobs:
         tools:
           - bun github:wasm-bindgen/wasm-bindgen lychee node rust
           - bun cargo-deny python rust uv
+          - bun cargo-deny jq python rust uv
           - jq python rust uv
           - python rust
           - python uv
