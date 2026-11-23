@@ -524,10 +524,12 @@ UNRESOLVED  = (
         param(TOOLS, UNREACHABLE, True, "error sending request", id="unreachable"),
         param(
             TOOLS | {
-                "node":
-                    [{"version": "24.0.0", "source": {"path": "%s/.mise/config.toml"}}]
+                "python": [
+                    *TOOLS["python"],
+                    {"version": "3.14.0", "source": {"path": "%s/.mise/config.toml"}}
+                ]
             },
-            f"case $3 in python@*) {LISTED};; *) {UNRESOLVED};; esac",
+            f"case $3 in python@3.15.2) {LISTED};; *) {UNRESOLVED};; esac",
             True,
             "did not resolve",
             id = "one-unresolved"
@@ -545,8 +547,8 @@ def test_audit_fails_where_no_tool_is_checked_or_osv_cannot_be_read(
     Asserts that `lock:audit` fails without running `bun audit` where no
     tool `mise ls` lists comes from `.mise/config.toml`, calling no `mise
     audit`, and where `mise audit` exits nonzero with no advisory to report
-    for any one tool, even beside a tool whose advisory `AUDIT_IGNORE`
-    lists.
+    for any one version of a tool, even beside a version whose advisory
+    `AUDIT_IGNORE` lists.
     """
     result = scratch.run("audit", ignore=CVE, mise=mise(audit=audit, tools=tools))
 
