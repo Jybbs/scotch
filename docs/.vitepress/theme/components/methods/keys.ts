@@ -11,6 +11,13 @@ import { cells, reels }                                            from './digit
 import { BUTTON, CAPS, CARD, GAME_TEXT, NOTE, controls, stacked }  from './parts.ts'
 
 /**
+ * A row of the sum: its head over its digits, then beside them, narrowed where
+ * the board stands beside the sum.
+ */
+const ROW = 'grid items-center gap-x-3 gap-y-1 sm:grid-cols-[13.5rem_auto] '
+          + 'lg:grid-cols-[12rem_auto] lg:gap-x-1.5'
+
+/**
  * Draws what one number of the key stands for: the piece on its square, in the
  * square's shade, or a disc for the side to move or a right, lit where the
  * number joins the key and faded where it leaves.
@@ -36,7 +43,7 @@ function glyph({ joins, term }: Turned): VNode {
  * Draws one row of the sum: its head and its digits.
  */
 function row(head: VNode, body: VNode, key: string): VNode {
-  return h('div', { class: 'grid items-center gap-x-3 gap-y-1 sm:grid-cols-[13.5rem_auto]', key }, [head, body])
+  return h('div', { class: ROW, key }, [head, body])
 }
 
 /**
@@ -221,13 +228,15 @@ export const Keys = defineComponent({
 
     return (): VNode => {
       const ply = player.ply.value
-      return h('div', {
+      return h('div', { class: '@container' }, h('div', {
         class: [
           CARD,
-          'gap-x-6',
+          'gap-x-6 lg:gap-x-4',
           '[grid-template-areas:"status"_"goal"_"key"_"board"_"chain"_"end"]',
           'md:grid-cols-[15rem_minmax(0,1fr)]',
-          'md:[grid-template-areas:"status_status"_"goal_goal"_"key_key"_"board_chain"_"end_end"]'
+          'md:[grid-template-areas:"status_status"_"goal_goal"_"key_key"_"board_chain"_"end_end"]',
+          'lg:grid-cols-[minmax(min-content,1fr)_minmax(0,14rem)] lg:grid-rows-[auto_auto_auto_1fr_auto]',
+          'lg:[grid-template-areas:"status_status"_"goal_goal"_"key_board"_"chain_board"_"end_end"]'
         ]
       }, [
         h('div', { class: 'flex flex-wrap items-center justify-between gap-2 [grid-area:status]' }, [
@@ -237,7 +246,7 @@ export const Keys = defineComponent({
         ]),
         ...middle(props.keyed, ply, moving.value),
         foot(props.keyed, ply === last, open)
-      ])
+      ]))
     }
   }
 })

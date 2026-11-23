@@ -11,7 +11,11 @@ const HEXES = '0123456789ABCDEF'
  * A digit's cell in the sum.
  */
 const CELL = 'block h-[22px] w-[1.05em] rounded-[3px] text-center font-code text-[0.82rem]/[22px] font-medium '
-           + 'text-ink tabular-nums'
+           + 'text-ink tabular-nums lg:w-[9px] lg:@min-[680px]:w-[11px]'
+/**
+ * A key's four groups of digits on one line, closing up with their cells.
+ */
+const GROUPS = 'inline-flex gap-x-2.5 lg:gap-x-[5px] lg:@min-[680px]:gap-x-[7px]'
 
 /**
  * The height in pixels each reel steps by from one digit to the next, the
@@ -24,7 +28,7 @@ const STEP = 22
  * `turned` names washed.
  */
 export function cells(key: string, turned: (index: number) => boolean = () => false): VNode {
-  return h('span', { 'aria-label': grouped(key), 'class': 'inline-flex gap-x-2.5', 'role': 'img' },
+  return h('span', { 'aria-label': grouped(key), 'class': GROUPS, 'role': 'img' },
     [0, 4, 8, 12].map(group => h('span', { 'aria-hidden': 'true', 'class': 'inline-flex gap-px' },
       [...key.slice(group, group + 4).toUpperCase()].map((digit, at) => h('span', {
         class: [CELL, 'transition-colors duration-glide', turned(group + at) ? 'bg-run/35' : 'bg-raised']
@@ -38,7 +42,7 @@ export function cells(key: string, turned: (index: number) => boolean = () => fa
  */
 export function reels(key: string, before: string | undefined, moving: boolean): VNode {
   let turned = 0
-  return h('span', { 'aria-label': grouped(key), 'class': 'inline-flex gap-x-2.5', 'role': 'img' },
+  return h('span', { 'aria-label': grouped(key), 'class': GROUPS, 'role': 'img' },
     [0, 4, 8, 12].map(group => h('span', { 'aria-hidden': 'true', 'class': 'inline-flex gap-px' },
       [...key.slice(group, group + 4).toUpperCase()].map((digit, at) => {
         const rolls = before !== undefined && before[group + at] !== key[group + at]
