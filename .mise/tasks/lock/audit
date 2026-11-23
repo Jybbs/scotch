@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, or for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists while no release fixes it, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`"
+#MISE description = "Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, other than one `AUDIT_IGNORE` lists while no release fixes it, on any `mise audit` reports for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists and a contributor checks by hand while `mise audit` names no fixed release, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`, naming each tool `mise audit` could not check"
 
 source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 
@@ -31,8 +31,16 @@ report=$(
       || jq -e '.vulnerabilities != []' <<< "$audit" > /dev/null \
       || exit
     echo "$audit"
-  done | jq -s '{vulnerabilities: map(.vulnerabilities[])}'
+  done | jq -s '{
+    unchecked: map(.unchecked[]),
+    vulnerabilities: map(.vulnerabilities[])
+  }'
 )
+
+jq -r '
+  .unchecked[]
+  | "mise audit could not check \(.tool) \(.version), so lock:audit read no advisory for it"
+' <<< "$report" >&2
 
 failures=$(jq --arg ignore "${AUDIT_IGNORE:-}" -r '
   [$ignore | scan("\\S+")] as $listed
@@ -44,7 +52,7 @@ failures=$(jq --arg ignore "${AUDIT_IGNORE:-}" -r '
     elif $fixed != "" then
       "\(.id) affects \(.tool) \(.version) and is fixed in \(.tool) \($fixed), so lift \(.tool) in .mise/config.toml to a fixed release"
     else
-      "\(.id) affects \(.tool) \(.version) and no release fixes it, so add it to AUDIT_IGNORE in .mise/config.toml"
+      "\(.id) affects \(.tool) \(.version) and mise audit names no fixed release, so check it by hand, then lift \(.tool) to a fixed release or add it to AUDIT_IGNORE in .mise/config.toml"
     end
 ' <<< "$report")
 if [[ -n "$failures" ]]; then
@@ -58,11 +66,11 @@ for id in ${AUDIT_IGNORE:-}; do
     first(.vulnerabilities[] | select(any(.id, .aliases[]; . == $id)) | .summary)
   ' <<< "$report")
   if [[ -n "$summary" ]]; then
-    echo "Setting $id aside while no release fixes it: $summary" >&2
+    echo "Setting $id aside while mise audit names no fixed release, so check it by hand: $summary" >&2
     continue
   fi
   if [[ "$id" != GHSA-* ]]; then
-    echo "No tool .mise/config.toml pins carries $id, so delete it from AUDIT_IGNORE" >&2
+    echo "mise audit reports $id for no tool .mise/config.toml pins, so delete it from AUDIT_IGNORE" >&2
     continue
   fi
   advisory="$(gh api --jq '

@@ -12,9 +12,10 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
   release fixes them, and its failure once a release fixes one, its
   stand-in `gh` running the task's own `--jq` filter through `jq` over
   the advisories saved under `fixtures/advisories/`
-- The tools `lock:audit` hands `mise audit`, and its verdict on each
-  advisory the stand-in `mise` reports against them, with and without an
-  `AUDIT_IGNORE` entry and a fixed release
+- The tools `lock:audit` hands `mise audit`, its notice of each one the
+  stand-in `mise` lists as unchecked, and its verdict on each advisory
+  the stand-in reports against them, with and without an `AUDIT_IGNORE`
+  entry and a fixed release
 - The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
@@ -46,28 +47,45 @@ TOOLS = {
 def mise(
     *vulnerabilities : dict[str, object],
     audit            : str               = "",
-    tools            : dict[str, object] = TOOLS
+    tools            : dict[str, object] = TOOLS,
+    unchecked        : tuple[str, ...]   = ()
 ) -> str:
     """
     Writes the stand-in `mise`, which prints `tools` for `mise ls` with the
     worktree in place of each `%s`, and for `mise audit` runs the shell line
-    `audit` holds, or else prints a report holding `vulnerabilities` beside
-    an unchecked `rust`, exiting one where the report holds any, as `mise
-    audit --json` does.
+    `audit` holds, or else prints the report `report` writes, exiting one
+    where it holds any of `vulnerabilities`, as `mise audit --json` does.
     """
-    report = dumps(
-        {
-            "vulnerabilities" : vulnerabilities,
-            "unchecked"       : [{"tool": "rust", "version": "1.100.0"}]
-        }
+    audit = audit or (
+        f"echo {report(*vulnerabilities, unchecked=unchecked)}; "
+        f"exit {int(bool(vulnerabilities))}"
     )
-
-    audit = audit or f"echo {quote(report)}; exit {int(bool(vulnerabilities))}"
 
     return (
         f"case $1 in ls) echo {quote(dumps(tools))} "
         f'| sed "s|%s|$MISE_PROJECT_ROOT|g";; '
         f"audit) {audit};; esac"
+    )
+
+
+def report(
+    *vulnerabilities : dict[str, object],
+    unchecked        : tuple[str, ...] = ()
+) -> str:
+    """
+    Quotes for the shell the report `mise audit --json` prints, holding
+    `vulnerabilities` beside each `unchecked` tool, named as `tool@version`.
+    """
+    return quote(
+        dumps(
+            {
+                "vulnerabilities" : vulnerabilities,
+                "unchecked"       : [
+                    dict(zip(("tool", "version"), name.split("@"), strict=True))
+                    for name in unchecked
+                ]
+            }
+        )
     )
 
 
@@ -350,11 +368,8 @@ def test_audit_names_every_tool_advisory_before_failing(scratch: Scratch):
     audits, rather than stopping at the first.
     """
     second, third = (vulnerability() | {"id": f"CVE-2026-12425{n}"} for n in (0, 1))
-    python, node  = (
-        quote(dumps({"vulnerabilities": found}))
-        for found in ([vulnerability(), second], [third])
-    )
-    result = scratch.run(
+    python, node  = (report(*found) for found in ([vulnerability(), second], [third]))
+    result        = scratch.run(
         "audit",
         mise = mise(
             audit =
@@ -371,6 +386,33 @@ def test_audit_names_every_tool_advisory_before_failing(scratch: Scratch):
     assert [line.split()[0] for line in result.stderr.splitlines()] == [
         CVE, "CVE-2026-124250", "CVE-2026-124251"
     ]
+
+
+@mark.parametrize(
+    ("advisories", "status"),
+    [param((), 0, id="passing"), param((vulnerability(),), 1, id="failing")]
+)
+def test_audit_names_each_tool_mise_audit_could_not_check(
+    advisories : tuple[dict[str, object], ...],
+    scratch    : Scratch,
+    status     : int
+):
+    """
+    Asserts that `lock:audit` names each tool and version `mise audit` lists
+    as unchecked, whether the tools it checked pass or carry an advisory,
+    and leaves its verdict to those.
+    """
+    result = scratch.run(
+        "audit",
+        mise = mise(*advisories, unchecked=("rust@1.100.0", "erlang@28.1"))
+    )
+
+    assert result.returncode == status
+    assert result.stderr.splitlines()[:2] == [
+        f"mise audit could not check {tool}, so lock:audit read no advisory for it"
+        for tool in ("rust 1.100.0", "erlang 28.1")
+    ]
+    assert ("bun audit --cwd docs" in scratch.calls) == (not status)
 
 
 @mark.parametrize("status", [param(1, id="advisory"), param(2, id="unreachable")])
@@ -396,14 +438,14 @@ def test_audit_fails_on_an_advisory_or_an_unreachable_service(
         param(ALIAS, vulnerability(aliases=(ALIAS,)), id="listed-alias")
     ]
 )
-def test_audit_sets_aside_each_tool_advisory_no_release_fixes(
+def test_audit_sets_aside_each_tool_advisory_naming_no_fixed_release(
     advisory : dict[str, object],
     ignore   : str,
     scratch  : Scratch
 ):
     """
     Asserts that `lock:audit` passes where `AUDIT_IGNORE` lists a tool
-    advisory's id or one of its aliases and `mise audit` reports no fixed
+    advisory's id or one of its aliases and `mise audit` names no fixed
     release, printing the advisory's summary, reading no GitHub advisory for
     it, even under a `GHSA-` alias, and passing `bun audit` no `--ignore`
     for it.
@@ -414,7 +456,8 @@ def test_audit_sets_aside_each_tool_advisory_no_release_fixes(
     assert scratch.calls[-1] == "bun audit --cwd docs"
     assert not any(call.startswith("gh ") for call in scratch.calls)
     assert result.stderr == (
-        f"Setting {ignore} aside while no release fixes it: {advisory['summary']}\n"
+        f"Setting {ignore} aside while mise audit names no fixed release, "
+        f"so check it by hand: {advisory['summary']}\n"
     )
 
 
@@ -424,7 +467,11 @@ def test_audit_sets_aside_each_tool_advisory_no_release_fixes(
         param(
             "",
             vulnerability(),
-            f"{CVE} affects python 3.15.2 and no release fixes it, so add it",
+            (
+                f"{CVE} affects python 3.15.2 and mise audit names no fixed "
+                "release, so check it by hand, then lift python to a fixed "
+                "release or add it"
+            ),
             id = "unlisted"
         ),
         param(
@@ -500,13 +547,16 @@ def test_audit_skips_a_non_github_entry_no_pinned_tool_carries(scratch: Scratch)
     assert [call.split()[-1] for call in scratch.calls if "/advisories/" in call] == [
         f"/advisories/{ADVISORY}"
     ]
-    assert f"No tool .mise/config.toml pins carries {CVE}" in result.stderr
+    assert (
+        f"mise audit reports {CVE} for no tool .mise/config.toml pins, so delete it"
+        in result.stderr
+    )
 
 
-LISTED      = f"echo {quote(dumps({'vulnerabilities': [vulnerability()]}))}; exit 1"
+LISTED      = f"echo {report(vulnerability())}; exit 1"
 UNREACHABLE = "echo 'mise ERROR error sending request to api.osv.dev' >&2; exit 1"
 UNRESOLVED  = (
-    f"echo {quote(dumps({'unchecked': [], 'vulnerabilities': []}))}; "
+    f"echo {report()}; "
     "echo 'mise ERROR not checked, the version did not resolve' >&2; exit 1"
 )
 
