@@ -3,20 +3,18 @@ import { type VNode, h } from 'vue'
 import { grouped } from '../../../lib/methods/keys.ts'
 
 /**
- * The sixteen hexadecimal digits in order, the strip each reel rolls along.
- */
-const HEXES = '0123456789ABCDEF'
-
-/**
  * A digit's cell in the sum.
  */
-const CELL = 'block h-[22px] w-[1.05em] rounded-[3px] text-center font-code text-[0.82rem]/[22px] font-medium '
-           + 'text-ink tabular-nums lg:w-[9px] lg:@min-[680px]:w-[11px]'
+const CELL = 'block h-[22px] w-[1.05em] rounded-[3px] text-center font-code text-[0.82rem]/[22px] '
+           + 'font-medium text-ink tabular-nums lg:w-[9px] lg:@min-[680px]:w-[11px]'
 /**
  * A key's four groups of digits on one line, closing up with their cells.
  */
 const GROUPS = 'inline-flex gap-x-2.5 lg:gap-x-[5px] lg:@min-[680px]:gap-x-[7px]'
-
+/**
+ * The sixteen hexadecimal digits in order, the strip each reel rolls along.
+ */
+const HEXES = '0123456789ABCDEF'
 /**
  * The height in pixels each reel steps by from one digit to the next, the
  * height of a cell.
