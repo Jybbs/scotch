@@ -346,15 +346,30 @@ def test_audit_fails_once_a_release_fixes_an_advisory_or_it_cannot_be_read(
 def test_audit_names_every_tool_advisory_before_failing(scratch: Scratch):
     """
     Asserts that `lock:audit` names each tool advisory `AUDIT_IGNORE` leaves
-    out, in the order `mise audit` reports them, rather than stopping at
-    the first.
+    out, in the order `mise audit` reports them and across every tool it
+    audits, rather than stopping at the first.
     """
-    second = vulnerability("3.15.3") | {"id": "CVE-2026-124250"}
-    result = scratch.run("audit", mise=mise(vulnerability(), second))
+    second, third = (vulnerability() | {"id": f"CVE-2026-12425{n}"} for n in (0, 1))
+    python, node  = (
+        quote(dumps({"vulnerabilities": found}))
+        for found in ([vulnerability(), second], [third])
+    )
+    result = scratch.run(
+        "audit",
+        mise = mise(
+            audit =
+                f"case $3 in python@*) echo {python};; *) echo {node};; esac; exit 1",
+            tools = TOOLS | {
+                "node": [
+                    {"version": "24.0.0", "source": {"path": "%s/.mise/config.toml"}}
+                ]
+            }
+        )
+    )
 
     assert result.returncode == 1
     assert [line.split()[0] for line in result.stderr.splitlines()] == [
-        CVE, "CVE-2026-124250"
+        CVE, "CVE-2026-124250", "CVE-2026-124251"
     ]
 
 
@@ -489,9 +504,10 @@ def test_audit_skips_a_non_github_entry_no_pinned_tool_carries(scratch: Scratch)
 
 
 LISTED      = f"echo {quote(dumps({'vulnerabilities': [vulnerability()]}))}; exit 1"
-UNREACHABLE = (
+UNREACHABLE = "echo 'mise ERROR error sending request to api.osv.dev' >&2; exit 1"
+UNRESOLVED  = (
     f"echo {quote(dumps({'unchecked': [], 'vulnerabilities': []}))}; "
-    "echo 'mise ERROR error sending request to api.osv.dev' >&2; exit 1"
+    "echo 'mise ERROR not checked, the version did not resolve' >&2; exit 1"
 )
 
 
@@ -511,10 +527,10 @@ UNREACHABLE = (
                 "node":
                     [{"version": "24.0.0", "source": {"path": "%s/.mise/config.toml"}}]
             },
-            f"case $3 in python@*) {LISTED};; *) {UNREACHABLE};; esac",
+            f"case $3 in python@*) {LISTED};; *) {UNRESOLVED};; esac",
             True,
-            "error sending request",
-            id = "one-unreachable"
+            "did not resolve",
+            id = "one-unresolved"
         )
     ]
 )
