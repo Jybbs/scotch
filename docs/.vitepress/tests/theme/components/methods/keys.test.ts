@@ -153,15 +153,17 @@ describe('Keys on a wide page', () => {
     ['key', '[role=img]', ['lg:gap-x-[5px]', 'lg:@min-[680px]:gap-x-[7px]']],
     ['row', '[class*="sm:grid-cols-[13.5rem_auto]"]', ['lg:grid-cols-[12rem_auto]', 'lg:gap-x-1.5']]
   ])('narrows every %s of the sum', (_, parts, narrowed) => {
-    const drawn = still().findAll(`[class*="[grid-area:key]"] ${parts}`).map(part => part.classes())
-    expect(new Set(drawn.map(names => narrowed.every(name => names.includes(name))))).toEqual(new Set([true]))
+    const drawn = still()
+      .findAll(`[class*="[grid-area:key]"] ${parts}`)
+      .map(part => part.classes())
+    expect(drawn).toAllEqual(expect.arrayContaining(narrowed))
   })
 
   it('holds the label of every number at its full width, whatever face draws its sign', () => {
     const heads = still()
       .findAll('[class*="[grid-area:key]"] [class*="sm:grid-cols-[13.5rem_auto]"] > span')
       .filter(head => head.text().startsWith('⊕'))
-    expect(new Set(heads.map(head => head.classes('lg:*:shrink-0')))).toEqual(new Set([true]))
+    expect(heads.map(head => head.classes())).toAllEqual(expect.arrayContaining(['lg:*:shrink-0']))
   })
 })
 
