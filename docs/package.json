@@ -37,10 +37,9 @@
         "workspaces"         : {
             "."             : {
                 "typescript" : { "config": [".vitepress/tsconfig.json"] },
-                "vitepress"  : { "entry": [".vitepress/config/index.ts", ".vitepress/theme/index.ts"] },
                 "vitest"     : { "config": [".vitepress/config/vitest.config.ts"] }
             },
-            "../tests/site" : { "entry": ["**/*.test.ts"] }
+            "../tests/site" : {}
         }
     },
     "overrides"       : {
