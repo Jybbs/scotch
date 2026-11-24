@@ -8,6 +8,7 @@ A run writes its files under the data directory [Settings](../reference/settings
 | `.cache/data/downloads/www.pgnmentor.com/` | `scotch fetch games` | Each file of the host `sources.toml` declares, under the path its address names |
 | `.cache/data/downloads/manifest.json` | `scotch fetch games` | The record of each fetched file, keyed by its address |
 | `.cache/data/index/games.parquet` | `scotch index games` | One row for each stored game |
+| `.cache/data/index/left.parquet` | `scotch index games` | One row for each game left out, beside its reason |
 | `.cache/data/index/positions.bin` | `scotch index games` | Every position the stored games reach, beside their moves |
 | `.cache/data/index/manifest.json` | `scotch index games` | A copy of the manifest the files were read under |
 <!-- /layout -->
