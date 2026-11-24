@@ -8,10 +8,20 @@ each_script uv audit --preview-features audit-command
 cargo-deny --locked --manifest-path rust/Cargo.toml check
 
 tools=$(
-  mise ls --json --no-global \
-    | jq --arg config "$MISE_PROJECT_ROOT/.mise/config.toml" -er '
-      to_entries[]
-      | "\(.key)@\(.value[] | select(.source.path == $config).version)"
+  { mise config ls --json && mise ls --json --no-global; } \
+    | jq --arg config "$MISE_PROJECT_ROOT/.mise/config.toml" -enr '
+      (input[] | select(.path == $config).tools) as $pinned
+      | input
+      | map_values(map(select(.source.path == $config).version) | select(. != []))
+      | ($pinned - keys) as $unlisted
+      | if $unlisted == [] then
+          to_entries[] | "\(.key)@\(.value[])"
+        else
+          $unlisted
+          | map("mise ls lists no version of \(.) from .mise/config.toml, so run mise relock where .mise/mise.lock lags its pin, remove the MISE_<TOOL>_VERSION variable or mise.local.toml entry naming another version, or run lock:audit on a platform its os list names\n")
+          | add
+          | halt_error(1)
+        end
     '
 )
 
