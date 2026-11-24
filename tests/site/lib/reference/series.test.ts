@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { IDENTITY }  from '../../../../docs/.vitepress/lib/identity/tokens.ts'
-import * as series   from '../../../../docs/.vitepress/lib/reference/series.ts'
+import { IDENTITY } from '../../../../docs/.vitepress/lib/identity/tokens.ts'
+import * as series  from '../../../../docs/.vitepress/lib/reference/series.ts'
 
 const ON = series.FILES.map(() => 1)
 

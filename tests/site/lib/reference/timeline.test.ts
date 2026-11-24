@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount }  from '@vue/test-utils'
-import { describe, expect, vi }  from 'vitest'
+import { flushPromises, mount }    from '@vue/test-utils'
+import { describe, expect, vi }    from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 
-import { useBeats, useUnfold, type Beats, type Story } from '../../../../docs/.vitepress/lib/reference/timeline.ts'
+import { useBeats, useUnfold }       from '../../../../docs/.vitepress/lib/reference/timeline.ts'
+import type { Beats, Story }         from '../../../../docs/.vitepress/lib/reference/timeline.ts'
 import { test }                      from '../../common/clock.ts'
 import { pauseMotion, reduceMotion } from '../../common/motion.ts'
 import { onScreen }                  from '../../common/unfold.ts'

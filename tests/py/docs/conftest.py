@@ -7,7 +7,7 @@ from collections.abc import Callable, Iterable
 from common.games    import line
 from json            import dumps
 from pathlib         import Path
-from pytest          import fixture
+from pytest          import Config, fixture
 from pytest_subprocess.fake_process import FakeProcess
 from shutil import copyfile
 
@@ -99,7 +99,12 @@ def counted(
 
 
 @fixture
-def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path]:
+def checkout(
+    fp           : FakeProcess,
+    known        : Path,
+    pytestconfig : Config,
+    tmp_path     : Path
+) -> Callable[..., Path]:
     """
     Builds a writer that lays out a checkout under `tmp_path` holding the
     mark, the wordmark, and the lockup, the repository's bibliography and
@@ -138,7 +143,7 @@ def checkout(fp: FakeProcess, known: Path, tmp_path: Path) -> Callable[..., Path
         )
         for tracked in (References.file, Path(".mise/config.toml")):
             (path := tmp_path / tracked).parent.mkdir(parents=True)
-            copyfile(Path(__file__).parents[3] / tracked, path)
+            copyfile(pytestconfig.rootpath / tracked, path)
         (docs / "public" / "games").mkdir(parents=True)
 
         for name in ("demo", "front", "methods", "viewer"):

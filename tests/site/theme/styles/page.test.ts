@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs'
-import { resolve }      from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
+import { pageSheet } from '../../common/markdown.ts'
+
 const DECLARED = /(?:^|[{;])\s*([a-z-]+)\s*:(?!:)/gmu
-const sheet    = readFileSync(resolve(import.meta.dirname, '../../../../docs/.vitepress/theme/styles/page.css'), 'utf8')
+const sheet    = readFileSync(pageSheet, 'utf8')
 /**
  * The properties that write `text-wrap-mode`, the longhand a whitespace
  * utility sets through `white-space`, so any one declared in this unlayered

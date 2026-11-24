@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { exampleOf }                 from '../../../../docs/.vitepress/lib/methods/example.ts'
-import { framed, tracked }           from '../../../../docs/.vitepress/lib/methods/standing.ts'
-import { EXAMPLES }                  from '../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { exampleOf }       from '../../../../docs/.vitepress/lib/methods/example.ts'
+import { framed, tracked } from '../../../../docs/.vitepress/lib/methods/standing.ts'
+import { EXAMPLES }        from '../../../../docs/.vitepress/lib/viewer/examples.ts'
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
 

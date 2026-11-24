@@ -1,15 +1,11 @@
-import fs from 'node:fs'
-
 import { describe, expect, it } from 'vitest'
 
-import { loadReader }     from '../../../../docs/.vitepress/lib/games/readers.ts'
-import { Published }      from '../../../../docs/.vitepress/lib/games/store.ts'
-import { EXAMPLES }       from '../../../../docs/.vitepress/lib/viewer/examples.ts'
-import { ORIGIN, bucket } from '../../common/store.ts'
+import { loadReader }                     from '../../../../docs/.vitepress/lib/games/readers.ts'
+import { Published }                      from '../../../../docs/.vitepress/lib/games/store.ts'
+import { EXAMPLES }                       from '../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { ORIGIN, bucket, module, viewer } from '../../common/store.ts'
 
-const module = fs.readFileSync(new URL('../../../../docs/.vitepress/lib/games/crate/scotch_bg.wasm', import.meta.url))
-const read   = await loadReader(module)
-const viewer = fs.readFileSync(new URL('../../../../docs/public/games/viewer.pgn', import.meta.url), 'utf8')
+const read = await loadReader(module)
 
 /**
  * Reads the one game `text` carries.

@@ -2,11 +2,16 @@
 import { mount }                from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import { exampleOf }                               from '../../../../../docs/.vitepress/lib/methods/example.ts'
-import { marksAt }                                 from '../../../../../docs/.vitepress/lib/methods/squares.ts'
-import { framed }                                  from '../../../../../docs/.vitepress/lib/methods/standing.ts'
-import { GlidingBoard, type Wash, drawPiece, drawSquares } from '../../../../../docs/.vitepress/theme/components/methods/board.ts'
-import { reduceMotion }                            from '../../../common/motion.ts'
+import { exampleOf } from '../../../../../docs/.vitepress/lib/methods/example.ts'
+import { marksAt }   from '../../../../../docs/.vitepress/lib/methods/squares.ts'
+import { framed }    from '../../../../../docs/.vitepress/lib/methods/standing.ts'
+import {
+  GlidingBoard,
+  drawPiece,
+  drawSquares
+} from '../../../../../docs/.vitepress/theme/components/methods/board.ts'
+import type { Wash }    from '../../../../../docs/.vitepress/theme/components/methods/board.ts'
+import { reduceMotion } from '../../../common/motion.ts'
 
 const methods  = exampleOf()
 const standing = framed(methods.submitted)

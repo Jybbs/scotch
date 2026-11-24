@@ -11,7 +11,9 @@ import theme      from '../../../docs/.vitepress/theme/index.ts'
 vi.mock('vitepress/theme-without-fonts', () => ({ default: { Layout: 'DefaultLayout' } }))
 vi.mock('../../../docs/.vitepress/theme/layout.ts', () => ({ Layout: 'ScotchLayout' }))
 vi.mock('../../../docs/.vitepress/theme/components/figure.ts', () => ({ Figure: {} }))
-vi.mock('../../../docs/.vitepress/theme/components/viewer/tool.ts', () => ({ Tool: { render: () => 'The Viewer' } }))
+vi.mock('../../../docs/.vitepress/theme/components/viewer/tool.ts', () => ({
+  Tool: { render: () => 'The Viewer' }
+}))
 
 describe('the theme', () => {
   it('extends the default theme without its bundled faces', async () => {

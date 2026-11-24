@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { HEIGHT, LAYOUT }   from '../../../../docs/.vitepress/lib/readme/parts.ts'
-import { encodePreview }    from '../../../../docs/.vitepress/lib/readme/reel.ts'
-import { PACE }             from '../../../../docs/.vitepress/lib/readme/scene.ts'
-import { decoded }          from '../../common/gif.ts'
-import { scene }            from '../../common/shots.ts'
+import { HEIGHT, LAYOUT } from '../../../../docs/.vitepress/lib/readme/parts.ts'
+import { encodePreview }  from '../../../../docs/.vitepress/lib/readme/reel.ts'
+import { PACE }           from '../../../../docs/.vitepress/lib/readme/scene.ts'
+import { decoded }        from '../../common/gif.ts'
+import { scene }          from '../../common/shots.ts'
 
 /**
  * The renders running now and the most that ran at once, which the mock of

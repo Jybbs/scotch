@@ -5,6 +5,8 @@ import { dirname, resolve } from 'node:path'
 
 import { compile } from 'tailwindcss'
 
+import { docsDir } from '../../../docs/.vitepress/lib/site/paths.ts'
+
 /**
  * The values of Tailwind's `Polyfills` flags, every fallback and none, which its
  * declarations keep in an ambient const enum no import reaches.
@@ -13,8 +15,8 @@ const POLYFILLS = { all: 3, none: 0 } as const
 /**
  * The site's Tailwind entry sheet.
  */
-export const SHEET = resolve(import.meta.dirname, '../../../docs/.vitepress/theme/styles/tailwind.css')
-const require      = createRequire(import.meta.url)
+export const entrySheet = resolve(docsDir(import.meta.url), '.vitepress/theme/styles/tailwind.css')
+const require           = createRequire(import.meta.url)
 
 /**
  * Compiles `source` as the entry sheet afresh, since a compiler keeps every
@@ -25,7 +27,7 @@ export const compiled = (
   source    : string,
   polyfills : number = POLYFILLS.all
 ): ReturnType<typeof compile> => compile(source, {
-  base           : dirname(SHEET),
+  base           : dirname(entrySheet),
   polyfills      : polyfills,
   loadStylesheet : async (id, base) => {
     const path = id.startsWith('.') ? resolve(base, id) : require.resolve(id)
@@ -51,7 +53,7 @@ export async function styled(root: Element): Promise<HTMLStyleElement> {
  * inside an `@layer` and reads no nested rule.
  */
 export async function utilities(classes: string[]): Promise<string> {
-  const unlayered = readFileSync(SHEET, 'utf8')
+  const unlayered = readFileSync(entrySheet, 'utf8')
     .replace(/^@layer [^;]+;$/mu, '')
     .replaceAll(/ layer\(\w+\)/gu, '')
   return (await compiled(unlayered, POLYFILLS.none)).build([...new Set(classes)])

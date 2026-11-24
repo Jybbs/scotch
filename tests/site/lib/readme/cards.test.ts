@@ -2,10 +2,10 @@ import fs from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
 
-import { facesOf }                 from '../../../../docs/.vitepress/lib/cards/faces.ts'
-import { CARD, STARTS, drawCard }  from '../../../../docs/.vitepress/lib/readme/cards.ts'
-import { SCHEMES }                 from '../../../../docs/.vitepress/lib/readme/preview.ts'
-import { readmeDir }               from '../../../../docs/.vitepress/lib/readme/write.ts'
+import { facesOf }                from '../../../../docs/.vitepress/lib/cards/faces.ts'
+import { CARD, STARTS, drawCard } from '../../../../docs/.vitepress/lib/readme/cards.ts'
+import { SCHEMES }                from '../../../../docs/.vitepress/lib/readme/preview.ts'
+import { readmeDir }              from '../../../../docs/.vitepress/lib/readme/write.ts'
 
 /**
  * Every card Where to Start sets, in each scheme.

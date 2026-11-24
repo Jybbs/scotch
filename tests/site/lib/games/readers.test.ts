@@ -6,10 +6,10 @@ import { describe, expect, it } from 'vitest'
 import { loadReader } from '../../../../docs/.vitepress/lib/games/readers.ts'
 import KEYS           from '../../../../docs/.vitepress/lib/rendered/keys.json' with { type: 'json' }
 import { publicDir }  from '../../../../docs/.vitepress/lib/site/paths.ts'
+import { module }     from '../../common/store.ts'
 
 const games  = path.join(publicDir(import.meta.url), 'games')
 const keyed: Partial<Record<string, string[]>> = KEYS
-const module = fs.readFileSync(new URL('../../../../docs/.vitepress/lib/games/crate/scotch_bg.wasm', import.meta.url))
 const read   = await loadReader(module)
 
 describe('loadReader', () => {

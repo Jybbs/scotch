@@ -1,6 +1,9 @@
-import fs from 'node:fs'
+import fs   from 'node:fs'
+import path from 'node:path'
 
 import { vi } from 'vitest'
+
+import { docsDir, publicDir } from '../../../docs/.vitepress/lib/site/paths.ts'
 
 /**
  * A stand-in for the bucket the store is published to, and every request it
@@ -17,8 +20,20 @@ export interface Bucket {
 export const ORIGIN = 'https://store.test'
 
 /**
+ * The bytes of the reader `rs:wasm` builds from the crate.
+ */
+export const module = fs.readFileSync(
+  path.join(docsDir(import.meta.url), '.vitepress/lib/games/crate/scotch_bg.wasm')
+)
+
+/**
+ * The game the Viewer opens on.
+ */
+export const viewer = fs.readFileSync(path.join(publicDir(import.meta.url), 'games/viewer.pgn'), 'utf8')
+
+/**
  * Reads a file of `fixtures/`, the store `scotch publish store` writes for the
- * games `tests/index/fixtures/stored.pgn` holds beside its manifest.
+ * games `tests/py/index/fixtures/stored.pgn` holds beside its manifest.
  */
 function fixture(name: string): Uint8Array<ArrayBuffer> {
   return new Uint8Array(fs.readFileSync(new URL(`../lib/games/fixtures/${name}`, import.meta.url)))

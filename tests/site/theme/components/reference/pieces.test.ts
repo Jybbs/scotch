@@ -2,11 +2,11 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, vi } from 'vitest'
 
-import * as lib     from '../../../../../docs/.vitepress/lib/reference/pieces.ts'
-import { Pieces }   from '../../../../../docs/.vitepress/theme/components/reference/pieces.ts'
-import { test }     from '../../../common/clock.ts'
+import * as lib         from '../../../../../docs/.vitepress/lib/reference/pieces.ts'
+import { Pieces }       from '../../../../../docs/.vitepress/theme/components/reference/pieces.ts'
+import { test }         from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
-import { onScreen } from '../../../common/unfold.ts'
+import { onScreen }     from '../../../common/unfold.ts'
 
 function settled(clock: typeof vi): ReturnType<typeof mount> {
   onScreen()

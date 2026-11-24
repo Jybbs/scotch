@@ -1,9 +1,16 @@
 // @vitest-environment happy-dom
-import { createMarkdownRenderer }               from 'vitepress'
+import { createMarkdownRenderer }              from 'vitepress'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { citeMark }                                            from '../../../../docs/.vitepress/lib/markdown/citing.ts'
-import { CITED, PICKED, anchored, citationOf, clauseOf, pick } from '../../../../docs/.vitepress/lib/markdown/notes.ts'
+import { citeMark } from '../../../../docs/.vitepress/lib/markdown/citing.ts'
+import {
+  CITED,
+  PICKED,
+  anchored,
+  citationOf,
+  clauseOf,
+  pick
+} from '../../../../docs/.vitepress/lib/markdown/notes.ts'
 
 const md   = await createMarkdownRenderer('/tmp', { config: citeMark, highlight: () => '' })
 const PAGE = [

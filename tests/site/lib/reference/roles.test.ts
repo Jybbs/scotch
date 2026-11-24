@@ -1,11 +1,8 @@
-import fs   from 'node:fs'
-import path from 'node:path'
-
 import { describe, expect, it } from 'vitest'
 
 import { ROLES, resolve }         from '../../../../docs/.vitepress/lib/identity/roles.ts'
 import { ORDER, START, heldLine } from '../../../../docs/.vitepress/lib/reference/roles.ts'
-import { pagesDir }               from '../../../../docs/.vitepress/lib/site/paths.ts'
+import { pageText }               from '../../common/pages.ts'
 
 describe('ORDER', () => {
   it('steps through every role the identity declares, opening on the run color', () => {
@@ -22,7 +19,7 @@ describe('heldLine', () => {
 })
 
 describe('the Palette and Roles page', () => {
-  const page = fs.readFileSync(path.join(pagesDir(import.meta.url), 'identity/palette.md'), 'utf8')
+  const page = pageText('identity/palette.md')
 
   it.each(Object.entries(ROLES))('states the hex a browser draws %s in', (role, { dark, light }) => {
     const row = page.split('\n').find(line => line.startsWith(`| \`${role}\` |`))!

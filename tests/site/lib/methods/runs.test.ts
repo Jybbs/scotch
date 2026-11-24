@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { exampleOf }    from '../../../../docs/.vitepress/lib/methods/example.ts'
-import * as runs        from '../../../../docs/.vitepress/lib/methods/runs.ts'
-import { marksAt }      from '../../../../docs/.vitepress/lib/methods/squares.ts'
+import { exampleOf } from '../../../../docs/.vitepress/lib/methods/example.ts'
+import * as runs     from '../../../../docs/.vitepress/lib/methods/runs.ts'
+import { marksAt }   from '../../../../docs/.vitepress/lib/methods/squares.ts'
 
 const methods = exampleOf()
 const pair    = new runs.Pair([18, 18], methods.runs)

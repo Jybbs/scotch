@@ -3,11 +3,11 @@ import { flushPromises, mount }                from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { EXAMPLES, type Match, type Sample } from '../../../../../docs/.vitepress/lib/viewer/examples.ts'
-import * as games                            from '../../../../../docs/.vitepress/lib/viewer/games.ts'
-import { Loaded }                            from '../../../../../docs/.vitepress/lib/viewer/loaded.ts'
-import { Band }                              from '../../../../../docs/.vitepress/theme/components/viewer/band.ts'
-import { fileOf, picked }                    from '../../../common/files.ts'
-import { endedAt }                           from '../../../common/matches.ts'
+import * as games         from '../../../../../docs/.vitepress/lib/viewer/games.ts'
+import { Loaded }         from '../../../../../docs/.vitepress/lib/viewer/loaded.ts'
+import { Band }           from '../../../../../docs/.vitepress/theme/components/viewer/band.ts'
+import { fileOf, picked } from '../../../common/files.ts'
+import { endedAt }        from '../../../common/matches.ts'
 
 const loaded = new Loaded(EXAMPLES.match)
 

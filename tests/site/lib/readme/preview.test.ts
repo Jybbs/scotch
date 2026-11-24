@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { facesOf }                     from '../../../../docs/.vitepress/lib/cards/faces.ts'
-import { Outliner }                    from '../../../../docs/.vitepress/lib/readme/outline.ts'
-import { HEIGHT, LAYOUT }              from '../../../../docs/.vitepress/lib/readme/parts.ts'
+import { facesOf }                      from '../../../../docs/.vitepress/lib/cards/faces.ts'
+import { Outliner }                     from '../../../../docs/.vitepress/lib/readme/outline.ts'
+import { HEIGHT, LAYOUT }               from '../../../../docs/.vitepress/lib/readme/parts.ts'
 import { SCHEMES, colorsOf, drawFrame } from '../../../../docs/.vitepress/lib/readme/preview.ts'
-import { TRACK_ROLES }                 from '../../../../docs/.vitepress/lib/viewer/track.ts'
-import { scene }                       from '../../common/shots.ts'
+import { TRACK_ROLES }                  from '../../../../docs/.vitepress/lib/viewer/track.ts'
+import { scene }                        from '../../common/shots.ts'
 
 describe('colorsOf', () => {
   it("reads every color the Viewer's track reads, apart in each scheme", () => {

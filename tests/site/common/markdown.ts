@@ -6,6 +6,8 @@ import { type VueWrapper, mount } from '@vue/test-utils'
 import { onTestFinished }         from 'vitest'
 import type { Component }         from 'vue'
 
+import { docsDir } from '../../../docs/.vitepress/lib/site/paths.ts'
+
 import { styled, utilities } from './tailwind.ts'
 
 /**
@@ -34,12 +36,16 @@ export const FLUSH: Spacing = {
 }
 const require = createRequire(import.meta.url)
 /**
+ * The site's own Markdown sheet.
+ */
+export const pageSheet = resolve(docsDir(import.meta.url), '.vitepress/theme/styles/page.css')
+/**
  * The default theme's Markdown sheet and the site's own, each outside every
  * cascade layer.
  */
 const SHEETS = [
   require.resolve('vitepress/dist/client/theme-default/styles/components/vp-doc.css'),
-  resolve(import.meta.dirname, '../../../docs/.vitepress/theme/styles/page.css')
+  pageSheet
 ]
 
 /**

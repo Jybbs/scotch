@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import overview                             from '../../../../docs/pages/methods/index.md?raw'
-import { placeOf, questionsOf, routeOf }    from '../../../../docs/.vitepress/lib/overview/stops.ts'
-import keys                                 from '../../../../docs/.vitepress/lib/rendered/keys.json' with { type: 'json' }
-import { EXAMPLES }                         from '../../../../docs/.vitepress/lib/viewer/examples.ts'
+import overview     from '../../../../docs/pages/methods/index.md?raw'
+import { placeOf, questionsOf, routeOf } from '../../../../docs/.vitepress/lib/overview/stops.ts'
+import keys         from '../../../../docs/.vitepress/lib/rendered/keys.json' with { type: 'json' }
+import { EXAMPLES } from '../../../../docs/.vitepress/lib/viewer/examples.ts'
 
 const route = routeOf(EXAMPLES.match, keys.viewer, { games: '1,000', positions: '9,000' })
 

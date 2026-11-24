@@ -1,7 +1,7 @@
-import type { Outliner }        from '../../../docs/.vitepress/lib/readme/outline.ts'
-import type { Shot }            from '../../../docs/.vitepress/lib/readme/parts.ts'
-import { colorsOf }             from '../../../docs/.vitepress/lib/readme/preview.ts'
-import { type Scene, sceneOf }  from '../../../docs/.vitepress/lib/readme/scene.ts'
+import type { Outliner }       from '../../../docs/.vitepress/lib/readme/outline.ts'
+import type { Shot }           from '../../../docs/.vitepress/lib/readme/parts.ts'
+import { colorsOf }            from '../../../docs/.vitepress/lib/readme/preview.ts'
+import { type Scene, sceneOf } from '../../../docs/.vitepress/lib/readme/scene.ts'
 
 /**
  * Stands in for the outliner, setting each line as its text in brackets, so a

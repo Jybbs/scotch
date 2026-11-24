@@ -2,13 +2,13 @@
 import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, vi }             from 'vitest'
 
-import { hexOf }   from '../../../../../docs/.vitepress/lib/identity/tokens.ts'
-import * as lib    from '../../../../../docs/.vitepress/lib/reference/palette.ts'
-import { Palette } from '../../../../../docs/.vitepress/theme/components/reference/palette.ts'
-import { test }    from '../../../common/clock.ts'
+import { hexOf }        from '../../../../../docs/.vitepress/lib/identity/tokens.ts'
+import * as lib         from '../../../../../docs/.vitepress/lib/reference/palette.ts'
+import { Palette }      from '../../../../../docs/.vitepress/theme/components/reference/palette.ts'
+import { test }         from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
-import { resized } from '../../../common/size.ts'
-import { onScreen } from '../../../common/unfold.ts'
+import { resized }      from '../../../common/size.ts'
+import { onScreen }     from '../../../common/unfold.ts'
 
 vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),

@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
-import { mount }                                     from '@vue/test-utils'
-import { describe, expect, it, vi }                  from 'vitest'
+import { mount }                                    from '@vue/test-utils'
+import { describe, expect, it, vi }                 from 'vitest'
 import { type VNode, defineComponent, h, nextTick } from 'vue'
-import { renderToString }                            from 'vue/server-renderer'
+import { renderToString }                           from 'vue/server-renderer'
 
 import { FIGURE }          from '../../../../docs/.vitepress/lib/markdown/placements.ts'
 import { Figure, WIDGETS } from '../../../../docs/.vitepress/theme/components/figure.ts'

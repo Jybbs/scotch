@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { mount }                       from '@vue/test-utils'
+import { mount }                           from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { PICKED, anchored } from '../../../../docs/.vitepress/lib/markdown/notes.ts'

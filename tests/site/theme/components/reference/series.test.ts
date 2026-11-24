@@ -2,12 +2,12 @@
 import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, vi }             from 'vitest'
 
-import * as lib        from '../../../../../docs/.vitepress/lib/reference/series.ts'
-import { Series }      from '../../../../../docs/.vitepress/theme/components/reference/series.ts'
-import { test }        from '../../../common/clock.ts'
+import * as lib         from '../../../../../docs/.vitepress/lib/reference/series.ts'
+import { Series }       from '../../../../../docs/.vitepress/theme/components/reference/series.ts'
+import { test }         from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
-import { unsized }     from '../../../common/size.ts'
-import { onScreen }    from '../../../common/unfold.ts'
+import { unsized }      from '../../../common/size.ts'
+import { onScreen }     from '../../../common/unfold.ts'
 
 vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),

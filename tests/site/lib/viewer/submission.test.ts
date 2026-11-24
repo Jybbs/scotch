@@ -1,5 +1,5 @@
-import { describe, expect, it, vi }       from 'vitest'
-import { shallowRef }                     from 'vue'
+import { describe, expect, it, vi } from 'vitest'
+import { shallowRef }               from 'vue'
 
 import { EXAMPLES }                       from '../../../../docs/.vitepress/lib/viewer/examples.ts'
 import { Matcher, type Submission }       from '../../../../docs/.vitepress/lib/viewer/matcher.ts'

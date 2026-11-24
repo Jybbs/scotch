@@ -7,7 +7,7 @@ address, beside the lines naming a key no entry holds.
 
 from pathlib  import Path
 from pydantic import ValidationError
-from pytest   import mark, param, raises
+from pytest   import Config, mark, param, raises
 
 from scotch.citations.schemas import Reference, References
 
@@ -272,13 +272,13 @@ def test_cite_writes_each_definition_in_the_order_given(references: References):
     )
 
 
-def test_installed_reads_the_bibliography_the_checkout_ships():
+def test_installed_reads_the_bibliography_the_checkout_ships(pytestconfig: Config):
     """
     Asserts that `installed` reads the same sources as the
     `src/scotch/citations/references.bib` of the checkout the tests run in.
     """
     assert References.installed().references == (
-        References.shipped(Path(__file__).parents[3]).references
+        References.shipped(pytestconfig.rootpath).references
     )
 
 

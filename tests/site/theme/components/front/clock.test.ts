@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { mount }                              from '@vue/test-utils'
+import { mount }                               from '@vue/test-utils'
 import { type Mock, describe, expect, it, vi } from 'vitest'
 
 import { Clock }   from '../../../../../docs/.vitepress/theme/components/front/clock.ts'

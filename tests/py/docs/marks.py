@@ -6,18 +6,18 @@ identity page sets beneath them.
 """
 
 from pathlib import Path
-from pytest  import MonkeyPatch, Subtests, fixture, mark, param
+from pytest  import Config, MonkeyPatch, Subtests, fixture, mark, param
 
 from scotch.docs.marks       import Box, Drawing, Marks, subpaths
 from scotch.identity.schemas import Card, Identity
 
 
 @fixture(scope="module")
-def marks() -> Marks:
+def marks(pytestconfig: Config) -> Marks:
     """
     Reads the marks of the SVGs the repository tracks.
     """
-    return Marks.read(Path(__file__).parents[3])
+    return Marks.read(pytestconfig.rootpath)
 
 
 @mark.parametrize(
@@ -152,10 +152,11 @@ def test_the_stops_run_by_width_each_size_read_from_its_svg(marks: Marks):
     ]
 )
 def test_the_link_card_stop_draws_the_declared_card_at_a_third(
-    card        : Card,
-    drawn       : tuple[int, int],
-    monkeypatch : MonkeyPatch,
-    said        : str
+    card         : Card,
+    drawn        : tuple[int, int],
+    monkeypatch  : MonkeyPatch,
+    pytestconfig : Config,
+    said         : str
 ):
     """
     Asserts that the link card stop is drawn at a third of the card the
@@ -166,7 +167,7 @@ def test_the_link_card_stop_draws_the_declared_card_at_a_third(
     monkeypatch.setattr("scotch.docs.marks.Identity", lambda: Identity(card=card))
     stop = next(
         stop
-        for stop in Marks.read(Path(__file__).parents[3]).stops
+        for stop in Marks.read(pytestconfig.rootpath).stops
         if stop.name == "Link card"
     )
 

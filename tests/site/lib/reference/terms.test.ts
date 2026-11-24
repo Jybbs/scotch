@@ -1,9 +1,7 @@
-import fs from 'node:fs'
-
 import { describe, expect, it } from 'vitest'
 
 import { PAGE, TERMS, addressOf, termOf } from '../../../../docs/.vitepress/lib/reference/terms.ts'
-import { builtPages }                     from '../../common/pages.ts'
+import { builtPages, pageText }           from '../../common/pages.ts'
 
 describe('TERMS', () => {
   it('declares the terms the pages define, the terms page among the built pages', () => {
@@ -43,7 +41,7 @@ describe('termOf', () => {
 
 describe('the terms page', () => {
   it('holds the sentence of each term', () => {
-    const page = fs.readFileSync(new URL('../../../../docs/pages/reference/terms.md', import.meta.url), 'utf8')
+    const page = pageText('reference/terms.md')
     expect(TERMS.every(term => page.includes(term.sentence))).toBe(true)
   })
 })

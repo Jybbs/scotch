@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount }                from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { TERMS, addressOf } from '../../../../../docs/.vitepress/lib/reference/terms.ts'

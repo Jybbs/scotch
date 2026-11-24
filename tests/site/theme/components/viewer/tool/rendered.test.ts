@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { createSSRApp, shallowRef } from 'vue'
 import { renderToString }           from 'vue/server-renderer'
 
-import { EXAMPLES }                    from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
-import { Tool }                        from '../../../../../../docs/.vitepress/theme/components/viewer/tool.ts'
-import * as matches                    from '../../../../common/matches.ts'
+import { EXAMPLES } from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { Tool }     from '../../../../../../docs/.vitepress/theme/components/viewer/tool.ts'
+import * as matches from '../../../../common/matches.ts'
 import { clearAfterEach, mountedTool } from '../../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({

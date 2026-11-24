@@ -2,14 +2,14 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, vi } from 'vitest'
 
-import { PLACED }   from '../../../../../docs/.vitepress/lib/markdown/placements.ts'
-import { MARKS }    from '../../../../../docs/.vitepress/lib/reference/marks.ts'
-import { cardOf }   from '../../../../../docs/.vitepress/lib/site/routes.ts'
-import { Marks }    from '../../../../../docs/.vitepress/theme/components/reference/marks.ts'
-import { test }     from '../../../common/clock.ts'
-import { reduceMotion } from '../../../common/motion.ts'
+import { PLACED }           from '../../../../../docs/.vitepress/lib/markdown/placements.ts'
+import { MARKS }            from '../../../../../docs/.vitepress/lib/reference/marks.ts'
+import { cardOf }           from '../../../../../docs/.vitepress/lib/site/routes.ts'
+import { Marks }            from '../../../../../docs/.vitepress/theme/components/reference/marks.ts'
+import { test }             from '../../../common/clock.ts'
+import { reduceMotion }     from '../../../common/motion.ts'
 import { resized, unsized } from '../../../common/size.ts'
-import { onScreen } from '../../../common/unfold.ts'
+import { onScreen }         from '../../../common/unfold.ts'
 
 vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { type VueWrapper, enableAutoUnmount, mount } from '@vue/test-utils'
-import { afterEach, describe, expect, it, vi }      from 'vitest'
-import { ref }                                      from 'vue'
+import { afterEach, describe, expect, it, vi }       from 'vitest'
+import { ref }                                       from 'vue'
 
 import { colophonOf }    from '../../../../docs/.vitepress/lib/config/chrome.ts'
 import { Colophon }      from '../../../../docs/.vitepress/theme/components/colophon.ts'

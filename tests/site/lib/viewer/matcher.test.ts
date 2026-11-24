@@ -1,18 +1,13 @@
-import fs from 'node:fs'
-
 import { describe, expect, it, vi } from 'vitest'
 
-import { loadReader }     from '../../../../docs/.vitepress/lib/games/readers.ts'
-import { Matcher }        from '../../../../docs/.vitepress/lib/viewer/matcher.ts'
-import { ORIGIN, bucket } from '../../common/store.ts'
+import { loadReader }                     from '../../../../docs/.vitepress/lib/games/readers.ts'
+import { Matcher }                        from '../../../../docs/.vitepress/lib/viewer/matcher.ts'
+import { ORIGIN, bucket, module, viewer } from '../../common/store.ts'
 
 vi.mock(import('../../../../docs/.vitepress/lib/games/readers.ts'), async original => {
   const readers = await original()
   return { ...readers, loadReader: vi.fn<typeof readers.loadReader>(readers.loadReader) }
 })
-
-const module = fs.readFileSync(new URL('../../../../docs/.vitepress/lib/games/crate/scotch_bg.wasm', import.meta.url))
-const viewer = fs.readFileSync(new URL('../../../../docs/public/games/viewer.pgn', import.meta.url), 'utf8')
 
 describe('Matcher', () => {
   it('matches the game a text carries, opening the store once across submissions', async () => {

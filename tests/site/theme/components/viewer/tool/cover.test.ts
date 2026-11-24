@@ -3,10 +3,10 @@ import { type VueWrapper, flushPromises } from '@vue/test-utils'
 import { describe, expect, vi }           from 'vitest'
 import { shallowRef }                     from 'vue'
 
-import { EXAMPLES }                                 from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
-import { test }                                     from '../../../../common/clock.ts'
-import { pressed }                                  from '../../../../common/keys.ts'
-import * as matches                                 from '../../../../common/matches.ts'
+import { EXAMPLES } from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { test }     from '../../../../common/clock.ts'
+import { pressed }  from '../../../../common/keys.ts'
+import * as matches from '../../../../common/matches.ts'
 import { clearAfterEach, mountedTool, said, typed } from '../../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({

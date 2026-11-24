@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import * as gif               from '../../../../docs/.vitepress/lib/readme/gif.ts'
-import { decoded }            from '../../common/gif.ts'
+import * as gif    from '../../../../docs/.vitepress/lib/readme/gif.ts'
+import { decoded } from '../../common/gif.ts'
 
 /**
  * Three colors a frame is drawn in, beside the palette that holds them.

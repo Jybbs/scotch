@@ -6,9 +6,8 @@ in `currentColor`, the contrast the README's lockup holds on GitHub's
 grounds, and the JSON the site's stylesheets import.
 """
 
-from pathlib  import Path
 from pydantic import ValidationError
-from pytest   import approx, mark, param, raises
+from pytest   import Config, approx, mark, param, raises
 from re       import findall
 
 from scotch.identity.schemas import Color, Face, Identity, Palette, Role, byte
@@ -80,13 +79,17 @@ def test_an_identity_fills_each_group_with_its_role(scheme: str, run: str, quiet
 
 
 @mark.parametrize(("scheme", "ground"), [("dark", "#0d1117"), ("light", "#ffffff")])
-def test_the_lockup_holds_its_contrast_on_github(scheme: str, ground: str):
+def test_the_lockup_holds_its_contrast_on_github(
+    ground       : str,
+    pytestconfig : Config,
+    scheme       : str
+):
     """
     Asserts that the lockup's wordmark holds 3:1 and its tagline 4.5:1
     on the ground GitHub draws a README on in the scheme, in the roles
     `Identity.filled` fills, the wordmark's run before the tagline's quiet.
     """
-    drawn = (Path(__file__).parents[3] / "docs/assets/lockup.svg").read_text()
+    drawn             = (pytestconfig.rootpath / "docs/assets/lockup.svg").read_text()
     page              = Color(hex=ground, name="GitHub")
     roles             = findall(r'data-role="(\w+)" fill="currentColor"', drawn)
     wordmark, tagline = (

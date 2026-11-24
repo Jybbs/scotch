@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { mount }                from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { mount }                       from '@vue/test-utils'
+import { describe, expect, it }        from 'vitest'
 import { type VNode, defineComponent } from 'vue'
 
 import { cells, reels } from '../../../../../docs/.vitepress/theme/components/methods/digits.ts'

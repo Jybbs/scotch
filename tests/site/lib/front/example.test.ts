@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import examples                  from '../../../../docs/.vitepress/lib/rendered/examples.json' with { type: 'json' }
+import examples from '../../../../docs/.vitepress/lib/rendered/examples.json' with { type: 'json' }
 import { frontOf, moveAt, same } from '../../../../docs/.vitepress/lib/front/example.ts'
 
 const front = frontOf()

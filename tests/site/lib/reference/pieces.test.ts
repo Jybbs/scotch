@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import * as pieces from '../../../../docs/.vitepress/lib/reference/pieces.ts'
+import * as pieces  from '../../../../docs/.vitepress/lib/reference/pieces.ts'
 import { DRAWINGS } from '../../../../docs/.vitepress/lib/site/pieces.ts'
 
 describe('TYPES', () => {

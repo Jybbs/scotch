@@ -20,7 +20,7 @@ const curves    = Object.keys(timing.CURVES)
 const durations = Object.keys(timing.DURATIONS)
 const faces     = Object.keys(IDENTITY.faces)
 const require   = createRequire(import.meta.url)
-const source    = readFileSync(tailwind.SHEET, 'utf8')
+const source    = readFileSync(tailwind.entrySheet, 'utf8')
 const templates = resolve(dirname(require.resolve('vitepress')), '../client/theme-default')
 
 /**
@@ -160,7 +160,7 @@ describe('Tailwind’s defaults', () => {
 
 describe('the class scan', () => {
   it('reads every module under docs/.vitepress, two folders above the entry sheet', async () => {
-    expect((await compiled()).root).toStrictEqual({ base: dirname(tailwind.SHEET), pattern: '../..' })
+    expect((await compiled()).root).toStrictEqual({ base: dirname(tailwind.entrySheet), pattern: '../..' })
   })
 
   it('builds nothing for a class the default theme writes, so no utility restyles its markup', async () => {
