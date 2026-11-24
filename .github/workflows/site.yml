@@ -131,6 +131,7 @@ on:
       - docs/**
       - pyproject.toml
       - rust/**
+      - tests/node_modules
       - tests/site/**
     types:
       - opened
