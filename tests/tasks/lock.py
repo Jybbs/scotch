@@ -54,8 +54,8 @@ def mise(
     `audit` holds, or else prints the report `report` writes, exiting one
     where it holds any of `vulnerabilities`, as `mise audit --json` does.
     """
-    audit = audit or (
-        f"echo {report(*vulnerabilities)}; exit {int(bool(vulnerabilities))}"
+    audit = (
+        audit or f"echo {report(*vulnerabilities)}; exit {int(bool(vulnerabilities))}"
     )
 
     return (
@@ -393,13 +393,13 @@ def test_audit_names_each_tool_mise_audit_could_not_check(
     status     : int
 ):
     """
-    Asserts that `lock:audit` names each tool and version `mise audit` lists
-    as unchecked, across every tool it audits and whether the tools it
+    Asserts that `lock:audit` names each tool and version `mise audit`
+    lists as unchecked, across every tool it audits and whether the tools it
     checked pass or carry an advisory, and leaves its verdict to those.
     """
-    pinned      = {"swift": "6.4.3", "rust": "1.100.0"}
+    pinned      = {"rust": "1.100.0", "swift": "6.4.3"}
     source      = {"path": "%s/.mise/config.toml"}
-    swift, rust = (report(**{tool: version}) for tool, version in pinned.items())
+    rust, swift = (report(**{tool: version}) for tool, version in pinned.items())
     result      = scratch.run(
         "audit",
         mise = mise(
@@ -407,7 +407,7 @@ def test_audit_names_each_tool_mise_audit_could_not_check(
                 f"case $3 in python@*) echo {report(*advisories)}; exit {status};; "
                 f"swift@*) echo {swift};; *) echo {rust};; esac",
             tools = TOOLS | {
-                tool: [{"version": version, "source": source}]
+                tool: [{"source": source, "version": version}]
                 for tool, version in pinned.items()
             }
         )
@@ -533,8 +533,8 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
     """
     Asserts that `lock:audit` runs `uv audit` over the project's lockfile
     and then over each task script declaring its own dependencies, each
-    under the preview flag `uv audit` takes, then `cargo-deny` over the
-    crate, then `mise audit` over each tool `mise ls` lists from
+    under the preview flag `uv audit` takes, then `cargo-deny` over
+    the crate, then `mise audit` over each tool `mise ls` lists from
     `.mise/config.toml`, leaving out the one it lists from a config in a
     parent directory, and then `bun audit` over the site's lockfile.
     """
@@ -551,10 +551,11 @@ def test_audit_reads_the_project_each_script_and_the_site(scratch: Scratch):
 
 def test_audit_skips_a_non_github_entry_no_pinned_tool_carries(scratch: Scratch):
     """
-    Asserts that `lock:audit` passes where `AUDIT_IGNORE` lists a `CVE-` and
-    a `GO-` entry against no tool advisory, naming each entry to delete,
-    reading no GitHub advisory for either, and passing `bun audit` no
-    `--ignore` for either, while still reading the `GHSA-` entry beside them.
+    Asserts that `lock:audit` passes where `AUDIT_IGNORE` lists a `CVE-`
+    and a `GO-` entry against no tool advisory, naming each entry to
+    delete, reading no GitHub advisory for either, and passing `bun audit`
+    no `--ignore` for either, while still reading the `GHSA-` entry beside
+    them.
     """
     stale  = (CVE, "GO-2024-2887")
     result = scratch.run(
