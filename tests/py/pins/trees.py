@@ -336,6 +336,34 @@ def test_an_attempt_returns_the_diff_only_where_every_step_passes(
     assert log.exists()
 
 
+@mark.parametrize(
+    ("relocks", "upgraded"),
+    [param("repo:audit", False, id="failing-audit")],
+    indirect = ["relocks"]
+)
+def test_a_write_failing_its_audit_names_the_audit(
+    fp          : FakeProcess,
+    monkeypatch : MonkeyPatch,
+    relocks     : list[list[str]],
+    tree        : Tree,
+    upgraded    : bool
+):
+    """
+    Asserts that the unchecked attempt a bare `--write` makes returns no
+    diff where the relocked tree fails `repo:audit`, naming it as the last
+    command it runs and logs.
+    """
+    monkeypatch.setattr(Tree, "clone", cloned)
+    log = tree.logs / "write.log"
+
+    assert tree.attempt([], log, checked=False) == Failure(
+        command = "mise run repo:audit",
+        log     = log
+    )
+    assert called(fp) == relocks
+    assert log.read_text().splitlines()[-1] == f"$ mise -C {tree.root} run repo:audit"
+
+
 def test_the_homes_keep_every_install_under_the_trees_own_cache(tree: Tree):
     """
     Asserts that each folder mise, rustup, and Cargo install or cache into
