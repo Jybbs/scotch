@@ -2,8 +2,9 @@
 Holds the records `scotch apply rulesets`, `scotch audit repo`, and `scotch
 lift pins` read out of a checkout, meaning the manifest, the crate's
 manifest, the mise config, the license, the lockfile, the site's package
-manifest, the workflows with their jobs and steps, the action manifests, the
-mise tasks, and the task scripts, beside the `Finding` each check reports.
+manifest, the workflows with their jobs and steps, the action manifests,
+the mise tasks, the commands mise runs, and the task scripts, beside the
+`Finding` each check reports.
 """
 
 from collections.abc import Callable, Iterable, Mapping
@@ -13,6 +14,7 @@ from json            import loads as from_json
 from pathlib         import Path
 from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, TypeAdapter, ValidationError
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
+from shlex           import split as words
 from subprocess      import run
 from tomllib         import loads
 from typing          import Annotated, ClassVar, Self, assert_never
@@ -341,6 +343,54 @@ class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
     The instant the index received the file, or `None` where the lockfile
     records none.
     """
+
+
+class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The usage spec `mise usage` prints, the KDL document declaring every
+    command of mise's command line, per https://usage.jdx.dev/spec/.
+    """
+
+    commands: frozenset[str]
+    """
+    Each word `mise <word>` runs a command under, meaning the name and every
+    alias of each top-level command, hidden or not.
+    """
+
+    @classmethod
+    def printed(cls, root: Path) -> Self:
+        """
+        Runs `mise usage` and reads the name of each top-level `cmd` node
+        and the arguments of each `alias` node directly under one, leaving
+        out a property such as `hide=#true`, and passing over the lines
+        of each multi-line raw string, which opens on a hash and three
+        quotation marks closing a line and closes on the three marks and a
+        hash opening one.
+        """
+        spec = run(
+            ["mise", "usage"],
+            capture_output = True,
+            check          = True,
+            cwd            = root,
+            text           = True
+        )
+        commands: set[str] = set()
+        command = raw = False
+
+        for line in spec.stdout.splitlines():
+            if raw:
+                raw = not line.startswith('"""#')
+                continue
+
+            if search(r"^\S", line):
+                if command := line.startswith("cmd "):
+                    commands.add(line.split()[1])
+            elif command and line.startswith("    alias "):
+                commands.update(word for word in words(line)[1:] if "=" not in word)
+
+            raw = line.endswith('#"""')
+
+        return cls(commands=frozenset(commands))
 
 
 class Crate(ConfigFile):

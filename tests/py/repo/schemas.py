@@ -29,6 +29,7 @@ from scotch.repo.schemas import (
     Step,
     Task,
     Trigger,
+    Usage,
     Workflow,
     exact,
     normalized,
@@ -803,3 +804,15 @@ def test_the_mise_config_reads_its_pins_and_its_neighbors(sample: Sample):
     assert mise.lockfile == sample.root / ".mise" / "mise.lock"
     assert (mise.floor, mise.variables) == (None, {"_": {"path": ".mise/bin"}})
     assert mise.diagnostics == {}
+
+
+def test_the_usage_spec_names_each_top_level_command_and_its_aliases(answered: Sample):
+    """
+    Asserts that the usage spec reads the name and every alias argument of
+    each top-level command, hidden or not, and no subcommand, flag alias,
+    property, or line of a raw string.
+    """
+    assert Usage.printed(answered.root).commands == {
+        "alias", "aliases", "audit", "cfg", "config",
+        "cur", "current", "toml", "tool-alias"
+    }

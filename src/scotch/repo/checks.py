@@ -88,6 +88,43 @@ class ActionPinCheck(Check):
                 )
 
 
+class AliasCheck(Check):
+    """
+    Fails on a task alias that a command or a command alias of the pinned
+    mise also takes, since `mise <alias>` runs the command rather than the
+    task.
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at the line of the task's file declaring each such
+        alias, or at `.mise/config.toml` for a task declared inline.
+        """
+        commands = self.checkout.usage.commands
+
+        for task in self.checkout.tasks:
+            path = task.file or self.checkout.mise.path
+
+            for alias in filter(commands.__contains__, task.aliases):
+                lines = path.read_text(encoding="utf-8").splitlines()
+
+                yield Finding(
+                    line = next(
+                        (
+                            line
+                            for line, text in enumerate(lines, start=1)
+                            if search(rf'\balias\b.*"{escape(alias)}"', text)
+                        ),
+                        None
+                    ),
+                    message = (
+                        f"`mise {alias}` runs mise's own `{alias}` command "
+                        f"rather than `{task.name}`"
+                    ),
+                    path = path
+                )
+
+
 class AnchorCheck(Check):
     """
     Fails on an anchor or an alias in a composite action's manifest, which

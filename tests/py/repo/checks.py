@@ -16,6 +16,7 @@ from scotch.docs.outputs      import Footnotes, Region
 from scotch.repo.checkout     import Checkout
 from scotch.repo.checks  import (
     ActionPinCheck,
+    AliasCheck,
     AnchorCheck,
     Check,
     CommandCheck,
@@ -1818,6 +1819,78 @@ def test_a_directive_with_no_filed_prose_issue_beside_it_fails(
     sample.answer(fp)
 
     assert [found for _, found, _ in scan(SuppressionCheck, sample)] == [line]
+
+
+@mark.parametrize(
+    "alias",
+    [
+        param("audit", id = "command"),
+        param("cfg", id = "command-alias"),
+        param("aliases", id = "second-alias"),
+        param("current", id = "hidden-command")
+    ]
+)
+def test_a_task_alias_a_mise_command_takes_fails(
+    alias  : str,
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a task alias a command or a command alias of mise also
+    takes, hidden or not, draws a finding at the line of the task file
+    declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = f'#MISE alias = "{alias}"\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": (alias,)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2,
+        f"`mise {alias}` runs mise's own `{alias}` command rather than `py:test`"
+    )]
+
+
+def test_an_alias_of_an_inline_task_is_a_finding_at_the_config(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias of a task with no file of its own draws a
+    finding at `.mise/config.toml`.
+    """
+    sample.answer(fp, aliases={"repo:inline": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/config.toml"),
+        None, "`mise audit` runs mise's own `audit` command rather than `repo:inline`"
+    )]
+
+
+@mark.parametrize(
+    "alias",
+    [
+        param("lockfile", id = "free"),
+        param("list", id = "subcommand-alias"),
+        param("--no-timing", id = "flag-alias"),
+        param("quoted", id = "help-text")
+    ]
+)
+def test_a_task_alias_no_mise_command_takes_passes(
+    alias  : str,
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that an alias only a subcommand, a flag, or the text of a help
+    string carries draws no finding.
+    """
+    sample.answer(fp, aliases={"py:test": (alias,)})
+
+    assert scan(AliasCheck, sample) == []
 
 
 def test_each_problem_mise_reports_is_a_finding_at_its_task(

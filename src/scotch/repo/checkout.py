@@ -3,8 +3,8 @@ Holds `Checkout`, the repository `scotch apply`, `scotch audit repo`,
 and `scotch lift pins` read, which loads each file into its record from
 `scotch.repo.schemas` or `scotch.repo.registries` the first time a check
 or a command reads it, reads the messages `Stops` declares, asks mise for
-the tasks it declares, and lists the files `scotch render docs` writes from
-the declarations.
+the tasks it declares and the commands it runs, and lists the files `scotch
+render docs` writes from the declarations.
 """
 
 from collections.abc import Iterator
@@ -35,6 +35,7 @@ from scotch.repo.schemas    import (
     Site,
     Step,
     Task,
+    Usage,
     Validation,
     Workflow
 )
@@ -270,6 +271,13 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             text           = True
         )
         return tuple(Path(name) for name in listing.stdout.split("\0") if name)
+
+    @cached_property
+    def usage(self) -> Usage:
+        """
+        Reads the commands the usage spec of the mise on `PATH` declares.
+        """
+        return Usage.printed(self.root)
 
     @cached_property
     def validation(self) -> Validation:

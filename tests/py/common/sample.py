@@ -51,13 +51,21 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         """
         return Checkout(app=app, root=self.root)
 
-    def answer(self, fp: FakeProcess, issues: Sequence[Mapping[str, str]] = ()):
+    def answer(
+        self,
+        fp      : FakeProcess,
+        *,
+        aliases : Mapping[str, Sequence[str]] = {},
+        issues  : Sequence[Mapping[str, str]] = ()
+    ):
         """
         Registers the answers mise and git give the checkout, listing the
         tasks `tests/py/repo/fixtures/tasks.toml` declares with each file
-        joined onto the copy and resolved as mise prints it, reporting
-        `issues` from `mise tasks validate`, and listing every file the copy
-        holds from `git ls-files`.
+        joined onto the copy and resolved as mise prints it and each task
+        `aliases` names under the aliases it gives, reporting `issues` from
+        `mise tasks validate`, printing `tests/py/repo/fixtures/usage.kdl`
+        from `mise usage`, and listing every file the copy holds from `git
+        ls-files`.
         """
         listing = loads((self.fixtures / "tasks.toml").read_text())["tasks"]
 
@@ -67,7 +75,8 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
                 [
                     {
                         **task,
-                        "file": str(
+                        "aliases" : aliases.get(task["name"], task.get("aliases", ())),
+                        "file"    : str(
                             (self.root / task["file"]).resolve()
                         ) if "file" in task else None
                     }
@@ -87,6 +96,10 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
             ["mise", "tasks", "validate", "--json"],
             returncode = 1 if issues else 0,
             stdout     = dumps({"issues": issues})
+        )
+        fp.register(
+            ["mise", "usage"],
+            stdout = (self.fixtures / "usage.kdl").read_text()
         )
 
     @classmethod
