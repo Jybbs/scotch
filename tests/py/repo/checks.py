@@ -1511,25 +1511,25 @@ def test_each_listed_directive_fails(
     ] == [(2, directive)]
 
 
-def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
+def test_a_literal_string_alias_is_a_finding_at_its_line(
     fp     : FakeProcess,
     sample : Sample
 ):
     """
-    Asserts that a bracketed rule list ending on a comma draws one finding
-    for each rule it names and none for the empty entry after the comma.
+    Asserts that a colliding alias written as a TOML literal string draws a
+    finding at the line declaring it.
     """
-    (sample.root / "src" / "scotch" / "listed.py").write_text(
-        "# prose: ignore[step-narration, ]\n"
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = "#MISE alias = 'audit'\nuv run",
+        old = "uv run"
     )
-    sample.answer(fp)
+    sample.answer(fp, aliases={"py:test": ("audit",)})
 
-    assert [message for _, _, message in scan(SuppressionCheck, sample)] == [
-        "The comment carries `# prose: ignore[step-narration, ]`, a suppression "
-        "directive of Prose, in place of a `[tool.prose.rules.step-narration]` "
-        "table in `pyproject.toml`, or the URL of an issue at "
-        "`https://github.com/Jybbs/prose/issues` beside it"
-    ]
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
 
 
 @mark.parametrize(
@@ -1652,17 +1652,24 @@ def test_each_listed_marker_fails(
     )]
 
 
-def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
+def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
+    fp     : FakeProcess,
+    sample : Sample
+):
     """
-    Asserts that a wrapper that is a symlink draws a finding naming it as
-    one.
+    Asserts that a bracketed rule list ending on a comma draws one finding
+    for each rule it names and none for the empty entry after the comma.
     """
-    wrapper = sample.root / ".mise" / "bin" / "pytest"
-    wrapper.unlink()
-    wrapper.symlink_to("prose")
+    (sample.root / "src" / "scotch" / "listed.py").write_text(
+        "# prose: ignore[step-narration, ]\n"
+    )
+    sample.answer(fp)
 
-    assert scan(WrapperCheck, sample) == [
-        (Path(".mise/bin/pytest"), None, "The wrapper is a symlink rather than a copy")
+    assert [message for _, _, message in scan(SuppressionCheck, sample)] == [
+        "The comment carries `# prose: ignore[step-narration, ]`, a suppression "
+        "directive of Prose, in place of a `[tool.prose.rules.step-narration]` "
+        "table in `pyproject.toml`, or the URL of an issue at "
+        "`https://github.com/Jybbs/prose/issues` beside it"
     ]
 
 
@@ -1851,6 +1858,46 @@ def test_a_task_alias_a_mise_command_takes_fails(
         Path(".mise/tasks/py/test"),
         2,
         f"`mise {alias}` runs mise's own `{alias}` command rather than `py:test`"
+    )]
+
+
+def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
+    """
+    Asserts that a wrapper that is a symlink draws a finding naming it as
+    one.
+    """
+    wrapper = sample.root / ".mise" / "bin" / "pytest"
+    wrapper.unlink()
+    wrapper.symlink_to("prose")
+
+    assert scan(WrapperCheck, sample) == [
+        (Path(".mise/bin/pytest"), None, "The wrapper is a symlink rather than a copy")
+    ]
+
+
+def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias of a task declared inline draws a finding
+    at the line of `.mise/config.toml` declaring it, passing over the alias
+    another task declares above it.
+    """
+    sample.edit(
+        ".mise/config.toml",
+        new = (
+            'uv     = "0.12.13"\n\n'
+            '[tasks."repo:inline"]\nalias = "first"\nrun   = "true"\n\n'
+            '[tasks."site:links"]\nalias = "audit"\nrun   = "true"'
+        ),
+        old = 'uv     = "0.12.13"'
+    )
+    sample.answer(fp, aliases={"repo:inline": ("first",), "site:links": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/config.toml"),
+        14, "`mise audit` runs mise's own `audit` command rather than `site:links`"
     )]
 
 

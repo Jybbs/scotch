@@ -114,7 +114,7 @@ class AliasCheck(Check):
                                 path.read_text(encoding="utf-8").splitlines(),
                                 start = 1
                             )
-                            if search(rf'\balias\b.*"{escape(alias)}"', text)
+                            if search(rf"\balias\b.*([\"']){escape(alias)}\1", text)
                         ),
                         None
                     ),
