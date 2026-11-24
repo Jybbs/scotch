@@ -57,6 +57,12 @@ export interface Parts {
 }
 
 /**
+ * The selector matching a control that takes no key, meaning one disabled or
+ * hidden.
+ */
+const IDLE = ':disabled, [hidden]'
+
+/**
  * Answers a key pressed inside the tool: C covers or shows the stored game's
  * continuation, F turns the boards, the keys each control names step the
  * cursor, and Up and Down move a row of the sheets while focus sits on a move
@@ -226,4 +232,19 @@ export function useDrive(viewer: Viewer): Drive {
       answerKey(event, viewer)
     }
   }
+}
+
+/**
+ * Moves focus from a control that a load, a step, or the cover disables, hides,
+ * or removes to the nearest element that took focus around it, so a key
+ * pressed next still reaches the Viewer.
+ */
+export function useFocus({ covered, cursor, loaded }: Viewer): void {
+  watch([covered, cursor, loaded], async () => {
+    const held = document.activeElement
+    const home = held?.parentElement?.closest<HTMLElement>('[tabindex]')
+    await nextTick()
+    if (held?.isConnected && !held.matches(IDLE)) return
+    home?.focus({ preventScroll: true })
+  })
 }

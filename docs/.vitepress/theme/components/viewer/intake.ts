@@ -15,7 +15,14 @@ const FIELD = [
   'placeholder:text-[color-mix(in_srgb,var(--sc-quiet)_70%,transparent)]',
   'focus-visible:border-solid focus-visible:border-run focus-visible:outline-none'
 ]
-
+/**
+ * The checks on what the intake and the band around it emit: a file picked or
+ * dropped, and a match loaded.
+ */
+export const TAKES = {
+  file : (file: File) => !!file,
+  load : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null
+}
 /**
  * The line the PGN entry shows in place of a game, the opening of the example
  * match's own moves as its move text writes them.
@@ -23,9 +30,10 @@ const FIELD = [
 const placeholder = `${movesOf(0, EXAMPLES.match.submitted).slice(0, 10).join(' ')} …`
 
 /**
- * Draws the PGN entry, which submits the game pasted into it, or typed and
- * sent with Enter, Shift and Enter breaking the line instead and Enter inside a
- * composition ending the composition.
+ * Draws the PGN entry, which submits the game pasted into it, a paste replacing
+ * whatever the entry holds, or typed and sent with Enter, Shift and Enter
+ * breaking the line instead and Enter inside a composition ending the
+ * composition.
  */
 function entry(id: string, submit: (text: string) => void): VNode {
   const send = (field: HTMLTextAreaElement): void => {
@@ -52,6 +60,10 @@ function entry(id: string, submit: (text: string) => void): VNode {
 
         'onInput': (event: InputEvent) => {
           if (event.inputType === 'insertFromPaste') send(event.target as HTMLTextAreaElement)
+        },
+
+        'onPaste': (event: ClipboardEvent) => {
+          (event.target as HTMLTextAreaElement).select()
         }
       })
     ])
@@ -60,10 +72,9 @@ function entry(id: string, submit: (text: string) => void): VNode {
 
 /**
  * The intake at the band's right: the PGN entry, the two examples, and a picker
- * for a match file or a PGN file, beside the line naming the first thing a
- * picked or dropped file lacks. A picked file reaches the band through `file`,
- * which reads it as it reads a dropped one, and a pasted game reaches it
- * through `pgn`.
+ * for a match file or a PGN file, beside the line naming the problem a file or
+ * a submitted game carries. A picked file reaches the band through `file`, and
+ * a pasted game through `pgn`.
  */
 export const Intake = defineComponent({
   name: 'ScotchIntake',
@@ -74,9 +85,8 @@ export const Intake = defineComponent({
   },
 
   emits: {
-    file : (file: File) => !!file,
-    load : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null,
-    pgn  : (text: string) => !!text
+    ...TAKES,
+    pgn: (text: string) => !!text
   },
 
   setup: (props, { emit }) => {
