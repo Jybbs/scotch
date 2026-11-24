@@ -559,6 +559,28 @@ def test_a_trigger_never_fires_on_a_path_its_ignore_matches(fires: bool, path: s
     assert trigger.fires(Path(path)) is fires
 
 
+def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
+    """
+    Asserts that a workflow lists each job its gate does not wait for, and
+    nothing where it has no gate at all.
+    """
+    sample.edit(".github/workflows/ci.yml", new="needs: []", old="needs: check")
+
+    assert Workflow.read(
+        sample.root / ".github" / "workflows" / "ci.yml"
+    ).ungated == ("check",)
+
+    sample.edit(
+        ".github/workflows/ci.yml",
+        new = "mise run py:test",
+        old = "mise run gha:scoresheet"
+    )
+    workflow = Workflow.read(sample.root / ".github" / "workflows" / "ci.yml")
+
+    assert workflow.gate is None
+    assert workflow.ungated == ()
+
+
 def test_a_workflow_lists_the_files_its_push_filter_leaves_out(sample: Sample):
     """
     Asserts that a workflow lists each cache its steps save and, relative to

@@ -21,7 +21,7 @@ from pytest            import mark, param, raises
 from zlib              import decompressobj
 
 from scotch.games.schemas import Game, Origin
-from scotch.index.schemas import Answer, LEFT, Reply, Span
+from scotch.index.schemas import Answer, GAMES, LEFT, ROWS, RUNS, Reply, Span
 from scotch.index.tables  import Batch, PositionIndex
 
 
@@ -841,6 +841,17 @@ def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
     PositionIndex.build([]).write(tmp_path)
 
     assert PositionIndex.read(tmp_path).match(demo) is None
+
+
+def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
+    """
+    Asserts that the table read back, the runs frame, and the rows laid
+    out before an index numbers them carry the columns `GAMES`, `RUNS`, and
+    `ROWS` declare, in that order.
+    """
+    assert index.games.collect().schema == GAMES
+    assert index.runs(line("e4")).schema == RUNS
+    assert PositionIndex.rows([line("e4")]).schema == ROWS
 
 
 @mark.parametrize(

@@ -220,6 +220,24 @@ def test_an_example_exports_the_match_the_viewer_reads(
     assert alone.submitted == matched.submitted
 
 
+def test_an_example_reads_the_match_and_both_games(index: PositionIndex, known: Path):
+    """
+    Asserts that the demo game, which plays Kasparov–Sosonko through
+    `21...b6`, shares its first 43 positions with that game, parts where
+    the stored game played `22. Bc2`, and shares no more than the starting
+    position with either other stored game.
+    """
+    drawn = Example(path=Path("demo.pgn"), shown=2).drawn(index, known)
+
+    assert drawn.span == Span(length=43, offset=0, start=0)
+    assert (drawn.next, drawn.parting) == (1, "22. Bc2")
+    assert drawn.summary.splitlines()[0] == (
+        "Kasparov, Gary vs. Sosonko, Gennadi, Tilburg, 1981.??.??"
+    )
+    assert drawn.stored.headers["White"] == "Kasparov, Gary"
+    assert len(drawn.submitted.played) == 107
+
+
 def test_the_next_run_leaves_out_every_run_of_the_matched_game(
     pgn     : Callable[..., Path],
     scanned : Callable[[Iterable[Game]], PositionIndex]
