@@ -41,7 +41,8 @@ def pins(
     write : Annotated[bool, Parameter(
         help = (
             "Writes the lift into the checkout as one diff, relocking every "
-            "lockfile through its own manager, once `mise audit` passes on it."
+            "lockfile through its own manager, once `mise run repo:audit` "
+            "passes on it."
         )
     )] = False
 ) -> int:
@@ -60,23 +61,23 @@ def pins(
     Where that fails, the trial runs once with no lift written, then again
     for each lift in turn, together with the pins `repo:audit` holds to
     it, on top of the lifts already passing, holding back each lift whose
-    trial still fails and printing the command it fails and the log of its
-    attempt, each log landing under `.cache/lift/`. Under `--write`, writes
-    the lifts the trial passes into the checkout as one diff, or, where
-    `--try` is not given, relocks the lift in a scratch clone and writes it
-    once `mise audit` passes there. Every tool a clone installs, each Rust
-    toolchain, and Cargo's registry cache land under `.cache/mise/`, which
-    each later run reuses.
+    trial still fails and printing the command it fails and the log of
+    its attempt, each log landing under `.cache/lift/`. Under `--write`,
+    writes the lifts the trial passes into the checkout as one diff, or,
+    where `--try` is not given, relocks the lift in a scratch clone and
+    writes it once `mise run repo:audit` passes there. Every tool a clone
+    installs, each Rust toolchain, and Cargo's registry cache land under
+    `.cache/mise/`, which each later run reuses.
 
     Exits with status 2 where `--hold` names a pin the table lists nowhere,
     and with status 1 naming the problem where the checkout fails `mise
     ci` with no lift written, naming the command and its log, where no lift
-    passes its trial, where the lift's relock or the `mise audit` after it
-    fails, where a file of the checkout or a tool's answer fails to read as
-    its record, naming the file or the record, or where a command the run
-    starts fails, such as one reading a pin's newest release or the `git
-    apply` writing the lift into a checkout whose files changed while the
-    trial ran.
+    passes its trial, where the lift's relock or the `mise run repo:audit`
+    after it fails, where a file of the checkout or a tool's answer fails
+    to read as its record, naming the file or the record, or where a command
+    the run starts fails, such as one reading a pin's newest release or the
+    `git apply` writing the lift into a checkout whose files changed while
+    the trial ran.
     """
     try:
         tree   = Tree.scrubbed(Checkout(app=app, root=root()), environ)
@@ -117,8 +118,8 @@ def pins(
                 Failure
             ):
                 raise SystemExit(
-                    "The lift fails to relock or to pass `mise audit`, logged under "
-                    f"{tree.logs}"
+                    "The lift fails to relock or to pass `mise run repo:audit`, "
+                    f"logged under {tree.logs}"
                 )
 
             for path in tree.apply(patch):

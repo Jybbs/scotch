@@ -76,6 +76,18 @@
       "writer": "scotch index games"
     },
     {
+      "holds": "One row for each game left out, beside its reason",
+      "path": ".cache/data/index/left.parquet",
+      "readers": [
+        "scotch match game",
+        "scotch match games",
+        "scotch show game",
+        "scotch show position",
+        "scotch show store"
+      ],
+      "writer": "scotch index games"
+    },
+    {
       "holds": "Every position the stored games reach, beside their moves",
       "path": ".cache/data/index/positions.bin",
       "readers": [
