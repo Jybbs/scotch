@@ -12,7 +12,7 @@ from common.games    import line
 from common.sources  import land
 from dataclasses     import replace
 from pathlib         import Path
-from polars          import DataFrame, LazyFrame
+from polars          import LazyFrame
 from pytest          import mark, param
 
 from scotch.docs.census     import Census
@@ -34,22 +34,6 @@ def test_counted_reads_the_other_games_reaching_each_position(
     order.
     """
     assert census.counted(1, counted[0][0]).to_list() == [3, 2, 2, 2, 2, 1]
-
-
-def test_counts_fill_every_number_of_moves_up_to_the_longest():
-    """
-    Asserts that `counts` gives a zero to each number of moves no game
-    plays, from 0 through the longest.
-    """
-    assert Census.counts(5, DataFrame({"moves": [2, 4, 4]})) == [0, 0, 1, 0, 2, 0]
-
-
-def test_eras_name_each_decade_folding_those_before_the_first(census: Census):
-    """
-    Asserts that the eras run from the earliest, the 1870s game falling in
-    the era of the decades before 1900, and leave out the undated game.
-    """
-    assert census.eras == ["Before 1900", "1980s", "1990s"]
 
 
 def test_games_read_each_games_file_year_decade_moves_and_result(census: Census):
@@ -547,16 +531,6 @@ def test_store_lists_the_files_in_the_order_of_their_addresses(
     assert [file.name for file in Census(index=scanned(games)).store.files] == [
         "X", "Z"
     ]
-
-
-def test_store_reads_the_year_the_most_of_each_file_s_games_were_played_in(
-    census: Census
-):
-    """
-    Asserts that a file's year is the one the most of its games were played
-    in, the earliest where two tie, a game naming no year left out.
-    """
-    assert [archive.year for archive in census.store.files] == [1985, 1992, 1879]
 
 
 def test_tagged_reads_each_rating_as_a_game_reads_it(

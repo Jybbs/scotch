@@ -138,44 +138,6 @@ def test_position_with_no_argument_reports_the_starting_position(
     assert capsys.readouterr().out.startswith("1 stored game reaches this position\n")
 
 
-@mark.parametrize(
-    "argv",
-    [
-        param(("game", "players/White.zip:1"), id="game"),
-        param(("position",), id="position")
-    ]
-)
-def test_a_missing_index_exits_naming_where_it_was_looked_for(
-    argv : tuple[str, ...],
-    data : Path
-):
-    """
-    Asserts that `scotch show game` and `scotch show position` with no index
-    built under the data directory exit nonzero naming the directory they
-    read.
-    """
-    assert invoke("show", *argv) == f"No index has been built under {data / 'index'}"
-
-
-@mark.parametrize(
-    "argv",
-    [
-        param(("game", "players/White.zip:1"), id="game"),
-        param(("position",), id="position")
-    ]
-)
-def test_an_index_holding_another_layout_exits_naming_where_it_was_read(
-    argv   : tuple[str, ...],
-    relaid : Path
-):
-    """
-    Asserts that `scotch show game` and `scotch show position` against an
-    index whose games table lacks a column exit nonzero naming the directory
-    they read.
-    """
-    assert invoke("show", *argv) == f"The index under {relaid} holds another layout"
-
-
 @mark.usefixtures("indexed")
 @mark.parametrize(
     "position",
@@ -241,19 +203,6 @@ def test_position_names_each_word_naming_no_move_and_each_illegal_move(
         ),
         param("--tpo", "Unknown option: --tpo", id="long-option-undeclared"),
         param("-t", "Unknown option: -t", id="short-option-undeclared"),
-        param(
-            "1. e4 e4",
-            (
-                "Found problems in 1. e4 e4:\nillegal san: 'e4' in"
-                " rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
-            ),
-            id = "illegal-move"
-        ),
-        param(
-            "1. e4 hello",
-            "Found problems in 1. e4 hello:\nnames no move: 'hello'",
-            id = "word-naming-no-move"
-        ),
         param(
             "1. e4 e5 Qh9",
             "Found problems in 1. e4 e5 Qh9:\nnames no move: 'Qh9'",

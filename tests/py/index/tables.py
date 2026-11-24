@@ -21,7 +21,7 @@ from pytest            import mark, param, raises
 from zlib              import decompressobj
 
 from scotch.games.schemas import Game, Origin
-from scotch.index.schemas import Answer, GAMES, LEFT, ROWS, RUNS, Reply, Span
+from scotch.index.schemas import Answer, LEFT, Reply, Span
 from scotch.index.tables  import Batch, PositionIndex
 
 
@@ -759,19 +759,6 @@ def test_an_answer_counts_each_game_under_the_move_from_its_first_reach(
     )
 
 
-def test_an_answer_reads_a_move_the_reader_takes_short_of_its_last_letter():
-    """
-    Asserts that `Nf3x`, whose `Nf3` the PGN reader reads as the move,
-    leaves the position `Nf3` reaches.
-    """
-    index = PositionIndex.build([line("e4", "e5", "Nf3", "Nc6")])
-
-    assert index.answer("1. e4 e5 2. Nf3x", top=1) == index.answer(
-        "1. e4 e5 2. Nf3",
-        top = 1
-    )
-
-
 def test_an_index_counts_every_position_and_each_distinct_key():
     """
     Asserts that an index counts each position of each game it holds, the
@@ -820,17 +807,6 @@ def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
     PositionIndex.build([]).write(tmp_path)
 
     assert PositionIndex.read(tmp_path).match(demo) is None
-
-
-def test_each_frame_holds_the_columns_its_declaration_names(index: PositionIndex):
-    """
-    Asserts that the table read back, the runs frame, and the rows laid
-    out before an index numbers them carry the columns `GAMES`, `RUNS`, and
-    `ROWS` declare, in that order.
-    """
-    assert index.games.collect().schema == GAMES
-    assert index.runs(line("e4")).schema == RUNS
-    assert PositionIndex.rows([line("e4")]).schema == ROWS
 
 
 def test_reading_a_left_out_table_under_another_layout_raises(

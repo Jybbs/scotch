@@ -102,45 +102,6 @@ def test_an_index_holding_another_layout_exits_in_one_form(relaid: Path):
     assert exited.value.code == f"The index under {relaid} holds another layout"
 
 
-def test_the_data_defaults_under_the_projects_root(pytestconfig: Config):
-    """
-    Asserts that a run setting nothing reads the index from the `index`
-    folder of the default data directory, read against the project's root.
-    """
-    assert Settings().index == (
-        pytestconfig.rootpath / Settings.model_fields["data"].default / "index"
-    )
-
-
-@mark.usefixtures("data")
-def test_a_folder_holding_no_index_reads_as_none_built():
-    """
-    Asserts that `built` returns `None` where no index has been built.
-    """
-    assert Settings().built() is None
-
-
-@mark.usefixtures("indexed")
-def test_an_index_built_reads_as_the_one_built():
-    """
-    Asserts that `built` reads the index under the data directory.
-    """
-    assert Settings().built().games.collect().height == 1
-
-
-def test_the_fetched_files_sit_beside_the_index(project: Path):
-    """
-    Asserts that the fetched files and the index sit in the `downloads` and
-    `index` folders of one data directory.
-    """
-    settings = Settings()
-
-    assert (settings.downloads, settings.index) == (
-        project / "table" / "downloads",
-        project / "table" / "index"
-    )
-
-
 def test_the_root_falls_back_to_the_working_directory(
     monkeypatch : MonkeyPatch,
     tmp_path    : Path

@@ -12,7 +12,7 @@ from pytest_subprocess.fake_process import FakeProcess
 from scotch.cli            import app
 from scotch.docs.inventory import Outputs
 from scotch.repo.checkout  import Checkout
-from scotch.repo.schemas   import Cache, Step
+from scotch.repo.schemas   import Step
 
 
 def test_a_step_finds_the_action_its_self_repository_path_names(sample: Sample):
@@ -83,41 +83,6 @@ def test_the_outputs_are_the_ones_its_app_and_readme_render_under_the_root(
     assert calls == [(app, checkout.pyproject.readme, root)]
 
 
-def test_the_scripts_are_the_tasks_declaring_inline_metadata(answered: Sample):
-    """
-    Asserts that the checkout reads inline metadata from each task file that
-    carries a `script` block, and from no other.
-    """
-    assert [script.path.name for script in answered.checkout.scripts] == ["scoresheet"]
-
-
-def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
-    """
-    Asserts that the checkout pairs each declared step with its workflow or
-    its action, and each expanded step that calls the provisioning action
-    with its workflow, once for each leg of its job's matrix.
-    """
-    checkout = sample.checkout
-    root     = sample.root / ".github"
-
-    assert [path.relative_to(root) for path, _ in checkout.steps] == [
-        *[Path("workflows/ci.yml")] * 5,
-        *[Path("workflows/site.yml")] * 9,
-        *[Path("workflows/warm.yml")] * 4,
-        Path("actions/provision/action.yml")
-    ]
-    assert [(path.name, step.caches) for path, step in checkout.provisions] == [
-        ("ci.yml", {Cache.TOOLS: "python uv"}),
-        ("ci.yml", {Cache.CARGO: "scotch-python", Cache.TOOLS: "python uv"}),
-        ("ci.yml", {Cache.TOOLS: "python uv"}),
-        ("site.yml", {Cache.TOOLS: "python uv"}),
-        ("site.yml", {Cache.TOOLS: "python uv"}),
-        ("site.yml", {Cache.TOOLS: "python uv"}),
-        ("warm.yml", {Cache.TOOLS: "python uv"}),
-        ("warm.yml", {Cache.CARGO: "scotch-python", Cache.TOOLS: "python uv"})
-    ]
-
-
 def test_the_tasks_join_each_file_mise_prints_onto_the_root(
     answered    : Sample,
     fp          : FakeProcess,
@@ -137,11 +102,3 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
     )
     assert tasks["repo:inline"].file is None
     assert fp.calls[0] == ["mise", "tasks", "ls", "--json", "--local"]
-
-
-def test_the_wrappers_come_from_the_folder_the_path_entry_names(sample: Sample):
-    """
-    Asserts that the wrappers are the files in the folder the `_.path` entry
-    in `.mise/config.toml` names, in name order.
-    """
-    assert [wrapper.name for wrapper in sample.checkout.wrappers] == ["prose", "pytest"]

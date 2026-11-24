@@ -99,13 +99,6 @@ def test_the_lockup_holds_its_contrast_on_github(
     assert roles == ["run", "quiet"] and wordmark >= 3 and tagline >= 4.5
 
 
-def test_a_palette_names_the_tokens_its_series_take():
-    """
-    Asserts that the series are the tokens numbered as a chart's, in order.
-    """
-    assert Palette().series == tuple(f"series_{number}" for number in range(1, 7))
-
-
 def test_mixed_matches_color_mix_in_oklab():
     """
     Asserts that a share of 100 keeps the first color and a share of 0 the

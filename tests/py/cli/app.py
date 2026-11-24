@@ -54,21 +54,17 @@ def test_help_text(
     assert capsys.readouterr().out == snapshot
 
 
-@mark.parametrize(
-    "module",
-    sorted(
-        module
-        for module, distributions in packages_distributions().items()
-        if {*map(normalized, distributions)}
-        & {*map(normalized, requires("scotch"))} - {
-            "cyclopts", "markdown-it-py", "rich"
-        }
-    )
-)
-def test_the_help_loads_no_package_behind_the_commands(
-    help_modules : frozenset[str],
-    module       : str
-):
+def test_the_help_imports_no_group_module(help_modules: frozenset[str]):
+    """
+    Asserts that `scotch --help` imports none of the modules under `cli/`
+    holding a verb's group, which the app registers by its import path.
+    """
+    assert help_modules & {
+        f"scotch.cli.{verb}" for verb in app if not verb.startswith("-")
+    } == set()
+
+
+def test_the_help_loads_no_package_behind_the_commands(help_modules: frozenset[str]):
     """
     Asserts that `scotch --help` imports no module of a dependency the
     manifest declares beside the ones that render the help. The global
@@ -76,16 +72,16 @@ def test_the_help_loads_no_package_behind_the_commands(
     command reads the name it binds, whereas registering the command runs
     its module and resolves the type of each parameter it takes.
     """
-    assert module not in {name.partition(".")[0] for name in help_modules}
+    behind = {
+        module
+        for module, distributions in packages_distributions().items()
+        if {*map(normalized, distributions)}
+        & {*map(normalized, requires("scotch"))} - {
+            "cyclopts", "markdown-it-py", "rich"
+        }
+    }
 
-
-@mark.parametrize("verb", sorted(verb for verb in app if not verb.startswith("-")))
-def test_the_help_imports_no_group_module(help_modules: frozenset[str], verb: str):
-    """
-    Asserts that `scotch --help` imports none of the modules under `cli/`
-    holding a verb's group, which the app registers by its import path.
-    """
-    assert f"scotch.cli.{verb}" not in help_modules
+    assert {name.partition(".")[0] for name in help_modules} & behind == set()
 
 
 @mark.parametrize(

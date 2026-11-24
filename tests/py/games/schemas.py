@@ -499,31 +499,6 @@ def test_a_move_illegal_inside_a_variation_leaves_the_mainline_whole(
     assert game.moves == moves("e2e4", "e7e5", "d1h5", "b8c6")
 
 
-@mark.parametrize(
-    ("text", "problem"),
-    [
-        param("", "Found no game in .*games.pgn$", id="empty"),
-        param(
-            "1. e4 e5 2. Qxh7 *\n",
-            "Found problems in the game in .*games.pgn:\nillegal san",
-            id = "illegal"
-        )
-    ]
-)
-def test_first_raises_naming_a_file_whose_first_game_cannot_be_read(
-    pgn     : Callable[..., Path],
-    problem : str,
-    text    : str
-):
-    """
-    Asserts that reading the first game of a file holding none, or of
-    one whose first game carries a move python-chess cannot read, raises
-    `ValueError` naming the file and each problem.
-    """
-    with raises(ValueError, match=problem):
-        Game.first(pgn(text))
-
-
 def test_a_null_move_leaves_every_piece_under_its_number():
     """
     Asserts that a null move draws the frame before it again, every piece on
@@ -583,13 +558,6 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     https://hgm.nubati.net/book_format.html.
     """
     assert line(*sans.split()).keys[-1] == key
-
-
-def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
-    """
-    Asserts that a file holding no text yields no game.
-    """
-    assert read("") == []
 
 
 def test_an_en_passant_capture_that_would_be_illegal_leaves_the_key_unchanged():

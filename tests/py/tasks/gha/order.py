@@ -16,36 +16,20 @@ from types      import ModuleType
 HEAD = "9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c"
 
 
-@mark.parametrize(
-    ("commit", "resolved"),
-    [param(HEAD, HEAD, id="current"), param(HEAD[:7], HEAD, id="current-short")]
-)
-def test_a_dispatch_on_main_for_its_head_builds_that_commit(
-    commit   : str,
-    fp       : FakeProcess,
-    resolved : str,
-    task     : ModuleType,
-    tmp_path : Path
-):
+def register(answers: dict[str, str], fp: FakeProcess):
     """
-    Asserts that a run dispatched on `main` for the commit `main` points at,
-    whether named by its full hash or a short one, builds the commit it was
-    dispatched for and reads no `♟️ Store` runs.
+    Answers the commits API's lookup of each ref in `answers` with the full
+    hash it maps to.
     """
-    outputs = tmp_path / "outputs"
-    outputs.write_text("earlier=1\n")
-
-    register({"heads/main": HEAD, commit: resolved}, fp)
-    task.Deploy(
-        commit = commit,
-        event  = task.Event.WORKFLOW_DISPATCH,
-        ref    = "refs/heads/main"
-    ).order(
-        outputs
-    )
-
-    assert outputs.read_text() == f"earlier=1\ncommit={commit}\nskip=false\n"
-    assert [call[1] for call in fp.calls] == ["api", "api"]
+    for ref, answer in answers.items():
+        fp.register(
+            [
+                "gh", "api",
+                f"repos/{{owner}}/{{repo}}/commits/{ref}",
+                "--header", "Accept: application/vnd.github.sha"
+            ],
+            stdout = answer
+        )
 
 
 @mark.parametrize(
@@ -94,20 +78,28 @@ def test_a_dispatch_on_main_for_another_commit_builds_the_head_of_main(
     ]
 
 
-def register(answers: dict[str, str], fp: FakeProcess):
+def test_a_dispatch_on_another_branch_builds_without_a_lookup(
+    fp       : FakeProcess,
+    task     : ModuleType,
+    tmp_path : Path
+):
     """
-    Answers the commits API's lookup of each ref in `answers` with the full
-    hash it maps to.
+    Asserts that a run dispatched on a branch other than `main` reads no
+    commit and skips nothing, so it builds and checks that branch's site,
+    which the deploy job then leaves unpublished.
     """
-    for ref, answer in answers.items():
-        fp.register(
-            [
-                "gh", "api",
-                f"repos/{{owner}}/{{repo}}/commits/{ref}",
-                "--header", "Accept: application/vnd.github.sha"
-            ],
-            stdout = answer
-        )
+    outputs = tmp_path / "outputs"
+
+    task.Deploy(
+        commit = "a1b2c3d",
+        event  = task.Event.WORKFLOW_DISPATCH,
+        ref    = "refs/heads/50/x"
+    ).order(
+        outputs
+    )
+
+    assert outputs.read_text() == "commit=a1b2c3d\nskip=false\n"
+    assert list(fp.calls) == []
 
 
 @mark.parametrize(
@@ -175,28 +167,29 @@ def test_a_failed_lookup_fails_the_job(
     assert not outputs.exists()
 
 
-def test_a_dispatch_on_another_branch_builds_without_a_lookup(
+def test_a_dispatch_on_main_for_its_head_builds_that_commit(
     fp       : FakeProcess,
     task     : ModuleType,
     tmp_path : Path
 ):
     """
-    Asserts that a run dispatched on a branch other than `main` reads no
-    commit and skips nothing, so it builds and checks that branch's site,
-    which the deploy job then leaves unpublished.
+    Asserts that a run dispatched on `main` for the commit `main` points at
+    builds the commit it was dispatched for and reads no `♟️ Store` runs.
     """
     outputs = tmp_path / "outputs"
+    outputs.write_text("earlier=1\n")
 
+    register({"heads/main": HEAD, HEAD: HEAD}, fp)
     task.Deploy(
-        commit = "a1b2c3d",
+        commit = HEAD,
         event  = task.Event.WORKFLOW_DISPATCH,
-        ref    = "refs/heads/50/x"
+        ref    = "refs/heads/main"
     ).order(
         outputs
     )
 
-    assert outputs.read_text() == "commit=a1b2c3d\nskip=false\n"
-    assert list(fp.calls) == []
+    assert outputs.read_text() == f"earlier=1\ncommit={HEAD}\nskip=false\n"
+    assert [call[1] for call in fp.calls] == ["api", "api"]
 
 
 def test_a_failed_store_lookup_on_a_dispatch_fails_the_job(

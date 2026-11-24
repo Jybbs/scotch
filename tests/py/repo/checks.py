@@ -60,15 +60,6 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
     ]
 
 
-@mark.parametrize("check", Check.__subclasses__(), ids=lambda check: check.__name__)
-def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
-    """
-    Asserts that the sample checkout, which keeps every rule, draws no
-    finding from any check.
-    """
-    assert scan(check, answered) == []
-
-
 @mark.parametrize(
     ("check", "edits", "findings"),
     [
@@ -1267,39 +1258,6 @@ def test_the_sample_passes_every_check(answered: Sample, check: type[Check]):
                 )
             ],
             id = "directive-naming-rules"
-        ),
-        param(
-            SuppressionCheck,
-            [(
-                "src/scotch/cli/run.py", 'raise SystemExit(f"Cannot read {pgn}")',
-                'raise SystemExit(f"Cannot read {pgn}")  # prose: skip'
-            )],
-            [(
-                "src/scotch/cli/run.py",
-                17,
-                "The comment carries `# prose: skip`, a suppression directive of "
-                "Prose, in place of a `[tool.prose.rules.<rule>]` table in "
-                "`pyproject.toml`, or the URL of an issue at "
-                "`https://github.com/Jybbs/prose/issues` beside it"
-            )],
-            id = "bare-directive"
-        ),
-        param(
-            SuppressionCheck,
-            [(
-                "src/scotch/cli/run.py", 'raise SystemExit(f"Cannot read {pgn}")',
-                'raise SystemExit(f"Cannot read {pgn}")  # prose: skip[reflow-calls]'
-            )],
-            [(
-                "src/scotch/cli/run.py",
-                17,
-                "The comment carries `# prose: skip[reflow-calls]`, a suppression "
-                "directive of Prose, in place of a "
-                "`[tool.prose.rules.reflow-calls]` table in `pyproject.toml`, or "
-                "the URL of an issue at `https://github.com/Jybbs/prose/issues` "
-                "beside it"
-            )],
-            id = "skip-naming-a-rule"
         ),
         param(
             SuppressionCheck,

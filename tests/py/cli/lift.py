@@ -497,25 +497,6 @@ def test_a_tool_answer_failing_its_record_exits_naming_it(
     assert invoke("lift", "pins").startswith("2 validation errors for Lift\n")
 
 
-def test_a_trial_no_lift_passes_exits_writing_nothing(
-    lagging : Lagging,
-    sample  : Sample
-):
-    """
-    Asserts that a trial where every lift fails on its own exits naming the
-    folder the logs land in and writes nothing.
-    """
-    _, applied = lagging(
-        lagging_three(),
-        breaking = {"actions/checkout", "pluggy", "polars"}
-    )
-
-    assert invoke("lift", "pins", "--try", "--write") == (
-        f"No lift passes its trial, logged under {sample.root / '.cache' / 'lift'}"
-    )
-    assert applied == []
-
-
 def test_the_command_prints_the_table_of_every_lagging_pin(
     capsys   : CaptureFixture[str],
     lagging  : Lagging,

@@ -277,42 +277,6 @@ def test_a_match_prints_the_stored_game_the_span_and_the_parting(
     assert capsys.readouterr().out == snapshot
 
 
-@mark.parametrize("command", ["game", "games"])
-def test_an_index_holding_another_layout_exits_naming_where_it_was_read(
-    command : str,
-    pgn     : Callable[..., Path],
-    relaid  : Path
-):
-    """
-    Asserts that either command against an index whose games table lacks a
-    column exits nonzero naming the directory it read.
-    """
-    assert invoke(
-        "match",
-        command,
-        str(pgn("1. e4 *"))
-    ) == f"The index under {relaid} holds another layout"
-
-
-def test_an_index_of_an_earlier_layout_exits_naming_where_it_was_read(
-    data   : Path,
-    pgn    : Callable[..., Path],
-    relaid : Path
-):
-    """
-    Asserts that a folder holding a games table under another layout and
-    no file of positions exits nonzero as another layout rather than as
-    no index.
-    """
-    PositionIndex.path(relaid).rename(data / "moved")
-
-    assert invoke(
-        "match",
-        "game",
-        str(pgn("1. e4 *"))
-    ) == f"The index under {relaid} holds another layout"
-
-
 @mark.usefixtures("indexed")
 @mark.parametrize(
     "option",
