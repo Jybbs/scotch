@@ -1870,29 +1870,6 @@ def test_an_alias_of_an_inline_task_is_a_finding_at_the_config(
     )]
 
 
-@mark.parametrize(
-    "alias",
-    [
-        param("lockfile", id = "free"),
-        param("list", id = "subcommand-alias"),
-        param("--no-timing", id = "flag-alias"),
-        param("quoted", id = "help-text")
-    ]
-)
-def test_a_task_alias_no_mise_command_takes_passes(
-    alias  : str,
-    fp     : FakeProcess,
-    sample : Sample
-):
-    """
-    Asserts that an alias only a subcommand, a flag, or the text of a help
-    string carries draws no finding.
-    """
-    sample.answer(fp, aliases={"py:test": (alias,)})
-
-    assert scan(AliasCheck, sample) == []
-
-
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
     fp     : FakeProcess,
     sample : Sample
@@ -1932,6 +1909,29 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
             Level.WARNING, "`repo:inline`: Description is empty"
         )
     ]
+
+
+@mark.parametrize(
+    "alias",
+    [
+        param("lockfile", id = "free"),
+        param("list", id = "subcommand-alias"),
+        param("--no-timing", id = "flag-alias"),
+        param("quoted", id = "help-text")
+    ]
+)
+def test_a_task_alias_no_mise_command_takes_passes(
+    alias  : str,
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that an alias only a subcommand, a flag, or the text of a help
+    string carries draws no finding.
+    """
+    sample.answer(fp, aliases={"py:test": (alias,)})
+
+    assert scan(AliasCheck, sample) == []
 
 
 def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
@@ -2022,3 +2022,21 @@ def test_markers_sharing_a_line_each_fail(fp: FakeProcess, sample: Sample):
     )] == [
         "eslint-disable-line", "@ts-ignore"
     ]
+
+
+def test_only_the_colliding_alias_of_a_list_fails(fp: FakeProcess, sample: Sample):
+    """
+    Asserts that a task listing several aliases on one line draws one
+    finding, for the alias a mise command takes, at that line.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = '#MISE alias = ["lockfile", "cfg"]\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("lockfile", "cfg")})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2, "`mise cfg` runs mise's own `cfg` command rather than `py:test`"
+    )]

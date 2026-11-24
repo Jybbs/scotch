@@ -106,13 +106,14 @@ class AliasCheck(Check):
             path = task.file or self.checkout.mise.path
 
             for alias in filter(commands.__contains__, task.aliases):
-                lines = path.read_text(encoding="utf-8").splitlines()
-
                 yield Finding(
                     line = next(
                         (
                             line
-                            for line, text in enumerate(lines, start=1)
+                            for line, text in enumerate(
+                                path.read_text(encoding="utf-8").splitlines(),
+                                start = 1
+                            )
                             if search(rf'\balias\b.*"{escape(alias)}"', text)
                         ),
                         None

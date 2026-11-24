@@ -358,26 +358,19 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     """
 
     @classmethod
-    def printed(cls, root: Path) -> Self:
+    def parsed(cls, spec: str) -> Self:
         """
-        Runs `mise usage` and reads the name of each top-level `cmd` node
-        and the arguments of each `alias` node directly under one, leaving
-        out a property such as `hide=#true`, and passing over the lines
-        of each multi-line raw string, which opens on a hash and three
-        quotation marks closing a line and closes on the three marks and a
-        hash opening one.
+        Reads the name of each top-level `cmd` node of `spec` and the
+        arguments of each `alias` node directly under one, leaving out a
+        property such as `hide=#true`, and passing over the lines of each
+        multi-line raw string, which opens on a hash and three quotation
+        marks closing a line and closes on the three marks and a hash
+        opening one.
         """
-        spec = run(
-            ["mise", "usage"],
-            capture_output = True,
-            check          = True,
-            cwd            = root,
-            text           = True
-        )
         commands: set[str] = set()
         command = raw = False
 
-        for line in spec.stdout.splitlines():
+        for line in spec.splitlines():
             if raw:
                 raw = not line.startswith('"""#')
                 continue
@@ -391,6 +384,20 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
             raw = line.endswith('#"""')
 
         return cls(commands=frozenset(commands))
+
+    @classmethod
+    def printed(cls, root: Path) -> Self:
+        """
+        Runs `mise usage` in `root` and reads the spec it prints.
+        """
+        spec = run(
+            ["mise", "usage"],
+            capture_output = True,
+            check          = True,
+            cwd            = root,
+            text           = True
+        )
+        return cls.parsed(spec.stdout)
 
 
 class Crate(ConfigFile):
