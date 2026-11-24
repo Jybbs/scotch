@@ -47,8 +47,7 @@ TOOLS = {
 def mise(
     *vulnerabilities : dict[str, object],
     audit            : str               = "",
-    tools            : dict[str, object] = TOOLS,
-    unchecked        : tuple[str, ...]   = ()
+    tools            : dict[str, object] = TOOLS
 ) -> str:
     """
     Writes the stand-in `mise`, which prints `tools` for `mise ls` with the
@@ -57,8 +56,7 @@ def mise(
     where it holds any of `vulnerabilities`, as `mise audit --json` does.
     """
     audit = audit or (
-        f"echo {report(*vulnerabilities, unchecked=unchecked)}; "
-        f"exit {int(bool(vulnerabilities))}"
+        f"echo {report(*vulnerabilities)}; exit {int(bool(vulnerabilities))}"
     )
 
     return (
@@ -399,18 +397,29 @@ def test_audit_names_each_tool_mise_audit_could_not_check(
 ):
     """
     Asserts that `lock:audit` names each tool and version `mise audit` lists
-    as unchecked, whether the tools it checked pass or carry an advisory,
-    and leaves its verdict to those.
+    as unchecked, across every tool it audits and whether the tools it
+    checked pass or carry an advisory, and leaves its verdict to those.
     """
-    result = scratch.run(
+    pinned      = {"swift": "6.4.3", "rust": "1.100.0"}
+    source      = {"path": "%s/.mise/config.toml"}
+    swift, rust = (report(unchecked=(f"{t}@{v}",)) for t, v in pinned.items())
+    result      = scratch.run(
         "audit",
-        mise = mise(*advisories, unchecked=("rust@1.100.0", "erlang@28.1"))
+        mise = mise(
+            audit =
+                f"case $3 in python@*) echo {report(*advisories)}; exit {status};; "
+                f"swift@*) echo {swift};; *) echo {rust};; esac",
+            tools = TOOLS | {
+                t: [{"version": v, "source": source}] for t, v in pinned.items()
+            }
+        )
     )
 
     assert result.returncode == status
     assert result.stderr.splitlines()[:2] == [
-        f"mise audit could not check {tool}, so lock:audit read no advisory for it"
-        for tool in ("rust 1.100.0", "erlang 28.1")
+        f"mise audit could not check {tool} {version}, so lock:audit read no "
+        "advisory for it"
+        for tool, version in pinned.items()
     ]
     assert ("bun audit --cwd docs" in scratch.calls) == (not status)
 
@@ -470,7 +479,7 @@ def test_audit_sets_aside_each_tool_advisory_naming_no_fixed_release(
             (
                 f"{CVE} affects python 3.15.2 and mise audit names no fixed "
                 "release, so check it by hand, then lift python to a fixed "
-                "release or add it"
+                "release or add it to AUDIT_IGNORE in .mise/config.toml"
             ),
             id = "unlisted"
         ),

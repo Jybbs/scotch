@@ -40,7 +40,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
-| `lock:audit` |  | Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, other than one `AUDIT_IGNORE` lists while no release fixes it, on any `mise audit` reports for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists and a contributor checks by hand while `mise audit` names no fixed release, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`, naming each tool `mise audit` could not check |
+| `lock:audit` |  | Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, other than one `AUDIT_IGNORE` lists while no release fixes it, on any `mise audit` reports for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists for a contributor to check by hand while `mise audit` names no fixed release, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`, and name each tool `mise audit` could not check |
 | `lock:check` | `lockfile` | Verify every lockfile is in sync with its manifest |
 | `lock:lift` | `lift` | List every pin lagging its newest release, try the lift in a scratch clone under `--try`, and write it as one diff under `--write` |
 | `lock:sync` | `relock` | Re-resolve every lockfile against its manifest |
