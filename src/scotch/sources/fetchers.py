@@ -14,7 +14,7 @@ from requests.adapters  import HTTPAdapter
 from urllib3.util       import Retry
 
 from scotch.sources.schemas import Download, Source
-from scotch.sources.writers import written
+from scotch.sources.writers import replaced
 
 
 class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -72,7 +72,7 @@ class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
     def fetch(self, source: Source, *, known: Download | None) -> Download:
         """
         Downloads the file `source` declares to the path `Source.path`
-        names under `directory` through `written`, so a download cut off
+        names under `directory` through `replaced`, so a download cut off
         partway leaves the earlier file as it stood and nothing beside it.
         Where `known` records the file sitting there under an entity tag,
         the request sends that tag through `If-None-Match`, and a server
@@ -105,6 +105,6 @@ class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
                 return known
 
             path.parent.mkdir(exist_ok=True, parents=True)
-            written(response.iter_content(DEFAULT_BUFFER_SIZE), path)
+            replaced(response.iter_content(DEFAULT_BUFFER_SIZE), path)
 
         return Download.from_file(path, etag=response.headers.get("ETag"))

@@ -43,7 +43,7 @@ def declare(path: str, section: str = "Players") -> Source:
 
 FULL = OSError(ENOSPC, strerror(ENOSPC))
 """
-The error a write to a full disk raises.
+The error a write to a full disk raises, which `Full` raises a copy of.
 """
 
 
@@ -70,10 +70,11 @@ class Full:
 
     def write(self, data: bytes | str):
         """
-        Writes the first byte or character of `data`, then raises `FULL`.
+        Writes the first byte or character of `data`, then raises an error
+        holding what `FULL` holds.
         """
         self.handle.write(data[:1])
-        raise FULL
+        raise OSError(*FULL.args)
 
     def writelines(self, lines: Iterable[bytes | str]):
         """
@@ -87,7 +88,8 @@ def fill(monkeypatch: MonkeyPatch, named: str = ""):
     """
     Makes each file opened for writing from here on whose name opens on
     `named` a `Full` one, so its first write stops partway through raising
-    `FULL`, while every other file writes as it does on a disk with room.
+    a copy of `FULL`, while every other file writes as it does on a disk
+    with room.
     """
     opened = Path.open
 

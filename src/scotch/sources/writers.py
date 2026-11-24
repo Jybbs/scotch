@@ -1,5 +1,5 @@
 """
-Holds `written`, which writes each file the store keeps so a reader of it
+Holds `replaced`, which writes each file the store keeps so a reader of it
 finds the earlier file or the new one whole, never one cut off partway.
 """
 
@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from pathlib         import Path
 
 
-def written(chunks: Iterable[bytes], path: Path) -> Path:
+def replaced(chunks: Iterable[bytes], path: Path) -> Path:
     """
     Writes `chunks` to a file beside `path` and moves it onto `path` once
     whole, through the one rename POSIX makes atomic, removing that file

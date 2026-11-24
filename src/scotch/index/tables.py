@@ -45,7 +45,7 @@ from scotch.index.schemas   import (
     counted
 )
 from scotch.sources.schemas import Source
-from scotch.sources.writers import written
+from scotch.sources.writers import replaced
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -295,7 +295,7 @@ class PositionIndex:
         Writes the index as the one file the site reads a piece at a time
         through range requests, into `directory` under a name hashed from
         its bytes, beside a `manifest.json` naming it and the bytes its head
-        takes, and returns its path. Each file lands through `written`, and
+        takes, and returns its path. Each file lands through `replaced`, and
         the files of the store `directory` held before are removed only once
         the new `manifest.json` names the new file, so a reader finds the
         earlier store or the new one whole.
@@ -335,7 +335,7 @@ class PositionIndex:
         ]
         head = self.positions.rehead(list(map(len, blocks)))
         directory.mkdir(exist_ok=True, parents=True)
-        temporary = written(
+        temporary = replaced(
             chain(
                 [head],
                 map(
@@ -351,7 +351,7 @@ class PositionIndex:
             path = directory / f"{file_digest(file, "sha256").hexdigest()[:16]}.bin"
 
         temporary.replace(path)
-        manifest = written(
+        manifest = replaced(
             [f"{dumps({"head": len(head), "store": path.name})}\n".encode()],
             directory / "manifest.json"
         )

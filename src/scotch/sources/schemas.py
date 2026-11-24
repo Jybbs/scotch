@@ -18,7 +18,7 @@ from typing              import Self
 from zipfile             import Path as ZipPath, ZipFile, is_zipfile
 
 from scotch.games.schemas   import Game, Origin
-from scotch.sources.writers import written
+from scotch.sources.writers import replaced
 
 
 class Download(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -232,10 +232,10 @@ class Manifest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     def write(self, directory: Path):
         """
         Writes the manifest to `manifest.json` in `directory` through
-        `written`, creating the directory where it is missing.
+        `replaced`, creating the directory where it is missing.
         """
         directory.mkdir(exist_ok=True, parents=True)
-        written([f"{self.model_dump_json(indent=2)}\n".encode()], self.path(directory))
+        replaced([f"{self.model_dump_json(indent=2)}\n".encode()], self.path(directory))
 
 
 class Sources(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
