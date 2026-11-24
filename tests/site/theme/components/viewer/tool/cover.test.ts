@@ -3,9 +3,9 @@ import { type VueWrapper, flushPromises } from '@vue/test-utils'
 import { describe, expect, vi }           from 'vitest'
 import { shallowRef }                     from 'vue'
 
-import { EXAMPLES } from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
-import { pressed }  from '../../../../common/keys.ts'
-import * as matches from '../../../../common/matches.ts'
+import { EXAMPLES }          from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { pressed }           from '../../../../common/keys.ts'
+import * as matches          from '../../../../common/matches.ts'
 import { said, test, typed } from '../../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({
@@ -35,7 +35,9 @@ function parted(wrapper: VueWrapper): unknown[] {
 }
 
 describe('Tool covering the stored game', () => {
-  test('covers the stored moves past the cursor on C, the entry kept in place, then shows them', async ({ tool }) => {
+  test('covers the stored moves past the cursor on C, the entry kept in place, then shows them', async ({
+    tool
+  }) => {
     const { root, wrapper } = tool()
     const covered           = (): number => wrapper.findAll('button[data-party][data-covered]').length
     const entry             = wrapper.find('form').element as HTMLFormElement
@@ -77,7 +79,9 @@ describe('Tool covering the stored game', () => {
 })
 
 describe('Tool covering where the two games part', () => {
-  test('leaves the stored game’s next move out of the status, the boards, and the band', async ({ clock, tool }) => {
+  test('leaves the stored game’s next move out of the status, the boards, and the band', async ({
+    clock, tool
+  }) => {
     history.replaceState(null, '', `#sample=match&ply=${matches.last}&cover=1`)
     const { wrapper } = tool()
     await flushPromises()
@@ -107,7 +111,9 @@ describe('Tool covering where the two games part', () => {
 })
 
 describe('Tool taking a move while covered', () => {
-  test('shows the stored move once a typed one is offered, naming the match and counting it', async ({ tool }) => {
+  test('shows the stored move once a typed one is offered, naming the match and counting it', async ({
+    tool
+  }) => {
     const { root, wrapper } = tool()
     await pressed(root, 'c')
     await typed(wrapper, 'Bb4')

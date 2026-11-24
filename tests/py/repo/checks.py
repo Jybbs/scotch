@@ -1,7 +1,6 @@
 """
-Pins that the sample checkout passes every check in `scotch.repo.checks`,
-and the findings each check reports once a file in the sample departs from
-the rule the check holds.
+Pins the findings each check in `scotch.repo.checks` reports, and no other,
+once a file in the sample checkout departs from the rule the check holds.
 """
 
 from collections.abc import Iterable

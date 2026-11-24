@@ -2,10 +2,10 @@
 import { describe, expect, vi } from 'vitest'
 import { shallowRef }           from 'vue'
 
-import { EXAMPLES }                    from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
-import { pressed }                     from '../../../../common/keys.ts'
-import * as matches                    from '../../../../common/matches.ts'
-import { test } from '../../../../common/tool.ts'
+import { EXAMPLES } from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { pressed }  from '../../../../common/keys.ts'
+import * as matches from '../../../../common/matches.ts'
+import { test }     from '../../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({
   useData: () => ({ frontmatter: shallowRef({ stats: [{ label: 'Games', value: '435,321' }] }) })
@@ -25,7 +25,9 @@ describe('Tool as a reader steps it', () => {
     expect(await pressed(root, 'Home')).toBe(false)
   })
 
-  test('captions each board with the start mark at the starting position and with a move after it', async ({ tool }) => {
+  test('captions each board with the start mark at the starting position and with a move after it', async ({
+    tool
+  }) => {
     const { root, wrapper } = tool()
     const captions          = (): string[] => wrapper.findAll('figcaption > span:last-child')
       .map(move => move.text())

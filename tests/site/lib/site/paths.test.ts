@@ -7,12 +7,12 @@ import * as paths         from '../../../../docs/.vitepress/lib/site/paths.ts'
 import { MANIFEST, test } from '../../common/repo.ts'
 
 describe('the paths under the repository', () => {
-  test.for([
+  test.for<[string, string, (metaUrl: string) => string]>([
     ['cacheDir', '.cache/vitepress', metaUrl => paths.cacheDir(metaUrl, 'vitepress')],
     ['docsDir', 'docs', paths.docsDir],
     ['pagesDir', 'docs/pages', paths.pagesDir],
     ['publicDir', 'docs/public', paths.publicDir]
-  ] as [string, string, (metaUrl: string) => string][])('names %s as %s under the root', ([, folder, folderOf], { repo }) => {
+  ])('names %s as %s under the root', ([, folder, folderOf], { repo }) => {
     expect(folderOf(repo.metaUrl)).toBe(path.join(repo.root, folder))
   })
 

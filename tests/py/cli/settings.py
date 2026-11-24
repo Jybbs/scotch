@@ -2,7 +2,7 @@
 Pins where `Settings` reads each setting from, meaning a keyword argument,
 then a `SCOTCH_` environment variable, then the `[tool.scotch]` table of
 the `pyproject.toml` at the project's root, how it finds that root, and what
-reading the index under the data directory returns or exits on.
+reading an index of another layout under the data directory exits on.
 """
 
 from pathlib  import Path

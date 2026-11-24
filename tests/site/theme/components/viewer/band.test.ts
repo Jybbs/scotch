@@ -167,13 +167,13 @@ describe('Band taking a file', () => {
 
 describe('Band taking a game in PGN', () => {
   it.each([
-    ['a game typed once Enter is pressed', '1. e4 *', 'keydown', { key: 'Enter' }, [['1. e4 *', 'the pasted game']]],
+    ['a game on pressing Enter', '1. e4 *', 'keydown', { key: 'Enter' }, [['1. e4 *', 'the pasted game']]],
     ['a game pasted', '1. d4 *', 'input', { inputType: 'insertFromPaste' }, [['1. d4 *', 'the pasted game']]],
     ['nothing for text typed', '1. d4 *', 'input', { inputType: 'insertText' }, undefined],
-    ['nothing for Shift and Enter', '1. e4 *', 'keydown', { key: 'Enter', shiftKey: true }, undefined],
-    ['nothing for Enter ending a composition', '1. e4 *', 'keydown', { isComposing: true, key: 'Enter' }, undefined],
-    ['nothing for another key', '1. e4 *', 'keydown', { key: 'a' }, undefined],
-    ['nothing for Enter on an empty entry', '  ', 'keydown', { key: 'Enter' }, undefined]
+    ['nothing on Shift and Enter', '1. e4 *', 'keydown', { key: 'Enter', shiftKey: true }, undefined],
+    ['nothing on Enter in composition', '1. e4 *', 'keydown', { isComposing: true, key: 'Enter' }, undefined],
+    ['nothing on another key', '1. e4 *', 'keydown', { key: 'a' }, undefined],
+    ['nothing on Enter in an empty entry', '  ', 'keydown', { key: 'Enter' }, undefined]
   ])('sends %s', async (_, text, event, ending, sent) => {
     const wrapper = mounted()
     const field   = wrapper.find('textarea[placeholder]')

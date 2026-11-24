@@ -52,12 +52,12 @@ describe('projectFacts', () => {
 
   test('fails by name with a TypeError where the manifest leaves out a field', ({ repo }) => {
     const fields = {
-      'description' : 'project.description',
-      'Homepage'    : 'project.urls.Homepage',
-      'license'     : 'project.license',
-      'Repository'  : 'project.urls.Repository',
-      'version'     : 'project.version',
-      'fail_under'  : 'tool.coverage.report.fail_under'
+      Homepage    : 'project.urls.Homepage',
+      Repository  : 'project.urls.Repository',
+      description : 'project.description',
+      fail_under  : 'tool.coverage.report.fail_under',
+      license     : 'project.license',
+      version     : 'project.version'
     }
     const thrown = Object.keys(fields).map(key => {
       const kept = MANIFEST.split('\n').filter(line => !line.startsWith(`${key} `))

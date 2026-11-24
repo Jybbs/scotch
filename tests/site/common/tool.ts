@@ -16,7 +16,7 @@ export function clearAfterEach(): void {
 /**
  * Extends the clock's `test` with a `tool` fixture, the call that mounts the
  * Viewer. Every move still running lands before the Viewer leaves the document,
- * which an `afterEach` unmounting it would come ahead of.
+ * since an `afterEach` would unmount it with those moves still running.
  */
 export const test = base.extend<{ tool: typeof mountedTool }>({
   tool: async ({ clock }, use) => {

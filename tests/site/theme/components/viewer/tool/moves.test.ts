@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
-import { flushPromises }            from '@vue/test-utils'
+import { flushPromises }        from '@vue/test-utils'
 import { describe, expect, vi } from 'vitest'
-import { shallowRef }               from 'vue'
+import { shallowRef }           from 'vue'
 
-import { EXAMPLES }                    from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
-import { Matcher }                     from '../../../../../../docs/.vitepress/lib/viewer/matcher.ts'
-import { pressed }                     from '../../../../common/keys.ts'
-import * as matches                    from '../../../../common/matches.ts'
-import { reduceMotion }                from '../../../../common/motion.ts'
-import { test } from '../../../../common/tool.ts'
+import { EXAMPLES }     from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { Matcher }      from '../../../../../../docs/.vitepress/lib/viewer/matcher.ts'
+import { pressed }      from '../../../../common/keys.ts'
+import * as matches     from '../../../../common/matches.ts'
+import { reduceMotion } from '../../../../common/motion.ts'
+import { test }         from '../../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({
   useData: () => ({ frontmatter: shallowRef({ stats: [{ label: 'Games', value: '435,321' }] }) })
@@ -57,7 +57,9 @@ describe('Tool as a reader moves through it', () => {
 })
 
 describe('Tool showing the squares the boards differ on', () => {
-  test('washes the squares once the games part while their count holds the pointer', async ({ clock, tool }) => {
+  test('washes the squares once the games part while their count holds the pointer', async ({
+    clock, tool
+  }) => {
     const { wrapper } = tool()
     const count       = wrapper.find('p > button[title]').element as HTMLButtonElement
     const washed      = (): number => wrapper.findAll('rect[data-differ]').length
@@ -97,7 +99,9 @@ describe('Tool showing the squares the boards differ on', () => {
 })
 
 describe('Tool matching a pasted game', () => {
-  test('loads the match the game makes and steps to another of the tied games from the tally', async ({ tool }) => {
+  test('loads the match the game makes and steps to another of the tied games from the tally', async ({
+    tool
+  }) => {
     const tied        = [{ ...EXAMPLES.match, ties: 1 }, { ...matches.oneApart(), ties: 1 }]
     const submitted   = vi.spyOn(Matcher.prototype, 'submit')
       .mockResolvedValue({ matches: matches.answered(...tied) })

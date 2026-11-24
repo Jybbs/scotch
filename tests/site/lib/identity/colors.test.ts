@@ -37,9 +37,9 @@ describe('mix', () => {
     ['keeps the second color whole at 0 percent in OKLab', '#764017', 0, '#f2f1ee', 'oklab', '#f2f1ee'],
     ['keeps the second color whole at 0 percent in sRGB', '#764017', 0, '#f2f1ee', 'srgb', '#f2f1ee'],
     ['averages each gamma-encoded channel in sRGB', '#000000', 50, '#ffffff', 'srgb', '#808080'],
-    ['mixes in OKLab by default, which lands lighter than sRGB', '#000000', 50, '#ffffff', undefined, '#636363'],
-    ['clips a blue and green mix outside the sRGB gamut into it', '#0000ff', 50, '#00ff00', undefined, '#00aabf'],
-    ['clips a red and yellow mix outside the sRGB gamut into it', '#ff0000', 50, '#ffff00', undefined, '#ffa000']
+    ['mixes in OKLab by default, lighter than sRGB', '#000000', 50, '#ffffff', undefined, '#636363'],
+    ['clips a blue and green mix into the sRGB gamut', '#0000ff', 50, '#00ff00', undefined, '#00aabf'],
+    ['clips a red and yellow mix into the sRGB gamut', '#ff0000', 50, '#ffff00', undefined, '#ffa000']
   ] as const)('%s', (_, first, share, second, space, mixed) => {
     expect(colors.mix(first, share, second, space)).toBe(mixed)
   })

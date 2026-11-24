@@ -3,8 +3,8 @@ import { type VueWrapper, flushPromises } from '@vue/test-utils'
 import { describe, expect, vi }           from 'vitest'
 import { shallowRef }                     from 'vue'
 
-import { pressed }                                  from '../../../../common/keys.ts'
-import * as matches                                 from '../../../../common/matches.ts'
+import { pressed }                   from '../../../../common/keys.ts'
+import * as matches                  from '../../../../common/matches.ts'
 import { said, test as base, typed } from '../../../../common/tool.ts'
 
 vi.mock('vitepress', () => ({
@@ -34,8 +34,7 @@ const test = base.extend('covered', async ({ tool }) => {
 })
 
 describe('Tool taking a move made on the stored board', () => {
-  test('names the stored move beside a dragged one that differs', async ({ covered }) => {
-    const { wrapper } = covered
+  test('names the stored move beside a dragged one that differs', async ({ covered: { wrapper } }) => {
     point(wrapper, 61, 'pointerdown')
     point(wrapper, 34, 'pointerup')
     await flushPromises()
@@ -43,9 +42,10 @@ describe('Tool taking a move made on the stored board', () => {
     expect(said(wrapper)[2]).toBe('0 of 1 offered match')
   })
 
-  test('outlines a piece tapped on the stored board until a second tap lets it go', async ({ covered }) => {
-    const { wrapper } = covered
-    const mark              = (): boolean => wrapper.find('[data-picked]').exists()
+  test('outlines a piece tapped on the stored board until a second tap lets it go', async ({
+    covered: { wrapper }
+  }) => {
+    const mark = (): boolean => wrapper.find('[data-picked]').exists()
     point(wrapper, 61, 'pointerdown')
     point(wrapper, 61, 'pointerup')
     await flushPromises()
@@ -55,8 +55,9 @@ describe('Tool taking a move made on the stored board', () => {
     expect(mark()).toBe(false)
   })
 
-  test('offers nothing for a press right of the board and a release on it', async ({ covered }) => {
-    const { wrapper } = covered
+  test('offers nothing for a press right of the board and a release on it', async ({
+    covered: { wrapper }
+  }) => {
     point(wrapper, -1, 'pointerdown')
     point(wrapper, 34, 'pointerup')
     await flushPromises()
@@ -66,8 +67,7 @@ describe('Tool taking a move made on the stored board', () => {
 })
 
 describe('Tool stepping on with a piece picked', () => {
-  test('lets a picked piece go once the cursor steps on', async ({ covered }) => {
-    const { root, wrapper } = covered
+  test('lets a picked piece go once the cursor steps on', async ({ covered: { root, wrapper } }) => {
     point(wrapper, 61, 'pointerdown')
     point(wrapper, 61, 'pointerup')
     await flushPromises()
@@ -82,34 +82,36 @@ describe('Tool stepping on with a piece picked', () => {
 })
 
 describe('Tool taking a move while covered at the edges of the stored game', () => {
-  test('clears the field once it takes a move, keeping text it cannot take', async ({ covered }) => {
-    const { wrapper } = covered
-    const input             = wrapper.find('#sc-viewer-guess-field').element as HTMLInputElement
-    const field             = (): string => input.value
+  test('clears the field once it takes a move, keeping text it cannot take', async ({
+    covered: { wrapper }
+  }) => {
+    const input = wrapper.find('#sc-viewer-guess-field').element as HTMLInputElement
+    const field = (): string => input.value
     await typed(wrapper, 'hello')
     const kept = field()
     await typed(wrapper, 'Bb4')
     expect([kept, field()]).toEqual(['hello', ''])
   })
 
-  test('marks text that is no move in SAN and stays at the cursor', async ({ covered }) => {
-    const { wrapper } = covered
+  test('marks text that is no move in SAN and stays at the cursor', async ({ covered: { wrapper } }) => {
     await typed(wrapper, 'hello')
     expect([wrapper.find('#sc-viewer-guess-field').attributes('aria-invalid'), said(wrapper)[2]])
       .toEqual(['true', 'Not a move in SAN'])
     expect(wrapper.find('[role="slider"]').attributes('aria-valuenow')).toBe(String(matches.meet))
   })
 
-  test('counts no offer for a move stepped past and says nothing of it', async ({ covered }) => {
-    const { root, wrapper } = covered
+  test('counts no offer for a move stepped past and says nothing of it', async ({
+    covered: { root, wrapper }
+  }) => {
     await pressed(root, 'ArrowRight')
     await flushPromises()
     expect(said(wrapper)[0]).toBe('Same position · 2 of 36')
     expect(said(wrapper)[2]).toBe('0 of 0 offered match')
   })
 
-  test('takes no move where the stored game plays none from the cursor', async ({ covered }) => {
-    const { root, wrapper } = covered
+  test('takes no move where the stored game plays none from the cursor', async ({
+    covered: { root, wrapper }
+  }) => {
     await pressed(root, 'ArrowDown')
     await flushPromises()
     expect(wrapper.find('#sc-viewer-guess-field').attributes('disabled')).toBeDefined()

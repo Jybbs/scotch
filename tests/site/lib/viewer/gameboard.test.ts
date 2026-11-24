@@ -145,7 +145,9 @@ describe('GameBoard over any run of steps', () => {
     ), { numRuns: 60 })
   }, 20_000)
 
-  test('steps back and forth inside one glide, turning each piece back from where it stands', ({ board, clock }) => {
+  test('steps back and forth inside one glide, turning each piece back from where it stands', ({
+    board, clock
+  }) => {
     board.go(10, 'jump')
     for (const to of [11, 10, 11, 12, 11, 10, 9]) {
       board.go(to, 'glide')
