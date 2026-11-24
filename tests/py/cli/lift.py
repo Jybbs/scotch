@@ -161,7 +161,7 @@ def test_a_failing_relock_writes_nothing(lagging: Lagging, sample: Sample):
     _, applied = lagging(lagging_three(), breaking={"pluggy"})
 
     assert invoke("lift", "pins", "--write") == (
-        "The lift fails to relock or to pass `mise audit`, logged under "
+        "The lift fails to relock or to pass `mise run repo:audit`, logged under "
         f"{sample.root / '.cache' / 'lift'}"
     )
     assert applied == []

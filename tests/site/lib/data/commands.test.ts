@@ -12,11 +12,11 @@ describe('commands', () => {
       'show store'
     ])
     expect(commands.FILES.map(({ name }) => name)).toEqual([
-      'pgnmentor.com/', 'manifest.json', 'games.parquet', 'positions.bin', 'manifest.json'
+      'pgnmentor.com/', 'manifest.json', 'games.parquet', 'left.parquet', 'positions.bin', 'manifest.json'
     ])
     expect(commands.FOLDERS).toEqual(['downloads/', 'index/'])
     expect(commands.filesOf('index/').map(({ path }) => path)).toEqual([
-      'index/games.parquet', 'index/positions.bin', 'index/manifest.json'
+      'index/games.parquet', 'index/left.parquet', 'index/positions.bin', 'index/manifest.json'
     ])
     expect(commands.commandsOf('show')).toHaveLength(3)
   })
@@ -54,20 +54,20 @@ describe('readingsOf', () => {
   it.each([
     {
       aim      : null,
-      readings : [['Commands', '8'], ['Writes', '5'], ['Reads', '22'], ['Touches', '5 of 5', 'files']],
+      readings : [['Commands', '8'], ['Writes', '6'], ['Reads', '27'], ['Touches', '6 of 6', 'files']],
       tab      : 'all'
     },
     {
       aim      : null,
       readings : [
-        ['Command', 'fetch games'], ['Writes', '2'], ['Reads', '0'], ['Touches', '2 of 5', 'files']
+        ['Command', 'fetch games'], ['Writes', '2'], ['Reads', '0'], ['Touches', '2 of 6', 'files']
       ],
       tab      : 'fetch'
     },
     {
       aim      : { command: 'cite source' },
       readings : [
-        ['Command', 'cite source'], ['Writes', '0'], ['Reads', '0'], ['Touches', '0 of 5', 'files']
+        ['Command', 'cite source'], ['Writes', '0'], ['Reads', '0'], ['Touches', '0 of 6', 'files']
       ],
       tab      : 'all'
     },
