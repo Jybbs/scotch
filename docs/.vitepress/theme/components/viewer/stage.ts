@@ -26,10 +26,11 @@ const FLANK = [
 ]
 /**
  * The pill of controls set over the surface's lower edge with the status line
- * and the field taking a move under it, in its own row on a narrow screen.
+ * and the field taking a move under it, in its own row on a narrow screen,
+ * which takes the focus a control inside it loses.
  */
-const FOOT = 'relative z-2 -mt-[45px] grid justify-items-center gap-2.5 max-lg:col-span-full max-lg:row-3 '
-           + 'max-lg:mt-0'
+const FOOT = 'relative z-2 -mt-[45px] grid justify-items-center gap-2.5 outline-none max-lg:col-span-full '
+           + 'max-lg:row-3 max-lg:mt-0'
 /**
  * The column holding the sheets, sized by the boards beside it, and on a
  * narrow screen a band of its own under the track, a set count of rows tall.
@@ -109,7 +110,7 @@ export const Stage = defineComponent({
           h('div', { class: SPINE }, [h(Ledger, { loaded, onGo: go, ref: parts.ledger })]),
           figure('stored')
         ]),
-        h('div', { class: FOOT }, [
+        h('div', { class: FOOT, tabindex: '-1' }, [
           h(Controls, { covered, cursor, facing, loaded, onCover: cover, onGo: go, onTurn: turn }),
           statusLine(props.status, show, props.verdict),
           h(GuessEntry, {

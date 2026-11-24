@@ -1,31 +1,49 @@
 import { type Ref, shallowRef } from 'vue'
 
-import type { Matches } from '../games/store.ts'
-import { Matcher }      from './matcher.ts'
-import type { Tied }    from './ranks.ts'
-import type { Viewer }  from './state.ts'
+import type { Matches }            from '../games/store.ts'
+import { type Reading, readMatch } from './link.ts'
+import { Matcher, messageOf }      from './matcher.ts'
+import type { Tied }               from './ranks.ts'
+import type { Viewer }             from './state.ts'
 
 /**
  * A game submitted to the Viewer: the stored games tied on the run it shares,
  * the place of the one shown among them, and the calls that load a match,
- * submit a game, and show another of the tied games.
+ * submit a game, take a file, and show another of the tied games.
  */
 export interface Submitting {
   at     : Readonly<Ref<number>>
   load   : Viewer['load']
   show   : (at: number) => void
   submit : (text: string, source: string) => Promise<void>
+  take   : (file: File) => Promise<void>
   ties   : () => readonly Tied[]
+}
+
+/**
+ * Reads what a file gives: its text where its name ends on `.pgn`, or else the
+ * match it holds, or the line naming what it lacks or why it cannot be read.
+ */
+async function readingOf(file: File): Promise<Reading & { game?: undefined } | { game: string }> {
+  try {
+    const text = await file.text()
+    if (file.name.toLowerCase().endsWith('.pgn')) return { game: text }
+    return readMatch(text, file.name)
+  } catch (error) {
+    return { problem: `Cannot read ${file.name}: ${messageOf(error)}` }
+  }
 }
 
 /**
  * Sends each game the Viewer submits in PGN to `matcher` and loads its first
  * match, holding every stored game tied with it in the order the match ranks
  * them, while `problem` says that the game is being matched until it names the
- * problem the game carries or empties. Showing another of the tied games reads
+ * problem the game carries or empties. Taking a file loads the match it holds,
+ * or submits its game where its name ends on `.pgn`, or names in `problem` what
+ * it lacks or why it cannot be read. Showing another of the tied games reads
  * its moves only then, loading a match from anywhere else empties `problem`
- * and drops the tied games, and an answer arriving after a later submission or
- * load is dropped.
+ * and drops the tied games, and a file read or an answer arriving after a later
+ * file, submission, or load is dropped.
  *
  * Args:
  *   problem : The line naming the problem under the intake.
@@ -46,29 +64,39 @@ export function useSubmission(
     tied.value    = undefined
     viewer.load(...args)
   }
+  const submit = async (text: string, source: string): Promise<void> => {
+    latest          += 1
+    const mine       = latest
+    problem.value    = 'Matching the game against the store …'
+    const submission = await matcher.submit(source, text)
+    if (mine !== latest) return
+    if (!submission.matches) {
+      problem.value = submission.problem
+      return
+    }
+    load(submission.matches.match(0), source)
+    tied.value = submission.matches
+    at.value   = 0
+  }
   return {
-    at   : at,
-    load : load,
-    ties : () => tied.value?.ties ?? [],
+    at     : at,
+    load   : load,
+    submit : submit,
+    ties   : () => tied.value?.ties ?? [],
 
     show: (place: number) => {
       viewer.load(tied.value!.match(place), viewer.source.value)
       at.value = place
     },
 
-    submit: async (text: string, source: string) => {
-      latest          += 1
-      const mine       = latest
-      problem.value    = 'Matching the game against the store …'
-      const submission = await matcher.submit(source, text)
+    take: async (file: File) => {
+      latest       += 1
+      const mine    = latest
+      const reading = await readingOf(file)
       if (mine !== latest) return
-      if (!submission.matches) {
-        problem.value = submission.problem
-        return
-      }
-      load(submission.matches.match(0), source)
-      tied.value = submission.matches
-      at.value   = 0
+      if (reading.game !== undefined) await submit(reading.game, file.name)
+      else if (reading.match) load(reading.match, file.name)
+      else problem.value = reading.problem
     }
   }
 }

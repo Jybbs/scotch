@@ -9,6 +9,11 @@ import { moveTo }                       from './placements.ts'
 import type { Viewer }                  from './state.ts'
 
 /**
+ * A control that takes no key, meaning one disabled or hidden.
+ */
+const IDLE = ':disabled, [hidden]'
+
+/**
  * The Viewer's drive: the page's address, the refs its parts bind to, and the
  * call answering a key pressed inside the tool.
  */
@@ -226,4 +231,18 @@ export function useDrive(viewer: Viewer): Drive {
       answerKey(event, viewer)
     }
   }
+}
+
+/**
+ * Moves focus from a control that a load, a step, or the cover disables or
+ * hides to the nearest element around it that takes focus, so a key pressed
+ * next still reaches the Viewer.
+ */
+export function useFocus({ covered, cursor, loaded }: Viewer): void {
+  watch([covered, cursor, loaded], async () => {
+    const held = document.activeElement
+    await nextTick()
+    if (!held?.matches(IDLE)) return
+    held.parentElement?.closest<HTMLElement>('[tabindex]')?.focus({ preventScroll: true })
+  })
 }

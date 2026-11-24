@@ -2,7 +2,6 @@ import { type PropType, type Ref, type VNode, defineComponent, h, shallowRef } f
 
 import type { Match, Sample }            from '../../../lib/viewer/examples.ts'
 import * as games                        from '../../../lib/viewer/games.ts'
-import { readMatch }                     from '../../../lib/viewer/link.ts'
 import { COVERED, type Loaded, NOTHING } from '../../../lib/viewer/loaded.ts'
 import { pgnOf }                         from '../../../lib/viewer/pgn.ts'
 import type { Tied }                     from '../../../lib/viewer/ranks.ts'
@@ -129,10 +128,10 @@ function drawMatch(
 }
 
 /**
- * Makes the whole band take a dropped match file, counting the drags entering
- * and leaving it so the band stays marked while a drag crosses its children.
+ * Makes the whole band take a dropped file, counting the drags entering and
+ * leaving it so the band stays marked while a drag crosses its children.
  */
-function dropOn(drag: Ref<number>, read: (file: File) => void): Record<string, (event: DragEvent) => void> {
+function dropOn(drag: Ref<number>, take: (file: File) => void): Record<string, (event: DragEvent) => void> {
   return {
     onDragenter: event => {
       if (carriesFiles(event)) drag.value++
@@ -147,7 +146,7 @@ function dropOn(drag: Ref<number>, read: (file: File) => void): Record<string, (
       event.preventDefault()
       drag.value = 0
       const file = event.dataTransfer?.files[0]
-      if (file) read(file)
+      if (file) take(file)
     }
   }
 }
@@ -189,9 +188,9 @@ function ties(loaded: Loaded): (VNode | string)[] {
  * reaching the tool through `show`, and the copies of the link and of the PGN,
  * with the intake at its right, meaning the PGN entry, the two examples, and a
  * picker for a match file or a game. The whole band takes either file dropped
- * on it, a match file reaching the tool through `load` and a game in PGN
- * through `pgn`, and the line under the intake names the first thing a picked
- * or dropped file lacks or the problem a submitted game carries.
+ * on it, reaching the tool through `file` as a picked one does, an example
+ * through `load`, and a game in PGN through `pgn`, and the line under the
+ * intake names the problem a file or a submitted game carries.
  */
 export const Band = defineComponent({
   name: 'ScotchBand',
@@ -207,28 +206,18 @@ export const Band = defineComponent({
   },
 
   emits: {
-    load    : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null,
-    pgn     : (text: string, source: string) => !!text && !!source,
-    problem : (text: string) => typeof text === 'string',
-    show    : (at: number) => Number.isInteger(at)
+    file : (file: File) => !!file,
+    load : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null,
+    pgn  : (text: string, source: string) => !!text && !!source,
+    show : (at: number) => Number.isInteger(at)
   },
 
   setup: (props, { emit }) => {
     let count   = 0
     const drag  = shallowRef(0)
     const loads = new WeakMap<Loaded, number>()
-    const read  = async (file: File): Promise<void> => {
-      const text = await file.text()
-      if (file.name.toLowerCase().endsWith('.pgn')) {
-        emit('pgn', text, file.name)
-        return
-      }
-      const reading = readMatch(text, file.name)
-      if (reading.match) emit('load', reading.match, file.name)
-      else emit('problem', reading.problem)
-    }
-    const take = (file: File): void => {
-      void read(file)
+    const take  = (file: File): void => {
+      emit('file', file)
     }
     const on    = dropOn(drag, take)
     const keyOf = (loaded: Loaded): number => {

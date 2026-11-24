@@ -93,7 +93,7 @@ function drawStage(drive: drives.Drive, viewer: Viewer): VNode {
  * link carries in the page's fragment, matches a game submitted in PGN against
  * the published store, stepping between the stored games tied on the run as
  * the band's tally is pressed, and answers the controls' keys while focus sits
- * inside it.
+ * inside it, as it still does once the focused control is disabled or hidden.
  */
 export const Tool = defineComponent({
   name: 'ScotchViewer',
@@ -105,6 +105,7 @@ export const Tool = defineComponent({
     const stats      = (): readonly Stat[] => page.frontmatter.value.stats ?? []
     const opened     = drives.marksOf(viewer)
     const submitting = useSubmission(drive.problem, viewer)
+    drives.useFocus(viewer)
 
     return () => h('div', {
       'class'        : ROOT,
@@ -127,12 +128,12 @@ export const Tool = defineComponent({
           sample   : viewer.sample.value,
           ties     : submitting.ties(),
 
-          onPgn: (text: string, source: string) => {
-            void submitting.submit(text, source)
+          onFile: (file: File) => {
+            void submitting.take(file)
           },
 
-          onProblem: (text: string) => {
-            drive.problem.value = text
+          onPgn: (text: string, source: string) => {
+            void submitting.submit(text, source)
           }
         }),
         drawStage(drive, viewer),

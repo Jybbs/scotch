@@ -5,7 +5,17 @@ import { EXAMPLES }                       from '../../../../docs/.vitepress/lib/
 import { Matcher, type Submission }       from '../../../../docs/.vitepress/lib/viewer/matcher.ts'
 import { useViewer }                      from '../../../../docs/.vitepress/lib/viewer/state.ts'
 import { type Submitting, useSubmission } from '../../../../docs/.vitepress/lib/viewer/submission.ts'
+import { fileOf }                         from '../../common/files.ts'
 import { answered, oneApart }             from '../../common/matches.ts'
+
+/**
+ * Builds a file whose text settles as `reading` does.
+ */
+function slowFile(reading: Promise<string>, name: string): File {
+  const file = fileOf('', name)
+  vi.spyOn(file, 'text').mockReturnValue(reading)
+  return file
+}
 
 /**
  * Builds the submission of a Viewer whose matcher answers every game with
@@ -84,5 +94,64 @@ describe('useSubmission answering out of order', () => {
     pending.resolve({ problem: 'Found no game in the first game' })
     await earlier
     expect([viewer.loaded.value.match, viewer.source.value, problem.value]).toEqual([EXAMPLES.alone, source, ''])
+  })
+})
+
+describe('useSubmission taking a file', () => {
+  it('loads the match a file holds, naming the file it came from', async () => {
+    const { problem, submission, viewer } = submitting({ problem: '' })
+    problem.value                         = 'Found no game in the pasted game'
+    await submission.take(fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json'))
+    expect([viewer.loaded.value.match, viewer.source.value, problem.value])
+      .toEqual([EXAMPLES.alone, 'mine.json', ''])
+  })
+
+  it('submits the game a PGN file holds, naming the file it came from', async () => {
+    const { submission, viewer } = submitting({ matches: answered(EXAMPLES.match) })
+    await submission.take(fileOf('1. c4 *', 'Mine.PGN'))
+    expect([viewer.loaded.value.match, viewer.source.value]).toEqual([EXAMPLES.match, 'Mine.PGN'])
+  })
+
+  it.each([
+    ['what a match file lacks', 'game.json', () => Promise.resolve('{"submitted": 1}'),
+     'game.json: `submitted` holds a number rather than an object'],
+    ['why a file cannot be read', 'gone.pgn', () => Promise.reject(new Error('A permission changed')),
+     'Cannot read gone.pgn: A permission changed']
+  ])('names %s', async (_, name, reading, named) => {
+    const { problem, submission } = submitting({ problem: '' })
+    await submission.take(slowFile(reading(), name))
+    expect(problem.value).toBe(named)
+  })
+})
+
+describe('useSubmission reading out of order', () => {
+  it.each<[string, (reading: PromiseWithResolvers<string>) => void]>([
+    ['is read', reading => {
+      reading.resolve(JSON.stringify(EXAMPLES.match))
+    }],
+    ['turns out unreadable', reading => {
+      reading.reject(new Error('A permission changed'))
+    }]
+  ])('keeps the file taken last where the earlier one %s after it', async (_, settle) => {
+    const { problem, submission, viewer } = submitting({ problem: '' })
+    const reading                         = Promise.withResolvers<string>()
+    const earlier                         = submission.take(slowFile(reading.promise, 'earlier.json'))
+    await submission.take(fileOf(JSON.stringify(EXAMPLES.alone), 'later.json'))
+    settle(reading)
+    await earlier
+    expect([viewer.loaded.value.match, viewer.source.value, problem.value])
+      .toEqual([EXAMPLES.alone, 'later.json', ''])
+  })
+
+  it('drops the answer to a game arriving while a file taken after it is read', async () => {
+    const { submission, viewer } = submitting({ matches: answered(EXAMPLES.match) })
+    const reading                = Promise.withResolvers<string>()
+    const earlier                = submission.submit('1. Nf3 *', 'the first game')
+    const taken                  = submission.take(slowFile(reading.promise, 'later.json'))
+    await earlier
+    expect(viewer.source.value).not.toBe('the first game')
+    reading.resolve(JSON.stringify(EXAMPLES.alone))
+    await taken
+    expect(viewer.source.value).toBe('later.json')
   })
 })
