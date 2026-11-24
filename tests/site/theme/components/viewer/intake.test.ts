@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { type DOMWrapper, mount } from '@vue/test-utils'
-import { describe, expect, it }   from 'vitest'
+import { type DOMWrapper, type VueWrapper, mount } from '@vue/test-utils'
+import { describe, expect, it }                    from 'vitest'
 
 import { Intake } from '../../../../../docs/.vitepress/theme/components/viewer/intake.ts'
 
@@ -15,6 +15,14 @@ async function pasted(field: DOMWrapper<HTMLTextAreaElement>, text: string): Pro
   await field.trigger('input', { inputType: 'insertFromPaste' })
 }
 
+/**
+ * Mounts the intake, beside its PGN entry.
+ */
+function entry(): { field: DOMWrapper<HTMLTextAreaElement>, wrapper: VueWrapper } {
+  const wrapper = mount(Intake, { attachTo: document.body, props: { problem: '' } })
+  return { field: wrapper.find('textarea'), wrapper }
+}
+
 describe('Intake taking a second game', () => {
   it.each<[string, (field: DOMWrapper<HTMLTextAreaElement>) => unknown]>([
     ['pasted', field => pasted(field, '1. e4 *')],
@@ -27,16 +35,14 @@ describe('Intake taking a second game', () => {
       await field.trigger('keydown', { key: 'Enter' })
     }]
   ])('submits a game pasted after one %s by itself', async (_, earlier) => {
-    const wrapper = mount(Intake, { attachTo: document.body, props: { problem: '' } })
-    const field   = wrapper.find('textarea')
+    const { field, wrapper } = entry()
     await earlier(field)
     await pasted(field, '1. d4 *')
     expect(wrapper.emitted('pgn')?.at(-1)).toEqual(['1. d4 *'])
   })
 
   it('submits a pasted game as it stands on Enter once it is edited', async () => {
-    const wrapper = mount(Intake, { attachTo: document.body, props: { problem: '' } })
-    const field   = wrapper.find('textarea')
+    const { field, wrapper } = entry()
     await pasted(field, '1. d4 *')
     await field.setValue('1. d4 d5 *')
     await field.trigger('keydown', { key: 'Enter' })

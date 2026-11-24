@@ -24,8 +24,15 @@ export type Submission = { matches: Matches, problem?: undefined }
 /**
  * Reads the message an error carries, or the value thrown in its place as text.
  */
-export function messageOf(error: unknown): string {
+function messageOf(error: unknown): string {
   return Error.isError(error) ? error.message : String(error)
+}
+
+/**
+ * The line naming what `name` reads from as unreadable, and why.
+ */
+export function unreadable(name: string, error: unknown): { problem: string } {
+  return { problem: `Cannot read ${name}: ${messageOf(error)}` }
 }
 
 /**
@@ -66,7 +73,7 @@ export class Matcher {
     try {
       games = read(text)
     } catch (error) {
-      return { problem: `Cannot read ${name}: ${messageOf(error)}` }
+      return unreadable(name, error)
     }
     const [game, ...rest] = games
     if (!game) return { problem: `Found no game in ${name}` }

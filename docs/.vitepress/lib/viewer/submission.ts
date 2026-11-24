@@ -2,7 +2,7 @@ import { type Ref, shallowRef } from 'vue'
 
 import type { Matches }            from '../games/store.ts'
 import { type Reading, readMatch } from './link.ts'
-import { Matcher, messageOf }      from './matcher.ts'
+import { Matcher, unreadable }     from './matcher.ts'
 import type { Tied }               from './ranks.ts'
 import type { Viewer }             from './state.ts'
 
@@ -36,14 +36,14 @@ function claims(): () => () => boolean {
  * Reads what a file gives: its text where its name ends on `.pgn`, or else the
  * match it holds, or the line naming what it lacks or why it cannot be read.
  */
-async function readingOf(file: File): Promise<Reading & { game?: undefined } | { game: string }> {
+async function readingOf(file: File): Promise<Reading | { game: string }> {
+  let text: string
   try {
-    const text = await file.text()
-    if (file.name.toLowerCase().endsWith('.pgn')) return { game: text }
-    return readMatch(text, file.name)
+    text = await file.text()
   } catch (error) {
-    return { problem: `Cannot read ${file.name}: ${messageOf(error)}` }
+    return unreadable(file.name, error)
   }
+  return file.name.toLowerCase().endsWith('.pgn') ? { game: text } : readMatch(text, file.name)
 }
 
 /**
@@ -104,7 +104,7 @@ export function useSubmission(
       const current = claim()
       const reading = await readingOf(file)
       if (!current()) return
-      if (reading.game !== undefined) await submit(reading.game, file.name)
+      if ('game' in reading) await submit(reading.game, file.name)
       else if (reading.match) load(reading.match, file.name)
       else problem.value = reading.problem
     }

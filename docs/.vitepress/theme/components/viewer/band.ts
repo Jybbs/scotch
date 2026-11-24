@@ -5,7 +5,7 @@ import * as games                        from '../../../lib/viewer/games.ts'
 import { COVERED, type Loaded, NOTHING } from '../../../lib/viewer/loaded.ts'
 import { pgnOf }                         from '../../../lib/viewer/pgn.ts'
 import type { Tied }                     from '../../../lib/viewer/ranks.ts'
-import { Intake }                        from './intake.ts'
+import { Intake, TAKES }                 from './intake.ts'
 import { Seat }                          from './seat.ts'
 import { Tally }                         from './tally.ts'
 
@@ -206,8 +206,7 @@ export const Band = defineComponent({
   },
 
   emits: {
-    file : (file: File) => !!file,
-    load : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null,
+    ...TAKES,
     pgn  : (text: string, source: string) => !!text && !!source,
     show : (at: number) => Number.isInteger(at)
   },
@@ -216,9 +215,7 @@ export const Band = defineComponent({
     let count   = 0
     const drag  = shallowRef(0)
     const loads = new WeakMap<Loaded, number>()
-    const take  = (file: File): void => {
-      emit('file', file)
-    }
+    const take  = (file: File): void => emit('file', file)
     const on    = dropOn(drag, take)
     const keyOf = (loaded: Loaded): number => {
       if (!loads.has(loaded)) loads.set(loaded, ++count)

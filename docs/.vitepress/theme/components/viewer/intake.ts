@@ -64,6 +64,15 @@ function entry(id: string, submit: (text: string) => void): VNode {
 }
 
 /**
+ * The checks on what the intake and the band around it send on: a file picked
+ * or dropped, and a match loaded.
+ */
+export const TAKES = {
+  file : (file: File) => !!file,
+  load : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null
+}
+
+/**
  * The intake at the band's right: the PGN entry, the two examples, and a picker
  * for a match file or a PGN file, beside the line naming the problem a file or
  * a submitted game carries. A picked file reaches the band through `file`, and a
@@ -78,9 +87,8 @@ export const Intake = defineComponent({
   },
 
   emits: {
-    file : (file: File) => !!file,
-    load : (match: Match, source: string, sample?: Sample) => !!match && !!source && sample !== null,
-    pgn  : (text: string) => !!text
+    ...TAKES,
+    pgn: (text: string) => !!text
   },
 
   setup: (props, { emit }) => {
