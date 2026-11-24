@@ -15,6 +15,29 @@ from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Manifest, Source, Sources
 
 
+def test_a_build_after_one_cut_off_clears_what_it_left_beside_the_index(
+    data    : Path,
+    fetched : Callable[..., tuple[Source, ...]]
+):
+    """
+    Asserts that a build after one stopped partway, which left the folder
+    it moved aside and the folder it was writing beside the index, removes
+    both, leaving none of their files in the new index.
+    """
+    fetched(("players/A.pgn", b"1. e4 *\n"))
+    invoke("index", "games")
+
+    for folder in ("index.old", "index.part"):
+        (data / folder).mkdir()
+        (data / folder / "stray").write_bytes(b"stray")
+
+    assert invoke("index", "games") == 0
+    assert (
+        sorted(path.name for path in data.iterdir()),
+        (data / "index" / "stray").exists()
+    ) == (["downloads", "index"], False)
+
+
 def test_a_build_cut_off_partway_leaves_the_earlier_index_readable(
     data        : Path,
     fetched     : Callable[..., tuple[Source, ...]],
