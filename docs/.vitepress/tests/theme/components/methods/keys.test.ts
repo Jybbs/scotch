@@ -144,7 +144,7 @@ describe('Keys on a wide page', () => {
       'lg:grid-rows-[auto_auto_auto_1fr_auto]',
       'lg:[grid-template-areas:"status_status"_"goal_goal"_"key_board"_"chain_board"_"end_end"]'
     ]))
-    expect([...card.element.children].map(part => /\[grid-area:(\w+)\]/.exec(part.className)?.[1]))
+    expect([...card.element.children].map(part => /\[grid-area:(\w+)\]/u.exec(part.className)?.[1]))
       .toEqual(['status', 'goal', 'key', 'board', 'chain', 'end'])
   })
 
