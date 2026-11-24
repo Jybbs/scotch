@@ -1,7 +1,14 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Install the site's packages from `docs/bun.lock`, pruning any it no longer names, and link `tests/node_modules` to `docs/node_modules`, so the suite under `tests/site/` resolves them"
+#MISE description = "Install the site's packages from `docs/bun.lock`, pruning any it no longer names, remove a root `node_modules` or `package.json` link an earlier install made, leaving a real file or folder there in place, and link `tests/node_modules` to `docs/node_modules`, so the suite under `tests/site/` resolves them"
 #MISE dir         = "docs"
 
 bun install --frozen-lockfile
 bun prune
+for name in node_modules package.json; do
+  if [[ -L "../$name" ]]; then
+    rm "../$name"
+  elif [[ -e "../$name" ]]; then
+    printf 'Left the root %s in place, since it is not a link\n' "$name" >&2
+  fi
+done
 ln -sfn ../docs/node_modules ../tests/node_modules
