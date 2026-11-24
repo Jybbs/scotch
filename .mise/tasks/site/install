@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Install the site's packages from `docs/bun.lock`, pruning any it no longer names, remove a root `node_modules` or `package.json` link an earlier install made, leaving a real file or folder there in place, and link `tests/node_modules` to `docs/node_modules`, so the suite under `tests/site/` resolves them, skipping all of it where `docs/bun.lock` and `docs/package.json` are older than the last install and both folders are in place"
+#MISE description = "Install the site's packages from `docs/bun.lock`, pruning any it no longer names, remove a root `node_modules` or `package.json` link an earlier install made, leaving a real file or folder there in place, and link `tests/node_modules` to `docs/node_modules`, so the suite under `tests/site/` resolves them, skipping all of it where `docs/bun.lock` and `docs/package.json` are older than the last install and both `docs/node_modules` and the `tests/node_modules` link stand"
 #MISE dir         = "docs"
 #MISE outputs     = [
 #MISE   "../tests/node_modules",
