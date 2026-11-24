@@ -10,8 +10,7 @@ from chess           import Move
 from collections.abc import Iterable, Mapping
 from dataclasses     import dataclass, field
 from functools       import partial
-from hashlib         import file_digest
-from itertools       import chain
+from hashlib         import sha256
 from json            import dumps
 from pathlib         import Path
 from polars          import (
@@ -333,24 +332,21 @@ class PositionIndex:
             )
             for at in range(self.positions.pieces[1])
         ]
-        head = self.positions.rehead(list(map(len, blocks)))
-        directory.mkdir(exist_ok=True, parents=True)
-        temporary = replaced(
-            chain(
-                [head],
-                map(
-                    partial(self.positions.part, True),
-                    range(self.positions.pieces[0])
-                ),
-                blocks
+        head   = self.positions.rehead(list(map(len, blocks)))
+        pieces = [
+            head,
+            *map(
+                partial(self.positions.part, True),
+                range(self.positions.pieces[0])
             ),
-            directory / "store.bin"
-        )
+            *blocks
+        ]
+        digest = sha256()
 
-        with temporary.open("rb") as file:
-            path = directory / f"{file_digest(file, "sha256").hexdigest()[:16]}.bin"
+        for piece in pieces:
+            digest.update(piece)
 
-        temporary.replace(path)
+        path     = replaced(pieces, directory / f"{digest.hexdigest()[:16]}.bin")
         manifest = replaced(
             [f"{dumps({"head": len(head), "store": path.name})}\n".encode()],
             directory / "manifest.json"

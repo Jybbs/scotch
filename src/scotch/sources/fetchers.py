@@ -104,7 +104,6 @@ class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             if response.status_code == HTTPStatus.NOT_MODIFIED:
                 return known
 
-            path.parent.mkdir(exist_ok=True, parents=True)
             replaced(response.iter_content(DEFAULT_BUFFER_SIZE), path)
 
         return Download.from_file(path, etag=response.headers.get("ETag"))

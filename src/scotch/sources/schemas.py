@@ -234,7 +234,6 @@ class Manifest(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         Writes the manifest to `manifest.json` in `directory` through
         `replaced`, creating the directory where it is missing.
         """
-        directory.mkdir(exist_ok=True, parents=True)
         replaced([f"{self.model_dump_json(indent=2)}\n".encode()], self.path(directory))
 
 

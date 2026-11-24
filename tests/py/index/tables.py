@@ -271,6 +271,22 @@ def test_a_publish_cut_off_partway_leaves_the_earlier_store_readable(
     assert loads((path.parent / "manifest.json").read_text())["store"] == path.name
 
 
+def test_a_publish_of_the_same_index_again_leaves_the_store_as_it_stood(
+    index    : PositionIndex,
+    tmp_path : Path
+):
+    """
+    Asserts that publishing an index again into the folder its earlier
+    publish wrote, under the same name hashed from the same bytes, leaves
+    that file and its manifest as they stood and nothing beside them.
+    """
+    index.publish(tmp_path)
+    earlier = {file.name: file.read_bytes() for file in tmp_path.iterdir()}
+    index.publish(tmp_path)
+
+    assert {file.name: file.read_bytes() for file in tmp_path.iterdir()} == earlier
+
+
 def test_a_published_store_holds_each_piece_and_the_tags_of_its_games(
     index    : PositionIndex,
     stored   : list[Game],
