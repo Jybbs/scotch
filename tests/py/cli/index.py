@@ -6,12 +6,81 @@ it names where it exits nonzero.
 
 from collections.abc import Callable
 from common.app      import invoke
-from common.sources  import zipped
+from common.sources  import FULL, fill, zipped
 from pathlib         import Path
-from pytest          import CaptureFixture, MonkeyPatch
+from pytest          import CaptureFixture, MonkeyPatch, raises
+from re              import escape
 
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Manifest, Source, Sources
+
+
+def test_a_build_after_one_cut_off_clears_what_it_left_beside_the_index(
+    data    : Path,
+    fetched : Callable[..., tuple[Source, ...]]
+):
+    """
+    Asserts that a build after one stopped partway, which left the folder
+    it moved aside and the folder it was writing beside the index, removes
+    both, leaving none of their files in the new index.
+    """
+    fetched(("players/A.pgn", b"1. e4 *\n"))
+    invoke("index", "games")
+
+    for folder in ("index.old", "index.part"):
+        (data / folder).mkdir()
+        (data / folder / "stray").write_bytes(b"stray")
+
+    assert invoke("index", "games") == 0
+    assert (
+        sorted(path.name for path in data.iterdir()),
+        (data / "index" / "stray").exists()
+    ) == (["downloads", "index"], False)
+
+
+def test_a_build_cut_off_partway_leaves_the_earlier_index_readable(
+    data        : Path,
+    fetched     : Callable[..., tuple[Source, ...]],
+    monkeypatch : MonkeyPatch
+):
+    """
+    Asserts that a build whose write stops partway on a full disk, at the
+    manifest it writes last, raises the disk's `OSError` and leaves the
+    index an earlier build wrote as it stood, reading back as the one stored
+    game beside the manifest naming its one file.
+    """
+    fetched(("players/A.pgn", b"1. e4 *\n"))
+    invoke("index", "games")
+    fetched(("players/A.pgn", b"1. e4 *\n"), ("players/B.pgn", b"1. d4 *\n"))
+    fill(monkeypatch, "manifest.json")
+
+    with raises(OSError, match=escape(str(FULL))):
+        invoke("index", "games")
+
+    assert (
+        PositionIndex.read(data / "index").positions.games,
+        len(Manifest.read(data / "index").downloads)
+    ) == (1, 1)
+
+
+def test_a_build_over_an_earlier_index_replaces_it_leaving_nothing_beside_it(
+    data    : Path,
+    fetched : Callable[..., tuple[Source, ...]]
+):
+    """
+    Asserts that a build over the index an earlier build wrote replaces it
+    with the new one, leaving no other folder beside the downloads and the
+    index.
+    """
+    fetched(("players/A.pgn", b"1. e4 *\n"))
+    invoke("index", "games")
+    fetched(("players/A.pgn", b"1. e4 *\n"), ("players/B.pgn", b"1. d4 *\n"))
+
+    assert invoke("index", "games") == 0
+    assert (
+        PositionIndex.read(data / "index").positions.games,
+        sorted(path.name for path in data.iterdir())
+    ) == (2, ["downloads", "index"])
 
 
 def test_a_declared_file_not_yet_fetched_is_left_out_of_the_build(

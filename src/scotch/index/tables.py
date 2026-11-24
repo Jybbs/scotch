@@ -9,7 +9,8 @@ games` merges into one index.
 from chess           import Move
 from collections.abc import Iterable, Mapping
 from dataclasses     import dataclass, field
-from hashlib         import file_digest
+from functools       import partial
+from hashlib         import sha256
 from json            import dumps
 from pathlib         import Path
 from polars          import (
@@ -25,7 +26,6 @@ from polars          import (
     struct
 )
 from polars.exceptions import ComputeError, SchemaError
-from shutil            import rmtree
 from typing            import Any, Self
 from zlib              import compress
 
@@ -44,6 +44,7 @@ from scotch.index.schemas   import (
     counted
 )
 from scotch.sources.schemas import Source
+from scotch.sources.writers import replaced
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -293,7 +294,10 @@ class PositionIndex:
         Writes the index as the one file the site reads a piece at a time
         through range requests, into `directory` under a name hashed from
         its bytes, beside a `manifest.json` naming it and the bytes its head
-        takes, replacing whatever `directory` held, and returns its path.
+        takes, and returns its path. Each file lands through `replaced`, and
+        the files of the store `directory` held before are removed only once
+        the new `manifest.json` names the new file, so a reader finds the
+        earlier store or the new one whole.
 
         The file opens on a head naming where each piece starts, then holds
         each key piece as `positions.bin` holds it, then each game piece
@@ -328,26 +332,29 @@ class PositionIndex:
             )
             for at in range(self.positions.pieces[1])
         ]
-        temporary = directory / "store.tmp"
-        rmtree(directory, ignore_errors=True)
-        directory.mkdir(parents=True)
+        head   = self.positions.rehead(list(map(len, blocks)))
+        pieces = [
+            head,
+            *map(
+                partial(self.positions.part, True),
+                range(self.positions.pieces[0])
+            ),
+            *blocks
+        ]
+        digest = sha256()
 
-        head = self.positions.rehead(list(map(len, blocks)))
+        for piece in pieces:
+            digest.update(piece)
 
-        with temporary.open("wb") as file:
-            file.write(head)
-            file.writelines(
-                self.positions.part(True, at) for at in range(self.positions.pieces[0])
-            )
-            file.writelines(blocks)
-
-        with temporary.open("rb") as file:
-            path = directory / f"{file_digest(file, "sha256").hexdigest()[:16]}.bin"
-
-        temporary.replace(path)
-        (directory / "manifest.json").write_text(
-            dumps({"head": len(head), "store": path.name}) + "\n"
+        path     = replaced(pieces, directory / f"{digest.hexdigest()[:16]}.bin")
+        manifest = replaced(
+            [f"{dumps({"head": len(head), "store": path.name})}\n".encode()],
+            directory / "manifest.json"
         )
+
+        for file in directory.iterdir():
+            if file not in {manifest, path}:
+                file.unlink()
 
         return path
 

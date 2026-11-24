@@ -13,6 +13,7 @@ from shutil             import rmtree
 from scotch.cli.settings    import Settings
 from scotch.index.tables    import Batch, PositionIndex
 from scotch.sources.schemas import Manifest, Sources
+from scotch.sources.writers import swapped
 
 
 def games():
@@ -20,12 +21,14 @@ def games():
     Reads the games of every file `scotch fetch games` downloaded into the
     `downloads` folder of the data directory, handing the files one at a
     time to a pool of processes, and writes the index of them to its `index`
-    folder, replacing what that folder holds, beside a copy of the manifest
-    the files were read under. Files are read in the order `sources.toml`
-    declares them, a game several files repeat is indexed under the first,
-    and a game rated below the floor `sources.toml` sets for its file's
-    section, a game the reader records an error for, or one whose `Variant`
-    tag names a variant other than standard chess is left out.
+    folder beside a copy of the manifest the files were read under, writing
+    them beside that folder first and replacing it only once every file is
+    written, so a build cut off partway leaves the earlier index readable.
+    Files are read in the order `sources.toml` declares them, a game several
+    files repeat is indexed under the first, and a game rated below the
+    floor `sources.toml` sets for its file's section, a game the reader
+    records an error for, or one whose `Variant` tag names a variant other
+    than standard chess is left out.
 
     Prints the count of games read from each file beside the count left
     below its floor where its section sets one, one line for each problem
@@ -70,10 +73,11 @@ def games():
         print(batch.summary)
 
     index = PositionIndex.merge(batches)
-    rmtree(settings.index, ignore_errors=True)
-    index.write(settings.index)
-    manifest.write(settings.index)
-    print(index.written(settings.index))
+    part  = settings.index.with_name(f"{settings.index.name}.part")
+    rmtree(part, ignore_errors=True)
+    index.write(part)
+    manifest.write(part)
+    print(index.written(swapped(part, settings.index)))
 
 
 index_group = App(name="index")
