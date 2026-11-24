@@ -423,6 +423,11 @@ def test_chosen_reads_the_game_at_its_number(
             id = "arabic-indic"
         ),
         param(
+            f"{'1' * get_int_max_str_digits()}.01.02",
+            99990102,
+            id = "year-at-the-conversion-limit"
+        ),
+        param(
             f"{'1' * (get_int_max_str_digits() + 1)}.01.02",
             102,
             id = "year-past-the-conversion-limit"
@@ -431,11 +436,13 @@ def test_chosen_reads_the_game_at_its_number(
 )
 def test_a_date_reads_as_the_number_yyyymmdd(date: str, dated: int):
     """
-    Asserts that a `Date` tag reads as the number `YYYYMMDD`, each part
-    it leaves unknown or carrying anything but digits as 0, each part too
-    long for its digits as the largest those digits hold, a part in another
-    script's decimal digits as `int` reads it, and a part longer than `int`
-    converts as unknown.
+    Asserts that a `Date` tag reads as the number `YYYYMMDD`, each
+    part reading:
+
+    - As 0 where it is unknown, carries anything but digits, or holds more
+      digits than `int` converts
+    - As the largest its digits hold where it is too long for them
+    - As `int` reads it where it is written in another script's digits
     """
     assert line(Date=date).dated == dated
 
