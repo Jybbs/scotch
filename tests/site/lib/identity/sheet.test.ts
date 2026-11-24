@@ -4,6 +4,8 @@ import * as sheet               from '../../../../docs/.vitepress/lib/identity/s
 import { IDENTITY, propertyOf } from '../../../../docs/.vitepress/lib/identity/tokens.ts'
 import * as timing              from '../../../../docs/.vitepress/lib/motion/timing.ts'
 
+type Hook = (id: string) => string | undefined
+
 describe('identitySheet', () => {
   it('sets every token to its hex and leads every stack on its variable face', () => {
     expect(sheet.identitySheet().split('\n')).toEqual(expect.arrayContaining([
@@ -15,12 +17,23 @@ describe('identitySheet', () => {
 })
 
 describe('identityPlugin', () => {
+  const plugin = sheet.identityPlugin()
+  const hook   = (name: 'load' | 'resolveId'): Hook => plugin[name] as unknown as Hook
+
+  it('resolves the sheet to an id only the plugin loads', () => {
+    expect(hook('resolveId')(sheet.SHEET)).toBe(`\0${sheet.SHEET}`)
+    expect(hook('resolveId')('other.css')).toBeUndefined()
+  })
+
   it('serves the tokens, the roles, and the motion in one sheet', () => {
-    const load   = sheet.identityPlugin().load as unknown as (id: string) => string
-    const served = load(`\0${sheet.SHEET}`)
+    const served = hook('load')(`\0${sheet.SHEET}`)
     expect(served).toContain('--sc-primary: #764017;')
     expect(served).toContain('--sc-ink: light-dark(')
     expect(served).toContain('--sc-duration-glide: 420ms;')
+  })
+
+  it('leaves every other module to the next plugin', () => {
+    expect(hook('load')('other.css')).toBeUndefined()
   })
 })
 

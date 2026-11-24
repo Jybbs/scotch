@@ -8,9 +8,22 @@ file sets, the imports that filter keeps eager, and the defect each package
 from pathlib    import Path
 from pytest     import mark, param
 from subprocess import run
-from sys        import executable, get_lazy_imports, get_lazy_imports_filter
+from sys        import executable, get_lazy_imports, get_lazy_imports_filter, set_lazy_imports, set_lazy_imports_filter
 
-from scotch.imports.filters import EAGER, Eager, lazily
+from scotch.imports.filters import EAGER, Eager, lazily, start
+
+
+def test_start_turns_on_the_global_mode_under_the_filter():
+    """
+    Asserts that `start` turns the global lazy import mode on under `lazily`
+    in an interpreter running the normal mode with no filter, as the startup
+    entry point finds it.
+    """
+    set_lazy_imports_filter(None)
+    set_lazy_imports("normal")
+    start()
+
+    assert (get_lazy_imports(), get_lazy_imports_filter()) == ("all", lazily)
 
 
 @mark.parametrize("importer", [*EAGER, *(f"{package}.inner" for package in EAGER)])

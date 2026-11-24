@@ -1261,6 +1261,23 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
         param(
             SuppressionCheck,
             [(
+                "src/scotch/cli/run.py", 'raise SystemExit(f"Cannot read {pgn}")',
+                'raise SystemExit(f"Cannot read {pgn}")  # prose: skip[reflow-calls]'
+            )],
+            [(
+                "src/scotch/cli/run.py",
+                17,
+                "The comment carries `# prose: skip[reflow-calls]`, a suppression "
+                "directive of Prose, in place of a "
+                "`[tool.prose.rules.reflow-calls]` table in `pyproject.toml`, or "
+                "the URL of an issue at `https://github.com/Jybbs/prose/issues` "
+                "beside it"
+            )],
+            id = "skip-naming-a-rule"
+        ),
+        param(
+            SuppressionCheck,
+            [(
                 "src/scotch/cli/run.py", "\ndef game(",
                 "\n#prose:keep\n# noqa # fmt: skip # yapf: enable\ndef game("
             )],

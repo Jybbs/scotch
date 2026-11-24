@@ -269,10 +269,10 @@ def test_position_names_each_word_naming_no_move_and_each_illegal_move(
 )
 def test_position_it_cannot_read_exits_naming_the_problem(position: str, problem: str):
     """
-    Asserts that a FEN short of its first four fields and a line holding an
-    illegal move, a word naming no move, a variation or a comment left open,
-    a `(` before any move, a `)` with none open, or more past the blank line
-    or the result ending its moves each exit nonzero naming the problem.
+    Asserts that a FEN short of its first four fields and a line holding a
+    word naming no move, a variation or a comment left open, a `(` before
+    any move, a `)` with none open, or more past the blank line or the
+    result ending its moves each exit nonzero naming the problem.
     """
     assert invoke("show", "position", position) == problem
 

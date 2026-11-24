@@ -189,28 +189,34 @@ def test_a_failed_lookup_fails_the_job(
     assert not outputs.exists()
 
 
+@mark.parametrize(
+    "commit",
+    [param(HEAD, id="current"), param(HEAD[:7], id="current-short")]
+)
 def test_a_dispatch_on_main_for_its_head_builds_that_commit(
+    commit   : str,
     fp       : FakeProcess,
     task     : ModuleType,
     tmp_path : Path
 ):
     """
-    Asserts that a run dispatched on `main` for the commit `main` points at
-    builds the commit it was dispatched for and reads no `♟️ Store` runs.
+    Asserts that a run dispatched on `main` for the commit `main` points at,
+    whether named by its full hash or a short one, builds the commit it was
+    dispatched for and reads no `♟️ Store` runs.
     """
     outputs = tmp_path / "outputs"
     outputs.write_text("earlier=1\n")
 
-    register({"heads/main": HEAD, HEAD: HEAD}, fp)
+    register({"heads/main": HEAD, commit: HEAD}, fp)
     task.Deploy(
-        commit = HEAD,
+        commit = commit,
         event  = task.Event.WORKFLOW_DISPATCH,
         ref    = "refs/heads/main"
     ).order(
         outputs
     )
 
-    assert outputs.read_text() == f"earlier=1\ncommit={HEAD}\nskip=false\n"
+    assert outputs.read_text() == f"earlier=1\ncommit={commit}\nskip=false\n"
     assert [call[1] for call in fp.calls] == ["api", "api"]
 
 
