@@ -213,6 +213,15 @@ def test_a_game_python_chess_writes_reads_back_whole(
             for board in VARIANTS
             if board is not Board
         ),
+        *(
+            param(casing(alias), (), (), id=f"{alias}-{name}")
+            for alias in Board.aliases
+            for name, casing in {
+                "as-declared" : str,
+                "lower"       : str.lower,
+                "upper"       : str.upper
+            }.items()
+        ),
         param("Chess960", (), ("unsupported variant: Chess960",), id="chess960"),
         param(
             "Bughouse",
@@ -231,37 +240,18 @@ def test_a_variant_tag_adds_one_problem_for_any_variant_but_standard(
 ):
     """
     Asserts that a `Variant` tag adds no problem where the game carries
-    no such tag, one problem where it names a variant python-chess reads
-    under its own rules, and the error the reader recorded, once rather than
-    twice, where it names a variant python-chess cannot read.
+    no such tag or names standard chess under any alias python-chess's
+    `Board` declares, in any casing, one problem where it names a variant
+    python-chess reads under its own rules, and the error the reader
+    recorded, once rather than twice, where it names a variant python-chess
+    cannot read.
     """
-    [game] = read(("" if variant is None else f'[Variant "{variant}"]\n\n') + "*\n")
+    [game] = read(
+        ("" if variant is None else f'[Variant "{variant}"]\n\n') + "1. e4 *\n"
+    )
 
     assert game.errors == errors
     assert game.problems == problems
-
-
-@mark.parametrize(
-    "casing",
-    [
-        param(str, id="as-declared"),
-        param(str.lower, id="lower"),
-        param(str.upper, id="upper")
-    ]
-)
-@mark.parametrize("alias", [param(alias, id=alias) for alias in Board.aliases])
-def test_a_variant_tag_naming_standard_chess_adds_no_problem(
-    alias  : str,
-    casing : Callable[[str], str],
-    read   : Callable[..., list[Game]]
-):
-    """
-    Asserts that a `Variant` tag naming standard chess under any alias
-    python-chess's `Board` declares, in any casing, adds no problem.
-    """
-    [game] = read(f'[Variant "{casing(alias)}"]\n\n1. e4 *\n')
-
-    assert game.problems == ()
 
 
 def test_a_game_reads_from_a_member_of_a_zip_archive(tmp_path: Path):

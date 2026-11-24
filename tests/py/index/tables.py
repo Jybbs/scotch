@@ -529,26 +529,49 @@ def test_reading_an_index_missing_a_file_raises(
 
 
 @mark.parametrize(
-    "layout",
+    ("layout", "table"),
     [
-        param(lambda frame: frame.drop("game"), id="column-missing"),
-        param(lambda frame: frame.with_row_index("row"), id="column-added"),
-        param(lambda frame: frame.cast({"game": str}), id="other-dtype"),
-        param(lambda frame: frame.select(reversed(frame.columns)), id="other-order")
+        param(
+            lambda frame: frame.drop("game"),
+            PositionIndex.table,
+            id = "column-missing"
+        ),
+        param(
+            lambda frame: frame.with_row_index("row"),
+            PositionIndex.table,
+            id = "column-added"
+        ),
+        param(
+            lambda frame: frame.cast({"game": str}),
+            PositionIndex.table,
+            id = "other-dtype"
+        ),
+        param(
+            lambda frame: frame.select(reversed(frame.columns)),
+            PositionIndex.table,
+            id = "other-order"
+        ),
+        param(
+            lambda frame: frame.drop("reason"),
+            PositionIndex.omitted,
+            id = "column-missing-from-the-games-left-out"
+        )
     ]
 )
 def test_reading_a_table_written_under_another_layout_raises(
     layout   : Callable[[DataFrame], DataFrame],
     stored   : list[Game],
+    table    : Callable[[Path], Path],
     tmp_path : Path
 ):
     """
     Asserts that scanning an index whose table of games lacks a declared
     column, carries one more, holds one under another type, or holds its
-    columns in another order raises `SchemaError` at the read.
+    columns in another order, or whose table of the games left out lacks
+    one, raises `SchemaError` at the read.
     """
     PositionIndex.build(stored).write(tmp_path)
-    path = PositionIndex.table(tmp_path)
+    path = table(tmp_path)
     layout(read_parquet(path)).write_parquet(path)
 
     with raises(SchemaError):
@@ -574,20 +597,31 @@ def test_a_stored_null_move_reads_back_and_counts_as_a_move():
 
 
 @mark.parametrize(
-    "body",
-    [param(b"", id="empty"), param(b"parquet\0\0" * 16, id="another-layout")]
+    ("body", "file"),
+    [
+        param(b"", PositionIndex.path, id="positions-empty"),
+        param(
+            b"parquet\0\0" * 16,
+            PositionIndex.path,
+            id = "positions-under-another-layout"
+        ),
+        param(b"", PositionIndex.table, id="games-holding-no-parquet")
+    ]
 )
-def test_reading_a_positions_file_under_another_layout_raises(
+def test_reading_a_file_under_another_layout_raises(
     body     : bytes,
+    file     : Callable[[Path], Path],
     stored   : list[Game],
     tmp_path : Path
 ):
     """
-    Asserts that reading an index whose file of positions holds no bytes or
-    bytes another layout wrote raises `SchemaError` naming the folder.
+    Asserts that reading an index whose file of positions holds no bytes
+    or bytes another layout wrote, or whose table of games holds bytes no
+    Parquet writer wrote, raises `SchemaError` naming the folder rather than
+    the error Polars raises for a table.
     """
     PositionIndex.build(stored).write(tmp_path)
-    PositionIndex.path(tmp_path).write_bytes(body)
+    file(tmp_path).write_bytes(body)
 
     with raises(SchemaError, match=str(tmp_path)):
         PositionIndex.read(tmp_path)
@@ -809,22 +843,6 @@ def test_an_index_of_no_game_matches_nothing(demo: Game, tmp_path: Path):
     assert PositionIndex.read(tmp_path).match(demo) is None
 
 
-def test_reading_a_left_out_table_under_another_layout_raises(
-    stored   : list[Game],
-    tmp_path : Path
-):
-    """
-    Asserts that reading an index whose table of the games left out lacks a
-    declared column raises `SchemaError`.
-    """
-    PositionIndex.build(stored).write(tmp_path)
-    path = PositionIndex.omitted(tmp_path)
-    read_parquet(path).drop("reason").write_parquet(path)
-
-    with raises(SchemaError):
-        PositionIndex.read(tmp_path)
-
-
 @mark.parametrize(
     "position",
     [
@@ -871,19 +889,6 @@ def test_an_answer_counts_the_moves_played_from_a_position(position: str):
             Reply(outcomes=(0, 1, 0, 0), san="Nf6")
         ]
     )
-
-
-def test_reading_a_table_holding_no_parquet_raises(stored: list[Game], tmp_path: Path):
-    """
-    Asserts that reading an index whose table of games holds bytes no
-    Parquet writer wrote raises `SchemaError` rather than the error Polars
-    raises for the file.
-    """
-    PositionIndex.build(stored).write(tmp_path)
-    PositionIndex.table(tmp_path).write_bytes(b"")
-
-    with raises(SchemaError):
-        PositionIndex.read(tmp_path)
 
 
 def test_reading_a_table_under_another_layout_raises_with_no_positions_file(

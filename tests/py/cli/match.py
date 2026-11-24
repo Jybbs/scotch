@@ -39,51 +39,6 @@ def test_a_file_holding_no_game_exits_naming_it(command: str, pgn: Callable[...,
     assert invoke("match", command, str(path)) == f"Found no game in {path}"
 
 
-@mark.usefixtures("data")
-def test_a_file_holding_several_games_exits_where_none_is_chosen(
-    pgn: Callable[..., Path]
-):
-    """
-    Asserts that a match against a file holding two games, with no `--game`
-    choosing one, exits nonzero naming the file and the option.
-    """
-    path = pgn('1. e4 e5 *\n\n[Event "?"]\n1. d4 d5 *\n')
-
-    assert invoke("match", "game", str(path)) == (
-        f"Found several games in {path}, which --game chooses among"
-    )
-
-
-@mark.usefixtures("indexed")
-def test_game_chooses_one_game_of_a_file_holding_several(
-    capsys   : CaptureFixture[str],
-    pgn      : Callable[..., Path],
-    snapshot : SnapshotAssertion
-):
-    """
-    Asserts that `--game 2` matches the second game of a file, which shares
-    five positions with the stored game, rather than the first, which shares
-    four.
-    """
-    path = pgn('1. e4 e5 2. Nf3 d6 *\n\n[Event "?"]\n1. e4 e5 2. Nf3 Nc6 3. Bc4 *\n')
-
-    assert invoke("match", "game", str(path), "--game", "2") == 0
-    assert capsys.readouterr().out == snapshot
-
-
-@mark.usefixtures("data")
-def test_game_past_the_last_game_of_a_file_exits_naming_both(pgn: Callable[..., Path]):
-    """
-    Asserts that `--game 2` against a file holding one game exits nonzero
-    naming the file and the number.
-    """
-    path = pgn("1. e4 *")
-
-    assert invoke("match", "game", str(path), "--game", "2") == (
-        f"Found no game 2 in {path}"
-    )
-
-
 @mark.parametrize(
     ("code", "name"),
     [param(ENOENT, "missing.pgn", id="missing"), param(EISDIR, ".", id="directory")]
@@ -203,77 +158,93 @@ def test_a_missing_index_exits_naming_where_it_was_looked_for(
 
 
 @mark.parametrize(
-    ("text", "problem"),
+    ("argv", "problem", "text"),
     [
         param(
-            "1. e4 e5 2. Qxf7 *",
+            (),
             (
-                "illegal san: 'Qxf7' in "
+                "Found problems in the game in {path}:\nillegal san: 'Qxf7' in "
                 "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2"
             ),
+            "1. e4 e5 2. Qxf7 *",
             id = "illegal-move"
         ),
         param(
+            (),
+            "Found problems in the game in {path}:\nunsupported variant: Atomic",
             '[Variant "Atomic"]\n\n1. e4 *',
-            "unsupported variant: Atomic",
             id = "variant"
+        ),
+        param(
+            (),
+            "Found several games in {path}, which --game chooses among",
+            '1. e4 e5 *\n\n[Event "?"]\n1. d4 d5 *\n',
+            id = "several-games-none-chosen"
+        ),
+        param(
+            ("--game", "2"),
+            "Found no game 2 in {path}",
+            "1. e4 *",
+            id = "past-the-last-game"
         )
     ]
 )
 @mark.usefixtures("data")
-def test_a_game_that_cannot_be_matched_exits_naming_its_problem(
+def test_a_file_that_cannot_be_matched_exits_naming_it_and_its_problem(
+    argv    : tuple[str, ...],
     pgn     : Callable[..., Path],
     problem : str,
     text    : str
 ):
     """
     Asserts that a match exits nonzero naming the file and the problem where
-    python-chess recorded an error reading the game or its `Variant` tag
-    names a variant other than standard chess.
+    python-chess recorded an error reading the game, its `Variant` tag names
+    a variant other than standard chess, the file holds two games and no
+    `--game` chooses one, or `--game` names a game past its last.
     """
     path = pgn(text)
 
-    assert invoke(
-        "match",
-        "game",
-        str(path)
-    ) == f"Found problems in the game in {path}:\n{problem}"
+    assert invoke("match", "game", str(path), *argv) == problem.format(path=path)
 
 
-@mark.usefixtures("indexed")
-def test_a_game_sharing_no_position_prints_a_line_saying_so(
-    capsys   : CaptureFixture[str],
-    pgn      : Callable[..., Path],
-    snapshot : SnapshotAssertion
-):
-    """
-    Asserts that a match of a game set up from a position the stored game
-    never reaches prints one line saying no stored game shares a position
-    with it.
-    """
-    path = pgn('[FEN "4k3/8/8/8/8/8/8/4K2R w K - 0 1"]\n\n1. O-O *')
-
-    assert invoke("match", "game", str(path)) == 0
-    assert capsys.readouterr().out == snapshot
-
-
+@mark.parametrize(
+    ("argv", "text"),
+    [
+        param(
+            (),
+            "1. e4 e5 2. Nf3 d6 *",
+            id = "four-positions-shared"
+        ),
+        param(
+            (),
+            '[FEN "4k3/8/8/8/8/8/8/4K2R w K - 0 1"]\n\n1. O-O *',
+            id = "no-position-shared"
+        ),
+        param(
+            ("--game", "2"),
+            '1. e4 e5 2. Nf3 d6 *\n\n[Event "?"]\n1. e4 e5 2. Nf3 Nc6 3. Bc4 *\n',
+            id = "second-of-several-games"
+        )
+    ]
+)
 @mark.usefixtures("indexed")
 def test_a_match_prints_the_stored_game_the_span_and_the_parting(
+    argv     : tuple[str, ...],
     capsys   : CaptureFixture[str],
     pgn      : Callable[..., Path],
-    snapshot : SnapshotAssertion
+    snapshot : SnapshotAssertion,
+    text     : str
 ):
     """
     Asserts that the match of a game sharing its first four positions with
     the stored game prints the stored game's players, event, and date, its
     place in the file it was read from, the plies the two share, and the
-    move the stored game played where they part.
+    move the stored game played where they part, that a game set up from a
+    position the stored game never reaches prints one line saying no stored
+    game shares a position with it, and that `--game 2` matches the second
+    game of a file, which shares five positions, rather than the first.
     """
-    assert invoke(
-        "match",
-        "game",
-        str(pgn("1. e4 e5 2. Nf3 d6 *"))
-    ) == 0
+    assert invoke("match", "game", str(pgn(text)), *argv) == 0
     assert capsys.readouterr().out == snapshot
 
 

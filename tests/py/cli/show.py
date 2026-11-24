@@ -19,14 +19,6 @@ from scotch.games.schemas   import Game
 from scotch.index.tables    import PositionIndex
 from scotch.sources.schemas import Download, Manifest, Source
 
-POSITIONS = [
-    param("1. e4 e5 2. Nf3", id="line-of-moves"),
-    param(
-        "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-        id = "fen"
-    )
-]
-
 
 def recorded(body: bytes, data: Path, folder: str, source: Source):
     """
@@ -75,7 +67,16 @@ def test_game_prints_the_stored_game_a_reference_names(
 
 
 @mark.usefixtures("indexed")
-@mark.parametrize("position", POSITIONS)
+@mark.parametrize(
+    "position",
+    [
+        param("1. e4 e5 2. Nf3", id="line-of-moves"),
+        param(
+            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+            id = "fen"
+        )
+    ]
+)
 def test_position_prints_each_move_and_each_game(
     capsys   : CaptureFixture[str],
     position : str,
@@ -110,23 +111,6 @@ def test_position_reads_the_moves_past_blank_lines_after_the_tags(
 
 
 @mark.usefixtures("indexed")
-@mark.parametrize("position", POSITIONS)
-def test_position_reads_one_argument_per_field(
-    capsys   : CaptureFixture[str],
-    position : str
-):
-    """
-    Asserts that `scotch show position` reads a position the shell passes as
-    one argument per field as it reads one argument, a FEN's `-` among them,
-    with an option after the last field still read as the option.
-    """
-    assert invoke("show", "position", *position.split(), "--top", "20") == 0
-    assert capsys.readouterr().out.startswith(
-        "1 stored game reaches this position\nNc6 "
-    )
-
-
-@mark.usefixtures("indexed")
 def test_position_with_no_argument_reports_the_starting_position(
     capsys: CaptureFixture[str]
 ):
@@ -153,7 +137,18 @@ def test_position_with_no_argument_reports_the_starting_position(
         param(("1. e4 e5 2. Nf3\n\n\n",), id="blank-lines-past-the-moves"),
         param(("1. e4 e5\n% an escape\n2. Nf3",), id="percent-line-among-the-moves"),
         param(("1. e4 e5 2. Nf3\n\n% an escape\n",), id="percent-line-past-the-moves"),
-        param(("1. e4 ( c5 ) e5 2. Nf3",), id="variation-closing-where-one-is-open")
+        param(("1. e4 ( c5 ) e5 2. Nf3",), id="variation-closing-where-one-is-open"),
+        param(
+            ("1.", "e4", "e5", "2.", "Nf3", "--top", "20"),
+            id = "one-argument-per-field-of-a-line-of-moves"
+        ),
+        param(
+            (
+                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R", "b", "KQkq", "-",
+                "1", "2", "--top", "20"
+            ),
+            id = "one-argument-per-field-of-a-fen"
+        )
     ]
 )
 def test_position_reads_what_a_line_of_moves_holds_beside_its_moves(
@@ -163,8 +158,10 @@ def test_position_reads_what_a_line_of_moves_holds_beside_its_moves(
     """
     Asserts that `scotch show position` reports the position the moves
     alone reach for a line holding move numbers, comments, annotations,
-    a variation, a result, a move the PGN reader takes short of its last
-    letter, or a blank line or a `%` line with no move past it.
+    a variation, a result, a move the PGN reader takes short of its
+    last letter, or a blank line or a `%` line with no move past it, and
+    reads one argument per field, a FEN's `-` among them, as it reads one
+    argument, with an option after the last field still read as the option.
     """
     assert invoke("show", "position", *position) == 0
     assert capsys.readouterr().out.startswith(

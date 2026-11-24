@@ -1654,10 +1654,25 @@ def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
             "src/scotch/listed.py",
             'marker = "#[allow(dead_code)] // @ts-ignore"',
             id = "python-string"
+        ),
+        param(
+            "src/scotch/listed.py",
+            "x = 1  # prose: skip https://github.com/Jybbs/prose/issues/12",
+            id = "prose-issue-in-its-comment"
+        ),
+        param(
+            "src/scotch/listed.py",
+            "# https://github.com/Jybbs/prose/issues/12\nx = 1  # prose: keep",
+            id = "prose-issue-on-the-line-above"
+        ),
+        param(
+            "src/scotch/listed.py",
+            "# prose: ignore[step-narration] https://github.com/Jybbs/prose/issues/7",
+            id = "prose-issue-beside-a-rule-list"
         )
     ]
 )
-def test_a_marker_that_silences_nothing_passes(
+def test_a_marker_the_check_leaves_alone_passes(
     fp     : FakeProcess,
     path   : str,
     sample : Sample,
@@ -1665,8 +1680,10 @@ def test_a_marker_that_silences_nothing_passes(
 ):
     """
     Asserts that a lint attribute other than `allow` and `expect`, a site
-    comment that silences nothing, and a marker in a file of a suffix the
-    check does not read for it draw no finding.
+    comment that silences nothing, a marker in a file of a suffix the
+    check does not read for it, and a Prose directive whose comment, or
+    the comment on the line above, carries the URL of an issue on Prose's
+    tracker draw no finding.
     """
     (file := sample.root / path).parent.mkdir(exist_ok=True, parents=True)
     file.write_text(f"\n{text}\n")
@@ -1702,38 +1719,6 @@ def test_a_marker_counts_only_in_a_file_git_tracks(
         sample.answer(fp)
 
     assert [found for _, found, _ in scan(SuppressionCheck, sample)] == lines
-
-
-@mark.parametrize(
-    "source",
-    [
-        param(
-            "x = 1  # prose: skip https://github.com/Jybbs/prose/issues/12\n",
-            id = "in-its-comment"
-        ),
-        param(
-            "# https://github.com/Jybbs/prose/issues/12\nx = 1  # prose: keep\n",
-            id = "on-the-line-above"
-        ),
-        param(
-            "# prose: ignore[step-narration] https://github.com/Jybbs/prose/issues/7\n",
-            id = "beside-a-rule-list"
-        )
-    ]
-)
-def test_a_prose_directive_beside_a_filed_issue_passes(
-    fp     : FakeProcess,
-    sample : Sample,
-    source : str
-):
-    """
-    Asserts that a Prose directive whose comment, or the comment on the line
-    above, carries the URL of an issue on Prose's tracker draws no finding.
-    """
-    (sample.root / "src" / "scotch" / "listed.py").write_text(source)
-    sample.answer(fp)
-
-    assert scan(SuppressionCheck, sample) == []
 
 
 @mark.parametrize(
