@@ -12,9 +12,9 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
   release fixes them, and its failure once a release fixes one, its
   stand-in `gh` running the task's own `--jq` filter through `jq` over
   the advisories saved under `fixtures/advisories/`
-- The tools `lock:audit` hands `mise audit`, its failure on each pinned
-  one the stand-in `mise` lists no version of, its notice of each one the
-  stand-in lists as unchecked, and its verdict on each advisory the
+- The tools `lock:audit` hands `mise audit`, its failure where the
+  stand-in `mise` lists no version of a pinned one, its notice of each one
+  the stand-in lists as unchecked, and its verdict on each advisory the
   stand-in reports against them, with and without an `AUDIT_IGNORE` entry
   and a fixed release
 - The `scotch` command `lock:lift` hands its arguments to
@@ -51,10 +51,10 @@ def mise(
     unlisted         : tuple[str, ...]   = ()
 ) -> str:
     """
-    Writes the stand-in `mise`, which prints `tools` for `mise ls` and, for
-    `mise config ls`, the tools it lists from `.mise/config.toml` beside
-    each one `unlisted` names and a parent directory's, with the worktree
-    in place of each `%s`, and for `mise audit` runs the shell line `audit`
+    Writes the stand-in `mise`, which puts the worktree in place of each
+    `%s`. For `mise ls` it prints `tools`, and for `mise config ls` the
+    tools each configuration holds, `.mise/config.toml` also holding each
+    one `unlisted` names. For `mise audit` it runs the shell line `audit`
     holds, or else prints the report `report` writes, exiting one where it
     holds any of `vulnerabilities`, as `mise audit --json` does.
     """
@@ -62,14 +62,22 @@ def mise(
         audit or f"echo {report(*vulnerabilities)}; exit {int(bool(vulnerabilities))}"
     )
 
-    pins = [
-        tool
-        for tool, (version, *_) in tools.items()
-        if version["source"]["path"] == "%s/.mise/config.toml"
-    ]
     configs = [
-        {"path": "/parent/.mise/config.toml", "tools": ["go"]},
-        {"path": "%s/.mise/config.toml", "tools": [*pins, *unlisted]}
+        {
+            "path"  : path,
+            "tools" : [
+                *(
+                    tool
+                    for tool, (version, *_) in tools.items()
+                    if version["source"]["path"] == path
+                ),
+                *extra
+            ]
+        }
+        for path, extra in (
+            ("/parent/.mise/config.toml", ()),
+            ("%s/.mise/config.toml", unlisted)
+        )
     ]
     config, ls = (
         f'echo {quote(dumps(output))} | sed "s|%s|$MISE_PROJECT_ROOT|g"'
@@ -303,7 +311,7 @@ def test_audit_fails_on_each_pinned_tool_mise_ls_leaves_out(
     assert result.stderr.splitlines() == [
         f"mise ls lists no version of {tool} from .mise/config.toml, so run mise "
         "relock where .mise/mise.lock lags its pin, or remove the "
-        "MISE_<TOOL>_VERSION or mise.local.toml entry naming another version"
+        "MISE_<TOOL>_VERSION variable or mise.local.toml entry naming another version"
         for tool in unlisted
     ]
 
@@ -576,8 +584,9 @@ def test_audit_fails_on_a_tool_advisory_unlisted_or_fixed(
     """
     Asserts that `lock:audit` exits one without running `bun audit` on a
     tool advisory `AUDIT_IGNORE` leaves out, naming the tool, its version,
-    and any fixed release, and on one it lists once `mise audit` reports a
-    fixed release, naming the advisory and the release to lift the tool to.
+    and any fixed release, and on one it lists once `mise audit` reports
+    a fixed release, naming the advisory, every entry to delete, and the
+    release to lift the tool to.
     """
     result = scratch.run("audit", gh=GH, ignore=ignore, mise=mise(advisory))
 
@@ -611,8 +620,9 @@ def test_audit_skips_a_non_github_entry_no_pinned_tool_carries(scratch: Scratch)
     Asserts that `lock:audit` passes where `AUDIT_IGNORE` lists a `CVE-`
     and a `GO-` entry against no tool advisory, naming each entry to delete,
     reading no GitHub advisory for either, and passing `bun audit` no
-    `--ignore` for either, while still setting aside the entry a pinned tool
-    carries with no fixed release and reading the `GHSA-` entry beside them.
+    `--ignore` for either, while still setting aside the entry of a tool
+    advisory with no fixed release and reading the `GHSA-` entry beside
+    them.
     """
     advisory = vulnerability()
     stale    = ("CVE-2026-124250", "GO-2024-2887")
