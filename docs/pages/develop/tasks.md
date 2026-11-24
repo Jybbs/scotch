@@ -83,7 +83,7 @@ Every task the repository declares sits below beside its alias and its descripti
 | `site:coverage` |  | Run the site's suite under coverage, failing where statements, branches, functions, or lines fall below the `fail_under` that `pyproject.toml` sets, writing the HTML report, and passing any further arguments to Vitest |
 | `site:cruft` | `cruft` | Report an unused file, export, or dependency in the site and its suite, and an import cycle, passing any further arguments to knip |
 | `site:draw` | `draw` | Draw the README's preview of the Viewer and its Where to Start cards from the site's own drawings into `.github/assets/readme` |
-| `site:install` |  | Install the site's packages from `docs/bun.lock`, pruning any it no longer names, and link `node_modules` and `package.json` at the root to the site's own, so the suite under `tests/site/` and knip resolve them from the root |
+| `site:install` |  | Install the site's packages from `docs/bun.lock`, pruning any it no longer names, remove a root `node_modules` or `package.json` link an earlier install made, leaving a real file or folder there in place, and link `tests/node_modules` to `docs/node_modules`, so the suite under `tests/site/` resolves them |
 | `site:links` | `links` | Check every link, asset, and heading fragment in the site `site:press` built, the README, and the contributor guide with no network, passing any further arguments to lychee |
 | `site:lint` | `lint` | Lint the site's TypeScript with Oxlint, as annotations under GitHub Actions, passing any further arguments to Oxlint |
 | `site:press` | `press` | Build the site and a card per page into `docs/.vitepress/dist`, failing on a link between pages that leads nowhere, and passing any further arguments to VitePress |
