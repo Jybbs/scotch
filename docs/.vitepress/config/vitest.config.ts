@@ -8,22 +8,21 @@ import { cacheDir, repoRoot } from '../lib/site/paths.ts'
 
 const { gate } = projectFacts(import.meta.url)
 const root     = repoRoot(import.meta.url)
-const suite    = path.join(root, 'tests', 'site')
 
 export default defineConfig({
   cacheDir : cacheDir(import.meta.url, 'vitest'),
   plugins  : [identityPlugin()],
   server   : { fs: { allow: [root] } },
   test     : {
-    dir                 : suite,
+    dir                 : root,
     expect              : { requireAssertions: true },
     fsModuleCachePath   : cacheDir(import.meta.url, 'vitest/modules'),
-    include             : ['**/*.test.ts'],
+    include             : ['tests/site/**/*.test.ts'],
     pool                : 'threads',
     resolveSnapshotPath : (testPath, extension) => testPath + extension,
     restoreMocks        : true,
     sequence            : { shuffle: true },
-    setupFiles          : [path.join(suite, 'common', 'matchers.ts')],
+    setupFiles          : [path.join(root, 'tests/site/common/matchers.ts')],
     unstubEnvs          : true,
     unstubGlobals       : true,
 

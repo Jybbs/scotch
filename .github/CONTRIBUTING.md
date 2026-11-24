@@ -25,11 +25,11 @@ A change to `.github/labels.toml`, a ruleset under `.github/rulesets/`, or `.git
 
 [rustfmt](https://rust-lang.github.io/rustfmt/) settles the form of the crate under `rust/` from its defaults. `mise run rs:format` rewrites the crate to that form, and `mise run rs:check` reports every rewrite rustfmt would make beside every lint [Clippy](https://doc.rust-lang.org/clippy/) reports under each of the crate's features, its pedantic group included. A lint is turned off in the `[lints]` table of `rust/Cargo.toml`, never by an `allow` or `expect` attribute in the source, and `mise audit` fails at the line of each such attribute.
 
-No TypeScript or Vue file under `docs/.vitepress/` carries an `eslint-disable` or `oxlint-disable` comment or a `@ts-ignore`, `@ts-expect-error`, or `@ts-nocheck` directive, and `mise audit` fails at the line of each one, whereas a lint rule is set aside for the whole site in `docs/.vitepress/config/.oxlintrc.json` and a compiler check in `docs/.vitepress/tsconfig.json`.
+No TypeScript or Vue file under `docs/.vitepress/` or `tests/site/` carries an `eslint-disable` or `oxlint-disable` comment or a `@ts-ignore`, `@ts-expect-error`, or `@ts-nocheck` directive, and `mise audit` fails at the line of each one, whereas a lint rule is set aside for the whole site in `docs/.vitepress/config/.oxlintrc.json` and a compiler check in `docs/.vitepress/tsconfig.json`.
 
 ## ⏱️ Checks
 
-A pull request runs `♟️ CI` wherever it changes a file outside the site's pages, its public files, and `docs/.vitepress/`, and runs `♟️ Site` wherever it changes a file the site is built or checked from, so a change to the crate, the composite action, or the toolchain's pins runs both. A draft pull request runs neither workflow until it is marked ready for review, and marking it ready runs each workflow its changed files trigger, on the head the branch holds at that moment. Each row runs one task, so the command beside each check below runs the same task on a laptop:
+A pull request runs `♟️ CI` wherever it changes a file outside the site's pages, its public files, its suite under `tests/site/`, and `docs/.vitepress/`, and runs `♟️ Site` wherever it changes a file the site is built or checked from, so a change to the crate, the composite action, or the toolchain's pins runs both. A draft pull request runs neither workflow until it is marked ready for review, and marking it ready runs each workflow its changed files trigger, on the head the branch holds at that moment. Each row runs one task, so the command beside each check below runs the same task on a laptop:
 
 | **Check** | **Runs Locally** | **Fails When** |
 |---|---|---|
