@@ -54,6 +54,18 @@ def test_help_text(
     assert capsys.readouterr().out == snapshot
 
 
+def test_the_help_imports_no_group_module(help_modules: frozenset[str]):
+    """
+    Asserts that `scotch --help` imports none of the modules under `cli/`
+    holding a verb's group, of which the app registers at least one, each by
+    its import path.
+    """
+    groups = {f"scotch.cli.{verb}" for verb in app if not verb.startswith("-")}
+
+    assert groups
+    assert help_modules & groups == set()
+
+
 @mark.parametrize(
     "module",
     sorted(
@@ -77,15 +89,6 @@ def test_the_help_loads_no_package_behind_the_commands(
     its module and resolves the type of each parameter it takes.
     """
     assert module not in {name.partition(".")[0] for name in help_modules}
-
-
-@mark.parametrize("verb", sorted(verb for verb in app if not verb.startswith("-")))
-def test_the_help_imports_no_group_module(help_modules: frozenset[str], verb: str):
-    """
-    Asserts that `scotch --help` imports none of the modules under `cli/`
-    holding a verb's group, which the app registers by its import path.
-    """
-    assert f"scotch.cli.{verb}" not in help_modules
 
 
 @mark.parametrize(

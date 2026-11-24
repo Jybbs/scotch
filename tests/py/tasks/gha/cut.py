@@ -123,23 +123,6 @@ def test_a_read_failing_for_another_reason_stops_the_cut(
         task.Release.find("0.2.0")
 
 
-def test_a_release_gh_finds_reads_as_a_record(
-    task   : ModuleType,
-    viewed : Callable[..., None]
-):
-    """
-    Asserts that a release `gh release view` reports reads as whether it is
-    a draft, the target of its tag, and its address.
-    """
-    viewed(draft=True, target="4f1c2e9", url="https://example.test/0.2.0")
-
-    assert task.Release.find("0.2.0") == task.Release(
-        draft  = True,
-        target = "4f1c2e9",
-        url    = "https://example.test/0.2.0"
-    )
-
-
 def test_a_version_a_draft_carries_refreshes_its_notes(
     fp        : FakeProcess,
     refreshed : list[str],

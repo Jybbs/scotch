@@ -3,11 +3,13 @@ Pins what each record in `scotch.repo.schemas` reads out of the file it
 describes, and the facts the checks read off those records.
 """
 
-from common.sample import Sample
-from datetime      import UTC, datetime
-from pathlib       import Path
-from pydantic      import ValidationError
-from pytest        import mark, param, raises
+from collections.abc import Callable
+from common.sample   import Sample
+from datetime        import UTC, datetime
+from pathlib         import Path
+from pydantic        import ValidationError
+from pytest          import mark, param, raises
+from re              import Match
 
 from scotch.repo.formats import Format
 from scotch.repo.schemas import (
@@ -181,19 +183,11 @@ def test_a_job_pairs_each_legs_check_name_with_its_tasks():
 
 @mark.parametrize(
     ("task", "guard"),
-    [
-        param(
-            "gha:scoresheet",
-            "always() && !github.event.pull_request.draft",
-            id = "gate"
-        ),
-        param("py:test", "!github.event.pull_request.draft", id="row")
-    ]
+    [param("py:test", "!github.event.pull_request.draft", id="row")]
 )
 def test_a_job_reads_the_draft_guard_its_kind_takes(guard: str, task: str):
     """
-    Asserts that a gate takes the draft guard joined to `always()` and any
-    other job takes the guard alone.
+    Asserts that a job other than a gate takes the draft guard alone.
     """
     assert Job.model_validate(
         {"id": "job", "runs-on": "ubuntu-26.04", "steps": [{"run": f"mise run {task}"}]}
@@ -261,42 +255,34 @@ def test_a_name_normalizes_as_pep_503_sets_out(expected: str, name: str):
 
 
 @mark.parametrize(
-    ("version", "matches"),
+    ("pattern", "text", "matches"),
     [
-        param("5.0.5", True, id="release"),
-        param("2.0.0-alpha.20", True, id="prerelease"),
-        param("1.0.0+build.5", True, id="build"),
-        param("^5.0.5", False, id="caret"),
-        param("~0.7.5", False, id="tilde"),
-        param("5.0", False, id="short"),
-        param("5.0.5 || 6.0.0", False, id="either")
+        param(exact, "5.0.5", True, id="npm-release"),
+        param(exact, "2.0.0-alpha.20", True, id="npm-prerelease"),
+        param(exact, "1.0.0+build.5", True, id="npm-build"),
+        param(exact, "^5.0.5", False, id="npm-caret"),
+        param(exact, "~0.7.5", False, id="npm-tilde"),
+        param(exact, "5.0", False, id="npm-short"),
+        param(exact, "5.0.5 || 6.0.0", False, id="npm-either"),
+        param(pinned, "hatchling==1.32.4", True, id="python-exact"),
+        param(pinned, "trove-classifiers==2026.9.21.13", True, id="python-calendar"),
+        param(pinned, "hatchling>=1.32", False, id="python-floor"),
+        param(pinned, "hatchling==1.*", False, id="python-wildcard"),
+        param(pinned, "hatchling", False, id="python-bare")
     ]
 )
-def test_an_exact_version_names_one_release(matches: bool, version: str):
+def test_an_exact_pin_names_one_version(
+    matches : bool,
+    pattern : Callable[[str], Match[str] | None],
+    text    : str
+):
     """
     Asserts that only a major, a minor, and a patch, with an optional
     prerelease and build, match the shape of one exact version as npm writes
-    it.
+    it, and that only a name, `==`, and one version with no wildcard match
+    the shape of an exact Python pin.
     """
-    assert bool(exact(version)) is matches
-
-
-@mark.parametrize(
-    ("requirement", "matches"),
-    [
-        param("hatchling==1.32.4", True, id="exact"),
-        param("trove-classifiers==2026.9.21.13", True, id="calendar"),
-        param("hatchling>=1.32", False, id="floor"),
-        param("hatchling==1.*", False, id="wildcard"),
-        param("hatchling", False, id="bare")
-    ]
-)
-def test_an_exact_pin_names_one_version(matches: bool, requirement: str):
-    """
-    Asserts that only a name, `==`, and one version with no wildcard match
-    the shape of an exact pin.
-    """
-    assert bool(pinned(requirement)) is matches
+    assert bool(pattern(text)) is matches
 
 
 def test_a_script_declaring_no_metadata_reads_as_none(sample: Sample):

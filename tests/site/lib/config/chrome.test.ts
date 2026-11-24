@@ -86,10 +86,9 @@ describe('colophonOf, its links and its edges', () => {
     expect(() => chrome.colophonOf('0123456', { ...FACTS, license: 'MIT' }, [MENTOR])).toThrow(/MIT/u)
   })
 
-  const lines = [colophon.rest, ...colophon.credits.map(credit => credit.full)]
-
-  it.each(lines.map(line => textOf(line)))('reads %s as prose', line => {
-    expect(line).toReadAsProse()
+  it('reads each line as prose', () => {
+    const lines = [colophon.rest, ...colophon.credits.map(credit => credit.full)]
+    expect(lines.map(line => textOf(line)).join('\n')).toReadAsProse()
   })
 })
 

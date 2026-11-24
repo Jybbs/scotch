@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, other than one `AUDIT_IGNORE` lists while no release fixes it, on any `mise audit` reports for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists for a contributor to check by hand while `mise audit` names no fixed release, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`, and name each tool `mise audit` lists as unchecked"
+#MISE description = "Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, or `rust/Cargo.lock` resolves, on any `bun audit` reports for a package `docs/bun.lock` resolves, other than one whose `GHSA-` id `AUDIT_IGNORE` lists while no release fixes it, on any `mise audit` reports for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists for a contributor to check by hand while `mise audit` names no fixed release, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`, and name each tool `mise audit` lists as unchecked"
 
 source "$MISE_PROJECT_ROOT/.mise/lib/scripts.bash"
 
@@ -8,10 +8,20 @@ each_script uv audit --preview-features audit-command
 cargo-deny --locked --manifest-path rust/Cargo.toml check
 
 tools=$(
-  mise ls --json --no-global \
-    | jq --arg config "$MISE_PROJECT_ROOT/.mise/config.toml" -er '
-      to_entries[]
-      | "\(.key)@\(.value[] | select(.source.path == $config).version)"
+  { mise config ls --json && mise ls --json --no-global; } \
+    | jq --arg config "$MISE_PROJECT_ROOT/.mise/config.toml" -enr '
+      (input[] | select(.path == $config).tools) as $pinned
+      | input
+      | map_values(map(select(.source.path == $config).version) | select(. != []))
+      | ($pinned - keys) as $unlisted
+      | if $unlisted == [] then
+          to_entries[] | "\(.key)@\(.value[])"
+        else
+          $unlisted
+          | map("mise ls lists no version of \(.) from .mise/config.toml, so run mise relock where .mise/mise.lock lags its pin, remove the MISE_<TOOL>_VERSION variable or mise.local.toml entry naming another version, or run lock:audit on a platform its os list names\n")
+          | add
+          | halt_error(1)
+        end
     '
 )
 

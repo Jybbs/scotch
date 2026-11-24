@@ -40,12 +40,13 @@ describe('Run as drawn', () => {
     expect(wrapper.find('[aria-pressed=true]').text()).toBe('Pause')
   })
 
-  it('names the run the match counts under the track', () => {
-    expect(still().text()).toContain('Run of 11 · plies 7 to 17')
-  })
-
-  it('names the stored game as the page names it', () => {
-    expect(still().text()).toContain('Timman – Klein, 2015')
+  it.each([
+    ['names the run the match counts under the track', 'Run of 11 · plies 7 to 17'],
+    ['names the stored game as the page names it', 'Timman – Klein, 2015'],
+    ['names the last ply under the track', 'Ply 18'],
+    ['stamps one position under the board while the two games share it', 'One position']
+  ])('%s', (_, text) => {
+    expect(still().text()).toContain(text)
   })
 
   it('fills the meter to the count in a row, of the longest run', () => {
@@ -60,14 +61,6 @@ describe('Run as drawn', () => {
     const moves = wrapper.findAll('.tabular-nums').map(node => node.text())
     expect(moves).toContain('4. e4')
     expect(moves).toContain('4. d4')
-  })
-
-  it('names the last ply under the track', () => {
-    expect(still().text()).toContain('Ply 18')
-  })
-
-  it('stamps one position under the board while the two games share it', () => {
-    expect(still().text()).toContain('One position')
   })
 })
 

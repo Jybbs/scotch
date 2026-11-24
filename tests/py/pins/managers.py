@@ -6,12 +6,13 @@ each lift moves to, the day it is dated to, the rewrites it carries, and the
 advisories it clears, beside the error an answer that is no JSON raises.
 """
 
-from common.sample import Sample
-from datetime      import UTC, datetime
-from json          import dumps, loads as from_json
-from pathlib       import Path
-from pydantic      import ValidationError
-from pytest        import mark, param, raises
+from collections.abc import Callable
+from common.sample   import Sample
+from datetime        import UTC, datetime
+from json            import dumps, loads as from_json
+from pathlib         import Path
+from pydantic        import ValidationError
+from pytest          import mark, param, raises
 from pytest_subprocess.fake_popen   import FakePopen
 from pytest_subprocess.fake_process import FakeProcess
 from tomllib import loads
@@ -22,36 +23,21 @@ from scotch.pins.trees    import Tree
 from scotch.repo.checks   import NodeTypesCheck, PinCheck, ScriptCheck
 
 
-def crossing(fp: FakeProcess, tree: Tree):
+def crossing(outdated: Callable[..., None], releases: Callable[..., None]):
     """
     Answers `mise outdated` with `node` lagging `28.1.0` from the `26.11.1`
     the sample pins, and `mise ls-remote` with the releases of `node`, none
     newer inside the major `26`, `27.2.0` and `28.1.0` dated, and `27.3.0`
     a prerelease.
     """
-    fp.register(
-        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
-        stdout = dumps(
-            {
-                "node": {
-                    "latest"    : "28.1.0",
-                    "requested" : "26.11.1",
-                    "source"    : {"path": str(tree.root / ".mise" / "config.toml")}
-                }
-            }
-        )
-    )
-    fp.register(
-        ["mise", "-C", tree.root, "ls-remote", "--json", "node"],
-        stdout = dumps(
-            [
-                {"version": "26.10.0"},
-                {"version": "26.11.1"},
-                {"created_at": "2026-10-20T00:00:00Z", "version": "27.2.0"},
-                {"prerelease": True, "version": "27.3.0"},
-                {"created_at": "2026-10-21T00:00:00Z", "version": "28.1.0"}
-            ]
-        )
+    outdated(node=("26.11.1", "28.1.0"))
+    releases(
+        "node",
+        {"version": "26.10.0"},
+        {"version": "26.11.1"},
+        {"created_at": "2026-10-20T00:00:00Z", "version": "27.2.0"},
+        {"prerelease": True, "version": "27.3.0"},
+        {"created_at": "2026-10-21T00:00:00Z", "version": "28.1.0"}
     )
 
 
@@ -101,11 +87,13 @@ def test_a_bun_answer_that_is_no_json_fails_naming_bun_info(
     ]
 )
 def test_node_stops_inside_the_major_of_the_newest_types(
-    fp     : FakeProcess,
-    lifted : list[tuple[str, datetime]],
-    sample : Sample,
-    tree   : Tree,
-    types  : str
+    fp       : FakeProcess,
+    lifted   : list[tuple[str, datetime]],
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
+    sample   : Sample,
+    tree     : Tree,
+    types    : str
 ):
     """
     Asserts that `node` lifts to its newest release inside the major the
@@ -114,7 +102,7 @@ def test_node_stops_inside_the_major_of_the_newest_types(
     major is newer, and lifts to its newest release once `@types/node`
     reaches that major, so `NodeTypesCheck` passes once both are written.
     """
-    crossing(fp, tree)
+    crossing(outdated, releases)
     fp.register(
         [
             "mise", "-C", tree.root, "exec", "--", "bun", "info",
@@ -169,6 +157,7 @@ def test_a_crate_at_its_newest_release_lifts_nothing(
 def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
     answered : Sample,
     fp       : FakeProcess,
+    locks    : Callable[..., None],
     tree     : Tree
 ):
     """
@@ -187,7 +176,6 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
         new = '["minijinja==2.24.0", "rich==13.0.0"]',
         old = '["minijinja==2.24.0"]'
     )
-    tool = ["mise", "-C", tree.root, "exec", "--", "uv"]
 
     def upgrade(process: FakePopen):
         """
@@ -214,25 +202,9 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
             '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
         )
 
+    locks(resolve, upgrade)
     fp.register(
-        [
-            *tool,
-            "lock", "--no-locked", "--no-python-downloads", "--project",
-            fp.any(max=1, min=1),
-            "--upgrade"
-        ],
-        callback = upgrade
-    )
-    fp.register(
-        [
-            *tool,
-            "lock", "--no-locked", "--no-python-downloads", "--project",
-            fp.any(max=1, min=1)
-        ],
-        callback = resolve
-    )
-    fp.register(
-        [*tool, "audit", fp.any()],
+        ["mise", "-C", tree.root, "exec", "--", "uv", "audit", fp.any()],
         occurrences = 4,
         stdout      = dumps({"vulnerabilities": []})
     )
@@ -255,11 +227,12 @@ def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
     ]
 )
 def test_the_floor_lifts_to_the_newest_release_of_mise(
-    floor  : str,
-    fp     : FakeProcess,
-    lifted : bool,
-    sample : Sample,
-    tree   : Tree
+    floor    : str,
+    lifted   : bool,
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
+    sample   : Sample,
+    tree     : Tree
 ):
     """
     Asserts that the floor `min_version` sets lifts to the newest release
@@ -267,19 +240,12 @@ def test_the_floor_lifts_to_the_newest_release_of_mise(
     stands at that release.
     """
     sample.edit(".mise/config.toml", new=f'min_version = "{floor}"\n[env]', old="[env]")
-    fp.register(
-        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
-        stdout = "{}"
-    )
-    fp.register(
-        ["mise", "-C", tree.root, "ls-remote", "--json", "github:jdx/mise"],
-        stdout = dumps(
-            [
-                {"created_at": "2026-10-21T01:29:26Z", "version": "2026.10.17"},
-                {"prerelease": True, "version": "2026.11.0"},
-                {"version": "2026.9.18"}
-            ]
-        )
+    outdated()
+    releases(
+        "github:jdx/mise",
+        {"created_at": "2026-10-21T01:29:26Z", "version": "2026.10.17"},
+        {"prerelease": True, "version": "2026.11.0"},
+        {"version": "2026.9.18"}
     )
     floor = Lift(
         current = "2026.9.18",
@@ -323,31 +289,18 @@ def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
 
 
 def test_a_tool_other_than_node_lifts_past_a_major_reading_no_types(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
+    sample   : Sample,
+    tree     : Tree
 ):
     """
     Asserts that a tool other than `node` lifts to its newest release
     past a major where the site pins `@types/node`, reading no release of
     `@types/node`.
     """
-    fp.register(
-        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
-        stdout = dumps(
-            {
-                "uv": {
-                    "latest"    : "1.0.0",
-                    "requested" : "0.12.13",
-                    "source"    : {"path": str(tree.root / ".mise" / "config.toml")}
-                }
-            }
-        )
-    )
-    fp.register(
-        ["mise", "-C", tree.root, "ls-remote", "--json", "uv"],
-        stdout = dumps([{"version": "1.0.0"}])
-    )
+    outdated(uv=("0.12.13", "1.0.0"))
+    releases("uv", {"version": "1.0.0"})
 
     assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
         ("uv", "1.0.0")
@@ -484,16 +437,17 @@ def test_the_actions_lift_to_the_commit_of_their_latest_release(
 
 
 def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
+    sample   : Sample,
+    tree     : Tree
 ):
     """
     Asserts that `node` lifts to its newest release, past any major, where
     the site pins no `@types/node`, reading no release of `@types/node`.
     """
     sample.edit("docs/package.json", new="", old='"@types/node"         : "26.6.5",')
-    crossing(fp, tree)
+    crossing(outdated, releases)
 
     assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
         ("node", "28.1.0")
@@ -512,6 +466,7 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     expected : tuple[str, ...],
     fp       : FakeProcess,
     kept     : tuple[str, ...],
+    locks    : Callable[..., None],
     tree     : Tree
 ):
     """
@@ -522,7 +477,6 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     advisory the audits of the project and its task scripts report and the
     audits of the upgraded copy and the scratch project do not.
     """
-    tool = ["mise", "-C", tree.root, "exec", "--", "uv"]
 
     def upgrade(process: FakePopen):
         """
@@ -564,27 +518,11 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
         )
 
     audit = [
-        *tool,
-        "audit", "--frozen", "--output-format",
-        "json", "--preview-features", "audit-command,json-output"
+        "mise", "-C", tree.root, "exec",
+        "--", "uv", "audit", "--frozen",
+        "--output-format", "json", "--preview-features", "audit-command,json-output"
     ]
-    fp.register(
-        [
-            *tool,
-            "lock", "--no-locked", "--no-python-downloads", "--project",
-            fp.any(max=1, min=1),
-            "--upgrade"
-        ],
-        callback = upgrade
-    )
-    fp.register(
-        [
-            *tool,
-            "lock", "--no-locked", "--no-python-downloads", "--project",
-            fp.any(max=1, min=1)
-        ],
-        callback = resolve
-    )
+    locks(resolve, upgrade)
     fp.register(
         [*audit, "--project", tree.root],
         returncode = 1,
@@ -798,6 +736,8 @@ def test_the_npm_packages_lift_through_bun_with_the_advisories_they_clear(
 def test_the_tools_lagging_their_newest_release_lift_with_every_restatement(
     answered : Sample,
     fp       : FakeProcess,
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
     tree     : Tree
 ):
     """
@@ -808,54 +748,20 @@ def test_the_tools_lagging_their_newest_release_lift_with_every_restatement(
     they are written, that a tool nothing restates carries its own rewrite
     alone, and that a tool another config requests stays out.
     """
-    config = tree.root / ".mise" / "config.toml"
-    fp.register(
-        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
-        stdout = dumps(
-            {
-                "node": {
-                    "latest"    : "26.12.1",
-                    "requested" : "26.11.1",
-                    "source"    : {"path": str(config)}
-                },
-
-                "pnpm": {
-                    "latest"    : "11.0.0",
-                    "requested" : "10.0.0",
-                    "source"    : {"path": "/elsewhere/mise.toml"}
-                },
-
-                "python": {
-                    "latest"    : "3.15.1",
-                    "requested" : "3.14.6",
-                    "source"    : {"path": str(config)}
-                },
-
-                "uv": {
-                    "latest"    : "0.13.5",
-                    "requested" : "0.12.13",
-                    "source"    : {"path": str(config)}
-                }
-            }
-        )
+    outdated(
+        elsewhere = ("pnpm",),
+        node      = ("26.11.1", "26.12.1"),
+        pnpm      = ("10.0.0", "11.0.0"),
+        python    = ("3.14.6", "3.15.1"),
+        uv        = ("0.12.13", "0.13.5")
     )
-    fp.register(
-        ["mise", "-C", tree.root, "ls-remote", "--json", "python"],
-        stdout = dumps(
-            [
-                {"created_at": "2026-10-07T00:00:00Z", "version": "3.15.0"},
-                {"created_at": "2026-10-21T00:00:00Z", "version": "3.15.1"}
-            ]
-        )
+    releases(
+        "python",
+        {"created_at": "2026-10-07T00:00:00Z", "version": "3.15.0"},
+        {"created_at": "2026-10-21T00:00:00Z", "version": "3.15.1"}
     )
-    fp.register(
-        ["mise", "-C", tree.root, "ls-remote", "--json", "node"],
-        stdout = dumps([{"version": "26.12.1"}])
-    )
-    fp.register(
-        ["mise", "-C", tree.root, "ls-remote", "--json", "uv"],
-        stdout = dumps([{"version": "0.13.5"}])
-    )
+    releases("node", {"version": "26.12.1"})
+    releases("uv", {"version": "0.13.5"})
     lifts = list(MisePins(tree=tree).lifts())
 
     assert [
@@ -888,9 +794,10 @@ def test_the_tools_lagging_their_newest_release_lift_with_every_restatement(
 
 
 def test_wasm_bindgen_lifts_with_the_requirement_the_crate_restates(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
+    sample   : Sample,
+    tree     : Tree
 ):
     """
     Asserts that lifting the `wasm-bindgen` command line `.mise/config.toml`
@@ -907,25 +814,8 @@ def test_wasm_bindgen_lifts_with_the_requirement_the_crate_restates(
         new = 'wasm-bindgen = { version = "=0.2.130" }\n',
         old = 'shakmaty = "0.30.2"\n'
     )
-    fp.register(
-        ["mise", "-C", tree.root, "outdated", "--bump", "--json", "--local"],
-        stdout = dumps(
-            {
-                "github:wasm-bindgen/wasm-bindgen": {
-                    "latest"    : "0.2.131",
-                    "requested" : "0.2.130",
-                    "source"    : {"path": str(tree.root / ".mise" / "config.toml")}
-                }
-            }
-        )
-    )
-    fp.register(
-        [
-            "mise", "-C", tree.root,
-            "ls-remote", "--json", "github:wasm-bindgen/wasm-bindgen"
-        ],
-        stdout = dumps([{"version": "0.2.131"}])
-    )
+    outdated(**{"github:wasm-bindgen/wasm-bindgen": ("0.2.130", "0.2.131")})
+    releases("github:wasm-bindgen/wasm-bindgen", {"version": "0.2.131"})
 
     [lift] = MisePins(tree=tree).lifts()
     lift.write(tree.root)

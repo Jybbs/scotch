@@ -1,5 +1,5 @@
 import type { InitInput }          from '../games/crate/scotch.js'
-import { loadReader }              from '../games/readers.ts'
+import { type Game, loadReader }   from '../games/readers.ts'
 import { type Matches, Published } from '../games/store.ts'
 
 /**
@@ -29,6 +29,14 @@ function messageOf(error: unknown): string {
 }
 
 /**
+ * Builds the problem naming `name`, what a text was read from, as unreadable,
+ * and why.
+ */
+export function unreadable(name: string, error: unknown): { problem: string } {
+  return { problem: `Cannot read ${name}: ${messageOf(error)}` }
+}
+
+/**
  * Matches a game submitted as PGN against the published store, loading the
  * reader and opening the store on the first submission, so the page fetches no
  * store file before a game is submitted.
@@ -46,9 +54,8 @@ export class Matcher {
    * Reads the one game `text` carries and matches it, reporting a text
    * holding no game or several, and a game carrying a problem, such as an
    * illegal move or a variant other than standard chess, as `scotch match
-   * game` reports them,
-   * and reporting a reader or a store it cannot load, which the next
-   * submission loads again.
+   * game` reports them, a text the reader throws on, and a reader or a store
+   * it cannot load, which the next submission loads again.
    *
    * Args:
    *   name : What the text was read from, which the line naming a problem
@@ -63,7 +70,13 @@ export class Matcher {
       return messageOf(error)
     })
     if (typeof read === 'string') return { problem: `Cannot load the reader: ${read}` }
-    const [game, ...rest] = read(text)
+    let games: Game[]
+    try {
+      games = read(text)
+    } catch (error) {
+      return unreadable(name, error)
+    }
+    const [game, ...rest] = games
     if (!game) return { problem: `Found no game in ${name}` }
     if (rest.length > 0) return { problem: `Found several games in ${name}, so paste one game` }
     if (game.errors.length > 0) {

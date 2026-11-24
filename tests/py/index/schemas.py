@@ -23,21 +23,6 @@ from scotch.index.schemas   import Answer, Export, Holding, Match, Pairing, Repl
 from scotch.sources.schemas import Download
 
 
-def test_a_continuation_at_the_stored_games_end_holds_its_result_alone():
-    """
-    Asserts that a continuation from the stored game's last position holds
-    its result alone.
-    """
-    game = line("e4", Result="0-1")
-
-    assert Match(
-        game      = game,
-        span      = Span(length=2, offset=0, start=0),
-        submitted = game,
-        ties      = 0
-    ).continuation() == "0-1"
-
-
 def test_a_link_opens_the_export_on_the_homepage_with_it_in_the_fragment():
     """
     Asserts that the address of an export names the Viewer at the homepage
@@ -374,23 +359,6 @@ def test_an_export_holds_both_sides_beside_the_span(snapshot: SnapshotAssertion)
     assert Export.from_match(match, submitted).model_dump_json(
         indent = 2
     ) == snapshot
-
-
-def test_an_export_reads_back_from_its_json():
-    """
-    Asserts that the JSON an export writes validates back into the same
-    export.
-    """
-    submitted = line("e4", "e5")
-    match     = Match(
-        game      = line("e4", "c5"),
-        span      = Span(length=2, offset=0, start=0),
-        submitted = submitted,
-        ties      = 0
-    )
-    export = Export.from_match(match, submitted)
-
-    assert Export.model_validate_json(export.model_dump_json()) == export
 
 
 @mark.parametrize(

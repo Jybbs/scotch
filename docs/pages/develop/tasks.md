@@ -40,7 +40,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
-| `lock:audit` |  | Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, `rust/Cargo.lock`, or `docs/bun.lock` resolves, other than one `AUDIT_IGNORE` lists while no release fixes it, on any `mise audit` reports for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists for a contributor to check by hand while `mise audit` names no fixed release, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`, and name each tool `mise audit` lists as unchecked |
+| `lock:audit` |  | Fail where an advisory database cannot be reached, on any advisory published for a package `uv.lock`, a task script's lockfile, or `rust/Cargo.lock` resolves, on any `bun audit` reports for a package `docs/bun.lock` resolves, other than one whose `GHSA-` id `AUDIT_IGNORE` lists while no release fixes it, on any `mise audit` reports for a tool `.mise/config.toml` pins, other than one `AUDIT_IGNORE` lists for a contributor to check by hand while `mise audit` names no fixed release, or on a crate whose license, version, or source breaks a rule of `rust/.cargo/deny.toml`, and name each tool `mise audit` lists as unchecked |
 | `lock:check` | `lockfile` | Verify every lockfile is in sync with its manifest |
 | `lock:lift` | `lift` | List every pin lagging its newest release, try the lift in a scratch clone under `--try`, and write it as one diff under `--write` |
 | `lock:sync` | `relock` | Re-resolve every lockfile against its manifest |
@@ -59,7 +59,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
-| `repo:audit` | `audit` | Report every place the repository's configuration drifts from itself, as annotations under GitHub Actions |
+| `repo:audit` |  | Report every place the repository's configuration drifts from itself, as annotations under GitHub Actions |
 | `repo:bump` | `bump` | Move `[project].version` to its next patch, minor, or major version and relock `uv.lock` |
 | `repo:ci` | `ci` | Run every check a pull request runs, from the lockfiles to the site's links |
 | `repo:labels` | `labels` | Create or update every label `.github/labels.toml` declares on GitHub, listing each live label it omits |

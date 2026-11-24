@@ -67,4 +67,12 @@ describe('Matcher losing what it reads from', () => {
     expect(await matcher.submit('viewer.pgn', viewer)).toEqual({ problem: 'Cannot load the reader: Failed to fetch' })
     expect((await matcher.submit('viewer.pgn', viewer)).matches?.ties).toHaveLength(1)
   })
+
+  it('reports a game whose text the reader throws on', async () => {
+    const matcher = new Matcher({ fetch: bucket().fetch, module, origin: ORIGIN })
+    vi.mocked(loadReader).mockResolvedValueOnce(() => {
+      throw new WebAssembly.RuntimeError('unreachable')
+    })
+    expect(await matcher.submit('viewer.pgn', viewer)).toEqual({ problem: 'Cannot read viewer.pgn: unreachable' })
+  })
 })

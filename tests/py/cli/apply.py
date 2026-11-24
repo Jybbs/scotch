@@ -83,57 +83,48 @@ def sent(fp: FakeProcess) -> Sent:
     return transcript
 
 
+@mark.parametrize(
+    ("command", "listed", "omitted"),
+    [
+        param(
+            "labels",
+            "enhancement\n🐞 bug\ndependencies\n",
+            "The registry omits these live labels, left for a rename or a deletion "
+            "by hand:\nenhancement\ndependencies\n",
+            id = "labels"
+        ),
+        param(
+            "rulesets",
+            '["main branch protection", 7]\n["old protection", 8]\n["a draft", 9]',
+            "No file under `.github/rulesets/` names these live rulesets, left for "
+            "a deletion by hand:\na draft\nold protection\n",
+            id = "rulesets"
+        )
+    ]
+)
 @mark.usefixtures("inside")
-def test_labels_writes_each_label_and_lists_the_live_ones_it_omits(
+def test_a_command_sends_its_files_and_lists_each_live_name_they_omit(
     capsys   : CaptureFixture[str],
+    command  : str,
+    listed   : str,
     live     : Live,
+    omitted  : str,
     sent     : Sent,
     snapshot : SnapshotAssertion
 ):
     """
     Asserts that `scotch apply labels` writes each registry label through
-    `gh label create --force`, as the snapshot holds the calls, then prints
-    each live label the registry omits in the order GitHub lists them.
+    `gh label create --force`, then prints each live label the registry
+    omits in the order GitHub lists them, and that `scotch apply rulesets`
+    updates in place the live ruleset sharing each file's name, sends every
+    setting, then prints each live ruleset no file names, sorted by name,
+    each as the snapshot holds the calls and their bodies.
     """
-    live("labels", "enhancement\n🐞 bug\ndependencies\n")
+    live(command, listed)
 
-    assert invoke("apply", "labels") == 0
+    assert invoke("apply", command) == 0
     assert sent() == snapshot
-    assert capsys.readouterr().out == (
-        "The registry omits these live labels, left for a rename or a deletion "
-        "by hand:\nenhancement\ndependencies\n"
-    )
-
-
-@mark.usefixtures("inside")
-def test_rulesets_updates_each_live_ruleset_and_sends_every_setting(
-    capsys   : CaptureFixture[str],
-    live     : Live,
-    sent     : Sent,
-    snapshot : SnapshotAssertion
-):
-    """
-    Asserts that `scotch apply rulesets` updates in place the live ruleset
-    sharing each file's name, then sends every setting, as the snapshot
-    holds the calls and their bodies, and prints each live ruleset no file
-    names, sorted by name.
-    """
-    live(
-        "rulesets",
-        "\n".join(
-            map(
-                dumps,
-                (["main branch protection", 7], ["old protection", 8], ["a draft", 9])
-            )
-        )
-    )
-
-    assert invoke("apply", "rulesets") == 0
-    assert sent() == snapshot
-    assert capsys.readouterr().out == (
-        "No file under `.github/rulesets/` names these live rulesets, left for "
-        "a deletion by hand:\na draft\nold protection\n"
-    )
+    assert capsys.readouterr().out == omitted
 
 
 @mark.parametrize(

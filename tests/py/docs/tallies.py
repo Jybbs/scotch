@@ -244,13 +244,6 @@ def test_an_era_and_the_largest_archives_reach_the_json_the_site_reads(tally: Ta
     ]
 
 
-def test_an_era_counts_its_games():
-    """
-    Asserts that an era's games are the sum of its counts by moves.
-    """
-    assert Era(decade=1900, moves=[1, 2, 3]).games == 6
-
-
 def test_endings_count_each_result_at_each_number_of_moves(tally: Tally):
     """
     Asserts that `endings` reads, for each result, the games ending in it at

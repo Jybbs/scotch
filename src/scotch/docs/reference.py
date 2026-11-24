@@ -185,6 +185,7 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
         ]
         readers = {
             str(Manifest.path(index))              : opening,
+            str(PositionIndex.omitted(index))      : opening,
             str(PositionIndex.path(index))         : opening,
             str(PositionIndex.table(index))        : opening,
             str(Manifest.path(settings.downloads)) : [built, *opening]
@@ -214,6 +215,10 @@ class Reference(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings
                     fetched, "The record of each fetched file, keyed by its address"
                 ),
                 (PositionIndex.table(index), built, "One row for each stored game"),
+                (
+                    PositionIndex.omitted(index),
+                    built, "One row for each game left out, beside its reason"
+                ),
                 (
                     PositionIndex.path(index),
                     built, "Every position the stored games reach, beside their moves"
