@@ -18,7 +18,7 @@ tools=$(
           to_entries[] | "\(.key)@\(.value[])"
         else
           $unlisted
-          | map("mise ls lists no version of \(.) from .mise/config.toml, so run mise relock where .mise/mise.lock lags its pin, or remove the MISE_<TOOL>_VERSION variable or mise.local.toml entry naming another version\n")
+          | map("mise ls lists no version of \(.) from .mise/config.toml, so run mise relock where .mise/mise.lock lags its pin, remove the MISE_<TOOL>_VERSION variable or mise.local.toml entry naming another version, or run lock:audit on a platform its os list names\n")
           | add
           | halt_error(1)
         end

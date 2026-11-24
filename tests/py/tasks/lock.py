@@ -310,8 +310,9 @@ def test_audit_fails_on_each_pinned_tool_mise_ls_leaves_out(
     assert not any(call.startswith(("bun ", "mise audit ")) for call in scratch.calls)
     assert result.stderr.splitlines() == [
         f"mise ls lists no version of {tool} from .mise/config.toml, so run mise "
-        "relock where .mise/mise.lock lags its pin, or remove the "
-        "MISE_<TOOL>_VERSION variable or mise.local.toml entry naming another version"
+        "relock where .mise/mise.lock lags its pin, remove the MISE_<TOOL>_VERSION "
+        "variable or mise.local.toml entry naming another version, or run lock:audit "
+        "on a platform its os list names"
         for tool in unlisted
     ]
 
