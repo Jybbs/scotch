@@ -3,7 +3,8 @@ Pins what `site:install` leaves at a checkout's root and in its `tests/`
 once the stand-in `bun` has run, meaning each root `node_modules` or
 `package.json` link removed whatever it points at, a real file or folder
 there kept with a line naming it, and `tests/node_modules` linked to
-`../docs/node_modules` on the first run and on each run after it.
+`../docs/node_modules` on the first run and on each run after it, and
+`docs/node_modules` left newer than `docs/bun.lock`.
 
 Each case runs the task through its own shebang from a scratch checkout's
 `docs/`, the folder its `dir` names, with a stand-in `bun` first on `PATH`
@@ -12,6 +13,7 @@ that logs each argument it receives.
 
 from collections.abc  import Callable
 from common.stand_ins import StandIn
+from os               import utime
 from pathlib          import Path
 from pytest           import Config, mark, param
 from subprocess       import CompletedProcess
@@ -86,6 +88,24 @@ def test_a_real_root_file_or_folder_is_kept_with_a_line_naming_it(
     ]
     assert (tmp_path / "node_modules" / "kept").read_text() == "kept"
     assert (tmp_path / "package.json").read_text() == "{}"
+
+
+def test_a_run_leaves_docs_node_modules_newer_than_the_lockfile(
+    pytestconfig : Config,
+    stand_in     : Callable[..., StandIn],
+    tmp_path     : Path
+):
+    """
+    Asserts that `site:install` leaves `docs/node_modules` newer than
+    `docs/bun.lock` where the stand-in `bun` writes nothing into it, so the
+    outputs it declares read as current until the lockfile changes again.
+    """
+    (modules := tmp_path / "docs" / "node_modules").mkdir(parents=True)
+    utime(modules, (1, 1))
+    (lockfile := tmp_path / "docs" / "bun.lock").touch()
+
+    assert install(tmp_path, pytestconfig, stand_in).returncode == 0
+    assert modules.stat().st_mtime_ns > lockfile.stat().st_mtime_ns
 
 
 def test_a_second_run_leaves_the_suite_s_link_as_it_was(
