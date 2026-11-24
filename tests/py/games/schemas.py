@@ -25,6 +25,7 @@ from common.sources  import zipped
 from pathlib         import Path
 from pydantic        import ValidationError
 from pytest          import LogCaptureFixture, Subtests, mark, param, raises
+from sys             import get_int_max_str_digits
 from zipfile         import Path as ZipPath, ZipFile
 
 from scotch.games.schemas import Frame, Game, Origin
@@ -414,14 +415,34 @@ def test_chosen_reads_the_game_at_its_number(
         param("2000.??.??", 20000000, id="no-month"),
         param("????.??.??", 0, id="no-year"),
         param("2000", 20000000, id="year-alone"),
-        param("123456.123.123", 99999999, id="parts-too-long")
+        param("123456.123.123", 99999999, id="parts-too-long"),
+        param("+2000.-1.1_0", 0, id="signed-parts"),
+        param(
+            "\u0662\u0660\u0660\u0660.\u0660\u0661.\u0660\u0662",
+            20000102,
+            id = "arabic-indic"
+        ),
+        param(
+            f"{'1' * get_int_max_str_digits()}.01.02",
+            99990102,
+            id = "year-at-the-conversion-limit"
+        ),
+        param(
+            f"{'1' * (get_int_max_str_digits() + 1)}.01.02",
+            102,
+            id = "year-past-the-conversion-limit"
+        )
     ]
 )
 def test_a_date_reads_as_the_number_yyyymmdd(date: str, dated: int):
     """
-    Asserts that a `Date` tag reads as the number `YYYYMMDD`, each part it
-    leaves unknown as 0 and each part too long for its digits as the largest
-    those digits hold.
+    Asserts that a `Date` tag reads as the number `YYYYMMDD`, each
+    part reading:
+
+    - As 0 where it is unknown, carries anything but digits, or holds more
+      digits than `int` converts
+    - As the largest its digits hold where it is too long for them
+    - As `int` reads it where it is written in another script's digits
     """
     assert line(Date=date).dated == dated
 
