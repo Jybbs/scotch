@@ -498,7 +498,12 @@ def test_audit_fails_on_an_advisory_or_an_unreachable_service(
     ("ignore", "advisory"),
     [
         param(CVE, vulnerability(), id="listed"),
-        param(ALIAS, vulnerability(aliases=(ALIAS,)), id="listed-alias")
+        param(ALIAS, vulnerability(aliases=(ALIAS,)), id="listed-alias"),
+        param(
+            f"{ALIAS} {CVE}",
+            vulnerability(aliases=(ALIAS,)),
+            id = "listed-id-and-alias"
+        )
     ]
 )
 def test_audit_sets_aside_each_tool_advisory_naming_no_fixed_release(
@@ -508,20 +513,21 @@ def test_audit_sets_aside_each_tool_advisory_naming_no_fixed_release(
 ):
     """
     Asserts that `lock:audit` passes where `AUDIT_IGNORE` lists a tool
-    advisory's id or one of its aliases and `mise audit` names no fixed
-    release, printing the advisory's summary, reading no GitHub advisory for
-    it, even under a `GHSA-` alias, and passing `bun audit` no `--ignore`
-    for it.
+    advisory's id, one of its aliases, or both and `mise audit` names no
+    fixed release, printing the advisory's summary for each entry, reading
+    no GitHub advisory for it, even under a `GHSA-` alias, and passing `bun
+    audit` no `--ignore` for it.
     """
     result = scratch.run("audit", gh=GH, ignore=ignore, mise=mise(advisory))
 
     assert result.returncode == 0
     assert scratch.calls[-1] == "bun audit --cwd docs"
     assert not any(call.startswith("gh ") for call in scratch.calls)
-    assert result.stderr == (
-        f"Setting {ignore} aside while mise audit names no fixed release, "
-        f"so check it by hand: {advisory['summary']}\n"
-    )
+    assert result.stderr.splitlines() == [
+        f"Setting {entry} aside while mise audit names no fixed release, "
+        f"so check it by hand: {advisory['summary']}"
+        for entry in ignore.split()
+    ]
 
 
 @mark.parametrize(
