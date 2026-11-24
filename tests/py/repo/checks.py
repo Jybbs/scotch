@@ -1834,7 +1834,9 @@ def test_a_directive_with_no_filed_prose_issue_beside_it_fails(
         param("audit", id = "command"),
         param("cfg", id = "command-alias"),
         param("aliases", id = "second-alias"),
-        param("current", id = "hidden-command")
+        param("current", id = "hidden-command"),
+        param("help", id = "help-command"),
+        param("backend-list", id = "wrapped-help-alias")
     ]
 )
 def test_a_task_alias_a_mise_command_takes_fails(
@@ -1844,8 +1846,8 @@ def test_a_task_alias_a_mise_command_takes_fails(
 ):
     """
     Asserts that a task alias a command or a command alias of mise also
-    takes, hidden or not, draws a finding at the line of the task file
-    declaring it.
+    takes, hidden or not, and whether the usage spec or `mise --help` names
+    it, draws a finding at the line of the task file declaring it.
     """
     sample.edit(
         ".mise/tasks/py/test",
@@ -1964,7 +1966,10 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
         param("lockfile", id = "free"),
         param("list", id = "subcommand-alias"),
         param("--no-timing", id = "flag-alias"),
-        param("quoted", id = "help-text")
+        param("quoted", id = "help-text"),
+        param("banner", id = "banner-line"),
+        param("[TASK]", id = "help-argument"),
+        param("--dir", id = "help-flag-alias")
     ]
 )
 def test_a_task_alias_no_mise_command_takes_passes(
@@ -1973,8 +1978,9 @@ def test_a_task_alias_no_mise_command_takes_passes(
     sample : Sample
 ):
     """
-    Asserts that an alias only a subcommand, a flag, or the text of a help
-    string carries draws no finding.
+    Asserts that an alias only a subcommand, a flag, the text of a help
+    string, or a line of `mise --help` outside its `Commands:` section
+    carries draws no finding.
     """
     sample.answer(fp, aliases={"py:test": (alias,)})
 

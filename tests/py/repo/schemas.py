@@ -154,6 +154,28 @@ def test_a_license_reads_its_identifier_and_holders(
     )
 
 
+def test_a_help_listing_no_command_stops_the_read():
+    """
+    Asserts that a `mise --help` with no `Commands:` section raises rather
+    than reading as a mise with only the commands the usage spec declares.
+    """
+    with raises(ValueError, match="lists no command"):
+        Usage.parsed("Usage: mise [FLAGS]\n\nFlags:\n  -C, --cd <DIR>", "cmd audit")
+
+
+@mark.parametrize(
+    ("task", "guard"),
+    [param("py:test", "!github.event.pull_request.draft", id="row")]
+)
+def test_a_job_reads_the_draft_guard_its_kind_takes(guard: str, task: str):
+    """
+    Asserts that a job other than a gate takes the draft guard alone.
+    """
+    assert Job.model_validate(
+        {"id": "job", "runs-on": "ubuntu-26.04", "steps": [{"run": f"mise run {task}"}]}
+    ).guard == guard
+
+
 def test_a_job_pairs_each_legs_check_name_with_its_tasks():
     """
     Asserts that a job names each leg's check from the matrix expression in
@@ -182,19 +204,6 @@ def test_a_job_pairs_each_legs_check_name_with_its_tasks():
 
     assert job.checks == (("Lockfiles", "lock:check"), ("Coverage", "py:coverage"))
     assert "gha:total" in job.tasks
-
-
-@mark.parametrize(
-    ("task", "guard"),
-    [param("py:test", "!github.event.pull_request.draft", id="row")]
-)
-def test_a_job_reads_the_draft_guard_its_kind_takes(guard: str, task: str):
-    """
-    Asserts that a job other than a gate takes the draft guard alone.
-    """
-    assert Job.model_validate(
-        {"id": "job", "runs-on": "ubuntu-26.04", "steps": [{"run": f"mise run {task}"}]}
-    ).guard == guard
 
 
 def test_a_job_reads_one_need_as_a_list():
@@ -823,9 +832,10 @@ def test_the_usage_spec_names_each_top_level_command_and_its_aliases(answered: S
     """
     Asserts that the usage spec reads the name and every alias argument of
     each top-level command, hidden or not, and no subcommand, flag alias,
-    property, or line of a raw string.
+    property, or line of a raw string, joined with each command and alias,
+    wrapped or not, under the `Commands:` section of `mise --help`.
     """
     assert Usage.printed(answered.root).commands == {
-        "alias", "aliases", "audit", "cfg", "config",
-        "cur", "current", "toml", "tool-alias"
+        "alias", "aliases", "audit", "b", "backend", "backend-list", "backends",
+        "cfg", "config", "cur", "current", "help", "toml", "tool-alias"
     }

@@ -347,8 +347,9 @@ class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
 
 class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
-    The usage spec `mise usage` prints, the KDL document declaring every
-    command of mise's command line, per https://usage.jdx.dev/spec/.
+    The commands of mise's command line, as the usage spec `mise usage`
+    prints them, the KDL document per https://usage.jdx.dev/spec/, and as
+    the `Commands:` section of `mise --help` lists them.
     """
 
     commands: frozenset[str]
@@ -358,14 +359,17 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     """
 
     @classmethod
-    def parsed(cls, spec: str) -> Self:
+    def parsed(cls, manual: str, spec: str) -> Self:
         """
         Reads the name of each top-level `cmd` node of `spec` and the
         arguments of each `alias` node directly under one, leaving out a
         property such as `hide=#true`, and passing over the lines of each
         multi-line raw string, which opens on a hash and three quotation
         marks closing a line and closes on the three marks and a hash
-        opening one.
+        opening one. Adds each command and alias the `Commands:` section
+        of `manual`, the text `mise --help` prints, lists, which names
+        `help`, a command the spec leaves out, and raises `ValueError` where
+        `manual` holds no such section.
         """
         commands: set[str] = set()
         command = raw = False
@@ -383,21 +387,39 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
 
             raw = line.endswith('#"""')
 
+        if (section := search(
+            r"^Commands:.*\n((?:.+\n?)+)",
+            manual,
+            MULTILINE
+        )) is None:
+            raise ValueError("`mise --help` lists no command under `Commands:`")
+
+        commands.update(findall(r"^ {2}(\S+)", section[1], MULTILINE))
+        commands.update(
+            alias
+            for aliases in findall(r"\[aliases:\s([^\]]*)\]", section[1])
+            for alias in split(r"[\s,]+", aliases)
+        )
+
         return cls(commands=frozenset(commands))
 
     @classmethod
     def printed(cls, root: Path) -> Self:
         """
-        Runs `mise usage` in `root` and reads the spec it prints.
+        Runs `mise usage` and `mise --help` in `root` and reads what they
+        print.
         """
-        spec = run(
-            ["mise", "usage"],
-            capture_output = True,
-            check          = True,
-            cwd            = root,
-            text           = True
+        spec, manual = (
+            run(
+                ["mise", *args],
+                capture_output = True,
+                check          = True,
+                cwd            = root,
+                text           = True
+            ).stdout
+            for args in (["usage"], ["--help"])
         )
-        return cls.parsed(spec.stdout)
+        return cls.parsed(manual, spec)
 
 
 class Crate(ConfigFile):
