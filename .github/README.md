@@ -18,10 +18,12 @@
 
 ***Scotch*** reads a chess game you played from a Portable Game Notation (PGN) file, finds the grandmaster game sharing the longest unbroken run of positions with it, and shows how that game continued from the last position the two share. A game reaching a stored position by another order of moves still meets it there, since each position is matched by its key rather than by the moves reaching it, as **[Methods](https://scotch.fyi/methods/)** sets out.
 
-<a href="https://scotch.fyi/viewer/"><picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/preview-dark.gif">
-  <img src="assets/readme/preview-light.gif" alt="Two boards step through a game and the grandmaster game it reaches by another order of moves, their rings turning one shared color while the two show one position, until the games part." width="100%">
-</picture></a>
+<a href="https://scotch.fyi/viewer/">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="assets/readme/preview-light.gif">
+  <img src="assets/readme/preview-dark.gif" alt="Two boards step through a game and the grandmaster game it reaches by another order of moves, their rings turning one shared color while the two show one position, until the games part." width="100%">
+</picture>
+</a>
 
 ## 🪺 The Games
 
