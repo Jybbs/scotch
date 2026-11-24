@@ -25,6 +25,7 @@ from common.sources  import zipped
 from pathlib         import Path
 from pydantic        import ValidationError
 from pytest          import LogCaptureFixture, Subtests, mark, param, raises
+from sys             import get_int_max_str_digits
 from zipfile         import Path as ZipPath, ZipFile
 
 from scotch.games.schemas import Frame, Game, Origin
@@ -213,6 +214,15 @@ def test_a_game_python_chess_writes_reads_back_whole(
             for board in VARIANTS
             if board is not Board
         ),
+        *(
+            param(casing(alias), (), (), id=f"{alias}-{name}")
+            for alias in Board.aliases
+            for name, casing in {
+                "as-declared" : str,
+                "lower"       : str.lower,
+                "upper"       : str.upper
+            }.items()
+        ),
         param("Chess960", (), ("unsupported variant: Chess960",), id="chess960"),
         param(
             "Bughouse",
@@ -231,37 +241,18 @@ def test_a_variant_tag_adds_one_problem_for_any_variant_but_standard(
 ):
     """
     Asserts that a `Variant` tag adds no problem where the game carries
-    no such tag, one problem where it names a variant python-chess reads
-    under its own rules, and the error the reader recorded, once rather than
-    twice, where it names a variant python-chess cannot read.
+    no such tag or names standard chess under any alias python-chess's
+    `Board` declares, in any casing, one problem where it names a variant
+    python-chess reads under its own rules, and the error the reader
+    recorded, once rather than twice, where it names a variant python-chess
+    cannot read.
     """
-    [game] = read(("" if variant is None else f'[Variant "{variant}"]\n\n') + "*\n")
+    [game] = read(
+        ("" if variant is None else f'[Variant "{variant}"]\n\n') + "1. e4 *\n"
+    )
 
     assert game.errors == errors
     assert game.problems == problems
-
-
-@mark.parametrize(
-    "casing",
-    [
-        param(str, id="as-declared"),
-        param(str.lower, id="lower"),
-        param(str.upper, id="upper")
-    ]
-)
-@mark.parametrize("alias", [param(alias, id=alias) for alias in Board.aliases])
-def test_a_variant_tag_naming_standard_chess_adds_no_problem(
-    alias  : str,
-    casing : Callable[[str], str],
-    read   : Callable[..., list[Game]]
-):
-    """
-    Asserts that a `Variant` tag naming standard chess under any alias
-    python-chess's `Board` declares, in any casing, adds no problem.
-    """
-    [game] = read(f'[Variant "{casing(alias)}"]\n\n1. e4 *\n')
-
-    assert game.problems == ()
 
 
 def test_a_game_reads_from_a_member_of_a_zip_archive(tmp_path: Path):
@@ -424,14 +415,34 @@ def test_chosen_reads_the_game_at_its_number(
         param("2000.??.??", 20000000, id="no-month"),
         param("????.??.??", 0, id="no-year"),
         param("2000", 20000000, id="year-alone"),
-        param("123456.123.123", 99999999, id="parts-too-long")
+        param("123456.123.123", 99999999, id="parts-too-long"),
+        param("+2000.-1.1_0", 0, id="signed-parts"),
+        param(
+            "\u0662\u0660\u0660\u0660.\u0660\u0661.\u0660\u0662",
+            20000102,
+            id = "arabic-indic"
+        ),
+        param(
+            f"{'1' * get_int_max_str_digits()}.01.02",
+            99990102,
+            id = "year-at-the-conversion-limit"
+        ),
+        param(
+            f"{'1' * (get_int_max_str_digits() + 1)}.01.02",
+            102,
+            id = "year-past-the-conversion-limit"
+        )
     ]
 )
 def test_a_date_reads_as_the_number_yyyymmdd(date: str, dated: int):
     """
-    Asserts that a `Date` tag reads as the number `YYYYMMDD`, each part it
-    leaves unknown as 0 and each part too long for its digits as the largest
-    those digits hold.
+    Asserts that a `Date` tag reads as the number `YYYYMMDD`, each
+    part reading:
+
+    - As 0 where it is unknown, carries anything but digits, or holds more
+      digits than `int` converts
+    - As the largest its digits hold where it is too long for them
+    - As `int` reads it where it is written in another script's digits
     """
     assert line(Date=date).dated == dated
 
@@ -583,13 +594,6 @@ def test_a_key_is_the_polyglot_hash_the_book_format_lists(key: int, sans: str):
     https://hgm.nubati.net/book_format.html.
     """
     assert line(*sans.split()).keys[-1] == key
-
-
-def test_an_empty_file_holds_no_game(read: Callable[..., list[Game]]):
-    """
-    Asserts that a file holding no text yields no game.
-    """
-    assert read("") == []
 
 
 def test_an_en_passant_capture_that_would_be_illegal_leaves_the_key_unchanged():

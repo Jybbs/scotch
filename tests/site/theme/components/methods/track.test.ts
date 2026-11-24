@@ -36,10 +36,13 @@ describe('Track as drawn', () => {
       .toEqual([`translate(${6 * TRACK.step}px, 0px)`, `translate(${6 * TRACK.step}px, ${TRACK.apart}px)`])
   })
 
-  it('draws no marker with no ply in view', () => {
-    expect(track().findAll('circle.fill-ink')).toHaveLength(0)
+  it.each([
+    ['no marker with no ply in view', 'circle.fill-ink'],
+    ['no band to press where nothing picks a ply', 'rect'],
+    ['no box where it names no plies', 'rect[class*=stroke-dasharray]']
+  ])('draws %s', (_, selector) => {
+    expect(track().findAll(selector)).toHaveLength(0)
   })
-
 })
 
 describe('Track as pressed', () => {
@@ -47,10 +50,6 @@ describe('Track as pressed', () => {
     const pick = vi.fn<(ply: number) => void>()
     await track({ onPick: pick }).findAll('rect')[4]!.trigger('click')
     expect(pick).toHaveBeenCalledWith(4)
-  })
-
-  it('draws no band to press where nothing picks a ply', () => {
-    expect(track().findAll('rect')).toHaveLength(0)
   })
 
   it('sets its lines heavy where it is drawn bold', () => {
@@ -71,9 +70,5 @@ describe('Track as pressed', () => {
     const box = track({ box: [2, 5] }).find('rect[class*=stroke-dasharray]')
     expect([box.attributes('x'), box.attributes('width')]).toEqual([`${1.5 * TRACK.step}`, `${4 * TRACK.step}`])
     expect(box.attributes('height')).toBe(`${TRACK.apart + 2 * TRACK.margin - 2}`)
-  })
-
-  it('draws no box where it names no plies', () => {
-    expect(track().findAll('rect[class*=stroke-dasharray]')).toHaveLength(0)
   })
 })

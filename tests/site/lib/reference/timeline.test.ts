@@ -150,7 +150,11 @@ describe('useUnfold', () => {
   })
 })
 
-function observed(): (seen: boolean) => void {
+/**
+ * Mounts a drawing under a stand-in observer, returning the call that reports
+ * it on or off screen beside the story it tells.
+ */
+async function observed(): Promise<{ report: (seen: boolean) => void, told: Story }> {
   const reports = new Set<IntersectionObserverCallback>()
   vi.stubGlobal('IntersectionObserver', class {
     public disconnect = vi.fn<() => void>()
@@ -160,19 +164,22 @@ function observed(): (seen: boolean) => void {
       reports.add(callback)
     }
   })
-  return seen => {
-    reports.forEach(report => {
-      report([{ isIntersecting: seen, time: 0 } as IntersectionObserverEntry], {} as IntersectionObserver)
-    })
+  const told = story()
+  drawn(told)
+  await flushPromises()
+  return {
+    report: seen => {
+      reports.forEach(report => {
+        report([{ isIntersecting: seen, time: 0 } as IntersectionObserverEntry], {} as IntersectionObserver)
+      })
+    },
+    told
   }
 }
 
 describe('useUnfold with no scroll', () => {
   test('stays whole where the drawing comes on screen with no scroll, as a capture does', async () => {
-    const report = observed()
-    const told   = story()
-    drawn(told)
-    await flushPromises()
+    const { report, told } = await observed()
     report(true)
     expect(told.prime).not.toHaveBeenCalled()
     expect(told.play).not.toHaveBeenCalled()
@@ -181,10 +188,7 @@ describe('useUnfold with no scroll', () => {
 
 describe('useUnfold, around the first scroll', () => {
   test('primes a drawing off screen on the first scroll, before it comes on screen', async () => {
-    const report = observed()
-    const told   = story()
-    drawn(told)
-    await flushPromises()
+    const { report, told } = await observed()
     report(false)
     window.dispatchEvent(new Event('scroll'))
     expect(told.prime).toHaveBeenCalledTimes(1)
@@ -194,10 +198,7 @@ describe('useUnfold, around the first scroll', () => {
   })
 
   test('leaves a drawing on screen before the first scroll whole', async () => {
-    const report = observed()
-    const told   = story()
-    drawn(told)
-    await flushPromises()
+    const { report, told } = await observed()
     report(true)
     window.dispatchEvent(new Event('scroll'))
     report(true)
@@ -206,10 +207,7 @@ describe('useUnfold, around the first scroll', () => {
   })
 
   test('settles a primed drawing for a print and plays it no more', async () => {
-    const report = observed()
-    const told   = story()
-    drawn(told)
-    await flushPromises()
+    const { report, told } = await observed()
     window.dispatchEvent(new Event('scroll'))
     window.dispatchEvent(new Event('beforeprint'))
     expect(told.settle).toHaveBeenCalledTimes(2)

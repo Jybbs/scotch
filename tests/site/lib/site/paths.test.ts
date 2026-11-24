@@ -7,16 +7,13 @@ import * as paths         from '../../../../docs/.vitepress/lib/site/paths.ts'
 import { MANIFEST, test } from '../../common/repo.ts'
 
 describe('the paths under the repository', () => {
-  test.for([
+  test.for<[string, string, (metaUrl: string) => string]>([
+    ['cacheDir', '.cache/vitepress', metaUrl => paths.cacheDir(metaUrl, 'vitepress')],
     ['docsDir', 'docs', paths.docsDir],
     ['pagesDir', 'docs/pages', paths.pagesDir],
     ['publicDir', 'docs/public', paths.publicDir]
-  ] as const)('names %s as %s under the root', ([, folder, folderOf], { repo }) => {
+  ])('names %s as %s under the root', ([, folder, folderOf], { repo }) => {
     expect(folderOf(repo.metaUrl)).toBe(path.join(repo.root, folder))
-  })
-
-  test("names a cache folder under the root's .cache", ({ repo }) => {
-    expect(paths.cacheDir(repo.metaUrl, 'vitepress')).toBe(path.join(repo.root, '.cache', 'vitepress'))
   })
 
   test('finds the root at the nearest directory above the module holding a manifest', ({ repo }) => {

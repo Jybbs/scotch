@@ -302,25 +302,6 @@ def test_an_edit_raises_where_the_file_spells_no_version_beside_its_name(
         ).apply(tmp_path)
 
 
-def test_an_edit_writing_the_version_a_file_holds_leaves_it_as_it_stood(tmp_path: Path):
-    """
-    Asserts that an edit writing the version the file already pins, as the
-    restatement of a minor a patch lift leaves in place does, raises nothing
-    and leaves the file's bytes as they stood.
-    """
-    (tmp_path / "pyproject.toml").write_text('target-version = "3.14"\n')
-    edit = Edit(
-        name     = "target-version",
-        path     = Path("pyproject.toml"),
-        spelling = Spelling.ASSIGNMENT,
-        version  = "3.14"
-    )
-
-    edit.apply(tmp_path)
-
-    assert (tmp_path / "pyproject.toml").read_text() == 'target-version = "3.14"\n'
-
-
 def test_an_empty_report_says_every_pin_stands_at_its_newest_release():
     """
     Asserts that a report listing no lift prints one line saying so in place
@@ -509,6 +490,12 @@ def test_an_edit_reads_back_as_the_version_it_writes(
             'wasm-bindgen = { optional = true, version = "=0.2.130" }\n',
             'wasm-bindgen = { optional = true, version = "=0.2.131" }\n',
             id = "exact-requirement"
+        ),
+        param(
+            "target-version",
+            'target-version = "0.2.131"\n',
+            'target-version = "0.2.131"\n',
+            id = "version-already-held"
         )
     ]
 )
@@ -521,7 +508,9 @@ def test_an_assignment_reaches_a_quoted_key_and_an_inline_table(
     """
     Asserts that a TOML assignment finds the version beside a quoted key and
     the `version` of an inline table, keeping the operator an exact Cargo
-    requirement opens on.
+    requirement opens on, and that writing the version the file already
+    pins, as the restatement of a minor a patch lift leaves in place does,
+    raises nothing and leaves the file's bytes as they stood.
     """
     (tmp_path / "config.toml").write_text(before)
 
