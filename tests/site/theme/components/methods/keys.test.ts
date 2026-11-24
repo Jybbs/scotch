@@ -133,6 +133,40 @@ describe('Keys as stepped', () => {
   })
 })
 
+describe('Keys on a wide page', () => {
+  it('sets the board beside the sum and its note, above the en passant box', () => {
+    const wrapper = still()
+    expect(wrapper.classes()).toContain('@container')
+    const card = wrapper.get('[class*="grid-template-areas"]')
+    expect(card.classes()).toEqual(expect.arrayContaining([
+      'lg:gap-x-4',
+      'lg:grid-cols-[minmax(min-content,1fr)_minmax(0,14rem)]',
+      'lg:grid-rows-[auto_auto_auto_1fr_auto]',
+      'lg:[grid-template-areas:"status_status"_"goal_goal"_"key_board"_"chain_board"_"end_end"]'
+    ]))
+    expect([...card.element.children].map(part => /\[grid-area:(\w+)\]/u.exec(part.className)?.[1]))
+      .toEqual(['status', 'goal', 'key', 'board', 'chain', 'end'])
+  })
+
+  it.each([
+    ['digit', '[role=img] [aria-hidden] > span', ['lg:w-[9px]', 'lg:@min-[680px]:w-[11px]']],
+    ['key', '[role=img]', ['lg:gap-x-[5px]', 'lg:@min-[680px]:gap-x-[7px]']],
+    ['row', '[class*="sm:grid-cols-[13.5rem_auto]"]', ['lg:grid-cols-[12rem_auto]', 'lg:gap-x-1.5']]
+  ])('narrows every %s of the sum', (_, parts, narrowed) => {
+    const drawn = still()
+      .findAll(`[class*="[grid-area:key]"] ${parts}`)
+      .map(part => part.classes())
+    expect(drawn).toAllEqual(expect.arrayContaining(narrowed))
+  })
+
+  it('holds the label of every number at its full width, whatever face draws its sign', () => {
+    const heads = still()
+      .findAll('[class*="[grid-area:key]"] [class*="sm:grid-cols-[13.5rem_auto]"] > span')
+      .filter(head => head.text().startsWith('⊕'))
+    expect(heads.map(head => head.classes())).toAllEqual(expect.arrayContaining(['lg:*:shrink-0']))
+  })
+})
+
 describe('Keys with the en passant file', () => {
   it('washes d6 as the capture square on the free board and as left out on the pinned one', async () => {
     const wrapper = still()
