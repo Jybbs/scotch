@@ -173,10 +173,7 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         Reads the `Date` tag as the number `YYYYMMDD`, a part it leaves
         unknown as 0, so a later date reads as a larger number.
         """
-        year, month, day = (
-            int(part) if part.isdecimal() else 0
-            for part in f"{self.tags['Date']}..".split(".")[:3]
-        )
+        year, month, day = map(self.part, f"{self.tags['Date']}..".split(".")[:3])
 
         return min(year, 9999) * 10000 + min(month, 99) * 100 + min(day, 99)
 
@@ -458,6 +455,18 @@ class Game(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
                 moves  = map(Move.from_uci, moves),
                 tags   = frozendict(tags)
             )
+
+    @staticmethod
+    def part(text: str) -> int:
+        """
+        Reads one part of a `Date` tag as its number, or as 0 where the
+        part is not a number or holds more digits than `int` converts, per
+        `sys.get_int_max_str_digits`.
+        """
+        try:
+            return int(text) if text.isdecimal() else 0
+        except ValueError:
+            return 0
 
     @classmethod
     def read(cls, path: Traversable) -> Iterator[Self]:
