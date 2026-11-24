@@ -402,7 +402,7 @@ def test_audit_names_each_tool_mise_audit_could_not_check(
     """
     pinned      = {"swift": "6.4.3", "rust": "1.100.0"}
     source      = {"path": "%s/.mise/config.toml"}
-    swift, rust = (report(unchecked=(f"{t}@{v}",)) for t, v in pinned.items())
+    swift, rust = (report(unchecked=("@".join(pin),)) for pin in pinned.items())
     result      = scratch.run(
         "audit",
         mise = mise(
@@ -410,7 +410,8 @@ def test_audit_names_each_tool_mise_audit_could_not_check(
                 f"case $3 in python@*) echo {report(*advisories)}; exit {status};; "
                 f"swift@*) echo {swift};; *) echo {rust};; esac",
             tools = TOOLS | {
-                t: [{"version": v, "source": source}] for t, v in pinned.items()
+                tool: [{"version": version, "source": source}]
+                for tool, version in pinned.items()
             }
         )
     )
@@ -486,19 +487,28 @@ def test_audit_sets_aside_each_tool_advisory_naming_no_fixed_release(
         param(
             "",
             vulnerability("3.15.3", "3.14.11"),
-            f"{CVE} affects python 3.15.2 and is fixed in python 3.15.3 or 3.14.11",
+            (
+                f"{CVE} affects python 3.15.2 and is fixed in python 3.15.3 or "
+                "3.14.11, so lift python in .mise/config.toml to a fixed release"
+            ),
             id = "unlisted-fixed"
         ),
         param(
             CVE,
             vulnerability("3.15.3"),
-            f"{CVE} is fixed in python 3.15.3, so delete it from AUDIT_IGNORE",
+            (
+                f"{CVE} is fixed in python 3.15.3, so delete it from AUDIT_IGNORE "
+                "in .mise/config.toml and lift python to a fixed release"
+            ),
             id = "listed-fixed"
         ),
         param(
             ALIAS,
             vulnerability("3.15.3", aliases=(ALIAS,)),
-            f"{CVE} is fixed in python 3.15.3, so delete it from AUDIT_IGNORE",
+            (
+                f"{CVE} is fixed in python 3.15.3, so delete it from AUDIT_IGNORE "
+                "in .mise/config.toml and lift python to a fixed release"
+            ),
             id = "listed-alias-fixed"
         )
     ]
