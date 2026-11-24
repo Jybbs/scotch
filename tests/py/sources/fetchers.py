@@ -19,34 +19,45 @@ from scotch.sources.fetchers import Fetcher
 from scotch.sources.schemas  import Source
 
 
+@mark.parametrize(
+    "error",
+    [
+        param(ChunkedEncodingError("connection dropped"), id="dropped"),
+        param(KeyboardInterrupt(), id="interrupted")
+    ]
+)
 def test_a_download_cut_off_partway_leaves_the_earlier_download_as_it_stood(
+    error       : BaseException,
     fetcher     : Fetcher,
     monkeypatch : MonkeyPatch,
     served      : Source,
     web         : RequestsMock
 ):
     """
-    Asserts that a download whose connection drops partway through raises
-    `ChunkedEncodingError` and leaves the file an earlier fetch wrote at its
-    path holding the bytes it held.
+    Asserts that a download stopped partway through by a dropped connection
+    or by an interrupt raises that error and leaves the file an earlier
+    fetch wrote at its path holding the bytes it held, with no partial file
+    beside it.
     """
     fetcher.fetch(served, known=None)
     serve(str(served.address), b"more games", web=web)
 
     def cut(*_: object) -> Iterator[bytes]:
         """
-        Yields the first bytes of the body, then raises as a dropped
-        connection does.
+        Yields the first bytes of the body, then raises `error`.
         """
         yield b"more"
-        raise ChunkedEncodingError("connection dropped")
+        raise error
 
     monkeypatch.setattr(Response, "iter_content", cut)
 
-    with raises(ChunkedEncodingError):
+    with raises(type(error)):
         fetcher.fetch(served, known=None)
 
     assert served.path(fetcher.directory).read_bytes() == b"games"
+    assert [path.name for path in served.path(fetcher.directory).parent.iterdir()] == [
+        "Adams.zip"
+    ]
 
 
 def test_a_file_the_server_changed_is_fetched_again(

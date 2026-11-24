@@ -14,6 +14,7 @@ from requests.adapters  import HTTPAdapter
 from urllib3.util       import Retry
 
 from scotch.sources.schemas import Download, Source
+from scotch.sources.writers import replaced
 
 
 class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -70,18 +71,19 @@ class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
     def fetch(self, source: Source, *, known: Download | None) -> Download:
         """
-        Downloads the file `source` declares to the path `Source.path` names
-        under `directory`, writing it beside that path first and moving
-        it into place once whole. Where `known` records the file sitting
-        there under an entity tag, the request sends that tag through
-        `If-None-Match`, and a server answering 304 Not Modified leaves the
-        file as it stands.
+        Downloads the file `source` declares to the path `Source.path`
+        names under `directory` through `replaced`, so a download cut off
+        partway leaves the earlier file as it stood and nothing beside it.
+        Where `known` records the file sitting there under an entity tag,
+        the request sends that tag through `If-None-Match`, and a server
+        answering 304 Not Modified leaves the file as it stands.
 
         Returns:
             The download the manifest records for the file, which is `known`
             itself where the server reported the file unchanged.
 
         Raises:
+            OSError:                   Where the file cannot be written.
             requests.RequestException: Where the request fails once every
                                        retry has, where the connection
                                        breaks while the body downloads,
@@ -102,10 +104,6 @@ class Fetcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             if response.status_code == HTTPStatus.NOT_MODIFIED:
                 return known
 
-            part = path.with_name(f"{path.name}.part")
-            part.parent.mkdir(exist_ok=True, parents=True)
+            replaced(response.iter_content(DEFAULT_BUFFER_SIZE), path)
 
-            with part.open("wb") as handle:
-                handle.writelines(response.iter_content(DEFAULT_BUFFER_SIZE))
-
-        return Download.from_file(part.replace(path), etag=response.headers.get("ETag"))
+        return Download.from_file(path, etag=response.headers.get("ETag"))
