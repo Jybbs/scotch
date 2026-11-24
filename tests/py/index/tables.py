@@ -10,14 +10,15 @@ a published store holds.
 from collections       import Counter
 from collections.abc   import Callable
 from common.games      import KNOWN, line
-from common.sources    import declare, land
+from common.sources    import FULL, declare, fill, land
 from hashlib           import sha256
 from itertools         import product, takewhile
 from json              import loads
 from pathlib           import Path
 from polars            import DataFrame, read_parquet
 from polars.exceptions import SchemaError
-from pytest            import mark, param, raises
+from pytest            import MonkeyPatch, mark, param, raises
+from re                import escape
 from zlib              import decompressobj
 
 from scotch.games.schemas import Game, Origin
@@ -231,6 +232,43 @@ def test_a_game_two_batches_repeat_is_indexed_once_under_the_first(tmp_path: Pat
         ("1", "https://example.com/First.pgn", 1),
         ("2", "https://example.com/Second.pgn", 2)
     ]
+
+
+@mark.parametrize(
+    ("named", "landed"),
+    [
+        param("", False, id="store-file"),
+        param("manifest.json", True, id="manifest")
+    ]
+)
+def test_a_publish_cut_off_partway_leaves_the_earlier_store_readable(
+    index       : PositionIndex,
+    landed      : bool,
+    monkeypatch : MonkeyPatch,
+    named       : str,
+    stored      : list[Game],
+    tmp_path    : Path
+):
+    """
+    Asserts that a publish of another index whose write stops partway on
+    a full disk, at its store's file or at its manifest, raises the disk's
+    `OSError` and leaves the store published before it as it stood, its
+    manifest naming its file, beside nothing but the new file where that one
+    landed whole.
+    """
+    path    = index.publish(tmp_path / "store")
+    smaller = PositionIndex.build(stored[:1])
+    later   = smaller.publish(tmp_path / "later")
+    earlier = {file.name: file.read_bytes() for file in path.parent.iterdir()}
+    fill(monkeypatch, named)
+
+    with raises(OSError, match=escape(str(FULL))):
+        smaller.publish(path.parent)
+
+    assert {file.name: file.read_bytes() for file in path.parent.iterdir()} == (
+        earlier | ({later.name: later.read_bytes()} if landed else {})
+    )
+    assert loads((path.parent / "manifest.json").read_text())["store"] == path.name
 
 
 def test_a_published_store_holds_each_piece_and_the_tags_of_its_games(

@@ -7,7 +7,7 @@ Each command the help of `scotch` lists takes a section below, save `scotch cite
 
 Downloads each file `sources.toml` declares into the `downloads` folder of the data directory, in a folder named for the host of its address, and records each one in the `manifest.json` beside them. A file the manifest records is fetched again where the server reports it changed since, where the copy on disk no longer holds the bytes recorded, or where the server sent it with no entity tag to ask about.
 
-Prints one line per file, naming it as fetched or as unchanged, and exits nonzero naming the file and the error where the server answers with an error status, where a request fails once every retry has, or where the connection breaks while the file downloads, which no retry covers.
+Prints one line per file, naming it as fetched or as unchanged, and exits nonzero naming the file and the error where the server answers with an error status, where a request fails once every retry has, where the connection breaks while the file downloads, which no retry covers, or where the file cannot be written, leaving no partial file behind.
 
 ```text
 scotch fetch games

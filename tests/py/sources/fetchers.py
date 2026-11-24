@@ -28,7 +28,7 @@ def test_a_download_cut_off_partway_leaves_the_earlier_download_as_it_stood(
     """
     Asserts that a download whose connection drops partway through raises
     `ChunkedEncodingError` and leaves the file an earlier fetch wrote at its
-    path holding the bytes it held.
+    path holding the bytes it held, with no partial file beside it.
     """
     fetcher.fetch(served, known=None)
     serve(str(served.address), b"more games", web=web)
@@ -47,6 +47,9 @@ def test_a_download_cut_off_partway_leaves_the_earlier_download_as_it_stood(
         fetcher.fetch(served, known=None)
 
     assert served.path(fetcher.directory).read_bytes() == b"games"
+    assert [path.name for path in served.path(fetcher.directory).parent.iterdir()] == [
+        "Adams.zip"
+    ]
 
 
 def test_a_file_the_server_changed_is_fetched_again(

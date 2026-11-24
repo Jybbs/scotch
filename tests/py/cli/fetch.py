@@ -7,7 +7,7 @@ nonzero.
 
 from collections.abc import Callable
 from common.app      import invoke
-from common.sources  import serve
+from common.sources  import FULL, fill, serve
 from pathlib         import Path
 from pytest          import CaptureFixture, MonkeyPatch, mark
 from responses       import RequestsMock
@@ -34,6 +34,27 @@ def test_a_failed_request_exits_naming_the_file_and_keeps_the_ones_before(
         " Not Found for url: https://example.com/players/B.zip"
     )
     assert list(Manifest.read(data / "downloads").downloads) == [first.address]
+
+
+def test_a_failed_write_exits_naming_the_file_and_leaves_no_partial_file(
+    data        : Path,
+    declared    : Callable[..., tuple[Source, ...]],
+    monkeypatch : MonkeyPatch,
+    web         : RequestsMock
+):
+    """
+    Asserts that a fetch whose download stops partway on a full disk exits
+    nonzero naming its address and the error, as a failed request does,
+    leaving no partial file beside where it would land.
+    """
+    serve("https://example.com/players/A.zip", b"a", web=web)
+    [source] = declared("players/A.zip")
+    fill(monkeypatch)
+
+    assert invoke("fetch", "games") == (
+        f"Could not fetch https://example.com/players/A.zip: {FULL}"
+    )
+    assert not any(source.path(data / "downloads").parent.iterdir())
 
 
 def test_a_fetch_prints_each_file_and_records_it_beside_them(

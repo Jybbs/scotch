@@ -7,12 +7,12 @@ Pins the records describing the store's sources:
 - What a `Download` and the `Manifest` of them record
 """
 
-from common.sources import declare, land, zipped
+from common.sources import FULL, declare, fill, land, zipped
 from datetime       import timedelta
 from hashlib        import sha256
 from pathlib        import Path
 from pydantic       import ValidationError
-from pytest         import Subtests, mark, param, raises
+from pytest         import MonkeyPatch, Subtests, mark, param, raises
 from re             import escape
 
 from scotch.games.schemas   import Origin
@@ -99,6 +99,30 @@ def test_a_manifest_records_a_download_again_in_its_first_place(tmp_path: Path):
 
     assert manifest.downloads == {first: new, second: old}
     assert manifest.digests == {first: new.sha256, second: old.sha256}
+
+
+def test_a_manifest_write_cut_off_partway_leaves_the_earlier_manifest_whole(
+    monkeypatch : MonkeyPatch,
+    tmp_path    : Path
+):
+    """
+    Asserts that a manifest whose write stops partway on a full disk raises
+    the disk's `OSError` and leaves the `manifest.json` written before it
+    reading back whole, with no other file beside it.
+    """
+    (tmp_path / "file.zip").write_bytes(b"games")
+    download = Download.from_file(tmp_path / "file.zip", etag='"tag"')
+    earlier  = Manifest().recording(declare("first.zip").address, download)
+    earlier.write(tmp_path)
+    fill(monkeypatch)
+
+    with raises(OSError, match=escape(str(FULL))):
+        earlier.recording(declare("second.zip").address, download).write(tmp_path)
+
+    assert Manifest.read(tmp_path) == earlier
+    assert sorted(path.name for path in tmp_path.iterdir()) == [
+        "file.zip", "manifest.json"
+    ]
 
 
 def test_a_missing_manifest_reads_as_empty(tmp_path: Path):
