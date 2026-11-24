@@ -44,12 +44,9 @@ describe('leadOf', () => {
     ['# T\n\nA [link](other.md) and a citation.[^zobrist1970]', 'A link and a citation.'],
     ['# T\n\nNo closing stop', 'No closing stop'],
     ['# T\n\n```bash\ncode\n```\n\nAfter the code.', 'After the code.'],
-    ['# T\n\nThe line\nwraps here.', 'The line wraps here.']
+    ['# T\n\nThe line\nwraps here.', 'The line wraps here.'],
+    ['# T\n\n<!-- region -->\n', undefined]
   ])('reads %j as %j', (markdown, lead) => {
     expect(leadOf(markdown)).toBe(lead)
-  })
-
-  it('finds no lead on a page opening on no paragraph', () => {
-    expect(leadOf('# T\n\n<!-- region -->\n')).toBeUndefined()
   })
 })

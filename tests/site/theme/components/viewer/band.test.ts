@@ -166,41 +166,20 @@ describe('Band taking a file', () => {
 })
 
 describe('Band taking a game in PGN', () => {
-  it('sends a game typed into the entry once Enter is pressed', async () => {
-    const wrapper = mounted()
-    const field   = wrapper.find('textarea[placeholder]')
-    await field.setValue('1. e4 *')
-    await field.trigger('keydown', { key: 'Enter' })
-    expect(wrapper.emitted('pgn')).toEqual([['1. e4 *', 'the pasted game']])
-  })
-
   it.each([
-    ['Shift and Enter', '1. e4 *', { key: 'Enter', shiftKey: true }],
-    ['Enter ending a composition', '1. e4 *', { isComposing: true, key: 'Enter' }],
-    ['another key', '1. e4 *', { key: 'a' }],
-    ['Enter on an empty entry', '  ', { key: 'Enter' }]
-  ])('sends nothing for %s', async (_, text, key) => {
+    ['a game on pressing Enter', '1. e4 *', 'keydown', { key: 'Enter' }, [['1. e4 *', 'the pasted game']]],
+    ['a game pasted', '1. d4 *', 'input', { inputType: 'insertFromPaste' }, [['1. d4 *', 'the pasted game']]],
+    ['nothing for text typed', '1. d4 *', 'input', { inputType: 'insertText' }, undefined],
+    ['nothing on Shift and Enter', '1. e4 *', 'keydown', { key: 'Enter', shiftKey: true }, undefined],
+    ['nothing on Enter in composition', '1. e4 *', 'keydown', { isComposing: true, key: 'Enter' }, undefined],
+    ['nothing on another key', '1. e4 *', 'keydown', { key: 'a' }, undefined],
+    ['nothing on Enter in an empty entry', '  ', 'keydown', { key: 'Enter' }, undefined]
+  ])('sends %s', async (_, text, event, ending, sent) => {
     const wrapper = mounted()
     const field   = wrapper.find('textarea[placeholder]')
     await field.setValue(text)
-    await field.trigger('keydown', key)
-    expect(wrapper.emitted('pgn')).toBeUndefined()
-  })
-
-  it('sends a game pasted into the entry once the paste lands', async () => {
-    const wrapper = mounted()
-    const field   = wrapper.find('textarea[placeholder]')
-    await field.setValue('1. d4 *')
-    await field.trigger('input', { inputType: 'insertFromPaste' })
-    expect(wrapper.emitted('pgn')).toEqual([['1. d4 *', 'the pasted game']])
-  })
-
-  it('sends nothing for text typed into the entry', async () => {
-    const wrapper = mounted()
-    const field   = wrapper.find('textarea[placeholder]')
-    await field.setValue('1. d4 *')
-    await field.trigger('input', { inputType: 'insertText' })
-    expect(wrapper.emitted('pgn')).toBeUndefined()
+    await field.trigger(event, ending)
+    expect(wrapper.emitted('pgn')).toEqual(sent)
   })
 
   it('sends a game file picked, naming the file it came from', async () => {

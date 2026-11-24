@@ -208,13 +208,19 @@ describe('Ledger’s threads', () => {
 })
 
 describe('Ledger’s scroll', () => {
-  it('scrolls the cursor’s row a third of the way down its box once measured', () => {
+  it.each([
+    [
+      'scrolls the cursor’s row a third of the way down its box once measured',
+      60,
+      24 * Math.round(((rowAt(60, 0) + 1) * 24 - 80) / 24)
+    ],
+    ['holds the last rows at the foot of its box', loaded.last, 1200 - 240]
+  ])('%s', (_, cursor, top) => {
     const { painted, resize } = mounted()
     painted.load()
     resize()
-    painted.paint(60, false)
-    expect(Element.prototype.scrollTo)
-      .toHaveBeenLastCalledWith({ behavior: 'auto', top: 24 * Math.round(((rowAt(60, 0) + 1) * 24 - 80) / 24) })
+    painted.paint(cursor, false)
+    expect(Element.prototype.scrollTo).toHaveBeenLastCalledWith({ behavior: 'auto', top })
   })
 
   it('glides the box on a glide, and scrolls it no further for a step keeping the same row', () => {
@@ -225,14 +231,6 @@ describe('Ledger’s scroll', () => {
     painted.paint(62, true)
     expect(Element.prototype.scrollTo).toHaveBeenCalledOnce()
     expect(Element.prototype.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }))
-  })
-
-  it('holds the last rows at the foot of its box', () => {
-    const { painted, resize } = mounted()
-    painted.load()
-    resize()
-    painted.paint(loaded.last, false)
-    expect(Element.prototype.scrollTo).toHaveBeenLastCalledWith({ behavior: 'auto', top: 1200 - 240 })
   })
 
   it('scrolls nothing while its box is hidden, then scrolls to the row last asked for once shown', () => {

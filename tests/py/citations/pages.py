@@ -151,32 +151,42 @@ def test_cited_sets_each_definition_in_the_order_first_cited(references: Referen
 
 
 @mark.parametrize(
-    ("blanks", "line"),
+    ("ahead", "between", "mismatches"),
     [
-        param(2, 5, id="one-blank-line-too-many"),
-        param(0, 4, id="one-blank-line-too-few")
+        param(1, 2, [Mismatch(line=5)], id="one-blank-line-too-many"),
+        param(1, 0, [Mismatch(line=4)], id="one-blank-line-too-few"),
+        param(
+            2,
+            2,
+            [Mismatch(line=2), Mismatch(line=6)],
+            id = "one-too-many-in-two-places"
+        )
     ]
 )
-def test_a_change_to_the_blank_lines_between_definitions_names_no_source(
-    blanks     : int,
-    line       : int,
+def test_each_change_to_the_blank_lines_around_definitions_names_no_source(
+    ahead      : int,
+    between    : int,
+    mismatches : list[Mismatch],
     references : References
 ):
     """
-    Asserts that a blank line added or dropped between two definitions is
-    one mismatch naming no source, although the parser reads the blank lines
-    after a definition as part of it.
+    Asserts that each blank line added or dropped ahead of the first
+    definition or between two definitions is one mismatch naming no source,
+    at its own line, although the parser reads the blank lines after a
+    definition as part of it.
     """
     doe, fide = (references.references[key].definition for key in (
         "doe2020", "fide2023"
     ))
     text = (
-        f"A claim.[^doe2020] Another.[^fide2023]\n\n{doe}\n"
-        + "\n" * blanks
+        "A claim.[^doe2020] Another.[^fide2023]\n"
+        + "\n" * ahead
+        + f"{doe}\n"
+        + "\n" * between
         + f"{fide}\n"
     )
 
-    assert Page(text=text).drifted(references) == [Mismatch(line=line)]
+    assert Page(text=text).drifted(references) == mismatches
 
 
 @mark.parametrize(
@@ -223,20 +233,6 @@ def test_a_drifted_page_names_each_line_that_differs(
     blank lines alone as one mismatch naming no source.
     """
     assert Page(text=text).drifted(references) == mismatches
-
-
-def test_two_changes_to_the_blank_lines_are_two_mismatches(references: References):
-    """
-    Asserts that a blank line added ahead of the first definition and one
-    added between the two are each a mismatch naming no source, at its own
-    line.
-    """
-    doe, fide = (references.references[key].definition for key in (
-        "doe2020", "fide2023"
-    ))
-    text = f"A claim.[^doe2020] Another.[^fide2023]\n\n\n{doe}\n\n\n{fide}\n"
-
-    assert Page(text=text).drifted(references) == [Mismatch(line=2), Mismatch(line=6)]
 
 
 @mark.parametrize(

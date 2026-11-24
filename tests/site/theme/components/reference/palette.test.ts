@@ -5,7 +5,7 @@ import { describe, expect, vi }             from 'vitest'
 import { hexOf }        from '../../../../../docs/.vitepress/lib/identity/tokens.ts'
 import * as lib         from '../../../../../docs/.vitepress/lib/reference/palette.ts'
 import { Palette }      from '../../../../../docs/.vitepress/theme/components/reference/palette.ts'
-import { test }         from '../../../common/clock.ts'
+import { test as base } from '../../../common/clock.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 import { resized }      from '../../../common/size.ts'
 import { onScreen }     from '../../../common/unfold.ts'
@@ -16,6 +16,18 @@ vi.mock('@vueuse/core', async original => ({
 }))
 
 const held = (at: number): number => lib.heldOf(lib.TOKENS[at]!, 'page', 'light')
+
+/**
+ * Extends the clock's `test` with a `still` fixture, the drawing mounted for a
+ * reader who prefers reduced motion, every timer it starts run.
+ */
+const test = base.extend('still', ({ clock }) => {
+  onScreen()
+  reduceMotion()
+  const drawn = mount(Palette)
+  clock.runAllTimers()
+  return drawn
+})
 
 describe('Palette', () => {
   test('sets a square per color, the first picked, its hex written on it', ({ clock }) => {
@@ -28,15 +40,11 @@ describe('Palette', () => {
     expect(squares[0]!.attributes('aria-pressed')).toBe('true')
   })
 
-  test("shows a picked color's card and each of its ratios on the grounds", async ({ clock }) => {
-    onScreen()
-    reduceMotion()
-    const drawn = mount(Palette)
-    clock.runAllTimers()
-    await drawn.findAll('button')[4]!.trigger('click')
+  test("shows a picked color's card and each of its ratios on the grounds", async ({ still }) => {
+    await still.findAll('button')[4]!.trigger('click')
     await flushPromises()
-    expect(drawn.find('[data-at] small').text()).toContain(hexOf(lib.TOKENS[4]!))
-    expect(drawn.findAll('b')[0]!.text()).toBe(held(4).toFixed(2))
+    expect(still.find('[data-at] small').text()).toContain(hexOf(lib.TOKENS[4]!))
+    expect(still.findAll('b')[0]!.text()).toBe(held(4).toFixed(2))
   })
 
   test('reserves the widest ratio beside each level, so a count moves nothing', ({ clock }) => {
@@ -88,24 +96,16 @@ describe('Palette, as it unfolds', () => {
     expect(new DOMWrapper(drawn.element.children[1]!).attributes('data-off')).toBeUndefined()
   })
 
-  test('states every value at once for a reader who prefers reduced motion', async ({ clock }) => {
-    reduceMotion()
-    onScreen()
-    const drawn = mount(Palette)
-    clock.runAllTimers()
+  test('states every value at once for a reader who prefers reduced motion', async ({ still }) => {
     await flushPromises()
-    expect(new DOMWrapper(drawn.element.children[1]!).attributes('data-off')).toBeUndefined()
-    expect(drawn.findAll('b')[0]!.text()).toBe(held(0).toFixed(2))
+    expect(new DOMWrapper(still.element.children[1]!).attributes('data-off')).toBeUndefined()
+    expect(still.findAll('b')[0]!.text()).toBe(held(0).toFixed(2))
   })
 
-  test('names a chart series only where a color no role takes is one', async ({ clock }) => {
-    onScreen()
-    reduceMotion()
-    const drawn = mount(Palette)
-    clock.runAllTimers()
-    expect(drawn.text()).toContain('No role, a chart series')
-    await drawn.findAll('button')[lib.TOKENS.indexOf('warning')]!.trigger('click')
+  test('names a chart series only where a color no role takes is one', async ({ still }) => {
+    expect(still.text()).toContain('No role, a chart series')
+    await still.findAll('button')[lib.TOKENS.indexOf('warning')]!.trigger('click')
     await flushPromises()
-    expect(drawn.find('[data-at] code').text()).toBe('No role')
+    expect(still.find('[data-at] code').text()).toBe('No role')
   })
 })

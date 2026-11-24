@@ -45,6 +45,25 @@ def marked(*names: str) -> str:
     return "".join(f"<!-- {name} -->\n<!-- /{name} -->\n\n" for name in names)
 
 
+def measured() -> dict[str, str]:
+    """
+    Writes the pages an index fills a whole region of, as they stand before
+    their first render.
+    """
+    return {
+        "data/lengths.md"       : marked("lengths", "outcomes"),
+        "data/omitted.md"       : marked("floors", "ledger"),
+        "data/shared.md"        : marked("crowding", "parting", "partings"),
+        "data/tags.md"          : marked("carried", "dated", "order"),
+        "guide/matching.md"     : marked("gloss"),
+        "guide/store.md"        : marked("archives"),
+        "guide/studying.md"     : marked(*(f"run-{run}" for run in STUDIED)),
+        "identity/palette.md"   : marked("series"),
+        "methods/reading.md"    : marked("illegal"),
+        "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS))
+    }
+
+
 def test_an_index_adds_the_files_written_from_it(
     checkout    : Callable[..., Path],
     monkeypatch : MonkeyPatch,
@@ -98,21 +117,8 @@ def test_an_index_adds_the_files_written_from_it(
         for place, game in enumerate(stored, start=1)
     )
     pages = {
+        **measured(),
         "data/index.md": "<!-- decades -->\n<!-- /decades -->\n",
-
-        "data/lengths.md": "<!-- lengths -->\n<!-- /lengths -->\n\n"
-                           "<!-- outcomes -->\n<!-- /outcomes -->\n",
-
-        "data/omitted.md": "<!-- floors -->\n<!-- /floors -->\n\n"
-                           "<!-- ledger -->\n<!-- /ledger -->\n",
-
-        "data/shared.md": "<!-- crowding -->\n<!-- /crowding -->\n\n"
-                          "<!-- parting -->\n<!-- /parting -->\n\n"
-                          "<!-- partings -->\n<!-- /partings -->\n",
-
-        "data/tags.md": "<!-- carried -->\n<!-- /carried -->\n\n"
-                        "<!-- dated -->\n<!-- /dated -->\n\n"
-                        "<!-- order -->\n<!-- /order -->\n",
 
         "guide/index.md": (
             "Holds <!-- games -->0<!-- /games --> games and"
@@ -125,12 +131,7 @@ def test_an_index_adds_the_files_written_from_it(
             " <!-- index-size -->0 bytes<!-- /index-size -->.\n"
         ),
 
-        "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
-        "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
-        "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
-        "methods/reading.md"    : marked("illegal"),
-        "reference/match.md"    : "Runs to <!-- link -->0<!-- /link --> characters.\n",
-        **walked()
+        "reference/match.md": "Runs to <!-- link -->0<!-- /link --> characters.\n"
     }
     readme   = Path(".github/README.md")
     root     = checkout(pages)
@@ -139,9 +140,9 @@ def test_an_index_adds_the_files_written_from_it(
     (settings.downloads / "players").mkdir(parents=True)
     (settings.downloads / "players/Kasparov.zip").write_bytes(bytes(1_500))
 
-    measured = Outputs.measured(index, tracked(root), readme, root, settings)
+    outputs = Outputs.measured(index, tracked(root), readme, root, settings)
 
-    assert [(type(output), str(output.path)) for output in measured] == [
+    assert [(type(output), str(output.path)) for output in outputs] == [
         (Document, "docs/.vitepress/lib/rendered/examples.json"),
         (Document, "docs/public/matches/demo.json"),
         (Document, "docs/.vitepress/lib/rendered/files.json"),
@@ -168,10 +169,10 @@ def test_an_index_adds_the_files_written_from_it(
         *((Figures, f"docs/pages/{page}") for page in sorted(pages))
     ]
     assert len(Outputs.shipped(app, readme, root, index, settings).root) == (
-        len(Outputs.shipped(app, readme, root).root) + len(measured)
+        len(Outputs.shipped(app, readme, root).root) + len(outputs)
     )
 
-    for output in measured:
+    for output in outputs:
         if output.path != Path(".github/README.md"):
             output.write(root)
 
@@ -247,6 +248,141 @@ def test_an_index_adds_the_files_written_from_it(
         "guide/setup.md"
     ]
     assert "<!-- index-size -->0 bytes<!-- /index-size -->" in text["guide/setup.md"]
+
+
+@mark.parametrize(
+    ("played", "sentence"),
+    [
+        param(
+            [("e4", {"Date": "2000.01.02", "Result": "1-0"})],
+            "From the <!-- earliest -->2000s<!-- /earliest -->,"
+            " <!-- tied --><!-- /tied --> tie.\n",
+            id = "one-game"
+        ),
+        param(
+            [
+                ("e4", {"Result": "1-0"}),
+                ("d4", {"Result": "0-1"}),
+                ("c4", {"Result": "1/2-1/2"})
+            ],
+            "From the <!-- earliest --><!-- /earliest -->,"
+            " <!-- tied -->100%<!-- /tied --> tie.\n",
+            id = "no-dated-game"
+        )
+    ]
+)
+def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
+    checkout : Callable[..., Path],
+    played   : list[tuple[str, dict[str, str]]],
+    scanned  : Callable[[Iterable[Game]], PositionIndex],
+    sentence : str
+):
+    """
+    Asserts that an index of one game, which no other stored game meets
+    and which ends in one result, and an index of no dated game each render
+    every file written from them, leaving empty each figure the index holds
+    no value for.
+    """
+    index = scanned(
+        line(
+            san,
+            origin = Origin(address="https://example.com/Mine.zip", place=place),
+            **tags
+        )
+        for place, (san, tags) in enumerate(played, start=1)
+    )
+    readme = Path(".github/README.md")
+    root   = checkout(
+        {
+            **measured(),
+            "data/index.md": (
+                "<!-- decades -->\n<!-- /decades -->\n\nFrom the"
+                " <!-- earliest -->1740s<!-- /earliest -->,"
+                " <!-- tied -->47%<!-- /tied --> tie.\n"
+            )
+        }
+    )
+
+    for output in Outputs.measured(
+        index,
+        tracked(root),
+        readme,
+        root,
+        Settings.model_construct(data=root / ".cache/data")
+    ):
+        if output.path != readme:
+            output.write(root)
+
+    assert (root / "docs/pages/data/index.md").read_text().endswith(sentence)
+    assert (root / "docs/pages/methods/reading.md").read_text() == (
+        "<!-- illegal -->\n\n<!-- /illegal -->\n\n"
+    )
+
+
+@mark.parametrize(
+    "argv",
+    [
+        param(("match", "game", str(Outputs.demo.path), "--top", "1"), id="match-game"),
+        param(("match", "games", str(Outputs.demo.path)), id="match-games"),
+        param(
+            ("match", "game", str(Outputs.demo.path), "--plies", str(Outputs.plies)),
+            id = "match-game-plies"
+        ),
+        param(("show", "game", "players/Kasparov.zip:1"), id="show-game"),
+        param(
+            ("show", "position", "1.", "Nf3", "Nf6", "2.", "c4", "--top", "1"),
+            id = "show-position"
+        )
+    ]
+)
+def test_each_example_run_holds_what_its_command_prints(
+    argv        : tuple[str, ...],
+    capsys      : CaptureFixture[str],
+    checkout    : Callable[..., Path],
+    monkeypatch : MonkeyPatch,
+    scanned     : Callable[[Iterable[Game]], PositionIndex],
+    stored      : list[Game],
+    tally       : Tally
+):
+    """
+    Asserts that the output beneath each example run whose lines the index
+    alone sets is what the command prints against that index.
+    """
+    monkeypatch.setattr(Census, "store", tally)
+    monkeypatch.setattr(Outputs, "position", "1. Nf3 Nf6 2. c4")
+    monkeypatch.setattr(Outputs, "top", 1)
+    index = scanned(
+        game.model_copy(
+            update = {
+                "origin": Origin(
+                    address = "https://www.pgnmentor.com/players/Kasparov.zip",
+                    place   = place
+                )
+            }
+        )
+        for place, game in enumerate(stored, start=1)
+    )
+    root = checkout(measured())
+
+    for output in Outputs.measured(
+        index,
+        tracked(root),
+        Path(".github/README.md"),
+        root,
+        Settings.model_construct(data=root / ".cache/data")
+    ):
+        if output.path in {Outputs.commands, Outputs.guide / "studying.md"}:
+            output.write(root)
+
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(Settings, "opened", lambda _: index)
+    invoke(*argv)
+    pages = "".join(
+        (root / page).read_text()
+        for page in (Outputs.commands, Outputs.guide / "studying.md")
+    )
+
+    assert f"```text\n{capsys.readouterr().out}```" in pages
 
 
 def test_every_declared_output_renders_and_then_holds_its_rendering(
@@ -372,162 +508,6 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     )
 
 
-@mark.parametrize(
-    ("played", "sentence"),
-    [
-        param(
-            [("e4", {"Date": "2000.01.02", "Result": "1-0"})],
-            "From the <!-- earliest -->2000s<!-- /earliest -->,"
-            " <!-- tied --><!-- /tied --> tie.\n",
-            id = "one-game"
-        ),
-        param(
-            [
-                ("e4", {"Result": "1-0"}),
-                ("d4", {"Result": "0-1"}),
-                ("c4", {"Result": "1/2-1/2"})
-            ],
-            "From the <!-- earliest --><!-- /earliest -->,"
-            " <!-- tied -->100%<!-- /tied --> tie.\n",
-            id = "no-dated-game"
-        )
-    ]
-)
-def test_an_index_too_small_for_a_figure_renders_every_file_written_from_it(
-    checkout : Callable[..., Path],
-    played   : list[tuple[str, dict[str, str]]],
-    scanned  : Callable[[Iterable[Game]], PositionIndex],
-    sentence : str
-):
-    """
-    Asserts that an index of one game, which no other stored game meets
-    and which ends in one result, and an index of no dated game each render
-    every file written from them, leaving empty each figure the index holds
-    no value for.
-    """
-    index = scanned(
-        line(
-            san,
-            origin = Origin(address="https://example.com/Mine.zip", place=place),
-            **tags
-        )
-        for place, (san, tags) in enumerate(played, start=1)
-    )
-    readme = Path(".github/README.md")
-    root   = checkout(
-        {
-            "data/index.md": (
-                "<!-- decades -->\n<!-- /decades -->\n\nFrom the"
-                " <!-- earliest -->1740s<!-- /earliest -->,"
-                " <!-- tied -->47%<!-- /tied --> tie.\n"
-            ),
-
-            "data/lengths.md": "<!-- lengths -->\n<!-- /lengths -->\n\n"
-                               "<!-- outcomes -->\n<!-- /outcomes -->\n",
-
-            "data/omitted.md": "<!-- floors -->\n<!-- /floors -->\n\n"
-                               "<!-- ledger -->\n<!-- /ledger -->\n",
-
-            "data/shared.md": "<!-- crowding -->\n<!-- /crowding -->\n\n"
-                              "<!-- parting -->\n<!-- /parting -->\n\n"
-                              "<!-- partings -->\n<!-- /partings -->\n",
-
-            "data/tags.md": "<!-- carried -->\n<!-- /carried -->\n\n"
-                            "<!-- dated -->\n<!-- /dated -->\n\n"
-                            "<!-- order -->\n<!-- /order -->\n",
-
-            "guide/store.md"        : "<!-- archives -->\n<!-- /archives -->\n",
-            "identity/palette.md"   : "<!-- series -->\n<!-- /series -->\n",
-            "methods/reading.md"    : marked("illegal"),
-            "reference/commands.md" : marked(*(f"run-{run}" for run in RUNS)),
-            **walked()
-        }
-    )
-
-    for output in Outputs.measured(
-        index,
-        tracked(root),
-        readme,
-        root,
-        Settings.model_construct(data=root / ".cache/data")
-    ):
-        if output.path != readme:
-            output.write(root)
-
-    assert (root / "docs/pages/data/index.md").read_text().endswith(sentence)
-    assert (root / "docs/pages/methods/reading.md").read_text() == (
-        "<!-- illegal -->\n\n<!-- /illegal -->\n\n"
-    )
-
-
-@mark.parametrize(
-    "argv",
-    [
-        param(("match", "game", str(Outputs.demo.path), "--top", "1"), id="match-game"),
-        param(("match", "games", str(Outputs.demo.path)), id="match-games"),
-        param(
-            ("match", "game", str(Outputs.demo.path), "--plies", str(Outputs.plies)),
-            id = "match-game-plies"
-        ),
-        param(("show", "game", "players/Kasparov.zip:1"), id="show-game"),
-        param(
-            ("show", "position", "1.", "Nf3", "Nf6", "2.", "c4", "--top", "1"),
-            id = "show-position"
-        )
-    ]
-)
-def test_each_example_run_holds_what_its_command_prints(
-    argv        : tuple[str, ...],
-    capsys      : CaptureFixture[str],
-    checkout    : Callable[..., Path],
-    monkeypatch : MonkeyPatch,
-    scanned     : Callable[[Iterable[Game]], PositionIndex],
-    stored      : list[Game],
-    tally       : Tally
-):
-    """
-    Asserts that the output beneath each example run whose lines the index
-    alone sets is what the command prints against that index.
-    """
-    monkeypatch.setattr(Census, "store", tally)
-    monkeypatch.setattr(Outputs, "position", "1. Nf3 Nf6 2. c4")
-    monkeypatch.setattr(Outputs, "top", 1)
-    index = scanned(
-        game.model_copy(
-            update = {
-                "origin": Origin(
-                    address = "https://www.pgnmentor.com/players/Kasparov.zip",
-                    place   = place
-                )
-            }
-        )
-        for place, game in enumerate(stored, start=1)
-    )
-    root = checkout(
-        {"reference/commands.md": marked(*(f"run-{run}" for run in RUNS)), **walked()}
-    )
-
-    for output in Outputs.measured(
-        index,
-        tracked(root),
-        Path(".github/README.md"),
-        root,
-        Settings.model_construct(data=root / ".cache/data")
-    ):
-        if output.path in {Outputs.commands, Outputs.guide / "studying.md"}:
-            output.write(root)
-
-    monkeypatch.chdir(root)
-    monkeypatch.setattr(Settings, "opened", lambda _: index)
-    invoke(*argv)
-    pages = "".join(
-        (root / page).read_text()
-        for page in (Outputs.commands, Outputs.guide / "studying.md")
-    )
-
-    assert f"```text\n{capsys.readouterr().out}```" in pages
-
-
 def test_shipped_declares_the_files_written_from_declarations(
     checkout: Callable[..., Path]
 ):
@@ -618,14 +598,3 @@ def test_tracked_lists_each_markdown_file_gitignore_leaves_in_with_no_repository
         path.write_text(text)
 
     assert tracked(tmp_path) == [Path("a/c.md"), Path("b.md")]
-
-
-def walked() -> dict[str, str]:
-    """
-    Writes the Guide's walkthroughs of a match as they stand before their
-    first render, holding the regions the index sets.
-    """
-    return {
-        "guide/matching.md" : marked("gloss"),
-        "guide/studying.md" : marked(*(f"run-{run}" for run in STUDIED))
-    }

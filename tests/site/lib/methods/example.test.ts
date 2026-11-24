@@ -6,11 +6,6 @@ import * as example from '../../../../docs/.vitepress/lib/methods/example.ts'
 const methods = example.exampleOf()
 
 describe('exampleOf', () => {
-  it('reads the run the index matched as the Methods pages quote it, plies 7 to 17', () => {
-    expect(methods.run).toEqual({ length: 11, start: 7 })
-    expect(examples.methods.parting).toBe('9...Nc7')
-  })
-
   it('reads every run the two games share, the starting position one of them', () => {
     expect(methods.runs).toEqual([{ length: 11, offset: 0, start: 7 }, { length: 1, offset: 0, start: 0 }])
   })

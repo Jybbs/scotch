@@ -5,7 +5,7 @@ import { describe, expect, vi } from 'vitest'
 import { ORDER, START } from '../../../../../docs/.vitepress/lib/reference/roles.ts'
 import * as palette     from '../../../../../docs/.vitepress/lib/reference/palette.ts'
 import { Roles }        from '../../../../../docs/.vitepress/theme/components/reference/roles.ts'
-import { test }         from '../../../common/clock.ts'
+import { test as base } from '../../../common/clock.ts'
 import { prevented }    from '../../../common/keys.ts'
 import { reduceMotion } from '../../../common/motion.ts'
 import { resized }      from '../../../common/size.ts'
@@ -15,6 +15,18 @@ vi.mock('@vueuse/core', async original => ({
   ...await original<typeof import('@vueuse/core')>(),
   useElementSize: (await import('../../../common/size.ts')).useElementSize
 }))
+
+/**
+ * Extends the clock's `test` with a `still` fixture, the drawing mounted for a
+ * reader who prefers reduced motion, every timer it starts run.
+ */
+const test = base.extend('still', ({ clock }) => {
+  onScreen()
+  reduceMotion()
+  const drawn = mount(Roles)
+  clock.runAllTimers()
+  return drawn
+})
 
 describe('Roles', () => {
   test('sets the sample page in both schemes, the dark one over the light', ({ clock }) => {
@@ -39,26 +51,18 @@ describe('Roles', () => {
     expect(drawn.find('output [data-at]').text()).toBe(`${START + 1} of ${ORDER.length} · run`)
   })
 
-  test('writes the page as itself rather than against itself', async ({ clock }) => {
-    onScreen()
-    reduceMotion()
-    const drawn = mount(Roles)
-    clock.runAllTimers()
-    await drawn.findAll('button[aria-label]')[0]!.trigger('click')
+  test('writes the page as itself rather than against itself', async ({ still }) => {
+    await still.findAll('button[aria-label]')[0]!.trigger('click')
     await flushPromises()
-    expect(drawn.findAll('[data-at]').at(-1)!.text()).toContain('The page itself')
+    expect(still.findAll('[data-at]').at(-1)!.text()).toContain('The page itself')
   })
 })
 
 describe('Roles, the seam', () => {
-  test('moves the seam by the keyboard, held inside the drawing, leaving other keys', async ({ clock }) => {
-    onScreen()
-    reduceMotion()
-    const drawn = mount(Roles)
-    clock.runAllTimers()
-    const hold = drawn.element.firstElementChild as HTMLElement
+  test('moves the seam by the keyboard, held inside the drawing, leaving other keys', async ({ still }) => {
+    const hold = still.element.firstElementChild as HTMLElement
     vi.spyOn(hold, 'offsetWidth', 'get').mockReturnValue(600)
-    const seam = drawn.find("[role='slider']")
+    const seam = still.find("[role='slider']")
     const key  = async (name: string): Promise<boolean> => {
       const answered = prevented(seam.element, name)
       await flushPromises()
@@ -72,15 +76,11 @@ describe('Roles, the seam', () => {
     expect(await key('a')).toBe(false)
   })
 
-  test('drags the seam with a pointer it captures', async ({ clock }) => {
-    onScreen()
-    reduceMotion()
-    const drawn = mount(Roles)
-    clock.runAllTimers()
-    const hold = drawn.element.firstElementChild as HTMLElement
+  test('drags the seam with a pointer it captures', async ({ still }) => {
+    const hold = still.element.firstElementChild as HTMLElement
     vi.spyOn(hold, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 600 } as DOMRect)
     vi.spyOn(hold, 'offsetWidth', 'get').mockReturnValue(600)
-    const seam = drawn.find("[role='slider']")
+    const seam = still.find("[role='slider']")
     Object.assign(seam.element, {
       hasPointerCapture : vi.fn<() => boolean>(() => false),
       setPointerCapture : vi.fn<() => void>()
@@ -97,27 +97,19 @@ describe('Roles, the seam', () => {
 })
 
 describe('Roles, as the column or the unfold changes it', () => {
-  test('places the ring through a transform, so its glide moves nothing in the layout', ({ clock }) => {
-    onScreen()
-    reduceMotion()
-    const drawn = mount(Roles)
-    clock.runAllTimers()
-    const style = drawn.find('i[aria-hidden]').attributes('style')
+  test('places the ring through a transform, so its glide moves nothing in the layout', ({ still }) => {
+    const style = still.find('i[aria-hidden]').attributes('style')
     expect(style).toMatch(/transform: translate\(-?[\d.]+px, -?[\d.]+px\)/u)
     expect(style).not.toMatch(/(^|;\s*)(left|top):/u)
   })
 
-  test('remeasures once the column narrows', async ({ clock }) => {
-    onScreen()
-    reduceMotion()
-    const drawn = mount(Roles)
-    clock.runAllTimers()
+  test('remeasures once the column narrows', async ({ clock, still }) => {
     resized(342)
     await flushPromises()
-    expect(drawn.attributes('data-narrow')).toBeUndefined()
+    expect(still.attributes('data-narrow')).toBeUndefined()
     clock.advanceTimersToNextFrame()
     await flushPromises()
-    expect(drawn.attributes('data-narrow')).toBe('')
+    expect(still.attributes('data-narrow')).toBe('')
   })
 
   test('opens the seam from the far edge and rings each role it unfolds through', async ({ clock }) => {

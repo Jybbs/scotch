@@ -7,44 +7,43 @@ Each case loads the script in the test process and answers each command it
 runs through pytest-subprocess, so no case reaches R2.
 """
 
-from collections.abc                import Callable
+from collections.abc import Callable
+from pytest          import mark, param
 from pytest_subprocess.fake_process import FakeProcess
 from types import ModuleType
 
 
-def test_a_bucket_holding_three_earlier_stores_deletes_nothing(
+@mark.parametrize(
+    ("current", "listed"),
+    [
+        param(
+            "0000000000000004",
+            (
+                ("0000000000000001", "2026-11-01T12:00:00+00:00"),
+                ("0000000000000002", "2026-11-02T12:00:00+00:00"),
+                ("0000000000000003", "2026-11-03T12:00:00+00:00"),
+                ("0000000000000004", "2026-11-04T12:00:00+00:00"),
+                ("manifest.json", "2026-11-04T12:00:01+00:00")
+            ),
+            id = "three-earlier-stores"
+        ),
+        param("0123456789abcdef", (), id="empty")
+    ]
+)
+def test_a_bucket_holding_no_more_than_three_earlier_stores_deletes_nothing(
+    current : str,
     fp      : FakeProcess,
+    listed  : tuple[tuple[str, str], ...],
     objects : Callable[..., None],
     task    : ModuleType
 ):
     """
-    Asserts that a bucket holding the manifest, the current store, and no
-    more than three earlier ones sends no delete.
+    Asserts that a bucket holding the manifest, the current store, and three
+    earlier ones sends no delete, as does one the listing reports as `null`.
     """
-    objects(
-        ("0000000000000001", "2026-11-01T12:00:00+00:00"),
-        ("0000000000000002", "2026-11-02T12:00:00+00:00"),
-        ("0000000000000003", "2026-11-03T12:00:00+00:00"),
-        ("0000000000000004", "2026-11-04T12:00:00+00:00"),
-        ("manifest.json", "2026-11-04T12:00:01+00:00")
-    )
+    objects(*listed)
 
-    task.Bucket.from_aws("scotch-store").retire("0000000000000004")
-
-    assert len(fp.calls) == 1
-
-
-def test_an_empty_bucket_deletes_nothing(
-    fp      : FakeProcess,
-    objects : Callable[..., None],
-    task    : ModuleType
-):
-    """
-    Asserts that a bucket the listing reports as `null` sends no delete.
-    """
-    objects()
-
-    task.Bucket.from_aws("scotch-store").retire("0123456789abcdef")
+    task.Bucket.from_aws("scotch-store").retire(current)
 
     assert len(fp.calls) == 1
 

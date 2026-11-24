@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { mount }                           from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { enableAutoUnmount, mount }                    from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { PICKED, anchored } from '../../../../docs/.vitepress/lib/markdown/notes.ts'
 import { Notes }            from '../../../../docs/.vitepress/theme/components/notes.ts'
@@ -16,52 +16,48 @@ function press(selector: string): void {
   document.querySelector(selector)!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 }
 
+beforeEach(() => {
+  document.body.innerHTML = PAGE
+})
+
 afterEach(() => {
   document.body.innerHTML = ''
   location.hash = ''
 })
 
+enableAutoUnmount(afterEach)
+
 describe('Notes', () => {
   it("picks out a citation and moves the keyboard's focus to its entry on a jump", () => {
-    document.body.innerHTML = PAGE
-    const notes = mount(Notes, { attachTo: document.body })
+    mount(Notes, { attachTo: document.body })
     press('#footnote-ref-a')
     expect(anchored('footnote-a', document)!.hasAttribute(PICKED)).toBe(true)
     expect(document.activeElement!.id).toBe('footnote-a')
-    notes.unmount()
   })
 
   it("moves the keyboard's focus back to the citation on a way back", () => {
-    document.body.innerHTML = PAGE
-    const notes = mount(Notes, { attachTo: document.body })
+    mount(Notes, { attachTo: document.body })
     press('.footnote-backref')
     expect(anchored('footnote-ref-a', document)!.hasAttribute(PICKED)).toBe(true)
     expect(document.activeElement!.id).toBe('footnote-ref-a')
-    notes.unmount()
   })
 
   it('leaves a press on any other link alone', () => {
-    document.body.innerHTML = PAGE
-    const notes = mount(Notes, { attachTo: document.body })
+    mount(Notes, { attachTo: document.body })
     press('#elsewhere')
     document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(document.querySelector(`[${PICKED}]`)).toBeNull()
-    notes.unmount()
   })
 
   it('picks out the citation a page opens at the address of', () => {
-    document.body.innerHTML = PAGE
     location.hash = '#footnote-ref-a'
-    const notes = mount(Notes, { attachTo: document.body })
+    mount(Notes, { attachTo: document.body })
     expect(anchored('footnote-ref-a', document)!.hasAttribute(PICKED)).toBe(true)
-    notes.unmount()
   })
 
   it('picks out nothing on opening a page at an address naming no citation', () => {
-    document.body.innerHTML = PAGE
     location.hash = '#elsewhere'
-    const notes = mount(Notes, { attachTo: document.body })
+    mount(Notes, { attachTo: document.body })
     expect(document.querySelector(`[${PICKED}]`)).toBeNull()
-    notes.unmount()
   })
 })

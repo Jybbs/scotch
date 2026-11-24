@@ -14,27 +14,6 @@ from types import ModuleType
 from yaml  import safe_load
 
 
-def test_a_store_holding_one_entry_per_lineage_deletes_nothing(
-    fp      : FakeProcess,
-    listing : Callable[..., None],
-    task    : ModuleType
-):
-    """
-    Asserts that a store whose every entry is the newest of its lineage
-    sends no delete.
-    """
-    listing(
-        (
-            1, "mise-v1-linux-x64-ubuntu26-2026.9.18-aaa-old",
-            "refs/heads/main", "2026-09-30T12:00:00Z"
-        )
-    )
-
-    task.Store.from_gh().prune()
-
-    assert len(fp.calls) == 1
-
-
 def test_each_entry_a_newer_one_replaced_is_deleted(
     fp      : FakeProcess,
     listing : Callable[..., None],

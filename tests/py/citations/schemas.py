@@ -50,38 +50,59 @@ def test_a_definition_names_the_authors_year_title_note_and_address(
     assert references.references[key].definition == definition
 
 
-def test_a_block_bibtexparser_aborts_names_the_reason_it_aborted(tmp_path: Path):
+@mark.parametrize(
+    ("error", "problem", "text"),
+    [
+        param(
+            ValueError,
+            r"could not read: Unexpected block start: `@misc`\. .* `,` or `}`$",
+            "@misc{doe2020, title = {T}, year = 2020\n@misc{roe2021, title = {U}}\n",
+            id = "field-never-closed"
+        ),
+        param(
+            ValueError,
+            (
+                r"^Line 7 of .*references\.bib holds a block .*: Duplicate entry key "
+                r"'doe2020'$"
+            ),
+            (
+                "@misc{doe2020,\n  author = {Doe},\n  title = {T},\n"
+                "  year = {2020}\n}\n\n"
+                "@misc{doe2020,\n  author = {Doe},\n  title = {T},\n"
+                "  year = {2020}\n}\n"
+            ),
+            id = "key-repeated"
+        ),
+        param(
+            ValidationError,
+            r"references\.doe2020\.authors",
+            (
+                "@misc{doe2020,\n  title = {T},\n  year = {2020},\n"
+                "  url = {https://example.com/},\n  annote = {A.}\n}\n"
+            ),
+            id = "no-author-or-editor"
+        )
+    ]
+)
+def test_a_file_it_cannot_read_raises_naming_the_entry_and_the_reason(
+    error    : type[ValueError],
+    problem  : str,
+    text     : str,
+    tmp_path : Path
+):
     """
     Asserts that an entry whose field never closes before the next entry
     opens raises `ValueError` naming what bibtexparser was still looking
-    for, which the aborted block's own message leaves out.
+    for, which the aborted block's own message leaves out, that a second
+    entry under a key the file already holds raises `ValueError` naming
+    the line its block opens on and the key it repeats, and that an
+    entry carrying neither an `author` field nor an `editor` field raises
+    `ValidationError` naming the `authors` field, which needs at least one
+    name.
     """
-    (path := tmp_path / "references.bib").write_text(
-        "@misc{doe2020, title = {T}, year = 2020\n@misc{roe2021, title = {U}}\n"
-    )
+    (path := tmp_path / "references.bib").write_text(text)
 
-    with raises(
-        ValueError,
-        match = r"could not read: Unexpected block start: `@misc`\. .* `,` or `}`$"
-    ):
-        References.read(path)
-
-
-def test_a_block_bibtexparser_cannot_read_names_its_line(tmp_path: Path):
-    """
-    Asserts that a second entry under a key the file already holds raises
-    `ValueError` naming the line its block opens on and the key it repeats.
-    """
-    entry = "@misc{doe2020,\n  author = {Doe},\n  title = {T},\n  year = {2020}\n}\n"
-    (path := tmp_path / "references.bib").write_text(f"{entry}\n{entry}")
-
-    with raises(
-        ValueError,
-        match = (
-            r"^Line 7 of .*references\.bib holds a block .*: Duplicate entry key "
-            r"'doe2020'$"
-        )
-    ):
+    with raises(error, match=problem):
         References.read(path)
 
 
@@ -243,21 +264,6 @@ def test_an_entry_naming_no_author_opens_on_its_editors_and_their_role(
     assert References.read(path).references["edwards1994"].definition.startswith(
         opening
     )
-
-
-def test_an_entry_naming_no_author_or_editor_is_refused_at_its_authors(tmp_path: Path):
-    """
-    Asserts that an entry carrying neither an `author` field nor an `editor`
-    field raises `ValidationError` naming the `authors` field, which needs
-    at least one name.
-    """
-    (path := tmp_path / "references.bib").write_text(
-        "@misc{doe2020,\n  title = {T},\n  year = {2020},\n"
-        "  url = {https://example.com/},\n  annote = {A.}\n}\n"
-    )
-
-    with raises(ValidationError, match=r"references\.doe2020\.authors"):
-        References.read(path)
 
 
 def test_cite_writes_each_definition_in_the_order_given(references: References):
