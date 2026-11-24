@@ -183,9 +183,7 @@ def test_a_job_pairs_each_legs_check_name_with_its_tasks():
 
 @mark.parametrize(
     ("task", "guard"),
-    [
-        param("py:test", "!github.event.pull_request.draft", id="row")
-    ]
+    [param("py:test", "!github.event.pull_request.draft", id="row")]
 )
 def test_a_job_reads_the_draft_guard_its_kind_takes(guard: str, task: str):
     """
