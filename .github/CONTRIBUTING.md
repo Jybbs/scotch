@@ -45,7 +45,7 @@ A pull request runs `♟️ CI` wherever it changes a file outside the site's pa
 | `♟️ Site / 🔗 Links` | `mise links` | A link, an asset, or a heading fragment in the site the `📰 Press` row built, the README, or this guide names nothing the build wrote |
 | `♟️ Site / ☂️ Coverage` | `mise run site:coverage` | A site test fails under coverage, or the site's coverage falls below 95% on statements, branches, functions, or lines |
 | `♟️ Site / 📋 Audit` | `mise audit` | The same checks the `♟️ CI` row runs, among them the regions and footnotes of each page under `docs/pages/` |
-| `♟️ Site / ✂️ Knip` | `mise cruft` | knip reports an unused file, export, or dependency in the site, or an import cycle |
+| `♟️ Site / ✂️ Knip` | `mise cruft` | knip reports an unused file, export, or dependency in the site and its suite, or an import cycle |
 | `♟️ Site / ⚓ Oxlint` | `mise lint` | Oxlint reports a finding in the site's TypeScript |
 | `♟️ Site / 🧷 Types` | `mise typecheck` | `tsc` reports a type error in the site's TypeScript, or a single-file component appears that `tsc` cannot read |
 
