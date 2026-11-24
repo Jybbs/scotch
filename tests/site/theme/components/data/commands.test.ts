@@ -16,8 +16,8 @@ describe('Commands', () => {
   it('draws a row per command under its verb and a mark where it writes or reads a file', () => {
     const grid = mount(Commands)
     expect(grid.findAll('tbody th[scope="row"]')).toHaveLength(8)
-    expect(grid.findAll('td[data-kind="writes"]')).toHaveLength(5)
-    expect(grid.findAll('td[data-kind="reads"]')).toHaveLength(22)
+    expect(grid.findAll('td[data-kind="writes"]')).toHaveLength(6)
+    expect(grid.findAll('td[data-kind="reads"]')).toHaveLength(27)
     expect(grid.find('td[data-kind] span').text())
       .toBe('scotch fetch games writes downloads/www.pgnmentor.com/')
     expect(grid.findAll('thead th[scope=colgroup]').map(folder => folder.text()))

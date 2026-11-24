@@ -144,24 +144,18 @@ describe('Band taking a file', () => {
     expect(opened).toHaveBeenCalledOnce()
   })
 
-  it('loads a match file picked, then clears the picker', async () => {
+  it('takes a file picked, then clears the picker', async () => {
     const wrapper = mounted()
-    const input   = await picked(wrapper, [fileOf(JSON.stringify(EXAMPLES.alone), 'mine.json')])
-    expect(wrapper.emitted('load')).toEqual([[EXAMPLES.alone, 'mine.json']])
+    const file    = fileOf('{}')
+    const input   = await picked(wrapper, [file])
+    expect(wrapper.emitted('file')).toEqual([[file]])
     expect(input.value).toBe('')
-  })
-
-  it('names what a picked file lacks', async () => {
-    const wrapper = mounted()
-    await picked(wrapper, [fileOf('{"submitted": 1}')])
-    expect(wrapper.emitted('problem')?.[0]?.[0])
-      .toBe("game.json: `submitted` holds a number rather than an object")
   })
 
   it('takes nothing where the picker closes with no file', async () => {
     const wrapper = mounted()
     await picked(wrapper, [])
-    expect([wrapper.emitted('load'), wrapper.emitted('problem')]).toEqual([undefined, undefined])
+    expect(wrapper.emitted('file')).toBeUndefined()
   })
 })
 
@@ -181,19 +175,13 @@ describe('Band taking a game in PGN', () => {
     await field.trigger(event, ending)
     expect(wrapper.emitted('pgn')).toEqual(sent)
   })
-
-  it('sends a game file picked, naming the file it came from', async () => {
-    const wrapper = mounted()
-    await picked(wrapper, [new File(['1. c4 *'], 'Mine.PGN')])
-    expect([wrapper.emitted('pgn'), wrapper.emitted('load')]).toEqual([[['1. c4 *', 'Mine.PGN']], undefined])
-  })
 })
 
 describe('Band taking a dropped file', () => {
-  it('marks itself while a file is dragged over it and loads the file dropped', async () => {
+  it('marks itself while a file is dragged over it and takes the file dropped', async () => {
     const wrapper = mounted()
     const band    = wrapper.element as HTMLElement
-    const file    = fileOf(JSON.stringify(EXAMPLES.alone), 'dropped.json')
+    const file    = fileOf('{}')
     band.dispatchEvent(dragged('dragenter', [file]))
     await flushPromises()
     expect('drag' in band.dataset).toBe(true)
@@ -201,8 +189,8 @@ describe('Band taking a dropped file', () => {
     band.dispatchEvent(over)
     band.dispatchEvent(dragged('drop', [file]))
     await flushPromises()
-    expect([over.defaultPrevented, 'drag' in band.dataset, wrapper.emitted('load')])
-      .toEqual([true, false, [[EXAMPLES.alone, 'dropped.json']]])
+    expect([over.defaultPrevented, 'drag' in band.dataset, wrapper.emitted('file')])
+      .toEqual([true, false, [[file]]])
   })
 
   it('leaves a drag carrying no file to the page', async () => {
@@ -213,7 +201,7 @@ describe('Band taking a dropped file', () => {
     band.dispatchEvent(over)
     band.dispatchEvent(dragged('drop', []))
     await flushPromises()
-    expect(['drag' in band.dataset, over.defaultPrevented, wrapper.emitted('load')])
+    expect(['drag' in band.dataset, over.defaultPrevented, wrapper.emitted('file')])
       .toEqual([false, false, undefined])
   })
 

@@ -76,7 +76,7 @@ def test_each_file_names_the_commands_reading_it(reference: Reference):
     assert [file["readers"] for file in reference.files] == [
         ["scotch index games"],
         ["scotch index games", *opening],
-        opening, opening, opening
+        opening, opening, opening, opening
     ]
 
 
@@ -209,6 +209,7 @@ def test_the_layout_table_names_each_file_under_the_default_data_directory(
         ["| `.cache/data/downloads/www.pgnmentor.com/`", "`scotch fetch games`"],
         ["| `.cache/data/downloads/manifest.json`", "`scotch fetch games`"],
         ["| `.cache/data/index/games.parquet`", "`scotch index games`"],
+        ["| `.cache/data/index/left.parquet`", "`scotch index games`"],
         ["| `.cache/data/index/positions.bin`", "`scotch index games`"],
         ["| `.cache/data/index/manifest.json`", "`scotch index games`"]
     ]
