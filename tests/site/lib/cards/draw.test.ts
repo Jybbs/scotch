@@ -106,6 +106,13 @@ describe('pageCard', () => {
       .toEqual(expect.arrayContaining(['A Page', 'SCOTCH.FYI · 0.1.0']))
   })
 
+  it("sets the wordmark across the share of the card's width the identity declares", () => {
+    const card = draw.pageCard(EDITION, { section: SECTIONS[0], title: 'A Page' }, SECTIONS)
+    const mark = nodes(card).find(node => node.type === 'img')
+    expect(mark?.props.width).toBe(IDENTITY.card.wordmark * IDENTITY.card.width / 100)
+    expect(mark?.props.width).toBe(180)
+  })
+
   it.each([['A Page', 7], ['Matches the Rule Passes Over', 6]])('sets %s at %d units', (title, units) => {
     const card = draw.pageCard(EDITION, { section: SECTIONS[0], title }, SECTIONS)
     expect(holding(card, title)?.props.style?.fontSize).toBe(units * draw.CARD.width / 100)

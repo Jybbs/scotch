@@ -50,26 +50,17 @@ describe('projectFacts', () => {
     })
   })
 
-  test('fails by name with a TypeError where the manifest leaves out a field', ({ repo }) => {
-    const fields = {
-      Homepage    : 'project.urls.Homepage',
-      Repository  : 'project.urls.Repository',
-      description : 'project.description',
-      fail_under  : 'tool.coverage.report.fail_under',
-      license     : 'project.license',
-      version     : 'project.version'
-    }
-    const thrown = Object.keys(fields).map(key => {
-      const kept = MANIFEST.split('\n').filter(line => !line.startsWith(`${key} `))
-      repo.write('pyproject.toml', kept.join('\n'))
-      try {
-        return manifest.projectFacts(repo.metaUrl)
-      } catch (error) {
-        return error
-      }
-    })
-    const file = path.join(repo.root, 'pyproject.toml')
-    expect(thrown).toEqual(Object.values(fields).map(name => new TypeError(`no ${name} in ${file}`)))
+  test.for([
+    ['description', 'project.description'],
+    ['Homepage', 'project.urls.Homepage'],
+    ['license', 'project.license'],
+    ['Repository', 'project.urls.Repository'],
+    ['version', 'project.version'],
+    ['fail_under', 'tool.coverage.report.fail_under']
+  ])('fails by name with a TypeError where the manifest leaves out %s', ([key, name], { repo }) => {
+    const kept = MANIFEST.split('\n').filter(line => !line.startsWith(`${key} `))
+    const file = repo.write('pyproject.toml', kept.join('\n'))
+    expect(() => manifest.projectFacts(repo.metaUrl)).toThrow(new TypeError(`no ${name} in ${file}`))
   })
 
   test('reads the manifest of the repository a module sits in at any depth', ({ repo }) => {
