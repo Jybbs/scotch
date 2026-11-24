@@ -80,7 +80,7 @@ describe('Tool losing the control a reader focused', () => {
 
 describe('Tool drawing again the control a reader focused', () => {
   test('steps on once the tally draws another tied game in place of the one pressed', async ({ clock }) => {
-    const other = matches.oneApart()
+    const other = { ...EXAMPLES.match, stored: { ...EXAMPLES.match.stored!, headers: { White: 'Another' } } }
     vi.spyOn(Matcher.prototype, 'submit').mockResolvedValue({
       matches: matches.answered({ ...EXAMPLES.match, ties: 1 }, { ...other, ties: 1 })
     })
