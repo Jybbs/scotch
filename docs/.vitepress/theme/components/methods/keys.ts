@@ -62,7 +62,7 @@ function named(text: string, tone: string, sign: string): VNode {
  */
 function turns(keyed: Keyed, ply: number, live: boolean, moving: boolean): VNode {
   return h('div', { class: 'grid gap-1.5' }, keyed.turns[ply]!.map((turned, at) => row(
-    h('span', { class: 'flex items-center gap-2' }, [
+    h('span', { class: 'flex items-center gap-2 lg:*:shrink-0' }, [
       glyph(turned),
       h('span', { class: [CAPS, turned.joins ? 'text-run' : 'text-quiet'] },
         `⊕ ${turned.joins ? 'In' : 'Out'} · ${turned.term.name}`)

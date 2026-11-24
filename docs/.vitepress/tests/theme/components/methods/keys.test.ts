@@ -137,12 +137,15 @@ describe('Keys on a wide page', () => {
   it('sets the board beside the sum and its note, above the en passant box', () => {
     const wrapper = still()
     expect(wrapper.classes()).toContain('@container')
-    expect(wrapper.get('[class*="grid-template-areas"]').classes()).toEqual(expect.arrayContaining([
+    const card = wrapper.get('[class*="grid-template-areas"]')
+    expect(card.classes()).toEqual(expect.arrayContaining([
       'lg:gap-x-4',
       'lg:grid-cols-[minmax(min-content,1fr)_minmax(0,14rem)]',
       'lg:grid-rows-[auto_auto_auto_1fr_auto]',
       'lg:[grid-template-areas:"status_status"_"goal_goal"_"key_board"_"chain_board"_"end_end"]'
     ]))
+    expect([...card.element.children].map(part => /\[grid-area:(\w+)\]/.exec(part.className)?.[1]))
+      .toEqual(['status', 'goal', 'key', 'board', 'chain', 'end'])
   })
 
   it.each([
@@ -152,6 +155,13 @@ describe('Keys on a wide page', () => {
   ])('narrows every %s of the sum', (_, parts, narrowed) => {
     const drawn = still().findAll(`[class*="[grid-area:key]"] ${parts}`).map(part => part.classes())
     expect(new Set(drawn.map(names => narrowed.every(name => names.includes(name))))).toEqual(new Set([true]))
+  })
+
+  it('holds the label of every number at its full width, whatever face draws its sign', () => {
+    const heads = still()
+      .findAll('[class*="[grid-area:key]"] [class*="sm:grid-cols-[13.5rem_auto]"] > span')
+      .filter(head => head.text().startsWith('⊕'))
+    expect(new Set(heads.map(head => head.classes('lg:*:shrink-0')))).toEqual(new Set([true]))
   })
 })
 
