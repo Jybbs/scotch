@@ -1,4 +1,4 @@
-min_version = "2026.11.9"
+min_version = "2026.11.12"
 
 [doctor.checks.venv]
 description = "`.venv` exists and runs on the Python interpreter mise pins"
@@ -8,7 +8,7 @@ timeout     = "5s"
 
 [env]
 _.path                    = ".mise/bin"
-AUDIT_IGNORE              = "GHSA-fc5q-39xc-vjpf"
+AUDIT_IGNORE              = "CVE-2026-124249 GHSA-fc5q-39xc-vjpf"
 BUN_INSTALL_CACHE_DIR     = "{{config_root}}/.cache/bun"
 CARGO_DENY_DB_PATH        = "{{config_root}}/.cache/cargo-deny"
 CARGO_TARGET_DIR          = "{{config_root}}/.cache/cargo"
