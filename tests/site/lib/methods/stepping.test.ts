@@ -41,10 +41,24 @@ describe('usePlayer as played', () => {
 })
 
 describe('usePlayer as stepped', () => {
-  it.each([[-3, 0], [9, 9], [40, 18]])('jumps toward ply %i and stops on ply %i', (to, ply) => {
+  it.each<[string, (player: ReturnType<typeof usePlayer>) => void, number, boolean]>([
+    ['jumps toward ply -3 and stops on ply 0', player => { player.jump(-3) }, 0, false],
+    ['jumps toward ply 9 and stops on ply 9', player => { player.jump(9) }, 9, false],
+    ['jumps toward ply 40 and stops on ply 18', player => { player.jump(40) }, 18, false],
+    [
+      'plays again from the start once toggled on the last ply',
+      player => {
+        player.jump(18)
+        player.toggle()
+      },
+      0,
+      true
+    ],
+    ['stops where a toggle pauses it', player => { player.toggle() }, 0, false]
+  ])('%s', (_, acted, ply, playing) => {
     const player = usePlayer(18, 12)
-    player.jump(to)
-    expect([player.ply.value, player.playing.value]).toEqual([ply, false])
+    acted(player)
+    expect([player.ply.value, player.playing.value]).toEqual([ply, playing])
   })
 
   test('stops where a step lands', async ({ clock }) => {
@@ -53,19 +67,6 @@ describe('usePlayer as stepped', () => {
     await nextTick()
     clock.advanceTimersByTime(PACE.interval * 3)
     expect([player.ply.value, player.playing.value]).toEqual([4, false])
-  })
-
-  it('plays again from the start once toggled on the last ply', () => {
-    const player = usePlayer(18, 12)
-    player.jump(18)
-    player.toggle()
-    expect([player.ply.value, player.playing.value]).toEqual([0, true])
-  })
-
-  it('stops where a toggle pauses it', () => {
-    const player = usePlayer(18, 12)
-    player.toggle()
-    expect([player.ply.value, player.playing.value]).toEqual([0, false])
   })
 
   it('stops once the reader pauses the motion switch', async () => {

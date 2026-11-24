@@ -24,20 +24,15 @@ describe('stepped', () => {
 
 describe('tabbed', () => {
   it.each([
-    { key: 'ArrowLeft', to: 0 },
-    { key: 'ArrowRight', to: 2 },
-    { key: 'Home', to: 0 },
-    { key: 'End', to: 3 },
-    { key: 'ArrowUp', to: undefined }
-  ])('moves a row of four tabs at 1 to $to on $key', ({ key, to }) => {
-    expect(tabbed(1, key, 4)).toBe(to)
-  })
-
-  it.each([
-    { at: 0, key: 'ArrowUp', to: 3 },
-    { at: 3, key: 'ArrowDown', to: 0 },
-    { at: 1, key: 'ArrowLeft', to: undefined }
-  ])('wraps a column of four tabs at $at to $to on $key', ({ at, key, to }) => {
-    expect(tabbed(at, key, 4, 'y')).toBe(to)
+    { at: 1, axis: undefined, key: 'ArrowLeft', line: 'row', to: 0 },
+    { at: 1, axis: undefined, key: 'ArrowRight', line: 'row', to: 2 },
+    { at: 1, axis: undefined, key: 'Home', line: 'row', to: 0 },
+    { at: 1, axis: undefined, key: 'End', line: 'row', to: 3 },
+    { at: 1, axis: undefined, key: 'ArrowUp', line: 'row', to: undefined },
+    { at: 0, axis: 'y', key: 'ArrowUp', line: 'column', to: 3 },
+    { at: 3, axis: 'y', key: 'ArrowDown', line: 'column', to: 0 },
+    { at: 1, axis: 'y', key: 'ArrowLeft', line: 'column', to: undefined }
+  ] as const)('moves a $line of four tabs at $at to $to on $key', ({ at, axis, key, to }) => {
+    expect(tabbed(at, key, 4, axis)).toBe(to)
   })
 })

@@ -174,19 +174,25 @@ def test_an_example_dumps_only_what_the_site_reads(index: PositionIndex, known: 
             "1. e4 e5 2. Qxh7 *\n",
             "Found problems in the game in .*line.pgn:\nillegal san",
             id = "illegal"
+        ),
+        param(
+            '[FEN "4k3/8/8/8/8/8/8/4K3 w - - 0 1"]\n[SetUp "1"]\n\n1. Ke2 *\n',
+            "No stored game shares a position with line.pgn",
+            id = "unmatched"
         )
     ]
 )
-def test_an_example_a_game_cannot_be_read_from_raises(
+def test_an_example_that_cannot_be_drawn_raises(
     index    : PositionIndex,
     problem  : str,
     text     : str,
     tmp_path : Path
 ):
     """
-    Asserts that drawing a line whose file holds no game, or whose game
-    carries a move python-chess cannot read, raises `ValueError` naming the
-    file and the problem rather than returning the game cut short.
+    Asserts that drawing a line whose file holds no game, whose game carries
+    a move python-chess cannot read, or whose game shares no position with
+    any stored game raises `ValueError` naming the file and the problem
+    rather than returning the game cut short.
     """
     (tmp_path / "line.pgn").write_text(text)
 
@@ -212,19 +218,6 @@ def test_an_example_exports_the_match_the_viewer_reads(
     assert matched.stored.headers["White"] == "Kasparov, Gary"
     assert (alone.span, alone.stored) == (None, None)
     assert alone.submitted == matched.submitted
-
-
-def test_an_example_no_stored_game_meets_raises(index: PositionIndex, tmp_path: Path):
-    """
-    Asserts that drawing a line sharing no position with any stored game
-    raises `ValueError` naming its file.
-    """
-    (tmp_path / "kings.pgn").write_text(
-        '[FEN "4k3/8/8/8/8/8/8/4K3 w - - 0 1"]\n[SetUp "1"]\n\n1. Ke2 *\n'
-    )
-
-    with raises(ValueError, match="No stored game shares a position with kings.pgn"):
-        Example(path=Path("kings.pgn"), shown=0).drawn(index, tmp_path)
 
 
 def test_an_example_reads_the_match_and_both_games(index: PositionIndex, known: Path):

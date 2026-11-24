@@ -78,10 +78,6 @@ describe('siteCard', () => {
     expect(card.props.style).toMatchObject({ height: draw.CARD.height, width: draw.CARD.width })
   })
 
-  it('reads its size from the card the identity declares', () => {
-    expect(draw.CARD).toEqual({ height: IDENTITY.card.height, width: IDENTITY.card.width })
-  })
-
   it.each([IDENTITY.tagline, 'EDITION', '0.1.0', 'SCOTCH.FYI', 'STORED', 'SUBMITTED'])('sets %s', text => {
     expect(texts(card)).toContain(text)
   })

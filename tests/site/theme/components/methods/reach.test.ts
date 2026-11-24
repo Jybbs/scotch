@@ -163,18 +163,14 @@ describe('Reach as pointed at', () => {
     expect(now(wrapper)).toBe(1)
   })
 
-  it('returns to the median when a mouse leaves', async () => {
+  it.each([
+    ['returns to the median when a mouse leaves', 'pointermove', 'mouse', REACH.median],
+    ['keeps the length a touch picked when the touch ends', 'pointerdown', 'touch', 11]
+  ])('%s', async (_, event, pointer, length) => {
     const wrapper = still()
-    await point(wrapper, 'pointermove', 105)
-    await point(wrapper, 'pointerleave', 105)
-    expect(now(wrapper)).toBe(REACH.median)
-  })
-
-  it('keeps the length a touch picked when the touch ends', async () => {
-    const wrapper = still()
-    await point(wrapper, 'pointerdown', 105, 'touch')
-    await point(wrapper, 'pointerleave', 105, 'touch')
-    expect(now(wrapper)).toBe(11)
+    await point(wrapper, event, 105, pointer)
+    await point(wrapper, 'pointerleave', 105, pointer)
+    expect(now(wrapper)).toBe(length)
   })
 })
 

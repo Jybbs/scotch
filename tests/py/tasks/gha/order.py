@@ -16,36 +16,20 @@ from types      import ModuleType
 HEAD = "9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c"
 
 
-@mark.parametrize(
-    ("commit", "resolved"),
-    [param(HEAD, HEAD, id="current"), param(HEAD[:7], HEAD, id="current-short")]
-)
-def test_a_dispatch_on_main_for_its_head_builds_that_commit(
-    commit   : str,
-    fp       : FakeProcess,
-    resolved : str,
-    task     : ModuleType,
-    tmp_path : Path
-):
+def register(answers: dict[str, str], fp: FakeProcess):
     """
-    Asserts that a run dispatched on `main` for the commit `main` points at,
-    whether named by its full hash or a short one, builds the commit it was
-    dispatched for and reads no `♟️ Store` runs.
+    Answers the commits API's lookup of each ref in `answers` with the full
+    hash it maps to.
     """
-    outputs = tmp_path / "outputs"
-    outputs.write_text("earlier=1\n")
-
-    register({"heads/main": HEAD, commit: resolved}, fp)
-    task.Deploy(
-        commit = commit,
-        event  = task.Event.WORKFLOW_DISPATCH,
-        ref    = "refs/heads/main"
-    ).order(
-        outputs
-    )
-
-    assert outputs.read_text() == f"earlier=1\ncommit={commit}\nskip=false\n"
-    assert [call[1] for call in fp.calls] == ["api", "api"]
+    for ref, answer in answers.items():
+        fp.register(
+            [
+                "gh", "api",
+                f"repos/{{owner}}/{{repo}}/commits/{ref}",
+                "--header", "Accept: application/vnd.github.sha"
+            ],
+            stdout = answer
+        )
 
 
 @mark.parametrize(
@@ -94,20 +78,28 @@ def test_a_dispatch_on_main_for_another_commit_builds_the_head_of_main(
     ]
 
 
-def register(answers: dict[str, str], fp: FakeProcess):
+def test_a_dispatch_on_another_branch_builds_without_a_lookup(
+    fp       : FakeProcess,
+    task     : ModuleType,
+    tmp_path : Path
+):
     """
-    Answers the commits API's lookup of each ref in `answers` with the full
-    hash it maps to.
+    Asserts that a run dispatched on a branch other than `main` reads no
+    commit and skips nothing, so it builds and checks that branch's site,
+    which the deploy job then leaves unpublished.
     """
-    for ref, answer in answers.items():
-        fp.register(
-            [
-                "gh", "api",
-                f"repos/{{owner}}/{{repo}}/commits/{ref}",
-                "--header", "Accept: application/vnd.github.sha"
-            ],
-            stdout = answer
-        )
+    outputs = tmp_path / "outputs"
+
+    task.Deploy(
+        commit = "a1b2c3d",
+        event  = task.Event.WORKFLOW_DISPATCH,
+        ref    = "refs/heads/50/x"
+    ).order(
+        outputs
+    )
+
+    assert outputs.read_text() == "commit=a1b2c3d\nskip=false\n"
+    assert list(fp.calls) == []
 
 
 @mark.parametrize(
@@ -144,109 +136,88 @@ def test_a_push_leaves_the_publish_to_its_store_run(
 
 
 @mark.parametrize(
-    ("event", "command"),
+    ("answers", "commit", "event", "failing"),
     [
-        param("push", ("run", "list"), id="store-runs"),
-        param("workflow_dispatch", ("api",), id="main")
+        param({}, HEAD, "push", ("run", "list"), id="store-runs"),
+        param({}, HEAD, "workflow_dispatch", ("api",), id="main"),
+        param(
+            {"a1b2c3d": "a1b2c3d" + "0" * 33, "heads/main": HEAD},
+            "a1b2c3d",
+            "workflow_dispatch",
+            ("run", "list"),
+            id = "store-runs-on-a-dispatch"
+        ),
+        param(
+            {"heads/main": HEAD},
+            "deadbee",
+            "workflow_dispatch",
+            ("api",),
+            id = "ref-github-cannot-resolve"
+        )
     ]
 )
 def test_a_failed_lookup_fails_the_job(
-    command  : tuple[str, ...],
+    answers  : dict[str, str],
+    commit   : str,
     event    : str,
+    failing  : tuple[str, ...],
     fp       : FakeProcess,
     task     : ModuleType,
     tmp_path : Path
 ):
     """
-    Asserts that a `gh` lookup that fails, whether of the `♟️ Store` runs or
-    of the commit `main` points at, raises rather than deciding the publish,
-    and writes no output.
+    Asserts that a failed `gh` lookup raises rather than deciding the
+    publish, and writes no output. The lookup is of the store runs on a push
+    or on a run dispatched for an older commit, of the commit `main` points
+    at, or of the commit a dispatch's `ref` input names.
     """
     outputs = tmp_path / "outputs"
 
-    fp.register(["gh", *command, fp.any()], returncode=1, stdout="0\n")
+    register(answers, fp)
+    fp.register(["gh", *failing, fp.any()], returncode=1, stdout="0\n")
 
     with raises(CalledProcessError):
         (
-            task.Deploy(commit=HEAD, event=task.Event(event), ref="refs/heads/main")
+            task.Deploy(
+                commit = commit,
+                event  = task.Event(event),
+                ref    = "refs/heads/main"
+            )
                 .order(outputs)
         )
 
     assert not outputs.exists()
 
 
-def test_a_dispatch_on_another_branch_builds_without_a_lookup(
+@mark.parametrize(
+    "commit",
+    [param(HEAD, id="current"), param(HEAD[:7], id="current-short")]
+)
+def test_a_dispatch_on_main_for_its_head_builds_that_commit(
+    commit   : str,
     fp       : FakeProcess,
     task     : ModuleType,
     tmp_path : Path
 ):
     """
-    Asserts that a run dispatched on a branch other than `main` reads no
-    commit and skips nothing, so it builds and checks that branch's site,
-    which the deploy job then leaves unpublished.
+    Asserts that a run dispatched on `main` for the commit `main` points at,
+    whether named by its full hash or a short one, builds the commit it was
+    dispatched for and reads no `♟️ Store` runs.
     """
     outputs = tmp_path / "outputs"
+    outputs.write_text("earlier=1\n")
 
+    register({"heads/main": HEAD, commit: HEAD}, fp)
     task.Deploy(
-        commit = "a1b2c3d",
+        commit = commit,
         event  = task.Event.WORKFLOW_DISPATCH,
-        ref    = "refs/heads/50/x"
+        ref    = "refs/heads/main"
     ).order(
         outputs
     )
 
-    assert outputs.read_text() == "commit=a1b2c3d\nskip=false\n"
-    assert list(fp.calls) == []
-
-
-def test_a_failed_store_lookup_on_a_dispatch_fails_the_job(
-    fp       : FakeProcess,
-    task     : ModuleType,
-    tmp_path : Path
-):
-    """
-    Asserts that a run dispatched on `main` for an older commit raises where
-    the lookup of the `♟️ Store` runs on the commit `main` points at fails,
-    rather than building that commit, and writes no output.
-    """
-    outputs = tmp_path / "outputs"
-
-    register({"a1b2c3d": "a1b2c3d" + "0" * 33, "heads/main": HEAD}, fp)
-    fp.register(["gh", "run", "list", fp.any()], returncode=1, stdout="0\n")
-
-    with raises(CalledProcessError):
-        task.Deploy(
-            commit = "a1b2c3d",
-            event  = task.Event.WORKFLOW_DISPATCH,
-            ref    = "refs/heads/main"
-        ).order(outputs)
-
-    assert not outputs.exists()
-
-
-def test_a_ref_github_cannot_resolve_fails_the_job(
-    fp       : FakeProcess,
-    task     : ModuleType,
-    tmp_path : Path
-):
-    """
-    Asserts that a dispatch whose `ref` input names no commit GitHub finds
-    raises once `main` is read, rather than reading as a commit behind it,
-    and writes no output.
-    """
-    outputs = tmp_path / "outputs"
-
-    fp.register(["gh", "api", fp.any()], stdout=HEAD)
-    fp.register(["gh", "api", fp.any()], returncode=1)
-
-    with raises(CalledProcessError):
-        task.Deploy(
-            commit = "deadbee",
-            event  = task.Event.WORKFLOW_DISPATCH,
-            ref    = "refs/heads/main"
-        ).order(outputs)
-
-    assert not outputs.exists()
+    assert outputs.read_text() == f"earlier=1\ncommit={commit}\nskip=false\n"
+    assert [call[1] for call in fp.calls] == ["api", "api"]
 
 
 def test_the_run_reads_the_variables_the_step_sets(task: ModuleType):

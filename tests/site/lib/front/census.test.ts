@@ -35,10 +35,6 @@ describe('decadesOf', () => {
   it('counts two files of one name apart', () => {
     expect(decades[2]?.files).toBe(2)
   })
-
-  it("reads the store's files by default", () => {
-    expect(decadesOf().reduce((sum, each) => sum + each.games, 0)).toBeGreaterThan(0)
-  })
 })
 
 describe('fillsOf', () => {

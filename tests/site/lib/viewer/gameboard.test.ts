@@ -8,9 +8,19 @@ import { GameBoard, type Reach } from '../../../../docs/.vitepress/lib/viewer/ga
 import { PARTIES }               from '../../../../docs/.vitepress/lib/viewer/loaded.ts'
 import { PACE }                  from '../../../../docs/.vitepress/lib/viewer/timeline.ts'
 import { SQUARE, cornerOf }      from '../../../../docs/.vitepress/lib/viewer/trail.ts'
-import { test }                  from '../../common/clock.ts'
+import { test as base }          from '../../common/clock.ts'
 
 const { stored, submitted } = EXAMPLES.match
+
+/**
+ * Extends the clock's `test` with a `board` fixture, a board drawn empty and
+ * loaded with the submitted game.
+ */
+const test = base.extend('board', () => {
+  const board = new GameBoard(drawn())
+  board.load(submitted)
+  return board
+})
 
 afterEach(() => {
   document.body.replaceChildren()
@@ -73,9 +83,7 @@ function placeOf(node: Element): { x: number, y: number } {
 }
 
 describe('GameBoard stepping', () => {
-  test('snaps every piece of a ply into place on its first step', () => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('snaps every piece of a ply into place on its first step', ({ board }) => {
     expect(board.go(10, 'glide')).toBe(0)
     expect(board.checked).toBe(true)
   })
@@ -102,9 +110,7 @@ describe('GameBoard stepping', () => {
     expect([board.checked, board.breaks]).toEqual([true, 0])
   })
 
-  test('reads the time left to land a step it already stands at', ({ clock }) => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('reads the time left to land a step it already stands at', ({ board, clock }) => {
     board.go(0, 'jump')
     const took = board.go(1, 'glide')
     clock.advanceTimersByTime(10)
@@ -139,9 +145,9 @@ describe('GameBoard over any run of steps', () => {
     ), { numRuns: 60 })
   }, 20_000)
 
-  test('steps back and forth inside one glide, turning each piece back from where it stands', ({ clock }) => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('steps back and forth inside one glide, turning each piece back from where it stands', ({
+    board, clock
+  }) => {
     board.go(10, 'jump')
     for (const to of [11, 10, 11, 12, 11, 10, 9]) {
       board.go(to, 'glide')
@@ -153,9 +159,7 @@ describe('GameBoard over any run of steps', () => {
 })
 
 describe('GameBoard loading a game', () => {
-  test('crossfades to a new game it loads, then lands on its position', ({ clock }) => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('crossfades to a new game it loads, then lands on its position', ({ board, clock }) => {
     board.go(50, 'jump')
     board.load(stored)
     expect(board.go(50, 'jump')).toBeGreaterThanOrEqual(PACE.crossfade)
@@ -163,17 +167,13 @@ describe('GameBoard loading a game', () => {
     expect(board.checked).toBe(true)
   })
 
-  test('snaps to a new game with no crossfade under reduced motion', () => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('snaps to a new game with no crossfade under reduced motion', ({ board }) => {
     board.go(50, 'jump')
     board.load(stored)
     expect([board.go(50, 'still'), board.checked]).toEqual([0, true])
   })
 
-  test('clears every piece where it is given no game', () => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('clears every piece where it is given no game', ({ board }) => {
     board.go(5, 'jump')
     board.load(null)
     const shown = document.querySelectorAll('[data-piece]:not([display="none"])')
@@ -182,9 +182,7 @@ describe('GameBoard loading a game', () => {
 })
 
 describe('GameBoard turning and marking', () => {
-  test('turns to Black’s side, standing each piece where its square now stands', () => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('turns to Black’s side, standing each piece where its square now stands', ({ board }) => {
     board.go(0, 'jump')
     board.turn('white')
     board.turn('black')
@@ -229,9 +227,7 @@ describe('GameBoard turning and marking', () => {
 })
 
 describe('GameBoard finishing', () => {
-  test('settles a step still running at its end when it finishes', ({ clock }) => {
-    const board = new GameBoard(drawn())
-    board.load(submitted)
+  test('settles a step still running at its end when it finishes', ({ board, clock }) => {
     board.go(0, 'jump')
     board.go(20, 'glide')
     clock.advanceTimersByTime(30)
