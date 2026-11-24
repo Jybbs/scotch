@@ -51,58 +51,32 @@ describe('readSan', () => {
 })
 
 describe('judge', () => {
-  it.each<[string, guesses.Offer, boolean]>([
-    ['the stored move typed', { typed: 'Bb4' }, true],
-    ['the stored move typed with a check sign it lacks', { typed: 'Bb4+' }, true],
-    ['the stored move typed naming the file it leaves', { typed: 'Bfb4' }, true],
-    ['the stored move typed naming another file', { typed: 'Bgb4' }, false],
-    ['another piece typed to the same square', { typed: 'Nb4' }, false],
-    ['the same piece typed to another square', { typed: 'Bc5' }, false],
-    ['the stored move dragged', { hop: { from: 61, to: 25 } }, true],
-    ['the stored piece dragged to another square', { hop: { from: 61, to: 34 } }, false]
-  ])('judges %s at Black’s fourth move', (_, offer, matched) => {
-    expect(guesses.judge(offer, stored, 7)).toBe(matched)
-  })
-
-})
-
-describe('judge at a promotion', () => {
-  it.each<[string, guesses.Offer, boolean]>([
-    ['the promotion typed', { typed: 'c8=Q' }, true],
-    ['the promotion typed without its piece, taken as a queen', { typed: 'c8' }, true],
-    ['an underpromotion typed', { typed: 'c8=N' }, false],
-    ['the pawn dragged to the last rank', { hop: { from: 50, to: 58 } }, true]
-  ])('judges %s against a promotion to a queen', (_, offer, matched) => {
-    expect(guesses.judge(offer, submitted, 48)).toBe(matched)
-  })
-
-  it.each<[string, guesses.Offer, boolean]>([
-    ['the underpromotion typed', { typed: 'c8=N' }, true],
-    ['the promotion typed without its piece, taken as a queen', { typed: 'c8' }, false],
-    ['the pawn dragged to the last rank, taken as a queen', { hop: { from: 50, to: 58 } }, false]
-  ])('judges %s against an underpromotion', (_, offer, matched) => {
-    expect(guesses.judge(offer, underpromoted, 0)).toBe(matched)
-  })
-
-})
-
-describe('judge at a named rook, at castling, and at a move it cannot read', () => {
-  it.each<[string, guesses.Offer, boolean]>([
-    ['the capture typed naming its rook’s file', { typed: 'Raxc8' }, true],
-    ['the capture typed naming no square it leaves', { typed: 'Rxc8' }, false],
-    ['the capture typed naming the other rook’s file', { typed: 'Rfxc8' }, false]
-  ])('judges %s where the stored move names the rook it moves', (_, offer, matched) => {
-    expect(guesses.judge(offer, submitted, 49)).toBe(matched)
-  })
-
-  it.each<[string, guesses.Offer, boolean]>([
-    ['short castling typed', { typed: 'O-O' }, true],
-    ['short castling typed with zeros', { typed: '0-0' }, true],
-    ['long castling typed', { typed: 'O-O-O' }, false],
-    ['the king typed to its castled square', { typed: 'Kg1' }, false],
-    ['the king dragged to its castled square', { hop: { from: 4, to: 6 } }, true]
-  ])('judges %s against short castling', (_, offer, matched) => {
-    expect(guesses.judge(offer, castled, 0)).toBe(matched)
+  it.each<[string, guesses.Offer, boolean, Side, number]>([
+    ['the stored move typed', { typed: 'Bb4' }, true, stored, 7],
+    ['the stored move typed with a check sign it lacks', { typed: 'Bb4+' }, true, stored, 7],
+    ['the stored move typed naming the file it leaves', { typed: 'Bfb4' }, true, stored, 7],
+    ['the stored move typed naming another file', { typed: 'Bgb4' }, false, stored, 7],
+    ['another piece typed to the same square', { typed: 'Nb4' }, false, stored, 7],
+    ['the same piece typed to another square', { typed: 'Bc5' }, false, stored, 7],
+    ['the stored move dragged', { hop: { from: 61, to: 25 } }, true, stored, 7],
+    ['the stored piece dragged to another square', { hop: { from: 61, to: 34 } }, false, stored, 7],
+    ['the promotion to a queen typed', { typed: 'c8=Q' }, true, submitted, 48],
+    ['the promotion to a queen typed without its piece', { typed: 'c8' }, true, submitted, 48],
+    ['an underpromotion typed at a promotion to a queen', { typed: 'c8=N' }, false, submitted, 48],
+    ['the pawn dragged at a promotion to a queen', { hop: { from: 50, to: 58 } }, true, submitted, 48],
+    ['the underpromotion typed', { typed: 'c8=N' }, true, underpromoted, 0],
+    ['the underpromotion typed without its piece, taken as a queen', { typed: 'c8' }, false, underpromoted, 0],
+    ['the pawn dragged at an underpromotion, taken as a queen', { hop: { from: 50, to: 58 } }, false, underpromoted, 0],
+    ['the capture typed naming its rook’s file', { typed: 'Raxc8' }, true, submitted, 49],
+    ['the capture typed naming no square its rook leaves', { typed: 'Rxc8' }, false, submitted, 49],
+    ['the capture typed naming the other rook’s file', { typed: 'Rfxc8' }, false, submitted, 49],
+    ['short castling typed', { typed: 'O-O' }, true, castled, 0],
+    ['short castling typed with zeros', { typed: '0-0' }, true, castled, 0],
+    ['long castling typed at short castling', { typed: 'O-O-O' }, false, castled, 0],
+    ['the king typed to its castled square', { typed: 'Kg1' }, false, castled, 0],
+    ['the king dragged to its castled square', { hop: { from: 4, to: 6 } }, true, castled, 0]
+  ])('judges %s', (_, offer, matched, game, ply) => {
+    expect(guesses.judge(offer, game, ply)).toBe(matched)
   })
 
   it.each<[string, guesses.Offer, number]>([

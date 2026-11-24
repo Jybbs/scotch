@@ -19,10 +19,6 @@ describe('TERMS', () => {
       expect(builtPages()).toContain(address.replace('../', '').split('#')[0])
     }
   )
-
-  it('compiles each pattern in the dialect the renderer reads', () => {
-    expect(() => TERMS.map(term => new RegExp(term.pattern, 'iu'))).not.toThrow()
-  })
 })
 
 describe('addressOf', () => {

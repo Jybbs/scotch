@@ -1,7 +1,8 @@
 import { type VueWrapper, enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach }                                                from 'vitest'
 
-import { Tool } from '../../../docs/.vitepress/theme/components/viewer/tool.ts'
+import { Tool }         from '../../../docs/.vitepress/theme/components/viewer/tool.ts'
+import { test as base } from './clock.ts'
 
 /**
  * Unmounts each Viewer a case mounts once the case ends, and clears the
@@ -9,10 +10,33 @@ import { Tool } from '../../../docs/.vitepress/theme/components/viewer/tool.ts'
  */
 export function clearAfterEach(): void {
   enableAutoUnmount(afterEach)
-  afterEach(() => {
-    document.body.replaceChildren()
-    history.replaceState(null, '', location.pathname)
-  })
+  afterEach(clear)
+}
+
+/**
+ * Extends the clock's `test` with a `tool` fixture, the call that mounts the
+ * Viewer. Every move still running lands before the Viewer leaves the document,
+ * which an `afterEach` unmounting it would come ahead of.
+ */
+export const test = base.extend<{ tool: typeof mountedTool }>({
+  tool: async ({ clock }, use) => {
+    const mounts: VueWrapper[] = []
+    await use(() => {
+      const mounted = mountedTool()
+      mounts.push(mounted.wrapper)
+      return mounted
+    })
+    clock.advanceTimersByTime(5000)
+    clear()
+    mounts.forEach(wrapper => {
+      wrapper.unmount()
+    })
+  }
+})
+
+function clear(): void {
+  document.body.replaceChildren()
+  history.replaceState(null, '', location.pathname)
 }
 
 /**

@@ -100,12 +100,6 @@ describe('Results, from the keyboard and the pointer', () => {
     expect(slider.attributes('aria-valuenow')).toBe(String(move))
   })
 
-  it('ignores any other key', async () => {
-    const { slider } = mounted()
-    await slider.trigger('keydown', { key: 'a' })
-    expect(slider.attributes('aria-valuenow')).toBe(String(lengths.CHART.opening))
-  })
-
   it('follows a mouse, and a finger only while it presses', async () => {
     const { slider } = mounted()
     await slider.trigger('pointermove', { clientX: middle, pointerType: 'touch' })

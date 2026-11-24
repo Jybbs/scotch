@@ -8,12 +8,21 @@ const PAGE  = { cleanUrls: true, relativePath: 'methods/runs.md' }
 const LINK  = '<a href="/reference/terms#ply" class="sc-term" data-term="ply">'
 
 describe('linkTerms', () => {
-  it("links a term's first use on a page alone", () => {
-    expect(md.render('One ply, then another ply.\n', PAGE)).toContain(`One ${LINK}ply</a>, then another ply.`)
-  })
-
-  it('keeps the casing and the form of the word it finds', () => {
-    expect(md.render('Plies add up.\n', PAGE)).toContain(`${LINK}Plies</a> add up.`)
+  it.each([
+    [
+      "links a term's first use on a page alone",
+      'One ply, then another ply.\n',
+      `One ${LINK}ply</a>, then another ply.`
+    ],
+    ['keeps the casing and the form of the word it finds', 'Plies add up.\n', `${LINK}Plies</a> add up.`],
+    [
+      "leaves a term in a heading or a column's header to the next use",
+      '## The Ply\n\n| Ply |\n|---|\n| 1 |\n\nA ply.\n',
+      `A ${LINK}ply</a>.`
+    ],
+    ['finds a key where an article opens it', 'The key holds.\n', 'data-term="key"']
+  ])('%s', (_, page, link) => {
+    expect(md.render(page, PAGE)).toContain(link)
   })
 
   it('counts a term once across the blocks of a page', () => {
@@ -24,11 +33,6 @@ describe('linkTerms', () => {
     const page = md.render('A ply on the mainline.\n', PAGE)
     expect(page.indexOf('data-term="ply"')).toBeGreaterThan(-1)
     expect(page.indexOf('data-term="ply"')).toBeLessThan(page.indexOf('data-term="mainline"'))
-  })
-
-  it("leaves a term in a heading or a column's header to the next use", () => {
-    const page = md.render('## The Ply\n\n| Ply |\n|---|\n| 1 |\n\nA ply.\n', PAGE)
-    expect(page).toContain(`A ${LINK}ply</a>.`)
   })
 
   it('leaves a term inside a link or a code span as it stands', () => {
@@ -49,9 +53,5 @@ describe('linkTerms', () => {
     const page = md.render('The files PGN Mentor publishes, then a Portable Game Notation (PGN) file.\n', PAGE)
     expect(page).toContain('files PGN Mentor publishes')
     expect(page).toContain('(<a href="/reference/terms#pgn" class="sc-term" data-term="pgn">PGN</a>) file')
-  })
-
-  it('finds a key where an article opens it', () => {
-    expect(md.render('The key holds.\n', PAGE)).toContain('data-term="key"')
   })
 })

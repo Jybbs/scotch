@@ -63,8 +63,8 @@ describe('routeOf', () => {
     expect(route.stops[4]!.says).toMatch(/^They part at ply 43, where the stored game plays /u)
   })
 
-  it.each([0, 1, 2, 3, 4])('says stop %i as prose', index => {
-    expect(route.stops[index]!.says).toReadAsProse()
+  it('says every stop as prose', () => {
+    expect(route.stops.map(({ says }) => says).join('\n')).toReadAsProse()
   })
 
   it('follows the pieces of both games through every ply', () => {

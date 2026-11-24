@@ -62,7 +62,8 @@ describe('rolesSheet', () => {
                + 'color-mix(in oklab, var(--sc-dark) 66%, black));')
   })
 
-  it.each(Object.keys(roles.ROLES))('sets the %s role', role => {
-    expect(roles.rolesSheet()).toMatch(new RegExp(`^  ${propertyOf(role)}: light-dark\\(`, 'mu'))
+  it('sets every role', () => {
+    expect(Array.from(roles.rolesSheet().matchAll(/^ {2}(\S+): light-dark\(/gmu), ([, property]) => property))
+      .toEqual(Object.keys(roles.ROLES).map(role => propertyOf(role)))
   })
 })

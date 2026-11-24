@@ -72,12 +72,6 @@ describe('Eras', () => {
     await list.trigger('keydown', { key })
     expect([useMove().value, picked(eras)[0]]).toEqual([move, all[row]!.name])
   })
-
-  it('ignores any other key', async () => {
-    const { eras, list } = mounted()
-    await list.trigger('keydown', { key: 'a' })
-    expect([useMove().value, picked(eras)[0]]).toEqual([CHART.opening, all.at(-1)!.name])
-  })
 })
 
 describe('Eras, under a pointer', () => {

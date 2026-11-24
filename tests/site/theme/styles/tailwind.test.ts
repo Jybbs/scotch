@@ -66,16 +66,12 @@ it('maps every token, role, face, curve, and duration the identity serves, and n
 })
 
 describe('the identity’s utilities', () => {
-  it.each(colors)('paints %s through its custom property, so a role follows the scheme', async name => {
-    expect(await built(`bg-${name}`)).toContain(`background-color: var(--sc-${name});`)
-  })
-
-  it.each(faces)('sets the %s face through its custom property', async face => {
-    expect(await built(`font-${face}`)).toContain(`font-family: var(--sc-face-${face});`)
-  })
-
-  it.each(curves)('eases along the %s curve through its custom property', async curve => {
-    expect(await built(`ease-${curve}`)).toContain(`transition-timing-function: var(--sc-curve-${curve});`)
+  it.each([
+    ...colors.map(name => [`bg-${name}`, `background-color: var(--sc-${name});`]),
+    ...faces.map(face => [`font-${face}`, `font-family: var(--sc-face-${face});`]),
+    ...curves.map(curve => [`ease-${curve}`, `transition-timing-function: var(--sc-curve-${curve});`])
+  ])('builds %s as %s, so a color, a face, or a curve follows its custom property', async (utility, rule) => {
+    expect(await built(utility)).toContain(rule)
   })
 
   it.each(durations)('times and delays by the %s duration, which reduced motion sets to zero', async name => {
@@ -98,14 +94,12 @@ describe('the identity’s utilities', () => {
     }
   )
 
-  it.each([['rise', 'sc-data-rise'], ['unfold', 'sc-refused-in']])(
-    'draws the %s animation from the %s keyframes the sheet declares',
-    async (name, frames) => {
-      const css = await built(`animate-${name}`)
-      expect(css).toContain(`animation: ${frames} `)
-      expect(css).toContain(`@keyframes ${frames}`)
-    }
-  )
+  it('draws each one-shot animation from the keyframes the sheet declares', async () => {
+    const css = (await compiled()).build(['animate-rise', 'animate-unfold'])
+    expect(Array.from(css.matchAll(/(?:animation:|@keyframes) sc-[a-z-]+/gu), ([rule]) => rule)).toEqual([
+      'animation: sc-data-rise', 'animation: sc-refused-in', '@keyframes sc-data-rise', '@keyframes sc-refused-in'
+    ])
+  })
 })
 
 describe('the sheet’s own variants and utilities', () => {

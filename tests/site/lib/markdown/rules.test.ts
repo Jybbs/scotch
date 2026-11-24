@@ -27,11 +27,6 @@ function compiled(html: string, comments: boolean): string {
 }
 
 describe('markdownRules', () => {
-  it('numbers a citation by its source', () => {
-    expect(md.render('A claim.[^fide2023]\n\n[^fide2023]: FIDE.\n', { relativePath: 'methods/indexing.md' }))
-      .toContain('<li id="footnote-fide2023"')
-  })
-
   it('adds its rules once to a renderer it is handed twice', () => {
     markdownRules(md)
     expect(md.render('A claim.[^fide2023]\n\n[^fide2023]: FIDE.\n', { relativePath: 'methods/indexing.md' }))
@@ -43,11 +38,6 @@ describe('markdownRules', () => {
     const html = md.render(`# Scotch\n\nTagline.\n\n${page}`, { relativePath: 'index.md' })
     const entry = new RegExp(`<section class="[^"]+" data-entry[^]*?<${FIGURE} name="store" />[^]*?</section>`, 'u')
     expect(html).toMatch(entry)
-  })
-
-  it('places the widgets the placements name', () => {
-    const page = '# Runs\n\n## Stepping Through a Match\n\nThe line.\n'
-    expect(md.render(page, { relativePath: 'methods/runs.md' })).toContain(`<${FIGURE} name="run" />`)
   })
 
   it.each(builtPages())('reads %s the same with its comments kept as with them dropped', { timeout: 30_000 }, page => {

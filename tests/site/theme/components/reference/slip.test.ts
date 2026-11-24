@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { flushPromises, mount }                from '@vue/test-utils'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi }     from 'vitest'
 
 import { TERMS, addressOf } from '../../../../../docs/.vitepress/lib/reference/terms.ts'
 import { Slip }             from '../../../../../docs/.vitepress/theme/components/reference/slip.ts'
@@ -22,6 +22,8 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+enableAutoUnmount(afterEach)
+
 describe('Slip', () => {
   it('stays closed until a term is reached', () => {
     expect(page().slip.attributes('data-open')).toBeUndefined()
@@ -37,7 +39,6 @@ describe('Slip', () => {
     expect(slip.find('span').text()).toBe(term.sentence)
     expect(slip.find('a').attributes('href')).toBe(addressOf(term))
     expect(link.getAttribute('aria-describedby')).toBe(slip.attributes('id'))
-    slip.unmount()
   })
 
   it('moves from one term to the next without closing', async () => {
@@ -50,7 +51,6 @@ describe('Slip', () => {
     await flushPromises()
     expect(slip.find('b').text()).toBe('Run')
     expect(link.hasAttribute('aria-describedby')).toBe(false)
-    slip.unmount()
   })
 
   it('holds open under a pointer on the slip and closes off it', async () => {
@@ -64,7 +64,6 @@ describe('Slip', () => {
     await flushPromises()
     expect(slip.attributes('data-open')).toBeUndefined()
     expect(link.hasAttribute('aria-describedby')).toBe(false)
-    slip.unmount()
   })
 })
 
@@ -79,7 +78,6 @@ describe('Slip, in a zoomed page', () => {
       over(link)
       await flushPromises()
       expect(slip.attributes('style')).toContain(`translate(${place})`)
-      slip.unmount()
     }
   )
 })
@@ -90,7 +88,6 @@ describe('Slip, under a finger and the keyboard', () => {
     over(link, 'touch')
     await flushPromises()
     expect(slip.attributes('data-open')).toBeUndefined()
-    slip.unmount()
   })
 
   it('opens on the keyboard focus and closes as it leaves', async () => {
@@ -105,7 +102,6 @@ describe('Slip, under a finger and the keyboard', () => {
     link.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
     await flushPromises()
     expect(slip.attributes('data-open')).toBeUndefined()
-    slip.unmount()
   })
 })
 
@@ -120,7 +116,6 @@ describe('Slip, closing', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     await flushPromises()
     expect(slip.attributes('data-open')).toBeUndefined()
-    slip.unmount()
   })
 
   it('closes on a click on a term or on the slip and leaves one elsewhere', async () => {
@@ -138,7 +133,6 @@ describe('Slip, closing', () => {
     slip.element.click()
     await flushPromises()
     expect(slip.attributes('data-open')).toBeUndefined()
-    slip.unmount()
   })
 
   it('closes as the page scrolls', async () => {
@@ -148,7 +142,6 @@ describe('Slip, closing', () => {
     window.dispatchEvent(new Event('scroll'))
     await flushPromises()
     expect(slip.attributes('data-open')).toBeUndefined()
-    slip.unmount()
   })
 
   it('reads an event with no element behind it as no term', async () => {
@@ -156,6 +149,5 @@ describe('Slip, closing', () => {
     window.dispatchEvent(new PointerEvent('pointerover'))
     await flushPromises()
     expect(slip.attributes('data-open')).toBeUndefined()
-    slip.unmount()
   })
 })

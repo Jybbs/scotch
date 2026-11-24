@@ -31,26 +31,16 @@ describe('luminance', () => {
 })
 
 describe('mix', () => {
-  it.each(['oklab', 'srgb'] as const)('keeps the first color whole at 100 percent in %s', space => {
-    expect(colors.mix('#764017', 100, '#f2f1ee', space)).toBe('#764017')
-  })
-
-  it.each(['oklab', 'srgb'] as const)('keeps the second color whole at 0 percent in %s', space => {
-    expect(colors.mix('#764017', 0, '#f2f1ee', space)).toBe('#f2f1ee')
-  })
-
-  it('averages each gamma-encoded channel in sRGB', () => {
-    expect(colors.mix('#000000', 50, '#ffffff', 'srgb')).toBe('#808080')
-  })
-
-  it('mixes in OKLab by default, which lands lighter than sRGB between black and white', () => {
-    expect(colors.mix('#000000', 50, '#ffffff')).toBe('#636363')
-  })
-
   it.each([
-    ['#0000ff', '#00ff00', '#00aabf'],
-    ['#ff0000', '#ffff00', '#ffa000']
-  ])('clips the mix of %s and %s, which falls outside the sRGB gamut, back into it as %s', (a, b, hex) => {
-    expect(colors.mix(a, 50, b)).toBe(hex)
+    ['keeps the first color whole at 100 percent in OKLab', '#764017', 100, '#f2f1ee', 'oklab', '#764017'],
+    ['keeps the first color whole at 100 percent in sRGB', '#764017', 100, '#f2f1ee', 'srgb', '#764017'],
+    ['keeps the second color whole at 0 percent in OKLab', '#764017', 0, '#f2f1ee', 'oklab', '#f2f1ee'],
+    ['keeps the second color whole at 0 percent in sRGB', '#764017', 0, '#f2f1ee', 'srgb', '#f2f1ee'],
+    ['averages each gamma-encoded channel in sRGB', '#000000', 50, '#ffffff', 'srgb', '#808080'],
+    ['mixes in OKLab by default, which lands lighter than sRGB', '#000000', 50, '#ffffff', undefined, '#636363'],
+    ['clips a blue and green mix outside the sRGB gamut into it', '#0000ff', 50, '#00ff00', undefined, '#00aabf'],
+    ['clips a red and yellow mix outside the sRGB gamut into it', '#ff0000', 50, '#ffff00', undefined, '#ffa000']
+  ] as const)('%s', (_, first, share, second, space, mixed) => {
+    expect(colors.mix(first, share, second, space)).toBe(mixed)
   })
 })

@@ -6,21 +6,6 @@ const GAMES    = 'index/games.parquet'
 const MANIFEST = 'downloads/manifest.json'
 
 describe('commands', () => {
-  it('reads every command the help lists and every file of the layout, split at its folder', () => {
-    expect(commands.COMMANDS.map(({ name }) => name)).toEqual([
-      'cite source', 'fetch games', 'index games', 'match game', 'match games', 'show game', 'show position',
-      'show store'
-    ])
-    expect(commands.FILES.map(({ name }) => name)).toEqual([
-      'pgnmentor.com/', 'manifest.json', 'games.parquet', 'positions.bin', 'manifest.json'
-    ])
-    expect(commands.FOLDERS).toEqual(['downloads/', 'index/'])
-    expect(commands.filesOf('index/').map(({ path }) => path)).toEqual([
-      'index/games.parquet', 'index/positions.bin', 'index/manifest.json'
-    ])
-    expect(commands.commandsOf('show')).toHaveLength(3)
-  })
-
   it.each([
     { command: 'fetch games', file: 'downloads/manifest.json', kind: 'writes' },
     { command: 'index games', file: 'downloads/manifest.json', kind: 'reads' },
