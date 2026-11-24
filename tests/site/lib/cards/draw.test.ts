@@ -78,10 +78,8 @@ describe('siteCard', () => {
     expect(card.props.style).toMatchObject({ height: draw.CARD.height, width: draw.CARD.width })
   })
 
-  it('sets the tagline, the edition, the address, and the name of each game', () => {
-    expect(texts(card)).toEqual(expect.arrayContaining([
-      IDENTITY.tagline, 'EDITION', '0.1.0', 'SCOTCH.FYI', 'STORED', 'SUBMITTED'
-    ]))
+  it.each([IDENTITY.tagline, 'EDITION', '0.1.0', 'SCOTCH.FYI', 'STORED', 'SUBMITTED'])('sets %s', text => {
+    expect(texts(card)).toContain(text)
   })
 
   it('draws the wordmark in Cashmere at the height its viewBox gives its width', () => {

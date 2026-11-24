@@ -86,9 +86,10 @@ describe('colophonOf, its links and its edges', () => {
     expect(() => chrome.colophonOf('0123456', { ...FACTS, license: 'MIT' }, [MENTOR])).toThrow(/MIT/u)
   })
 
-  it('reads each line as prose', () => {
-    const lines = [colophon.rest, ...colophon.credits.map(credit => credit.full)]
-    expect(lines.map(line => textOf(line)).join('\n')).toReadAsProse()
+  const lines = [colophon.rest, ...colophon.credits.map(credit => credit.full)]
+
+  it.each(lines.map(line => textOf(line)))('reads %s as prose', line => {
+    expect(line).toReadAsProse()
   })
 })
 
@@ -106,8 +107,9 @@ describe('NOT_FOUND', () => {
     expect(pageAt(String(chrome.NOT_FOUND.link))).toBe('index.md')
   })
 
-  it('sets its words as prose', () => {
-    const { link: _, ...words } = chrome.NOT_FOUND
-    expect(Object.values(words).join('\n')).toReadAsProse()
+  const words = Object.entries(chrome.NOT_FOUND).filter(([key]) => key !== 'link')
+
+  it.each(words)('sets its %s as prose', (_, text) => {
+    expect(text).toReadAsProse()
   })
 })

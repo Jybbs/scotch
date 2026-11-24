@@ -35,4 +35,10 @@ describe('useViewer', () => {
     expect([viewer.loaded.value.match, viewer.cursor.value, viewer.sample.value, viewer.source.value])
       .toEqual([match, cursor, undefined, 'game.json'])
   })
+
+  it('turns both boards to a side', () => {
+    const viewer = useViewer()
+    viewer.turn('black')
+    expect(viewer.facing.value).toBe('black')
+  })
 })

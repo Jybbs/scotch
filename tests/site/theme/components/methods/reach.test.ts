@@ -187,6 +187,12 @@ describe('Reach as stepped', () => {
     expect(now(wrapper)).toBe(length)
   })
 
+  it('leaves the length where another key is pressed', async () => {
+    const wrapper = still()
+    await wrapper.find('[role=slider]').trigger('keydown', { key: 'Enter' })
+    expect(now(wrapper)).toBe(REACH.median)
+  })
+
   it('steps as a slider across every length from the tab order', () => {
     expect(still().find('[role=slider]').attributes()).toMatchObject({
       'aria-label'    : 'Length of the longest run',

@@ -83,6 +83,14 @@ def test_the_outputs_are_the_ones_its_app_and_readme_render_under_the_root(
     assert calls == [(app, checkout.pyproject.readme, root)]
 
 
+def test_the_scripts_are_the_tasks_declaring_inline_metadata(answered: Sample):
+    """
+    Asserts that the checkout reads inline metadata from each task file that
+    carries a `script` block, and from no other.
+    """
+    assert [script.path.name for script in answered.checkout.scripts] == ["scoresheet"]
+
+
 def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
     """
     Asserts that the checkout pairs each declared step with its workflow or
@@ -129,3 +137,11 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
     )
     assert tasks["repo:inline"].file is None
     assert fp.calls[0] == ["mise", "tasks", "ls", "--json", "--local"]
+
+
+def test_the_wrappers_come_from_the_folder_the_path_entry_names(sample: Sample):
+    """
+    Asserts that the wrappers are the files in the folder the `_.path` entry
+    in `.mise/config.toml` names, in name order.
+    """
+    assert [wrapper.name for wrapper in sample.checkout.wrappers] == ["prose", "pytest"]

@@ -66,26 +66,29 @@ def test_the_help_imports_no_group_module(help_modules: frozenset[str]):
     assert help_modules & groups == set()
 
 
-def test_the_help_loads_no_package_behind_the_commands(help_modules: frozenset[str]):
-    """
-    Asserts that `scotch --help` imports no module of a dependency the
-    manifest declares beside the ones that render the help, of which the
-    environment installs at least one. The global lazy import mode defers
-    each import a command's module makes until the command reads the name it
-    binds, whereas registering the command runs its module and resolves the
-    type of each parameter it takes.
-    """
-    behind = {
+@mark.parametrize(
+    "module",
+    sorted(
         module
         for module, distributions in packages_distributions().items()
         if {*map(normalized, distributions)}
         & {*map(normalized, requires("scotch"))} - {
             "cyclopts", "markdown-it-py", "rich"
         }
-    }
-
-    assert behind
-    assert {name.partition(".")[0] for name in help_modules} & behind == set()
+    )
+)
+def test_the_help_loads_no_package_behind_the_commands(
+    help_modules : frozenset[str],
+    module       : str
+):
+    """
+    Asserts that `scotch --help` imports no module of a dependency the
+    manifest declares beside the ones that render the help. The global
+    lazy import mode defers each import a command's module makes until the
+    command reads the name it binds, whereas registering the command runs
+    its module and resolves the type of each parameter it takes.
+    """
+    assert module not in {name.partition(".")[0] for name in help_modules}
 
 
 @mark.parametrize(

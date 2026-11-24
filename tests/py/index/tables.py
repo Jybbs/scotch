@@ -793,6 +793,19 @@ def test_an_answer_counts_each_game_under_the_move_from_its_first_reach(
     )
 
 
+def test_an_answer_reads_a_move_the_reader_takes_short_of_its_last_letter():
+    """
+    Asserts that `Nf3x`, whose `Nf3` the PGN reader reads as the move,
+    leaves the position `Nf3` reaches.
+    """
+    index = PositionIndex.build([line("e4", "e5", "Nf3", "Nc6")])
+
+    assert index.answer("1. e4 e5 2. Nf3x", top=1) == index.answer(
+        "1. e4 e5 2. Nf3",
+        top = 1
+    )
+
+
 def test_an_index_counts_every_position_and_each_distinct_key():
     """
     Asserts that an index counts each position of each game it holds, the

@@ -60,6 +60,13 @@ function stopNamed(name: string): (typeof MARKS.stops)[number] {
 }
 
 describe('the stops', () => {
+  it('run by width, the mark first and the lockup last', () => {
+    const widths = MARKS.stops.map(({ width }) => width)
+    expect(widths).toEqual(widths.toSorted((first, second) => first - second))
+    expect(MARKS.stops[0]!.name).toBe('Favicon')
+    expect(MARKS.stops.at(-1)!.name).toBe('Lockup')
+  })
+
   it('state the sizes the site and the README set each drawing at', () => {
     const layout = read('docs/.vitepress/theme/layout.ts')
     expect(layout).toContain(` h-${stopNamed('Nav mark').height / 4} `)

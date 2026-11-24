@@ -17,6 +17,7 @@ from scotch.repo.registries import (
     Label,
     Labels,
     Releases,
+    Request,
     Ruleset,
     Template
 )
@@ -68,6 +69,17 @@ def test_a_label_rejects_a_field_outside_its_shape(field: str, value: str):
 
     with raises(ValidationError):
         Label(**fields | {field: value})
+
+
+def test_a_label_writes_the_call_creating_or_updating_it():
+    """
+    Asserts that a label's arguments create it through `gh label create`,
+    updating the live label of its name through `--force`.
+    """
+    assert Label(color="c62d42", description="A defect", name="🐞 bug").arguments == (
+        "label", "create", "--color", "c62d42",
+        "--description", "A defect", "--force", "🐞 bug"
+    )
 
 
 def test_the_changelog_lists_each_label_its_categories_name(tmp_path: Path):
@@ -256,6 +268,35 @@ def test_a_ruleset_creates_or_updates_the_live_one_of_its_name(
         ]
     }
     assert ruleset.contexts == ("🖋️ Scoresheet",)
+
+
+@mark.parametrize(
+    ("call", "arguments", "payload"),
+    [
+        param(
+            Request(body={"names": ["chess"]}, method=HTTPMethod.PUT, path="topics"),
+            ("api", "--input", "-", "--method", "PUT", "--silent", "topics"),
+            '{"names":["chess"]}',
+            id = "with-a-body"
+        ),
+        param(
+            Request(method=HTTPMethod.DELETE, path="vulnerability-alerts"),
+            ("api", "--method", "DELETE", "--silent", "vulnerability-alerts"),
+            None,
+            id = "without-a-body"
+        )
+    ]
+)
+def test_a_request_reads_its_body_from_standard_input(
+    arguments : tuple[str, ...],
+    call      : Request,
+    payload   : str | None
+):
+    """
+    Asserts that a request sending a body has `gh api` read it as JSON from
+    standard input, and that one sending none passes no input.
+    """
+    assert (call.arguments, call.payload) == (arguments, payload)
 
 
 def test_the_repository_declares_its_releases_immutable(pytestconfig: Config):

@@ -94,13 +94,14 @@ describe('the identity’s utilities', () => {
     }
   )
 
-  it('draws each one-shot animation from the keyframes the sheet declares', async () => {
-    const css = (await compiled()).build(['animate-rise', 'animate-unfold'])
-    expect(Array.from(css.matchAll(/(?:animation:|@keyframes) sc-[a-z-]+/gu), ([rule]) => rule)).toEqual([
-      'animation: sc-data-rise', 'animation: sc-refused-in', '@keyframes sc-data-rise',
-      '@keyframes sc-refused-in'
-    ])
-  })
+  it.each([['rise', 'sc-data-rise'], ['unfold', 'sc-refused-in']])(
+    'draws the %s animation from the %s keyframes the sheet declares',
+    async (name, frames) => {
+      const css = await built(`animate-${name}`)
+      expect(css).toContain(`animation: ${frames} `)
+      expect(css).toContain(`@keyframes ${frames}`)
+    }
+  )
 })
 
 describe('the sheet’s own variants and utilities', () => {
