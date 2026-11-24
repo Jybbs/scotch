@@ -80,7 +80,7 @@ include       = [
     { format = "sdist", path = ".github/scripts/**/*" },
     { format = "sdist", path = ".mise/**/*" },
     { format = "sdist", path = "src/scotch.data/**/*" },
-    { format = "sdist", path = "tests/**/*" },
+    { format = "sdist", path = "tests/py/**/*" },
     { format = "sdist", path = "uv.lock" }
 ]
 manifest-path = "rust/Cargo.toml"
@@ -120,9 +120,9 @@ markers                  = [
 ]
 norecursedirs            = ["common", "fixtures"]
 python_files             = ["*.py"]
-pythonpath               = ["tests"]
+pythonpath               = ["tests/py"]
 strict                   = true
-testpaths                = ["tests"]
+testpaths                = ["tests/py"]
 
 [tool.uv]
 build-constraint-dependencies = ["cython==3.3.1", "setuptools==84.2.1", "tomlkit==0.15.2"]

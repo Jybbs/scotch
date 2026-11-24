@@ -1,0 +1,398 @@
+"""
+Holds the records the task tests build around stand-in executables, meaning
+the `Launcher` every stand-in links to, `Wrapper`, the `StandIn` a task
+test puts first on `PATH` for the program a wrapper or a task runs, the
+`Scratch` checkout `tests/py/tasks/lock.py` runs each `lock` task in, and
+the `Affected` checkout `tests/py/tasks/affected.py` runs `py:affected` in.
+"""
+
+from collections.abc import Sequence
+from os              import environ, pathsep
+from pathlib         import Path
+from pydantic        import BaseModel
+from stat            import S_IMODE
+from subprocess      import CompletedProcess, run
+
+
+class Launcher(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The one executable every stand-in of a test session links to, which runs
+    the shell script `link` wrote beside the link it is called through.
+    """
+
+    path: Path
+    """
+    The executable's file.
+    """
+
+    def environment(self, folder: Path) -> dict[str, str]:
+        """
+        Names the variables a command reaches the stand-ins in `folder`
+        through, meaning `PATH` with `folder` first.
+
+        Returns:
+            Each variable's name, paired with its value.
+        """
+        return {"PATH": f"{folder}{pathsep}{environ['PATH']}"}
+
+    def link(self, folder: Path, program: str, script: str):
+        """
+        Puts a stand-in for `program` in `folder`, linked to the executable
+        unless a link stands there already, and writes beside it the shell
+        `script` it runs.
+        """
+        (folder / f"{program}.sh").write_text(script)
+
+        if not (stand_in := folder / program).is_symlink():
+            stand_in.symlink_to(self.path)
+
+    @classmethod
+    def written(cls, folder: Path) -> "Launcher":
+        """
+        Writes the executable into `folder`.
+        """
+        (path := folder / "stand-in").write_text(
+            '#!/bin/sh\n. "$0.sh"\n'
+        )
+        path.chmod(0o755)
+
+        return cls(path=path)
+
+
+class Wrapper(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    One wrapper under `.mise/bin`, beside the project and the program it
+    hands `uv run` and the folder each case calls it from.
+    """
+
+    path: Path
+    """
+    The wrapper's file.
+    """
+
+    @property
+    def program(self) -> Path:
+        """
+        Locates the program of the wrapper's name in the project's `.venv`.
+        """
+        return self.project / ".venv" / "bin" / self.path.name
+
+    @property
+    def project(self) -> Path:
+        """
+        Resolves the project holding the wrapper, two folders above the one
+        it sits in.
+        """
+        return self.path.parents[2].resolve()
+
+    @property
+    def tests(self) -> Path:
+        """
+        Locates the project's `tests` folder, a subfolder each case calls
+        the wrapper from.
+        """
+        return self.project / "tests"
+
+
+class Affected(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    A scratch checkout whose stand-in `git` lists the files `write` writes,
+    beside a stand-in `pytest` logging the data file pytest-testmon reads
+    and the arguments of each call it receives.
+    """
+
+    launcher: Launcher
+    """
+    The executable the checkout's stand-ins link to.
+    """
+
+    project: Path
+    """
+    The worktree root, whose `.mise/tasks/py/` holds the task.
+    """
+
+    root: Path
+    """
+    The checkout's root, holding its files, its stand-ins, and its log.
+    """
+
+    @property
+    def calls(self) -> list[str]:
+        """
+        Reads each call the stand-in `pytest` logged, in the order the task
+        made them, the data file opening each line.
+        """
+        return (self.root / ".calls").read_text().splitlines()
+
+    @property
+    def flags(self) -> list[str]:
+        """
+        Reads the arguments of the last call the stand-in `pytest` logged.
+        """
+        return self.calls[-1].split()[1:]
+
+    @property
+    def recorded(self) -> Path:
+        """
+        Locates the fingerprint `py:affected` records after a full run.
+        """
+        return self.root / ".cache" / "testmon" / "files"
+
+    @property
+    def stand_ins(self) -> Path:
+        """
+        Locates the directory holding the stand-ins, which the task finds
+        first on `PATH`.
+        """
+        return self.root / ".bin"
+
+    @classmethod
+    def laid(cls, launcher: Launcher, project: Path, root: Path) -> "Affected":
+        """
+        Lays out a checkout in `root` listing `fixture.txt` and `module.py`,
+        with a stand-in `git` that prints the names the checkout lists
+        when called with the arguments `py:affected` passes and exits one
+        otherwise.
+        """
+        affected = cls(launcher=launcher, project=project, root=root)
+        affected.stand_ins.mkdir()
+        launcher.link(
+            affected.stand_ins,
+            "git",
+            '[ "$*" = "ls-files --cached --deduplicate --exclude-standard --others" ]'
+            " || exit 1\n"
+            f'cat "{root / ".listed"}"\n'
+        )
+        affected.write(**{"fixture.txt": "one", "module.py": "one"})
+
+        return affected
+
+    def run(self, *arguments: str, status: int = 0) -> CompletedProcess[str]:
+        """
+        Runs `py:affected` from the checkout with `arguments`, against a
+        stand-in `pytest` exiting with `status`, naming the checkout in
+        `MISE_PROJECT_ROOT` and its data file in `TESTMON_DATAFILE`, as
+        `mise run` sets each, and putting the stand-ins first on `PATH`.
+        """
+        self.launcher.link(
+            self.stand_ins,
+            "pytest",
+            f'echo "$TESTMON_DATAFILE $*" >> "{self.root / ".calls"}"\nexit {status}\n'
+        )
+
+        return run(
+            [self.project / ".mise" / "tasks" / "py" / "affected", *arguments],
+            capture_output = True,
+            check          = False,
+            cwd            = self.root,
+            text           = True,
+            env            = {
+                **environ,
+                **self.launcher.environment(self.stand_ins),
+                "MISE_PROJECT_ROOT" : str(self.root),
+                "TESTMON_DATAFILE"  : str(self.root / ".cache" / "testmon" / "data")
+            }
+        )
+
+    def write(self, **files: str | None):
+        """
+        Writes each file `files` maps a name to, holding the text given or
+        removed where the text is `None`, and has the stand-in `git` list
+        every name, as it lists a tracked file deleted from the checkout.
+        """
+        for name, text in files.items():
+            if text is None:
+                (self.root / name).unlink(missing_ok=True)
+            else:
+                (self.root / name).parent.mkdir(exist_ok=True, parents=True)
+                (self.root / name).write_text(text)
+
+        (self.root / ".listed").write_text("".join(f"{name}\n" for name in files))
+
+
+class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    A scratch checkout holding `.mise/mise.lock`, beside the stand-ins the
+    `lock` tasks run against and the directory the snapshot of `lock:check`
+    lands in.
+    """
+
+    launcher: Launcher
+    """
+    The executable the checkout's stand-ins link to.
+    """
+
+    project: Path
+    """
+    The worktree root, whose `.mise/tasks/lock/` holds the tasks and whose
+    `.mise/lib/` holds the functions they source.
+    """
+
+    root: Path
+    """
+    The directory holding the checkout, the stand-ins, and the scratch
+    directory.
+    """
+
+    mode: int = 0o644
+    """
+    The permission bits the checkout's `.mise/mise.lock` starts with.
+    """
+
+    text: str = '[[tools.python]]\nversion = "3.14.6"\n'
+    """
+    The text the checkout's `.mise/mise.lock` starts with.
+    """
+
+    @property
+    def calls(self) -> list[str]:
+        """
+        Reads each call the stand-ins logged, in the order the task made
+        them.
+        """
+        return (self.root / "calls.log").read_text().splitlines()
+
+    @property
+    def lockfile(self) -> Path:
+        """
+        Locates `.mise/mise.lock` inside the checkout.
+        """
+        return self.root / "checkout" / ".mise" / "mise.lock"
+
+    @property
+    def pristine(self) -> tuple[str, int, tuple[str, ...]]:
+        """
+        Pairs the lockfile's starting text and permission bits with an
+        empty scratch directory, the residue a `lock:check` run is held to
+        whatever its verdict.
+        """
+        return self.text, self.mode, ()
+
+    @property
+    def residue(self) -> tuple[str, int, tuple[str, ...]]:
+        """
+        Reads the text and the permission bits of the checkout's
+        `.mise/mise.lock` beside the name of each file the scratch directory
+        still holds, which a run leaves at `pristine` wherever it keeps the
+        lockfile whole and cleans its snapshot away.
+        """
+        return (
+            self.lockfile.read_text(),
+            S_IMODE(self.lockfile.stat().st_mode),
+            tuple(path.name for path in self.scratch.iterdir())
+        )
+
+    @property
+    def scratch(self) -> Path:
+        """
+        Locates the directory the stand-in `mktemp` creates the snapshot in.
+        """
+        return self.root / "tmp"
+
+    @property
+    def script(self) -> Path:
+        """
+        Names the task script `add_script` writes, relative to the checkout,
+        as the tasks pass it to `uv`.
+        """
+        return Path(".mise") / "tasks" / "gha" / "scoresheet.py"
+
+    @property
+    def stand_ins(self) -> Path:
+        """
+        Locates the directory holding the stand-ins, which the task finds
+        first on `PATH`.
+        """
+        return self.root / "bin"
+
+    def add_script(self):
+        """
+        Writes into the checkout, at the path `script` names, a task script
+        whose inline metadata declares its own dependencies.
+        """
+        file = self.lockfile.parents[1] / self.script
+        file.parent.mkdir(parents=True)
+        file.write_text('# /// script\n# dependencies = ["minijinja"]\n# ///\n')
+
+    def run(
+        self,
+        task       : str = "check",
+        *arguments : str,
+        bun        : str = "exit 0",
+        cargo      : str = "exit 0",
+        deny       : str = "exit 0",
+        gh         : str = "exit 0",
+        ignore     : str = "",
+        mise       : str = "exit 0",
+        scotch     : str = "exit 0",
+        uv         : str = "exit 0"
+    ) -> CompletedProcess[str]:
+        """
+        Runs the `lock` task `task` names from the checkout with `arguments`
+        and `AUDIT_IGNORE` set to `ignore`, against stand-ins for `bun`,
+        `cargo`, `cargo-deny`, `gh`, `mise`, `scotch`, and `uv` that each
+        log their call and then run the shell line `bun`, `cargo`, `deny`,
+        `gh`, `mise`, `scotch`, or `uv` holds.
+        """
+        for name, line in {
+            "bun"        : bun,
+            "cargo"      : cargo,
+            "cargo-deny" : deny,
+            "gh"         : gh,
+            "mise"       : mise,
+            "scotch"     : scotch,
+            "uv"         : uv
+        }.items():
+            self.launcher.link(
+                self.stand_ins,
+                name,
+                f'echo "{name} $*" >> "{self.root / "calls.log"}"\n{line}\n'
+            )
+
+        return run(
+            [self.project / ".mise" / "tasks" / "lock" / task, *arguments],
+            capture_output = True,
+            check          = False,
+            cwd            = self.lockfile.parents[1],
+            env            = {**environ, "AUDIT_IGNORE": ignore},
+            text           = True
+        )
+
+
+class StandIn(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    A stand-in for the program `program` names that writes each argument it
+    receives to a log, one per line, and then runs the shell line its test
+    gave it, `exit 0` unless the test names another.
+    """
+
+    program: str
+    """
+    The name of the program the stand-in answers for, such as `uv`.
+    """
+
+    root: Path
+    """
+    The directory holding the stand-in and its log.
+    """
+
+    @property
+    def arguments(self) -> list[str]:
+        """
+        Reads the arguments the stand-in received, in the order it received
+        them.
+        """
+        return (self.root / "arguments.log").read_text().splitlines()
+
+    def run(self, wrapper: Wrapper, *arguments: str) -> CompletedProcess[str]:
+        """
+        Runs `wrapper` with `arguments` from the project's `tests` folder.
+        """
+        return self.start([wrapper.path, *arguments], wrapper.tests)
+
+    def start(self, command: Sequence[str | Path], cwd: Path) -> CompletedProcess[str]:
+        """
+        Starts `command` from `cwd`, where the stand-in answers for
+        `program` wherever the command reaches it by name.
+        """
+        return run(command, capture_output=True, check=False, cwd=cwd, text=True)

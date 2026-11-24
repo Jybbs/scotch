@@ -131,6 +131,7 @@ on:
       - docs/**
       - pyproject.toml
       - rust/**
+      - tests/site/**
     types:
       - opened
       - ready_for_review

@@ -4,7 +4,7 @@
 #MISE description = "Type-check the site's TypeScript, failing on a single-file component `tsc` cannot read, and passing any further arguments to `tsc`"
 #MISE dir         = "docs"
 
-component=$(find .vitepress -name '*.vue' -print -quit)
+component=$(find .vitepress ../tests/site -name '*.vue' -print -quit)
 if [[ -n "$component" ]]; then
   printf '%s is a single-file component, which tsc cannot read\n' "$component" >&2
   exit 1

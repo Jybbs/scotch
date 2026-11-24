@@ -155,7 +155,7 @@ on:
       - '!src/scotch/games/**'
       - '!src/scotch/index/**'
       - '!src/scotch/sources/**'
-      - tests/**
+      - tests/py/**
   workflow_dispatch:
     inputs:
       ref:

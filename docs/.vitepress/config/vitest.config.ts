@@ -1,23 +1,28 @@
+import path from 'node:path'
+
 import { defineConfig } from 'vitest/config'
 
-import { identityPlugin } from '../lib/identity/sheet.ts'
-import { projectFacts }   from '../lib/site/manifest.ts'
-import { cacheDir }       from '../lib/site/paths.ts'
+import { identityPlugin }     from '../lib/identity/sheet.ts'
+import { projectFacts }       from '../lib/site/manifest.ts'
+import { cacheDir, repoRoot } from '../lib/site/paths.ts'
 
 const { gate } = projectFacts(import.meta.url)
+const root     = repoRoot(import.meta.url)
 
 export default defineConfig({
   cacheDir : cacheDir(import.meta.url, 'vitest'),
   plugins  : [identityPlugin()],
+  server   : { fs: { allow: [root] } },
   test     : {
+    dir                 : root,
     expect              : { requireAssertions: true },
     fsModuleCachePath   : cacheDir(import.meta.url, 'vitest/modules'),
-    include             : ['.vitepress/tests/**/*.test.ts'],
+    include             : ['tests/site/**/*.test.ts'],
     pool                : 'threads',
     resolveSnapshotPath : (testPath, extension) => testPath + extension,
     restoreMocks        : true,
     sequence            : { shuffle: true },
-    setupFiles          : ['.vitepress/tests/common/matchers.ts'],
+    setupFiles          : [path.join(root, 'tests/site/common/matchers.ts')],
     unstubEnvs          : true,
     unstubGlobals       : true,
 

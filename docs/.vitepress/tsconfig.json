@@ -6,5 +6,5 @@
         "lib"   : ["ESNext", "DOM"],
         "types" : ["node", "vite/client"]
     },
-    "include"         : ["**/*.ts"]
+    "include"         : ["**/*.ts", "../../tests/site/**/*.ts"]
 }

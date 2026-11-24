@@ -11,4 +11,5 @@ node_modules/.bin/oxlint \
   --config .vitepress/config/.oxlintrc.json \
   --format "$format" \
   "$@" \
-  "$PWD/.vitepress"
+  "$PWD/.vitepress" \
+  "$MISE_PROJECT_ROOT/tests/site"

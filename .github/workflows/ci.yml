@@ -96,6 +96,7 @@ on:
       - '!docs/.vitepress/**'
       - '!docs/pages/**'
       - '!docs/public/**'
+      - '!tests/site/**'
     types:
       - opened
       - ready_for_review
