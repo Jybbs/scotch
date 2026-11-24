@@ -4,6 +4,7 @@ import { describe, expect, vi }           from 'vitest'
 import { shallowRef }                     from 'vue'
 
 import { EXAMPLES }                    from '../../../../../../docs/.vitepress/lib/viewer/examples.ts'
+import { Matcher }                     from '../../../../../../docs/.vitepress/lib/viewer/matcher.ts'
 import { test }                        from '../../../../common/clock.ts'
 import { pressed }                     from '../../../../common/keys.ts'
 import * as matches                    from '../../../../common/matches.ts'
@@ -19,11 +20,12 @@ clearAfterEach()
 
 /**
  * Reads the element the next key reaches, the body where the focused one is
- * disabled, hidden, or inert, as a browser leaves such an element unfocused.
+ * disabled, hidden, inert, or removed, as a browser leaves such an element
+ * unfocused.
  */
 function focused(): Element {
   const active = document.activeElement!
-  return active.closest(':disabled, [hidden], [inert]') ? document.body : active
+  return !active.isConnected || active.closest(':disabled, [hidden], [inert]') ? document.body : active
 }
 
 /**
@@ -72,6 +74,25 @@ describe('Tool losing the control a reader focused', () => {
     await pressed(root, key)
     expect(await pressed(focused(), 'End')).toBe(true)
     expect(wrapper.get('[role="slider"]').attributes('aria-valuenow')).toBe(String(last))
+    clock.advanceTimersByTime(5000)
+  })
+})
+
+describe('Tool drawing again the control a reader focused', () => {
+  test('steps on once the tally draws another tied game in place of the one pressed', async ({ clock }) => {
+    const other = matches.oneApart()
+    vi.spyOn(Matcher.prototype, 'submit').mockResolvedValue({
+      matches: matches.answered({ ...EXAMPLES.match, ties: 1 }, { ...other, ties: 1 })
+    })
+    const { wrapper } = mountedTool()
+    const field       = wrapper.find('textarea[placeholder]')
+    await field.setValue('1. Nf3 *')
+    await field.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    await taken(wrapper, 'button[aria-pressed][title]:not([data-control])')
+    expect(await pressed(focused(), 'End')).toBe(true)
+    expect(wrapper.get('[role="slider"]').attributes('aria-valuenow'))
+      .toBe(String(other.submitted.moves.length))
     clock.advanceTimersByTime(5000)
   })
 })

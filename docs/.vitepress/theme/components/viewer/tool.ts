@@ -93,7 +93,8 @@ function drawStage(drive: drives.Drive, viewer: Viewer): VNode {
  * link carries in the page's fragment, matches a game submitted in PGN against
  * the published store, stepping between the stored games tied on the run as
  * the band's tally is pressed, and answers the controls' keys while focus sits
- * inside it, as it still does once the focused control is disabled or hidden.
+ * inside it, as it still does once the focused control is disabled, hidden, or
+ * removed.
  */
 export const Tool = defineComponent({
   name: 'ScotchViewer',

@@ -29,7 +29,8 @@ function messageOf(error: unknown): string {
 }
 
 /**
- * The line naming what `name` reads from as unreadable, and why.
+ * Builds the problem naming `name`, what a text was read from, as unreadable,
+ * and why.
  */
 export function unreadable(name: string, error: unknown): { problem: string } {
   return { problem: `Cannot read ${name}: ${messageOf(error)}` }

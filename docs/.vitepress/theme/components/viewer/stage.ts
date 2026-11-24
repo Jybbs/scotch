@@ -26,8 +26,8 @@ const FLANK = [
 ]
 /**
  * The pill of controls set over the surface's lower edge with the status line
- * and the field taking a move under it, in its own row on a narrow screen,
- * which takes the focus a control inside it loses.
+ * and the field taking a move under it, taking the focus a control inside it
+ * loses, in its own row on a narrow screen.
  */
 const FOOT = 'relative z-2 -mt-[45px] grid justify-items-center gap-2.5 outline-none max-lg:col-span-full '
            + 'max-lg:row-3 max-lg:mt-0'

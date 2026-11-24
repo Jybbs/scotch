@@ -9,11 +9,6 @@ import { moveTo }                       from './placements.ts'
 import type { Viewer }                  from './state.ts'
 
 /**
- * A control that takes no key, meaning one disabled or hidden.
- */
-const IDLE = ':disabled, [hidden]'
-
-/**
  * The Viewer's drive: the page's address, the refs its parts bind to, and the
  * call answering a key pressed inside the tool.
  */
@@ -60,6 +55,12 @@ export interface Parts {
   submitted : ShallowRef<Figure | undefined>
   track     : ShallowRef<Painted | undefined>
 }
+
+/**
+ * The selector matching a control that takes no key, meaning one disabled or
+ * hidden.
+ */
+const IDLE = ':disabled, [hidden]'
 
 /**
  * Answers a key pressed inside the tool: C covers or shows the stored game's
@@ -234,15 +235,16 @@ export function useDrive(viewer: Viewer): Drive {
 }
 
 /**
- * Moves focus from a control that a load, a step, or the cover disables or
- * hides to the nearest element around it that takes focus, so a key pressed
- * next still reaches the Viewer.
+ * Moves focus from a control that a load, a step, or the cover disables, hides,
+ * or removes to the nearest element that took focus around it, so a key
+ * pressed next still reaches the Viewer.
  */
 export function useFocus({ covered, cursor, loaded }: Viewer): void {
   watch([covered, cursor, loaded], async () => {
     const held = document.activeElement
+    const home = held?.parentElement?.closest<HTMLElement>('[tabindex]')
     await nextTick()
-    if (!held?.matches(IDLE)) return
-    held.parentElement?.closest<HTMLElement>('[tabindex]')?.focus({ preventScroll: true })
+    if (held?.isConnected && !held.matches(IDLE)) return
+    home?.focus({ preventScroll: true })
   })
 }

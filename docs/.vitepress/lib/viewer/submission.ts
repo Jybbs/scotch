@@ -21,8 +21,8 @@ export interface Submitting {
 }
 
 /**
- * Makes the call claiming the next load, which returns whether no later claim
- * has been made since.
+ * Makes the call claiming the next load, submission, or file read, which
+ * returns a call telling whether no later claim has been made since.
  */
 function claims(): () => () => boolean {
   let latest = 0

@@ -188,9 +188,9 @@ function ties(loaded: Loaded): (VNode | string)[] {
  * reaching the tool through `show`, and the copies of the link and of the PGN,
  * with the intake at its right, meaning the PGN entry, the two examples, and a
  * picker for a match file or a game. The whole band takes either file dropped
- * on it, reaching the tool through `file` as a picked one does, an example
- * through `load`, and a game in PGN through `pgn`, and the line under the
- * intake names the problem a file or a submitted game carries.
+ * on it, which reaches the tool through `file` as a picked one does, while an
+ * example reaches it through `load` and a game in PGN through `pgn`. The line
+ * under the intake names the problem a file or a submitted game carries.
  */
 export const Band = defineComponent({
   name: 'ScotchBand',

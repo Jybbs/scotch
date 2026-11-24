@@ -11,7 +11,7 @@ import { answered, oneApart }             from '../../common/matches.ts'
 /**
  * Builds a file whose text settles as `reading` does.
  */
-function slowFile(reading: Promise<string>, name: string): File {
+function slowFile(name: string, reading: Promise<string>): File {
   const file = fileOf('', name)
   vi.spyOn(file, 'text').mockReturnValue(reading)
   return file
@@ -26,7 +26,7 @@ function submitting(answer: Submission) {
   const problem = shallowRef('')
   const viewer  = useViewer()
   vi.spyOn(matcher, 'submit').mockResolvedValue(answer)
-  return { problem, submission: useSubmission(problem, viewer, matcher), viewer }
+  return { matcher, problem, submission: useSubmission(problem, viewer, matcher), viewer }
 }
 
 describe('useSubmission', () => {
@@ -119,8 +119,17 @@ describe('useSubmission taking a file', () => {
      'Cannot read gone.pgn: A permission changed']
   ])('names %s', async (_, name, reading, named) => {
     const { problem, submission } = submitting({ problem: '' })
-    await submission.take(slowFile(reading(), name))
+    await submission.take(slowFile(name, reading()))
     expect(problem.value).toBe(named)
+  })
+
+  it.each([
+    ['an empty PGN file', new File([], 'empty.pgn'), ''],
+    ['a PGN file in Latin-1', new File([Uint8Array.of(0x52, 0xE9, 0x74, 0x69)], 'reti.pgn'), 'R\uFFFDti']
+  ])('submits the text of %s as UTF-8 decodes it', async (_, file, text) => {
+    const { matcher, submission } = submitting({ problem: 'Found no game in empty.pgn' })
+    await submission.take(file)
+    expect(matcher.submit).toHaveBeenCalledWith(file.name, text)
   })
 })
 
@@ -135,7 +144,7 @@ describe('useSubmission reading out of order', () => {
   ])('keeps the file taken last where the earlier one %s after it', async (_, settle) => {
     const { problem, submission, viewer } = submitting({ problem: '' })
     const reading                         = Promise.withResolvers<string>()
-    const earlier                         = submission.take(slowFile(reading.promise, 'earlier.json'))
+    const earlier                         = submission.take(slowFile('earlier.json', reading.promise))
     await submission.take(fileOf(JSON.stringify(EXAMPLES.alone), 'later.json'))
     settle(reading)
     await earlier
@@ -148,7 +157,7 @@ describe('useSubmission reading out of order', () => {
     const before                 = viewer.source.value
     const reading                = Promise.withResolvers<string>()
     const earlier                = submission.submit('1. Nf3 *', 'the first game')
-    const taken                  = submission.take(slowFile(reading.promise, 'later.json'))
+    const taken                  = submission.take(slowFile('later.json', reading.promise))
     await earlier
     expect(viewer.source.value).toBe(before)
     reading.resolve(JSON.stringify(EXAMPLES.alone))
