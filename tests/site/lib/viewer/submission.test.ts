@@ -145,11 +145,12 @@ describe('useSubmission reading out of order', () => {
 
   it('drops the answer to a game arriving while a file taken after it is read', async () => {
     const { submission, viewer } = submitting({ matches: answered(EXAMPLES.match) })
+    const before                 = viewer.source.value
     const reading                = Promise.withResolvers<string>()
     const earlier                = submission.submit('1. Nf3 *', 'the first game')
     const taken                  = submission.take(slowFile(reading.promise, 'later.json'))
     await earlier
-    expect(viewer.source.value).not.toBe('the first game')
+    expect(viewer.source.value).toBe(before)
     reading.resolve(JSON.stringify(EXAMPLES.alone))
     await taken
     expect(viewer.source.value).toBe('later.json')

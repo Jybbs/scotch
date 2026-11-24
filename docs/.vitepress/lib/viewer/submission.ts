@@ -21,6 +21,18 @@ export interface Submitting {
 }
 
 /**
+ * Makes the call claiming the next load, which returns whether no later claim
+ * has been made since.
+ */
+function claims(): () => () => boolean {
+  let latest = 0
+  return () => {
+    const mine = ++latest
+    return () => mine === latest
+  }
+}
+
+/**
  * Reads what a file gives: its text where its name ends on `.pgn`, or else the
  * match it holds, or the line naming what it lacks or why it cannot be read.
  */
@@ -55,21 +67,20 @@ export function useSubmission(
   viewer  : Viewer,
   matcher : Matcher = new Matcher()
 ): Submitting {
-  const tied = shallowRef<Matches>()
-  const at   = shallowRef(0)
-  let latest = 0
-  const load = (...args: Parameters<Viewer['load']>): void => {
-    latest       += 1
+  const tied  = shallowRef<Matches>()
+  const at    = shallowRef(0)
+  const claim = claims()
+  const load  = (...args: Parameters<Viewer['load']>): void => {
+    claim()
     problem.value = ''
     tied.value    = undefined
     viewer.load(...args)
   }
   const submit = async (text: string, source: string): Promise<void> => {
-    latest          += 1
-    const mine       = latest
+    const current    = claim()
     problem.value    = 'Matching the game against the store …'
     const submission = await matcher.submit(source, text)
-    if (mine !== latest) return
+    if (!current()) return
     if (!submission.matches) {
       problem.value = submission.problem
       return
@@ -90,10 +101,9 @@ export function useSubmission(
     },
 
     take: async (file: File) => {
-      latest       += 1
-      const mine    = latest
+      const current = claim()
       const reading = await readingOf(file)
-      if (mine !== latest) return
+      if (!current()) return
       if (reading.game !== undefined) await submit(reading.game, file.name)
       else if (reading.match) load(reading.match, file.name)
       else problem.value = reading.problem

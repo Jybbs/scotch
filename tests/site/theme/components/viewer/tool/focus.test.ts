@@ -42,8 +42,8 @@ describe('Tool losing the control a reader focused', () => {
     ['meet', 'ArrowRight', matches.meet + 1],
     ['end', 'ArrowLeft', last - 1]
   ] as const)('steps on once %s goes nowhere', async ([control, key, at], { clock }) => {
-    const { wrapper } = mountedTool()
-    await pressed(wrapper.element, 'p')
+    const { root, wrapper } = mountedTool()
+    await pressed(root, 'p')
     await taken(wrapper, `[data-control="${control}"]`)
     expect(await pressed(focused(), key)).toBe(true)
     expect(wrapper.get('[role="slider"]').attributes('aria-valuenow')).toBe(String(at))
@@ -51,9 +51,9 @@ describe('Tool losing the control a reader focused', () => {
   })
 
   test('steps on once no square differs', async ({ clock }) => {
-    const { wrapper } = mountedTool()
-    await pressed(wrapper.element, 'p')
-    await pressed(wrapper.element, 'ArrowRight')
+    const { root, wrapper } = mountedTool()
+    await pressed(root, 'p')
+    await pressed(root, 'ArrowRight')
     wrapper.get<HTMLElement>('p > button[title]').element.focus()
     await pressed(focused(), 'ArrowLeft')
     expect(await pressed(focused(), 'ArrowLeft')).toBe(true)
