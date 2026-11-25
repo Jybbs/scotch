@@ -6,6 +6,7 @@ describes, and the facts the checks read off those records.
 from collections.abc import Callable
 from common.sample   import Sample
 from datetime        import UTC, datetime
+from os              import environ
 from pathlib         import Path
 from pydantic        import ValidationError
 from pytest          import mark, param, raises
@@ -734,11 +735,11 @@ def test_an_issue_reads_as_one_sentence():
 
 def test_the_help_text_is_read_without_color(fp: FakeProcess, tmp_path: Path):
     """
-    Asserts that `mise usage` and `mise --help` run with `NO_COLOR` set, so
-    a `CLICOLOR_FORCE` in the environment wraps no `Commands:` heading in an
-    escape code.
+    Asserts that `mise usage` and `mise --help` run in the caller's
+    environment with `NO_COLOR` set, so a `CLICOLOR_FORCE` in the
+    environment wraps no `Commands:` heading in an escape code.
     """
-    colors: list[str | None] = []
+    environments: list[dict[str, str]] = []
 
     for command, stdout in (
         (["mise", "usage"], ""),
@@ -746,14 +747,17 @@ def test_the_help_text_is_read_without_color(fp: FakeProcess, tmp_path: Path):
     ):
         fp.register(
             command,
-            callback = lambda process: colors.append(
-                (process.kwargs.get("env") or {}).get("NO_COLOR")
+            callback = lambda process: environments.append(
+                process.kwargs.get("env") or {}
             ),
             stdout = stdout
         )
 
     assert Usage.printed(tmp_path).commands == {"audit"}
-    assert colors == ["1", "1"]
+    assert [
+        (environment.get("NO_COLOR"), environment.get("PATH"))
+        for environment in environments
+    ] == [("1", environ["PATH"])] * 2
 
 
 def test_the_manifest_lists_each_loose_build_pin(sample: Sample):
