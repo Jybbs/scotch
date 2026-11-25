@@ -37,7 +37,7 @@ A pull request runs `♟️ CI` wherever it changes a file outside the site's pa
 | `♟️ CI / 🔐 Lockfiles` | `mise lockfile` | `uv.lock`, `.mise/mise.lock`, `rust/Cargo.lock`, `docs/bun.lock`, or the lockfile beside a task script drifts from its manifest |
 | `♟️ CI / 🪻 Prose` | `mise check` | *Prose* reports a rewrite or a lint finding, each shown as an annotation on the line it concerns |
 | `♟️ CI / ☂️ Coverage` | `mise coverage` | A test fails under coverage, or the suite covers less than 95% of the package |
-| `♟️ CI / 📋 Audit` | `mise run repo:audit` | A check under `src/scotch/repo/` finds an inline suppression in a tracked file, such as a comment in the Python silencing *Prose* or an `allow` attribute in the crate, or a file stating a fact otherwise than its source does, such as a pin, a label, a ruleset's required check, or a row of this table |
+| `♟️ CI / 📋 Audit` | `mise run repo:audit` | A check under `src/scotch/repo/` finds an inline suppression in a tracked file, such as a comment in the Python silencing *Prose* or an `allow` attribute in the crate, a file stating a fact otherwise than its source does, such as a pin, a label, a ruleset's required check, or a row of this table, or a task alias that a command or a command alias of the pinned mise also takes, where `mise <alias>` would run that command rather than the task |
 | `♟️ CI / 🔦 Workflows` | `mise run repo:lint` | [zizmor](https://docs.zizmor.sh/) reports a finding in a workflow or in the composite action |
 | `♟️ CI / 📎 Clippy` | `mise run rs:check` | rustfmt reports a rewrite in the crate under `rust/`, or [Clippy](https://doc.rust-lang.org/clippy/) reports a lint under any of its features |
 | `♟️ CI / 🦀 Crate` | `mise run rs:test` | A test of the crate under `rust/` fails |
