@@ -4,7 +4,7 @@ Every color on the site resolves through the palette, the roles naming where eac
 
 ## The Palette
 
-Every color on the site comes from this palette or from white and black, alone or mixed with a palette color, and each palette color holds a stated contrast against each ground in both schemes. A role names where a color is used, so a page never sets a hex by hand.
+Every color on the site comes from this palette or from white and black, alone or mixed with a palette color. A role names where a color is used, so a page never sets a hex by hand, and the second table below lists each palette color's contrast against each ground in both schemes.
 
 <!-- palette -->
 | **Color** | **Token** | **Hex** | **Meaning** | **Roles** |
@@ -40,7 +40,7 @@ Every color on the site comes from this palette or from white and black, alone o
 
 ## The Roles
 
-A page never names a color, because each part takes a role that resolves to one color in each scheme, so a chart and a page share one word for one use.
+A page never names a color, because each part takes a role that resolves to one color in each scheme, so a chart and a page share one word for one use. The contrast a role holds follows from its kind, in both schemes. A text role holds 4.5:1 or more against each ground, the ratio WCAG 2.2 sets for text,[^w3c2024] and a mark holds 3:1 or more against the page, the ratio it sets for a graphical object,[^w3c2024a] while a ground, a fill, and a rule hold no set ratio.
 
 <!-- roles -->
 | **Role** | **Kind** | **Meaning** | **Light** | **Dark** |
@@ -83,3 +83,7 @@ A chart takes its colors in the order the series below sets them, and the drawin
 | 2010s | 0 | 0 | 0 | 244 | 1,295 |
 | 2020s | 0 | 0 | 0 | 29 | 476 |
 <!-- /series -->
+
+[^w3c2024]: World Wide Web Consortium. 2024. "Web Content Accessibility Guidelines (WCAG) 2.2," Success Criterion 1.4.3, Contrast (Minimum). <https://www.w3.org/TR/WCAG22/#contrast-minimum>
+
+[^w3c2024a]: World Wide Web Consortium. 2024. "Web Content Accessibility Guidelines (WCAG) 2.2," Success Criterion 1.4.11, Non-text Contrast. <https://www.w3.org/TR/WCAG22/#non-text-contrast>
