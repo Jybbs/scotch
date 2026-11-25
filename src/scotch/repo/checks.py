@@ -104,20 +104,15 @@ class AliasCheck(Check):
 
         for task in self.checkout.tasks:
             path = task.file or self.checkout.mise.path
+            text = path.read_text(encoding="utf-8")
 
             for alias in filter(commands.__contains__, task.aliases):
+                found = search(
+                    rf"\balias\b[^=\n]*=[^\]=]*?([\"']){escape(alias)}\1",
+                    text
+                )
                 yield Finding(
-                    line = next(
-                        (
-                            line
-                            for line, text in enumerate(
-                                path.read_text(encoding="utf-8").splitlines(),
-                                start = 1
-                            )
-                            if search(rf"\balias\b.*([\"']){escape(alias)}\1", text)
-                        ),
-                        None
-                    ),
+                    line = text.count("\n", 0, found.start(1)) + 1 if found else None,
                     message = (
                         f"`mise {alias}` runs mise's own `{alias}` command "
                         f"rather than `{task.name}`"

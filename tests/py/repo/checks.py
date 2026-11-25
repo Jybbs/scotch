@@ -1532,6 +1532,48 @@ def test_a_literal_string_alias_is_a_finding_at_its_line(
     )]
 
 
+def test_a_name_quoted_before_the_alias_leaves_the_finding_at_the_alias(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias whose name a `description` quotes on an
+    earlier line draws its finding at the line declaring the alias.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = '#MISE description = \'Wraps "audit"\'\n#MISE alias = "audit"\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        3, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
+
+
+def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a bracketed rule list ending on a comma draws one finding
+    for each rule it names and none for the empty entry after the comma.
+    """
+    (sample.root / "src" / "scotch" / "listed.py").write_text(
+        "# prose: ignore[step-narration, ]\n"
+    )
+    sample.answer(fp)
+
+    assert [message for _, _, message in scan(SuppressionCheck, sample)] == [
+        "The comment carries `# prose: ignore[step-narration, ]`, a suppression "
+        "directive of Prose, in place of a `[tool.prose.rules.step-narration]` "
+        "table in `pyproject.toml`, or the URL of an issue at "
+        "`https://github.com/Jybbs/prose/issues` beside it"
+    ]
+
+
 @mark.parametrize(
     ("path", "text", "marker", "place"),
     [
@@ -1652,24 +1694,17 @@ def test_each_listed_marker_fails(
     )]
 
 
-def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
-    fp     : FakeProcess,
-    sample : Sample
-):
+def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
     """
-    Asserts that a bracketed rule list ending on a comma draws one finding
-    for each rule it names and none for the empty entry after the comma.
+    Asserts that a wrapper that is a symlink draws a finding naming it as
+    one.
     """
-    (sample.root / "src" / "scotch" / "listed.py").write_text(
-        "# prose: ignore[step-narration, ]\n"
-    )
-    sample.answer(fp)
+    wrapper = sample.root / ".mise" / "bin" / "pytest"
+    wrapper.unlink()
+    wrapper.symlink_to("prose")
 
-    assert [message for _, _, message in scan(SuppressionCheck, sample)] == [
-        "The comment carries `# prose: ignore[step-narration, ]`, a suppression "
-        "directive of Prose, in place of a `[tool.prose.rules.step-narration]` "
-        "table in `pyproject.toml`, or the URL of an issue at "
-        "`https://github.com/Jybbs/prose/issues` beside it"
+    assert scan(WrapperCheck, sample) == [
+        (Path(".mise/bin/pytest"), None, "The wrapper is a symlink rather than a copy")
     ]
 
 
@@ -1863,18 +1898,25 @@ def test_a_task_alias_a_mise_command_takes_fails(
     )]
 
 
-def test_a_wrapper_that_is_a_symlink_fails(sample: Sample):
+def test_an_alias_in_a_multi_line_list_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
     """
-    Asserts that a wrapper that is a symlink draws a finding naming it as
-    one.
+    Asserts that a colliding alias in a list wrapped one name to a line
+    draws a finding at the line holding that name.
     """
-    wrapper = sample.root / ".mise" / "bin" / "pytest"
-    wrapper.unlink()
-    wrapper.symlink_to("prose")
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = '#MISE alias = [\n#MISE   "lockfile",\n#MISE   "audit",\n#MISE ]\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("lockfile", "audit")})
 
-    assert scan(WrapperCheck, sample) == [
-        (Path(".mise/bin/pytest"), None, "The wrapper is a symlink rather than a copy")
-    ]
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        4, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
 
 
 def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
