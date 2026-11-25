@@ -26,10 +26,12 @@ describe('the roles hold the contrast WCAG 2.2 sets', () => {
     }
   )
 
-  it.each(SCHEMES.flatMap(scheme => marks.map(([role, paints]) => ({ mark: paints[scheme], role, scheme }))))(
-    'draws the $role mark at 3:1 or more on the page in the $scheme scheme',
-    ({ mark, scheme }) => {
-      expect(contrast(roles.resolve(mark), page(scheme))).toBeGreaterThanOrEqual(3)
+  it.each(SCHEMES.flatMap(scheme => marks.flatMap(([role, paints]) =>
+    grounds.map(([ground, under]) => ({ ground, mark: paints[scheme], role, scheme, under: under[scheme] }))
+  )))(
+    'draws the $role mark at 3:1 or more on $ground in the $scheme scheme',
+    ({ mark, under }) => {
+      expect(contrast(roles.resolve(mark), roles.resolve(under))).toBeGreaterThanOrEqual(3)
     }
   )
 
