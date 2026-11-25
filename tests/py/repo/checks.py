@@ -5,6 +5,7 @@ once a file in the sample checkout departs from the rule the check holds.
 
 from collections.abc import Iterable
 from common.sample   import Sample
+from json            import dumps
 from pathlib         import Path
 from pytest          import MonkeyPatch, mark, param
 from pytest_subprocess.fake_process import FakeProcess
@@ -1820,14 +1821,65 @@ def test_a_directive_with_no_filed_prose_issue_beside_it_fails(
     assert [found for _, found, _ in scan(SuppressionCheck, sample)] == [line]
 
 
+@mark.parametrize(
+    ("source", "path"),
+    [
+        param(".mise/tasks/repo.toml", ".mise/tasks/repo.toml", id="included"),
+        param(None, ".mise/config.toml", id="unnamed")
+    ]
+)
+def test_a_dependency_no_row_runs_is_a_finding_at_the_file_declaring_repo_ci(
+    fp     : FakeProcess,
+    path   : str,
+    sample : Sample,
+    source : str | None
+):
+    """
+    Asserts that where `repo:ci` is declared in TOML, a dependency no
+    pull-request row runs is a finding at the file mise names as the task's
+    source, or at `.mise/config.toml` where mise names none, the listing
+    keeping the `site:links` whose dependency on `site:install` takes that
+    row's setup out of the checks.
+    """
+    fp.register(
+        ["mise", "tasks", "ls", "--json", "--local"],
+        stdout = dumps(
+            [
+                {
+                    "file"    : None,
+                    "name"    : "repo:ci",
+                    "depends" : [
+                        "lock:check", "py:coverage", "repo:extra",
+                        "site:links", "site:press"
+                    ],
+                    "source"  : source and str(sample.root.resolve() / source)
+                },
+                {
+                    "file"    : None,
+                    "name"    : "site:links",
+                    "depends" : ["site:install", "site:press"]
+                }
+            ]
+        )
+    )
+    sample.answer(fp)
+
+    assert scan(RowCheck, sample) == [
+        (
+            Path(path),
+            None, "`repo:ci` depends on `repo:extra`, which no pull-request row runs"
+        )
+    ]
+
+
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
     fp     : FakeProcess,
     sample : Sample
 ):
     """
     Asserts that each problem `mise tasks validate` reports becomes a
-    finding at the task's file, or at `.mise/config.toml` for a task with
-    none, keeping the severity mise reports.
+    finding at the file declaring the task, its script or the TOML file
+    `mise tasks ls` names as its source, keeping the severity mise reports.
     """
     sample.answer(
         fp,
@@ -1842,6 +1894,11 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
                 "message"  : "Description is empty",
                 "severity" : "warning",
                 "task"     : "repo:inline"
+            },
+            {
+                "message"  : "Description is empty",
+                "severity" : "warning",
+                "task"     : "site:links"
             }
         )
     )
@@ -1857,6 +1914,10 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
         (
             Path(".mise/config.toml"),
             Level.WARNING, "`repo:inline`: Description is empty"
+        ),
+        (
+            Path(".mise/tasks/site.toml"),
+            Level.WARNING, "`site:links`: Description is empty"
         )
     ]
 

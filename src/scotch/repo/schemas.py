@@ -241,6 +241,13 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     The sentence `mise tasks ls` prints beside the task.
     """
 
+    source: Path | None = None
+    """
+    The file declaring the task, its file for a script and the TOML file
+    holding its table for a task declared in TOML, `None` where mise names
+    none.
+    """
+
     @property
     def command(self) -> str:
         """
@@ -265,8 +272,8 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         Runs `mise tasks ls`, listing the tasks the repository under `root`
         declares and leaving out the global ones.
 
-        mise prints each task's file as an absolute path with every symlink
-        resolved, so each one is joined back onto `root`.
+        mise prints each task's file and source as absolute paths with every
+        symlink resolved, so each one is joined back onto `root`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
@@ -277,10 +284,12 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         )
         return tuple(
             task.model_copy(
-                update = {"file": root / task.file.relative_to(root.resolve())}
+                update = {
+                    field: root / path.relative_to(root.resolve())
+                    for field in ("file", "source")
+                    if (path := getattr(task, field))
+                }
             )
-            if task.file
-            else task
             for task in TypeAdapter(tuple[cls, ...]).validate_json(listing.stdout)
         )
 

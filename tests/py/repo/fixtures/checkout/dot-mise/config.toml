@@ -5,3 +5,6 @@ _.path = ".mise/bin"
 node   = "26.11.1"
 python = "3.14.6"
 uv     = "0.12.13"
+
+[task_config]
+includes = [".mise/tasks/site.toml"]

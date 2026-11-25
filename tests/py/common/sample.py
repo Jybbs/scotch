@@ -55,9 +55,9 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         """
         Registers the answers mise and git give the checkout, listing the
         tasks `tests/py/repo/fixtures/tasks.toml` declares with each file
-        joined onto the copy and resolved as mise prints it, reporting
-        `issues` from `mise tasks validate`, and listing every file the copy
-        holds from `git ls-files`.
+        and source joined onto the copy and resolved as mise prints them,
+        reporting `issues` from `mise tasks validate`, and listing every
+        file the copy holds from `git ls-files`.
         """
         listing = loads((self.fixtures / "tasks.toml").read_text())["tasks"]
 
@@ -67,9 +67,10 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
                 [
                     {
                         **task,
-                        "file": str(
+                        "file"   : str(
                             (self.root / task["file"]).resolve()
-                        ) if "file" in task else None
+                        ) if "file" in task else None,
+                        "source" : str((self.root / task["source"]).resolve())
                     }
                     for task in listing
                 ]
