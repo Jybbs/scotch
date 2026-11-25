@@ -1872,6 +1872,49 @@ def test_a_dependency_no_row_runs_is_a_finding_at_the_file_declaring_repo_ci(
     ]
 
 
+@mark.parametrize(
+    ("old", "new", "findings"),
+    [
+        param(
+            'run     = "vitepress build docs"',
+            'run     = [{ task = "site:install" }, "bunx vitepress build docs"]',
+            [(
+                Path(".mise/tasks/site.toml"),
+                7,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-in-run"
+        ),
+        param(
+            'depends = ["site:install"]\nrun     = "vitepress build docs"',
+            'depends     = ["site:install"]\n'
+            'description = "Build the site through bunx vitepress"\n'
+            'run         = "vitepress build docs"',
+            [],
+            id = "bunx-in-description"
+        )
+    ]
+)
+def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
+    findings : list[tuple[Path, int, str]],
+    fp       : FakeProcess,
+    new      : str,
+    old      : str,
+    sample   : Sample
+):
+    """
+    Asserts that a refused command in the `run` of a task an included TOML
+    file declares is a finding at the line of that file holding it, a table
+    in `run` naming a task being passed over, and that a command the task's
+    description names is none.
+    """
+    sample.edit(".mise/tasks/site.toml", new=new, old=old)
+    sample.answer(fp)
+
+    assert scan(CommandCheck, sample) == findings
+
+
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
     fp     : FakeProcess,
     sample : Sample

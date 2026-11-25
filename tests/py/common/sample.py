@@ -70,6 +70,7 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
                         "file"   : str(
                             (self.root / task["file"]).resolve()
                         ) if "file" in task else None,
+                        "run"    : self.run(task),
                         "source" : str((self.root / task["source"]).resolve())
                     }
                     for task in listing
@@ -124,3 +125,21 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
         assert old in text, f"{path} holds no {old!r}"
         file.write_text(text.replace(old, new))
+
+    def run(self, task: Mapping[str, str]) -> list[object]:
+        """
+        Reads the `run` of a task declared in TOML from the table its source
+        holds under the task's name, a lone string as a list of one, as
+        `mise tasks ls` lists it, and none for a task with a file.
+        """
+        if "file" in task:
+            return []
+
+        tables = loads((self.root / task["source"]).read_text())
+        run    = (
+            tables.get("tasks", tables)
+                  .get(task["name"], {})
+                  .get("run", [])
+        )
+
+        return [run] if isinstance(run, str) else run

@@ -11,7 +11,8 @@ from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
 from pathlib         import Path
-from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, TypeAdapter, ValidationError
+from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, JsonValue, TypeAdapter
+from pydantic        import ValidationError
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
 from subprocess      import run
 from tomllib         import loads
@@ -239,6 +240,12 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     description: str = ""
     """
     The sentence `mise tasks ls` prints beside the task.
+    """
+
+    run: tuple[str | dict[str, JsonValue], ...] = ()
+    """
+    What a task declared in TOML runs, each entry a command or a table
+    naming the tasks it runs in its place, empty for a script.
     """
 
     source: Path | None = None
