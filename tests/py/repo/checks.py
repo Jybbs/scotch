@@ -16,6 +16,7 @@ from scotch.docs.outputs      import Footnotes, Region
 from scotch.repo.checkout     import Checkout
 from scotch.repo.checks  import (
     ActionPinCheck,
+    AliasCheck,
     AnchorCheck,
     Check,
     CommandCheck,
@@ -1510,6 +1511,48 @@ def test_each_listed_directive_fails(
     ] == [(2, directive)]
 
 
+def test_a_literal_string_alias_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias written as a TOML literal string draws a
+    finding at the line declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = "#MISE alias = 'audit'\nuv run",
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
+
+
+def test_a_name_quoted_before_the_alias_leaves_the_finding_at_the_alias(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias whose name a `description` quotes on an
+    earlier line draws its finding at the line declaring the alias.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = '#MISE description = \'Wraps "audit"\'\n#MISE alias = "audit"\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        3, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
+
+
 def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(
     fp     : FakeProcess,
     sample : Sample
@@ -1820,6 +1863,104 @@ def test_a_directive_with_no_filed_prose_issue_beside_it_fails(
     assert [found for _, found, _ in scan(SuppressionCheck, sample)] == [line]
 
 
+@mark.parametrize(
+    "alias",
+    [
+        param("audit", id = "command"),
+        param("cfg", id = "command-alias"),
+        param("aliases", id = "second-alias"),
+        param("current", id = "hidden-command"),
+        param("help", id = "help-command"),
+        param("backend-list", id = "wrapped-help-alias")
+    ]
+)
+def test_a_task_alias_a_mise_command_takes_fails(
+    alias  : str,
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a task alias a command or a command alias of mise also
+    takes, hidden or not, and whether the usage spec or `mise --help` names
+    it, draws a finding at the line of the task file declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = f'#MISE alias = "{alias}"\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": (alias,)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2,
+        f"`mise {alias}` runs mise's own `{alias}` command rather than `py:test`"
+    )]
+
+
+def test_an_alias_in_a_multi_line_list_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias in a list wrapped one name to a line
+    draws a finding at the line holding that name.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = '#MISE alias = [\n#MISE   "lockfile",\n#MISE   "audit",\n#MISE ]\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("lockfile", "audit")})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        4, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
+
+
+def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias of a task declared inline draws a finding
+    at the line of `.mise/config.toml` declaring it, passing over the alias
+    another task declares above it.
+    """
+    sample.edit(
+        ".mise/config.toml",
+        new = (
+            'uv     = "0.12.13"\n\n'
+            '[tasks."repo:inline"]\nalias = "audits"\nrun   = "true"\n\n'
+            '[tasks."site:links"]\nalias = "audit"\nrun   = "true"'
+        ),
+        old = 'uv     = "0.12.13"'
+    )
+    sample.answer(fp, aliases={"repo:inline": ("audits",), "site:links": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/config.toml"),
+        14, "`mise audit` runs mise's own `audit` command rather than `site:links`"
+    )]
+
+
+def test_an_alias_of_an_inline_task_is_a_finding_at_the_config(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias of a task with no file of its own draws a
+    finding at `.mise/config.toml`.
+    """
+    sample.answer(fp, aliases={"repo:inline": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/config.toml"),
+        None, "`mise audit` runs mise's own `audit` command rather than `repo:inline`"
+    )]
+
+
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
     fp     : FakeProcess,
     sample : Sample
@@ -1859,6 +2000,33 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
             Level.WARNING, "`repo:inline`: Description is empty"
         )
     ]
+
+
+@mark.parametrize(
+    "alias",
+    [
+        param("lockfile", id = "free"),
+        param("list", id = "subcommand-alias"),
+        param("--no-timing", id = "flag-alias"),
+        param("quoted", id = "help-text"),
+        param("banner", id = "banner-line"),
+        param("[TASK]", id = "help-argument"),
+        param("--dir", id = "help-flag-alias")
+    ]
+)
+def test_a_task_alias_no_mise_command_takes_passes(
+    alias  : str,
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that an alias only a subcommand, a flag, the text of a help
+    string, or a line of `mise --help` outside its `Commands:` section
+    carries draws no finding.
+    """
+    sample.answer(fp, aliases={"py:test": (alias,)})
+
+    assert scan(AliasCheck, sample) == []
 
 
 def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
@@ -1949,3 +2117,21 @@ def test_markers_sharing_a_line_each_fail(fp: FakeProcess, sample: Sample):
     )] == [
         "eslint-disable-line", "@ts-ignore"
     ]
+
+
+def test_only_the_colliding_alias_of_a_list_fails(fp: FakeProcess, sample: Sample):
+    """
+    Asserts that a task listing several aliases on one line draws one
+    finding, for the alias a mise command takes, at that line.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = '#MISE alias = ["lockfile", "cfg"]\nuv run',
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("lockfile", "cfg")})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2, "`mise cfg` runs mise's own `cfg` command rather than `py:test`"
+    )]
