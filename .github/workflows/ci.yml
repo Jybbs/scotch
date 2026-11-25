@@ -1,6 +1,6 @@
 concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}${{ case(github.event.pull_request.draft, '-draft', '') }}
 jobs:
   check:
     if: ${{ !github.event.pull_request.draft }}
