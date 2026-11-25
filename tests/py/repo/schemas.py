@@ -6,10 +6,13 @@ describes, and the facts the checks read off those records.
 from collections.abc import Callable
 from common.sample   import Sample
 from datetime        import UTC, datetime
+from os              import environ
 from pathlib         import Path
 from pydantic        import ValidationError
 from pytest          import mark, param, raises
-from re              import Match
+from pytest_subprocess.fake_process import FakeProcess
+from re         import Match
+from subprocess import CalledProcessError
 
 from scotch.repo.formats import Format
 from scotch.repo.schemas import (
@@ -29,6 +32,7 @@ from scotch.repo.schemas import (
     Step,
     Task,
     Trigger,
+    Usage,
     Workflow,
     exact,
     normalized,
@@ -151,6 +155,28 @@ def test_a_license_reads_its_identifier_and_holders(
     )
 
 
+def test_a_help_listing_no_command_stops_the_read():
+    """
+    Asserts that a `mise --help` with no `Commands:` section raises rather
+    than reading as a mise with only the commands the usage spec declares.
+    """
+    with raises(ValueError, match="lists no command"):
+        Usage.parsed("Usage: mise [FLAGS]\n\nFlags:\n  -C, --cd <DIR>", "cmd audit")
+
+
+@mark.parametrize(
+    ("task", "guard"),
+    [param("py:test", "!github.event.pull_request.draft", id="row")]
+)
+def test_a_job_reads_the_draft_guard_its_kind_takes(guard: str, task: str):
+    """
+    Asserts that a job other than a gate takes the draft guard alone.
+    """
+    assert Job.model_validate(
+        {"id": "job", "runs-on": "ubuntu-26.04", "steps": [{"run": f"mise run {task}"}]}
+    ).guard == guard
+
+
 def test_a_job_pairs_each_legs_check_name_with_its_tasks():
     """
     Asserts that a job names each leg's check from the matrix expression in
@@ -181,19 +207,6 @@ def test_a_job_pairs_each_legs_check_name_with_its_tasks():
     assert "gha:total" in job.tasks
 
 
-@mark.parametrize(
-    ("task", "guard"),
-    [param("py:test", "!github.event.pull_request.draft", id="row")]
-)
-def test_a_job_reads_the_draft_guard_its_kind_takes(guard: str, task: str):
-    """
-    Asserts that a job other than a gate takes the draft guard alone.
-    """
-    assert Job.model_validate(
-        {"id": "job", "runs-on": "ubuntu-26.04", "steps": [{"run": f"mise run {task}"}]}
-    ).guard == guard
-
-
 def test_a_job_reads_one_need_as_a_list():
     """
     Asserts that a job's `needs` reads a single job as a list of one.
@@ -216,6 +229,17 @@ def test_a_lockfile_finds_the_version_it_resolves(sample: Sample):
     assert lock.version("pyyaml") is None
     assert lock.package("minijinja") == Package(name="minijinja", version="2.24.0")
     assert lock.package("pyyaml") is None
+
+
+def test_a_mise_with_no_usage_command_stops_the_read(fp: FakeProcess, tmp_path: Path):
+    """
+    Asserts that a `mise usage` exiting nonzero raises rather than reading
+    as a mise with no commands.
+    """
+    fp.register(["mise", "usage"], returncode=2)
+
+    with raises(CalledProcessError):
+        Usage.printed(tmp_path)
 
 
 def test_a_package_dates_its_release_by_its_earliest_upload():
@@ -709,6 +733,33 @@ def test_an_issue_reads_as_one_sentence():
     assert issue.model_copy(update={"details": ""}).sentence == "Alias 'x' is shared"
 
 
+def test_the_help_text_is_read_without_color(fp: FakeProcess, tmp_path: Path):
+    """
+    Asserts that `mise usage` and `mise --help` run in the caller's
+    environment with `NO_COLOR` set, so a `CLICOLOR_FORCE` in the
+    environment wraps no `Commands:` heading in an escape code.
+    """
+    environments: list[dict[str, str]] = []
+
+    for command, stdout in (
+        (["mise", "usage"], ""),
+        (["mise", "--help"], "Commands:\n  audit\n")
+    ):
+        fp.register(
+            command,
+            callback = lambda process: environments.append(
+                process.kwargs.get("env") or {}
+            ),
+            stdout = stdout
+        )
+
+    assert Usage.printed(tmp_path).commands == {"audit"}
+    assert [
+        (environment.get("NO_COLOR"), environment.get("PATH"))
+        for environment in environments
+    ] == [("1", environ["PATH"])] * 2
+
+
 def test_the_manifest_lists_each_loose_build_pin(sample: Sample):
     """
     Asserts that the manifest lists each build requirement and build
@@ -803,3 +854,16 @@ def test_the_mise_config_reads_its_pins_and_its_neighbors(sample: Sample):
     assert mise.lockfile == sample.root / ".mise" / "mise.lock"
     assert (mise.floor, mise.variables) == (None, {"_": {"path": ".mise/bin"}})
     assert mise.diagnostics == {}
+
+
+def test_the_usage_spec_names_each_top_level_command_and_its_aliases(answered: Sample):
+    """
+    Asserts that the usage spec reads the name and every alias argument of
+    each top-level command, hidden or not, and no subcommand, flag alias,
+    property, or line of a raw string, joined with each command and alias,
+    wrapped or not, under the `Commands:` section of `mise --help`.
+    """
+    assert Usage.printed(answered.root).commands == {
+        "alias", "aliases", "audit", "b", "backend", "backend-list", "backends",
+        "cfg", "config", "cur", "current", "help", "toml", "tool-alias"
+    }

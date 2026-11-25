@@ -1,0 +1,31 @@
+min_usage_version "6.11"
+name mise
+bin mise
+flag --no-timings help="Hide the elapsed time printed after each task completes" hide=#true {
+    alias "--no-timing" hide=#true
+    long_help #"""
+Hide the elapsed time printed after each task completes
+"""#
+}
+cmd tool-alias help="Manage tool backend and version aliases" effect=read {
+    alias alias aliases
+    long_help #"""
+Manage tool backend and version aliases
+    alias quoted
+cmd quoted
+"""#
+    cmd ls help="List tool version aliases" effect=read {
+        alias list
+    }
+}
+cmd audit help="Check tool versions for known vulnerabilities" effect=read {
+    example #"""
+mise audit
+"""# help="Check every tool in the current config"
+}
+cmd config help="Manage config files" effect=read {
+    alias cfg toml
+}
+cmd current hide=#true help="Show the active tool versions" effect=read {
+    alias "cur" hide=#true
+}
