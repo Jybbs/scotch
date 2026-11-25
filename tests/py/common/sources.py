@@ -4,17 +4,24 @@ Holds what a test of the store's sources builds:
 - `serve`, which registers on a `responses.RequestsMock` the answers a
   server gives for one file
 - `declare`, which builds the `Source` a test fetches or reads
+- `fill`, which stands a full disk in for the files written after it
 - `land`, which writes a file where its source lands
 - `zipped`, which writes the bytes of a zip archive a test serves or lands
 """
 
-from hashlib   import sha256
-from http      import HTTPStatus
-from io        import BytesIO
-from pathlib   import Path
-from requests  import PreparedRequest
-from responses import CallbackResponse, GET, RequestsMock
-from zipfile   import ZipFile
+from collections.abc import Iterable
+from dataclasses     import dataclass
+from errno           import ENOSPC
+from hashlib         import sha256
+from http            import HTTPStatus
+from io              import BytesIO
+from os              import strerror
+from pathlib         import Path
+from pytest          import MonkeyPatch
+from requests        import PreparedRequest
+from responses       import CallbackResponse, GET, RequestsMock
+from typing          import Any, IO, Self
+from zipfile         import ZipFile
 
 from scotch.sources.schemas import Source
 
@@ -32,6 +39,70 @@ def declare(path: str, section: str = "Players") -> Source:
         section  = section,
         title    = path
     )
+
+
+FULL = OSError(ENOSPC, strerror(ENOSPC))
+"""
+The error a write to a full disk raises, which `Full` raises a copy of.
+"""
+
+
+@dataclass(frozen=True)
+class Full:
+    """
+    A file opened for writing on a disk with room for one more byte or
+    character, which `handle` writes through.
+    """
+
+    handle: IO[Any]
+
+    def __enter__(self) -> Self:
+        """
+        Opens the block writing to the file.
+        """
+        return self
+
+    def __exit__(self, *_: object):
+        """
+        Closes the file once the block ends.
+        """
+        self.handle.close()
+
+    def write(self, data: bytes | str):
+        """
+        Writes the first byte or character of `data`, then raises an error
+        holding what `FULL` holds.
+        """
+        self.handle.write(data[:1])
+        raise OSError(*FULL.args)
+
+    def writelines(self, lines: Iterable[bytes | str]):
+        """
+        Writes the first of `lines` as `write` does.
+        """
+        for line in lines:
+            self.write(line)
+
+
+def fill(monkeypatch: MonkeyPatch, named: str = ""):
+    """
+    Makes each file opened for writing from here on whose name opens on
+    `named` a `Full` one, so its first write stops partway through raising
+    a copy of `FULL`, while every other file writes as it does on a disk
+    with room.
+    """
+    opened = Path.open
+
+    def opening(path: Path, mode: str = "r", *args: Any, **kwargs: Any) -> Any:
+        """
+        Opens `path` as `Path.open` does, wrapped in `Full` where `mode`
+        writes to a file `named` names.
+        """
+        handle = opened(path, mode, *args, **kwargs)
+
+        return Full(handle) if "w" in mode and path.name.startswith(named) else handle
+
+    monkeypatch.setattr(Path, "open", opening)
 
 
 def land(directory: Path, path: str, *, body: bytes) -> Source:

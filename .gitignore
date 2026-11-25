@@ -5,8 +5,7 @@
 /docs/.vitepress/dist/
 /docs/.vitepress/lib/games/crate/
 /docs/node_modules/
-/node_modules
-/package.json
+/tests/node_modules
 
 *.pyc
 *.so

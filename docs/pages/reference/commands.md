@@ -7,7 +7,7 @@ Each command the help of `scotch` lists takes a section below, save `scotch cite
 
 Downloads each file `sources.toml` declares into the `downloads` folder of the data directory, in a folder named for the host of its address, and records each one in the `manifest.json` beside them. A file the manifest records is fetched again where the server reports it changed since, where the copy on disk no longer holds the bytes recorded, or where the server sent it with no entity tag to ask about.
 
-Prints one line per file, naming it as fetched or as unchanged, and exits nonzero naming the file and the error where the server answers with an error status, where a request fails once every retry has, or where the connection breaks while the file downloads, which no retry covers.
+Prints one line per file, naming it as fetched or as unchanged, and exits nonzero naming the file and the error where the server answers with an error status, where a request fails once every retry has, where the connection breaks while the file downloads, which no retry covers, or where the file cannot be written, leaving no partial file behind.
 
 ```text
 scotch fetch games
@@ -37,7 +37,7 @@ Fetched https://www.pgnmentor.com/openings/Vienna.zip
 <!-- command-index-games -->
 ## `scotch index games`
 
-Reads the games of every file `scotch fetch games` downloaded into the `downloads` folder of the data directory, handing the files one at a time to a pool of processes, and writes the index of them to its `index` folder, replacing what that folder holds, beside a copy of the manifest the files were read under. Files are read in the order `sources.toml` declares them, a game several files repeat is indexed under the first, and a game rated below the floor `sources.toml` sets for its file's section, a game the reader records an error for, or one whose `Variant` tag names a variant other than standard chess is left out.
+Reads the games of every file `scotch fetch games` downloaded into the `downloads` folder of the data directory, handing the files one at a time to a pool of processes, and writes the index of them to its `index` folder beside a copy of the manifest the files were read under, writing them beside that folder first and replacing it only once every file is written, so a build cut off partway leaves the earlier index readable. Files are read in the order `sources.toml` declares them, a game several files repeat is indexed under the first, and a game rated below the floor `sources.toml` sets for its file's section, a game the reader records an error for, or one whose `Variant` tag names a variant other than standard chess is left out.
 
 Prints the count of games read from each file beside the count left below its floor where its section sets one, one line for each problem of a game left out naming its file, its place there, and its players, and the count of games indexed. Exits nonzero where no file has been fetched, or naming each fetched file whose copy on disk no longer holds the bytes the manifest records.
 

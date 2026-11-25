@@ -5,7 +5,6 @@ registers it as the group the app imports by its path.
 """
 
 from cyclopts import App
-from requests import RequestException
 
 from scotch.cli.settings     import Settings
 from scotch.sources.fetchers import Fetcher
@@ -23,9 +22,9 @@ def games():
 
     Prints one line per file, naming it as fetched or as unchanged, and
     exits nonzero naming the file and the error where the server answers
-    with an error status, where a request fails once every retry has, or
-    where the connection breaks while the file downloads, which no retry
-    covers.
+    with an error status, where a request fails once every retry has, where
+    the connection breaks while the file downloads, which no retry covers,
+    or where the file cannot be written, leaving no partial file behind.
     """
     settings = Settings()
     fetcher  = Fetcher(
@@ -40,7 +39,7 @@ def games():
 
         try:
             download = fetcher.fetch(source, known=known)
-        except RequestException as error:
+        except OSError as error:
             raise SystemExit(f"Could not fetch {source.address}: {error}")
 
         manifest = manifest.recording(source.address, download)
