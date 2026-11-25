@@ -11,6 +11,7 @@ from collections.abc import Callable, Iterable, Mapping
 from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
+from os              import environ
 from pathlib         import Path
 from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, TypeAdapter, ValidationError
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
@@ -406,8 +407,8 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     @classmethod
     def printed(cls, root: Path) -> Self:
         """
-        Runs `mise usage` and `mise --help` in `root` and reads what they
-        print.
+        Runs `mise usage` and `mise --help` in `root` with color off and
+        reads what they print.
         """
         spec, manual = (
             run(
@@ -415,6 +416,7 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
                 capture_output = True,
                 check          = True,
                 cwd            = root,
+                env            = environ | {"NO_COLOR": "1"},
                 text           = True
             ).stdout
             for args in (["usage"], ["--help"])

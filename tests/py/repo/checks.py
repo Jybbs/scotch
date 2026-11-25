@@ -1890,12 +1890,12 @@ def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
         ".mise/config.toml",
         new = (
             'uv     = "0.12.13"\n\n'
-            '[tasks."repo:inline"]\nalias = "first"\nrun   = "true"\n\n'
+            '[tasks."repo:inline"]\nalias = "audits"\nrun   = "true"\n\n'
             '[tasks."site:links"]\nalias = "audit"\nrun   = "true"'
         ),
         old = 'uv     = "0.12.13"'
     )
-    sample.answer(fp, aliases={"repo:inline": ("first",), "site:links": ("audit",)})
+    sample.answer(fp, aliases={"repo:inline": ("audits",), "site:links": ("audit",)})
 
     assert scan(AliasCheck, sample) == [(
         Path(".mise/config.toml"),

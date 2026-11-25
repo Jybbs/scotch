@@ -275,7 +275,8 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
     @cached_property
     def usage(self) -> Usage:
         """
-        Reads the commands the usage spec of the mise on `PATH` declares.
+        Reads the commands the usage spec and the help text of the mise on
+        `PATH` declare.
         """
         return Usage.printed(self.root)
 

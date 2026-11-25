@@ -241,6 +241,25 @@ def test_a_mise_with_no_usage_command_stops_the_read(fp: FakeProcess, tmp_path: 
         Usage.printed(tmp_path)
 
 
+def test_a_package_dates_its_release_by_its_earliest_upload():
+    """
+    Asserts that a package reads its release as the earliest upload among
+    its source distribution and its wheels, passing over a file the lockfile
+    records no upload for, and as `None` where it records none.
+    """
+    package = Package.model_validate(
+        {
+            "name"    : "polars",
+            "version" : "2.0.0",
+            "sdist"   : {"upload-time": "2026-10-06T11:51:29.679Z"},
+            "wheels"  : [{"upload-time": "2026-10-06T11:44:04.327Z"}, {}]
+        }
+    )
+
+    assert package.released == datetime(2026, 10, 6, 11, 44, 4, 327000, tzinfo=UTC)
+    assert Package(name="sample").released is None
+
+
 @mark.parametrize(
     ("name", "expected"),
     [
@@ -289,25 +308,6 @@ def test_an_exact_pin_names_one_version(
     assert bool(pattern(text)) is matches
 
 
-def test_a_package_dates_its_release_by_its_earliest_upload():
-    """
-    Asserts that a package reads its release as the earliest upload among
-    its source distribution and its wheels, passing over a file the lockfile
-    records no upload for, and as `None` where it records none.
-    """
-    package = Package.model_validate(
-        {
-            "name"    : "polars",
-            "version" : "2.0.0",
-            "sdist"   : {"upload-time": "2026-10-06T11:51:29.679Z"},
-            "wheels"  : [{"upload-time": "2026-10-06T11:44:04.327Z"}, {}]
-        }
-    )
-
-    assert package.released == datetime(2026, 10, 6, 11, 44, 4, 327000, tzinfo=UTC)
-    assert Package(name="sample").released is None
-
-
 def test_a_script_declaring_no_metadata_reads_as_none(sample: Sample):
     """
     Asserts that a file carrying no `script` block reads as `None`.
@@ -333,6 +333,25 @@ def test_a_script_reads_its_inline_metadata(sample: Sample):
     assert script.pins == {"mini-jinja": "2.24.0"}
 
 
+def test_a_step_expands_the_matrix_expressions_in_its_inputs_and_script():
+    """
+    Asserts that expanding a step against one leg replaces each matrix
+    expression in its inputs and its script with that leg's value, an
+    expression naming a key the leg lacks with nothing, leaving an input
+    that is no string as it stands.
+    """
+    step = Step.model_validate(
+        {
+            "run"  : "mise run ${{ matrix.task }}${{ matrix.absent }}",
+            "with" : {"depth": 2, "tools": "${{matrix.tools}}"}
+        }
+    )
+    expanded = step.expand({"task": "py:check", "tools": "python uv"})
+
+    assert expanded.run == "mise run py:check"
+    assert expanded.inputs == {"depth": 2, "tools": "python uv"}
+
+
 @mark.parametrize(
     ("aliases", "command"),
     [
@@ -356,25 +375,6 @@ def test_a_task_runs_through_its_alias_where_it_has_one(
     )
 
     assert task.command == command
-
-
-def test_a_step_expands_the_matrix_expressions_in_its_inputs_and_script():
-    """
-    Asserts that expanding a step against one leg replaces each matrix
-    expression in its inputs and its script with that leg's value, an
-    expression naming a key the leg lacks with nothing, leaving an input
-    that is no string as it stands.
-    """
-    step = Step.model_validate(
-        {
-            "run"  : "mise run ${{ matrix.task }}${{ matrix.absent }}",
-            "with" : {"depth": 2, "tools": "${{matrix.tools}}"}
-        }
-    )
-    expanded = step.expand({"task": "py:check", "tools": "python uv"})
-
-    assert expanded.run == "mise run py:check"
-    assert expanded.inputs == {"depth": 2, "tools": "python uv"}
 
 
 def test_a_step_reads_the_tasks_tools_and_summary_its_inputs_and_script_name():
@@ -428,6 +428,24 @@ def test_a_task_without_a_file_writes_no_summary():
     writing the step summary.
     """
     assert not Task(depends=(), file=None, name="repo:inline").writes_summary
+
+
+def test_a_workflow_fires_only_on_its_events(sample: Sample):
+    """
+    Asserts that a workflow fires on an event it declares with no filter for
+    every path, through the filter of one that declares a filter, and never
+    on an event it does not declare.
+    """
+    workflows = sample.root / ".github" / "workflows"
+    ci        = Workflow.read(workflows / "ci.yml")
+    site      = Workflow.read(workflows / "site.yml")
+    run       = Path("src/scotch/cli/run.py")
+
+    assert ci.fires("workflow_dispatch", run)
+    assert ci.fires("pull_request", run)
+    assert not site.fires("pull_request", run)
+    assert site.fires("pull_request", Path("rust/src/boards.rs"))
+    assert not ci.fires("push", run)
 
 
 @mark.parametrize(
@@ -577,24 +595,6 @@ def test_a_trigger_never_fires_on_a_path_its_ignore_matches(fires: bool, path: s
     assert trigger.fires(Path(path)) is fires
 
 
-def test_a_workflow_fires_only_on_its_events(sample: Sample):
-    """
-    Asserts that a workflow fires on an event it declares with no filter for
-    every path, through the filter of one that declares a filter, and never
-    on an event it does not declare.
-    """
-    workflows = sample.root / ".github" / "workflows"
-    ci        = Workflow.read(workflows / "ci.yml")
-    site      = Workflow.read(workflows / "site.yml")
-    run       = Path("src/scotch/cli/run.py")
-
-    assert ci.fires("workflow_dispatch", run)
-    assert ci.fires("pull_request", run)
-    assert not site.fires("pull_request", run)
-    assert site.fires("pull_request", Path("rust/src/boards.rs"))
-    assert not ci.fires("push", run)
-
-
 def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
     """
     Asserts that a workflow lists each job its gate does not wait for, and
@@ -730,6 +730,30 @@ def test_an_issue_reads_as_one_sentence():
 
     assert issue.sentence == "Alias 'x' is shared (Tasks: a, b)"
     assert issue.model_copy(update={"details": ""}).sentence == "Alias 'x' is shared"
+
+
+def test_the_help_text_is_read_without_color(fp: FakeProcess, tmp_path: Path):
+    """
+    Asserts that `mise usage` and `mise --help` run with `NO_COLOR` set, so
+    a `CLICOLOR_FORCE` in the environment wraps no `Commands:` heading in an
+    escape code.
+    """
+    colors: list[str | None] = []
+
+    for command, stdout in (
+        (["mise", "usage"], ""),
+        (["mise", "--help"], "Commands:\n  audit\n")
+    ):
+        fp.register(
+            command,
+            callback = lambda process: colors.append(
+                (process.kwargs.get("env") or {}).get("NO_COLOR")
+            ),
+            stdout = stdout
+        )
+
+    assert Usage.printed(tmp_path).commands == {"audit"}
+    assert colors == ["1", "1"]
 
 
 def test_the_manifest_lists_each_loose_build_pin(sample: Sample):
