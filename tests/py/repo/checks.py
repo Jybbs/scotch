@@ -1933,16 +1933,16 @@ def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
         ".mise/config.toml",
         new = (
             'uv     = "0.12.13"\n\n'
-            '[tasks."repo:inline"]\nalias = "audits"\nrun   = "true"\n\n'
-            '[tasks."site:links"]\nalias = "audit"\nrun   = "true"'
+            '[tasks."repo:audits"]\nalias = "audits"\nrun   = "true"\n\n'
+            '[tasks."repo:inline"]\nalias = "audit"\nrun   = "true"'
         ),
         old = 'uv     = "0.12.13"'
     )
-    sample.answer(fp, aliases={"repo:inline": ("audits",), "site:links": ("audit",)})
+    sample.answer(fp, aliases={"repo:inline": ("audit",)})
 
     assert scan(AliasCheck, sample) == [(
         Path(".mise/config.toml"),
-        14, "`mise audit` runs mise's own `audit` command rather than `site:links`"
+        14, "`mise audit` runs mise's own `audit` command rather than `repo:inline`"
     )]
 
 
@@ -1959,6 +1959,27 @@ def test_an_alias_of_an_inline_task_is_a_finding_at_the_config(
     assert scan(AliasCheck, sample) == [(
         Path(".mise/config.toml"),
         None, "`mise audit` runs mise's own `audit` command rather than `repo:inline`"
+    )]
+
+
+def test_an_alias_of_a_task_an_included_file_declares_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias of a task an included TOML file declares
+    draws a finding at the line of that file declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/site.toml",
+        new = '["site:press"]\nalias   = "audit"',
+        old = '["site:press"]'
+    )
+    sample.answer(fp, aliases={"site:press": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/site.toml"),
+        6, "`mise audit` runs mise's own `audit` command rather than `site:press`"
     )]
 
 

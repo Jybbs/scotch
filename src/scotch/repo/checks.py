@@ -97,13 +97,13 @@ class AliasCheck(Check):
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding at the line of the task's file declaring each such
-        alias, or at `.mise/config.toml` for a task declared inline.
+        Yields a finding at the line of the file declaring each such alias,
+        or at `.mise/config.toml` where mise names none.
         """
         commands = self.checkout.usage.commands
 
         for task in self.checkout.tasks:
-            path = task.file or self.checkout.mise.path
+            path = task.source or self.checkout.mise.path
             text = path.read_text(encoding="utf-8")
 
             for alias in filter(commands.__contains__, task.aliases):
