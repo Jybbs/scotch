@@ -2,17 +2,20 @@
 Holds the records `scotch apply rulesets`, `scotch audit repo`, and `scotch
 lift pins` read out of a checkout, meaning the manifest, the crate's
 manifest, the mise config, the license, the lockfile, the site's package
-manifest, the workflows with their jobs and steps, the action manifests, the
-mise tasks, and the task scripts, beside the `Finding` each check reports.
+manifest, the workflows with their jobs and steps, the action manifests,
+the mise tasks, the commands mise runs, and the task scripts, beside the
+`Finding` each check reports.
 """
 
 from collections.abc import Callable, Iterable, Mapping
 from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
+from os              import environ
 from pathlib         import Path
 from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, TypeAdapter, ValidationError
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
+from shlex           import split as words
 from subprocess      import run
 from tomllib         import loads
 from typing          import Annotated, ClassVar, Self, assert_never
@@ -341,6 +344,84 @@ class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
     The instant the index received the file, or `None` where the lockfile
     records none.
     """
+
+
+class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The commands of mise's command line, as the usage spec `mise usage`
+    prints them, the KDL document per https://usage.jdx.dev/spec/, and as
+    the `Commands:` section of `mise --help` lists them.
+    """
+
+    commands: frozenset[str]
+    """
+    Each word `mise <word>` runs a command under, meaning the name and every
+    alias of each top-level command, hidden or not.
+    """
+
+    @classmethod
+    def parsed(cls, manual: str, spec: str) -> Self:
+        """
+        Reads the name of each top-level `cmd` node of `spec` and the
+        arguments of each `alias` node directly under one, leaving out a
+        property such as `hide=#true`, and passing over the lines of each
+        multi-line raw string, which opens on a hash and three quotation
+        marks closing a line and closes on the three marks and a hash
+        opening one. Adds each command and alias the `Commands:` section
+        of `manual`, the text `mise --help` prints, lists, which names
+        `help`, a command the spec leaves out, and raises `ValueError` where
+        `manual` holds no such section.
+        """
+        commands: set[str] = set()
+        command = raw = False
+
+        for line in spec.splitlines():
+            if raw:
+                raw = not line.startswith('"""#')
+                continue
+
+            if search(r"^\S", line):
+                if command := line.startswith("cmd "):
+                    commands.add(line.split()[1])
+            elif command and line.startswith("    alias "):
+                commands.update(word for word in words(line)[1:] if "=" not in word)
+
+            raw = line.endswith('#"""')
+
+        if (section := search(
+            r"^Commands:.*\n((?:.+\n?)+)",
+            manual,
+            MULTILINE
+        )) is None:
+            raise ValueError("`mise --help` lists no command under `Commands:`")
+
+        commands.update(findall(r"^ {2}(\S+)", section[1], MULTILINE))
+        commands.update(
+            alias
+            for aliases in findall(r"\[aliases:\s([^\]]*)\]", section[1])
+            for alias in split(r"[\s,]+", aliases)
+        )
+
+        return cls(commands=frozenset(commands))
+
+    @classmethod
+    def printed(cls, root: Path) -> Self:
+        """
+        Runs `mise usage` and `mise --help` in `root` with color off and
+        reads what they print.
+        """
+        spec, manual = (
+            run(
+                ["mise", *args],
+                capture_output = True,
+                check          = True,
+                cwd            = root,
+                env            = environ | {"NO_COLOR": "1"},
+                text           = True
+            ).stdout
+            for args in (["usage"], ["--help"])
+        )
+        return cls.parsed(manual, spec)
 
 
 class Crate(ConfigFile):
