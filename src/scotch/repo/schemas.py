@@ -247,7 +247,9 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
 
     dir: Path | None = None
     """
-    The folder mise runs the task from, `None` where mise names none.
+    The folder mise runs the task from, which its `sources` patterns are
+    relative to, `None` where mise names none or it lies outside the
+    checkout.
     """
 
     run: tuple[str | dict[str, JsonValue], ...] = ()
@@ -261,6 +263,12 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     The file declaring the task, its file for a script and the TOML file
     holding its table for a task declared in TOML, `None` where mise names
     none.
+    """
+
+    sources: tuple[str, ...] = ()
+    """
+    The patterns naming the files whose change reruns the task, relative to
+    `dir`.
     """
 
     @property
@@ -287,15 +295,15 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         Runs `mise tasks ls`, listing the tasks the repository under `root`
         declares and leaving out the global ones.
 
-        mise prints a script's file and each task's source as absolute
-        paths with every symlink resolved, but a TOML task's `file` as the
-        config writes it. A relative one is read from the `dir` mise prints
-        for the task, which holds for a config in `.config/mise` or one
-        `[task_config] includes` pulls in, and then joined back onto `root`,
-        whereas one outside `root` reads as `None`. A task setting its
-        own `dir` has that folder read in place of the one mise starts its
-        script from, so its relative file may name a different script, or
-        none, which reads as `None`.
+        mise prints each task's directory, a script's file, and each task's
+        source as absolute paths with every symlink resolved, but a TOML
+        task's `file` as the config writes it. A relative one is read from
+        the `dir` mise prints for the task, which holds for a config in
+        `.config/mise` or one `[task_config] includes` pulls in, and then
+        each is joined back onto `root`, whereas one outside `root` reads as
+        `None`. A task setting its own `dir` has that folder read in place
+        of the one mise starts its script from, so its relative file may
+        name a different script, or none, which reads as `None`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
@@ -328,6 +336,7 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         return tuple(
             task.model_copy(
                 update = {
+                    "dir"    : inside(task.dir),
                     "file"   : inside(script(task)),
                     "source" : inside(task.source)
                 }
@@ -378,6 +387,18 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
         )
         return not any(map(path.full_match, self.paths_ignore)) and (
             not self.paths or not last.startswith("!")
+        )
+
+    def unmatched(self, tracked: Iterable[Path]) -> tuple[str, ...]:
+        """
+        Lists each pattern of `paths` and `paths-ignore`, as written, that
+        matches none of the `tracked` files once any `!` opening it is taken
+        off.
+        """
+        return tuple(
+            glob
+            for glob in (*self.paths, *self.paths_ignore)
+            if not any(path.full_match(glob.removeprefix("!")) for path in tracked)
         )
 
 
@@ -1379,6 +1400,13 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
                 "triggers": workflow[True]
             }
         )
+
+    def starts(self, name: str) -> bool:
+        """
+        Reads whether a step's script holds `gh workflow run` followed
+        directly by the workflow file `name`.
+        """
+        return any(f"gh workflow run {name}" in step.run for step in self.steps)
 
     def unfiltered(self, paths: Iterable[Path], root: Path) -> list[Path]:
         """

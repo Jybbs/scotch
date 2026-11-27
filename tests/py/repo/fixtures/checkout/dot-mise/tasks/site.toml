@@ -3,5 +3,5 @@ depends = ["site:install", "site:press"]
 run     = "lychee docs/.vitepress/dist"
 
 ["site:press"]
-depends = ["site:install"]
+depends = ["rs:wasm", "site:install"]
 run     = "vitepress build docs"

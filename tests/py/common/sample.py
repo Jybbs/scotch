@@ -60,15 +60,16 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         listed  : Sequence[Mapping[str, object]] = ()
     ):
         """
-        Registers the answers mise and git give the checkout, listing the
-        tasks `tests/py/repo/fixtures/tasks.toml` declares with each file
-        and source joined onto the copy and resolved as mise prints them,
-        each task `aliases` names taking the aliases it gives, and then each
-        task in `listed` exactly as written, so a TOML task's file stays
-        relative as mise prints it. The answers also report `issues` from
-        `mise tasks validate`, print `tests/py/repo/fixtures/usage.kdl`
-        from `mise usage` and `tests/py/repo/fixtures/help.txt` from `mise
-        --help`, and list every file the copy holds from `git ls-files`.
+        Registers the answers mise and git give the checkout, listing
+        the tasks `tests/py/repo/fixtures/tasks.toml` declares with each
+        file and source joined onto the copy and resolved as mise prints
+        them, each directory defaulting to the copy's root and each task
+        `aliases` names taking the aliases it gives, and then each task in
+        `listed` exactly as written, so a TOML task's file stays relative
+        as mise prints it. The answers also report `issues` from `mise
+        tasks validate`, print `tests/py/repo/fixtures/usage.kdl` from `mise
+        usage` and `tests/py/repo/fixtures/help.txt` from `mise --help`, and
+        list every file the copy holds from `git ls-files`.
         """
         listing = loads((self.fixtures / "tasks.toml").read_text())["tasks"]
 
@@ -79,6 +80,7 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
                     {
                         **task,
                         "aliases" : aliases.get(task["name"], task.get("aliases", ())),
+                        "dir"     : str((self.root / task.get("dir", "")).resolve()),
                         "file"    : str(
                             (self.root / task["file"]).resolve()
                         ) if "file" in task else None,

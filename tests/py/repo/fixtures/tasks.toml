@@ -36,6 +36,14 @@ source  = ".mise/config.toml"
 
 [[tasks]]
 depends = []
+dir     = "rust"
+file    = ".mise/tasks/rs/wasm"
+name    = "rs:wasm"
+source  = ".mise/tasks/rs/wasm"
+sources = ["../.mise/tasks/py/test", "Cargo.toml", "src/**/*.rs"]
+
+[[tasks]]
+depends = []
 file    = ".mise/tasks/site/install"
 name    = "site:install"
 source  = ".mise/tasks/site/install"
@@ -46,6 +54,6 @@ name    = "site:links"
 source  = ".mise/tasks/site.toml"
 
 [[tasks]]
-depends = ["site:install"]
+depends = ["rs:wasm", "site:install"]
 name    = "site:press"
 source  = ".mise/tasks/site.toml"

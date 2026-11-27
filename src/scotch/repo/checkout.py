@@ -258,6 +258,20 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             map(Template.read, sorted(self.root.glob(".github/ISSUE_TEMPLATE/*.md")))
         )
 
+    @property
+    def toolchain(self) -> frozenset[Path]:
+        """
+        Lists the files that set the tools every job installs, meaning each
+        provisioning action's manifest and the mise config and lockfile.
+        """
+        return frozenset(
+            {
+                *(action.path for action in self.actions if action.provisions),
+                self.mise.lockfile,
+                self.mise.path
+            }
+        )
+
     @cached_property
     def tracked(self) -> tuple[Path, ...]:
         """
