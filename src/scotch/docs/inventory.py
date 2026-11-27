@@ -363,7 +363,7 @@ class Outputs(RootModel[list[Output]]):
                 Document.from_value(
                     path  = cls.rendered / "refused.json",
                     value = lambda: [
-                        stop.model_dump(exclude={"commands", "external"})
+                        stop.model_dump(exclude={"commands"})
                         for stop in stops.printed("match game", naming="<pgn>")
                     ]
                 ),

@@ -1141,8 +1141,9 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
             StopCheck,
             [("src/scotch/docs/stops.toml", "external = true\n", "")],
             [(
-                "src/scotch/docs/stops.toml", None,
-                "`Invalid value \"<pgn>\" for PGN. \"<pgn>\" does not exist.` is held"
+                "src/scotch/docs/stops.toml",
+                None,
+                '`Invalid value "<pgn>" for PGN. "<pgn>" does not exist.` is held'
                 " by no file `modules` names"
             )],
             id = "library-message-declared-internal"
