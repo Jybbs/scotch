@@ -17,7 +17,7 @@ It exits nonzero on each message below.
 
 | **Message** | **When** | **Clears It** |
 |---|---|---|
-| `Could not fetch <address>: <error>` | The server answers with an error status, a request fails once every retry has, the connection breaks while the file downloads, or the file cannot be written | Run the command again once the host answers, or raise `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S`, or make the downloads folder writable where the error names the write |
+| `Could not fetch <address>: <error>` | The server answers with an error status, a request fails once every retry has, the connection breaks while the file downloads, or the file cannot be written | Run the command again once the host answers, or raise `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S`, or, where the error opens on the system's `[Errno <n>]`, free space on the disk or make the downloads folder writable |
 <!-- /command-fetch-games -->
 
 <!-- run-fetch-games -->
@@ -140,7 +140,7 @@ It exits nonzero on each message below.
 
 | **Message** | **When** | **Clears It** |
 |---|---|---|
-| `Invalid value "<pgn>" for PGN. "<pgn>" does not exist.` | The file does not exist, which cyclopts reports before the command runs | Name a file that exists |
+| `Invalid value "<pgn>" for PGN. "<pgn>" does not exist.` | The file does not exist, which Cyclopts reports before the command runs | Name a file that exists |
 | `Cannot read <pgn>: <reason>` | The file cannot be opened, with the reason the system gives | Name a file that exists and that the user running the command can read |
 | `Found no game in <pgn>` | The file holds no game | Pass the file holding the game, a text whose movetext follows its tag pairs |
 | `No index has been built under <index>` | The data directory holds no index | Run `scotch index games` |
