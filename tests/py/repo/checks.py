@@ -2126,8 +2126,11 @@ def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
     ("config", "script"),
     [
         param("mise.toml", "scripts/lint", id="root-config"),
-        param("sub/mise.toml", "scripts/lint", id="subfolder"),
-        param(".config/mise/mise.toml", "scripts/lint", id="config-folder"),
+        param(
+            ".config/mise/mise.toml",
+            ".config/mise/scripts/lint",
+            id="config-folder"
+        ),
         param(".mise/conf.d/extra.toml", "scripts/lint", id="conf-d-folder"),
         param("tasks/included.toml", "scripts/lint", id="included-file")
     ]
@@ -2149,7 +2152,7 @@ def test_the_relative_file_of_a_toml_task_is_read_from_the_dir_mise_prints(
     sample.answer(
         fp,
         listed = [{
-            "dir"     : str(sample.root.resolve()),
+            "dir"     : str(file.parent.parent.resolve()),
             "file"    : "scripts/lint",
             "name"    : "site:lint",
             "depends" : [],
@@ -2360,6 +2363,29 @@ def test_only_the_colliding_alias_of_a_list_fails(fp: FakeProcess, sample: Sampl
         Path(".mise/tasks/py/test"),
         2, "`mise cfg` runs mise's own `cfg` command rather than `py:test`"
     )]
+
+
+def test_the_relative_file_of_a_toml_task_naming_no_file_under_its_dir_is_not_read(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a TOML task whose relative `file` names no file under the
+    `dir` mise prints, as where the task sets its own `dir`, has no script
+    read rather than failing the scan.
+    """
+    sample.answer(
+        fp,
+        listed = [{
+            "dir"     : str((sample.root / "docs").resolve()),
+            "file"    : "scripts/lint",
+            "name"    : "site:lint",
+            "depends" : [],
+            "source"  : str((sample.root / "mise.toml").resolve())
+        }]
+    )
+
+    assert scan(CommandCheck, sample) == []
 
 
 @mark.parametrize(

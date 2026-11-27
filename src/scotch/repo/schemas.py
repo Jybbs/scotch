@@ -227,7 +227,7 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
 
     file: Path | None
     """
-    The task's file, `None` for a task declared in TOML.
+    The task's file, `None` for a task declared in TOML without one.
     """
 
     name: str
@@ -294,7 +294,8 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         `[task_config] includes` pulls in, and then joined back onto `root`,
         whereas one outside `root` reads as `None`. A task setting its
         own `dir` has that folder read in place of the one mise starts its
-        script from, so its relative file may name a different script.
+        script from, so its relative file may name a different script, or
+        none, which reads as `None`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
@@ -316,12 +317,18 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
                 else None
             )
 
+        def script(task: Self) -> Path | None:
+            """
+            Reads the script a task's relative `file` names under the `dir`
+            mise prints, `None` where no file stands there.
+            """
+            path = task.file and ((task.dir or base) / task.file).resolve()
+            return path if path and path.is_file() else None
+
         return tuple(
             task.model_copy(
                 update = {
-                    "file"   : inside(
-                        task.file and ((task.dir or base) / task.file).resolve()
-                    ),
+                    "file"   : inside(script(task)),
                     "source" : inside(task.source)
                 }
             )
