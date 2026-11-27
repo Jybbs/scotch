@@ -466,6 +466,7 @@ class CargoPins(Pins):
         Returns:
             The instant, or `None` where the index records none.
         """
+        name   = name.lower()
         folder = {1: "1", 2: "2", 3: f"3/{name[0]}"}.get(
             len(name),
             f"{name[:2]}/{name[2:4]}"
@@ -476,7 +477,7 @@ class CargoPins(Pins):
                 "curl",
                 "--fail",
                 "--silent",
-                f"https://index.crates.io/{folder}/{name.lower()}"
+                f"https://index.crates.io/{folder}/{name}"
             ).stdout.splitlines()
         )
         return next(

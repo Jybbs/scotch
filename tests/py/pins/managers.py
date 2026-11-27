@@ -339,6 +339,28 @@ def test_a_crate_inside_the_window_is_held_or_lifted_through_its_exemption(
     )
 
 
+def test_a_crate_published_date_reads_from_the_lowercase_index_path(
+    fp   : FakeProcess,
+    tree : Tree
+):
+    """
+    Asserts that the sparse index is read at the lowercase name's path for
+    a crate whose name carries capitals, since the index keys every path
+    in lowercase.
+    """
+    fp.register(
+        ["curl", "--fail", "--silent", "https://index.crates.io/py/o3/pyo3"],
+        stdout = dumps({"pubtime": "2026-10-20T00:00:00Z", "vers": "0.1.0"}) + "\n"
+    )
+
+    assert CargoPins(tree=tree).published("PyO3", "0.1.0") == datetime(
+        2026,
+        10,
+        20,
+        tzinfo = UTC
+    )
+
+
 def test_a_package_inside_the_window_clearing_no_advisory_stays_where_it_stands(
     answered : Sample,
     fp       : FakeProcess,
@@ -375,6 +397,83 @@ def test_a_package_inside_the_window_clearing_no_advisory_stays_where_it_stands(
         datetime(2026, 10, 26, 8, tzinfo=UTC),
         (),
         ()
+    )
+
+
+@mark.parametrize(
+    ("warm", "expected"),
+    [
+        param(
+            "3d3c42e5aac5ba805825da76410c181273ba90b1",
+            [(".github/actions/provision/action.yml", "jdx/mise-action", "v5.0.1")],
+            id = "pinned-to-a-tag"
+        ),
+        param(
+            "e" * 40,
+            [
+                (".github/workflows/warm.yml", "actions/checkout", "e" * 40),
+                (".github/actions/provision/action.yml", "jdx/mise-action", "v5.0.1")
+            ],
+            id = "pinned-to-no-tag"
+        )
+    ]
+)
+def test_the_actions_lift_to_the_commit_of_their_latest_release(
+    expected : list[tuple[str, str, str]],
+    fp       : FakeProcess,
+    sample   : Sample,
+    tree     : Tree,
+    warm     : str
+):
+    """
+    Asserts that each file pinning an action to a commit other than the one
+    its latest release's tag names lifts to that commit, read through the
+    peeled entry of an annotated tag, named for the most specific tag naming
+    the pinned commit or for the commit where no tag names it, and that a
+    file pinned to the latest release's commit stays out.
+    """
+    checkout = "3d3c42e5aac5ba805825da76410c181273ba90b1"
+    newest   = "c" * 40
+    sample.edit(
+        ".github/workflows/warm.yml",
+        new = f"checkout@{warm}",
+        old = f"checkout@{checkout}"
+    )
+    fp.register(
+        ["gh", "api", "repos/actions/checkout/releases/latest"],
+        stdout = dumps({"published_at": "2026-07-20T15:10:05Z", "tag_name": "v7.0.1"})
+    )
+    fp.register(
+        ["git", "ls-remote", "--tags", "https://github.com/actions/checkout"],
+        stdout = f"{checkout}\trefs/tags/v7\n{checkout}\trefs/tags/v7.0.1\n"
+    )
+    fp.register(
+        ["gh", "api", "repos/jdx/mise-action/releases/latest"],
+        stdout = dumps({"published_at": "2026-10-21T10:00:00Z", "tag_name": "v5.2.2"})
+    )
+    fp.register(
+        ["git", "ls-remote", "--tags", "https://github.com/jdx/mise-action"],
+        stdout = (
+            "7a4e45a543138629540c9a1616d08632b893e492\trefs/tags/v5.0.1\n"
+            f"{'d' * 40}\trefs/tags/v5.2.2\n"
+            f"{newest}\trefs/tags/v5.2.2^{{}}\n"
+        )
+    )
+    lifts = list(ActionPins(tree=tree).lifts())
+    mise  = next(lift for lift in lifts if lift.name == "jdx/mise-action")
+
+    assert [(str(lift.path), lift.name, lift.current) for lift in lifts] == expected
+    assert mise.edits == (
+        Edit(
+            name     = "jdx/mise-action",
+            path     = Path(".github/actions/provision/action.yml"),
+            spelling = Spelling.REF,
+            version  = newest
+        ),
+    )
+    assert (mise.newest, mise.released) == (
+        "v5.2.2",
+        datetime(2026, 10, 21, 10, tzinfo=UTC)
     )
 
 
@@ -460,148 +559,6 @@ def test_a_package_inside_the_window_is_held_or_exempted_by_its_clearing_an_advi
         None
     )
     assert script.pardons[0].path == Path(".mise/tasks/gha/scoresheet")
-
-
-@mark.parametrize(
-    ("warm", "expected"),
-    [
-        param(
-            "3d3c42e5aac5ba805825da76410c181273ba90b1",
-            [(".github/actions/provision/action.yml", "jdx/mise-action", "v5.0.1")],
-            id = "pinned-to-a-tag"
-        ),
-        param(
-            "e" * 40,
-            [
-                (".github/workflows/warm.yml", "actions/checkout", "e" * 40),
-                (".github/actions/provision/action.yml", "jdx/mise-action", "v5.0.1")
-            ],
-            id = "pinned-to-no-tag"
-        )
-    ]
-)
-def test_the_actions_lift_to_the_commit_of_their_latest_release(
-    expected : list[tuple[str, str, str]],
-    fp       : FakeProcess,
-    sample   : Sample,
-    tree     : Tree,
-    warm     : str
-):
-    """
-    Asserts that each file pinning an action to a commit other than the one
-    its latest release's tag names lifts to that commit, read through the
-    peeled entry of an annotated tag, named for the most specific tag naming
-    the pinned commit or for the commit where no tag names it, and that a
-    file pinned to the latest release's commit stays out.
-    """
-    checkout = "3d3c42e5aac5ba805825da76410c181273ba90b1"
-    newest   = "c" * 40
-    sample.edit(
-        ".github/workflows/warm.yml",
-        new = f"checkout@{warm}",
-        old = f"checkout@{checkout}"
-    )
-    fp.register(
-        ["gh", "api", "repos/actions/checkout/releases/latest"],
-        stdout = dumps({"published_at": "2026-07-20T15:10:05Z", "tag_name": "v7.0.1"})
-    )
-    fp.register(
-        ["git", "ls-remote", "--tags", "https://github.com/actions/checkout"],
-        stdout = f"{checkout}\trefs/tags/v7\n{checkout}\trefs/tags/v7.0.1\n"
-    )
-    fp.register(
-        ["gh", "api", "repos/jdx/mise-action/releases/latest"],
-        stdout = dumps({"published_at": "2026-10-21T10:00:00Z", "tag_name": "v5.2.2"})
-    )
-    fp.register(
-        ["git", "ls-remote", "--tags", "https://github.com/jdx/mise-action"],
-        stdout = (
-            "7a4e45a543138629540c9a1616d08632b893e492\trefs/tags/v5.0.1\n"
-            f"{'d' * 40}\trefs/tags/v5.2.2\n"
-            f"{newest}\trefs/tags/v5.2.2^{{}}\n"
-        )
-    )
-    lifts = list(ActionPins(tree=tree).lifts())
-    mise  = next(lift for lift in lifts if lift.name == "jdx/mise-action")
-
-    assert [(str(lift.path), lift.name, lift.current) for lift in lifts] == expected
-    assert mise.edits == (
-        Edit(
-            name     = "jdx/mise-action",
-            path     = Path(".github/actions/provision/action.yml"),
-            spelling = Spelling.REF,
-            version  = newest
-        ),
-    )
-    assert (mise.newest, mise.released) == (
-        "v5.2.2",
-        datetime(2026, 10, 21, 10, tzinfo=UTC)
-    )
-
-
-def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
-    answered : Sample,
-    fp       : FakeProcess,
-    locks    : Callable[..., None],
-    tree     : Tree
-):
-    """
-    Asserts that a build constraint resolves through the scratch project
-    even where `uv.lock` resolves its package, that a task script's pin of
-    a package `uv.lock` resolves nowhere resolves there too, and that a task
-    script's pin of a package `uv.lock` resolves follows `uv.lock`.
-    """
-    answered.edit(
-        "pyproject.toml",
-        new = '["minijinja==2.24.0", "setuptools==84.0.0"]',
-        old = '["setuptools==84.0.0"]'
-    )
-    answered.edit(
-        ".mise/tasks/gha/scoresheet",
-        new = '["minijinja==2.24.0", "rich==13.0.0"]',
-        old = '["minijinja==2.24.0"]'
-    )
-
-    def upgrade(process: FakePopen):
-        """
-        Writes the lockfile `uv lock --upgrade` would, moving `minijinja`.
-        """
-        (target(process) / "uv.lock").write_text(
-            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
-        )
-
-    def resolve(process: FakePopen):
-        """
-        Asserts that the scratch project depends on the build's pins and on
-        the script's pin `uv.lock` resolves nowhere, and writes the lockfile
-        resolving each to a release of its own.
-        """
-        assert loads((target(process) / "pyproject.toml").read_text())["project"][
-            "dependencies"
-        ] == ["hatchling", "minijinja", "rich", "setuptools"]
-
-        (target(process) / "uv.lock").write_text(
-            '[[package]]\nname = "hatchling"\nversion = "1.32.4"\n\n'
-            '[[package]]\nname = "minijinja"\nversion = "3.1.0"\n\n'
-            '[[package]]\nname = "rich"\nversion = "14.0.0"\n\n'
-            '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
-        )
-
-    locks(resolve, upgrade)
-    fp.register(
-        ["mise", "-C", tree.root, "exec", "--", "uv", "audit", fp.any()],
-        occurrences = 4,
-        stdout      = dumps({"vulnerabilities": []})
-    )
-
-    assert [
-        (str(lift.path), lift.name, lift.newest) for lift in UvPins(tree=tree).lifts()
-    ] == [
-        ("uv.lock", "minijinja", "3.0.3"),
-        ("pyproject.toml", "minijinja", "3.1.0"),
-        (".mise/tasks/gha/scoresheet", "minijinja", "3.0.3"),
-        (".mise/tasks/gha/scoresheet", "rich", "14.0.0")
-    ]
 
 
 @mark.parametrize(
@@ -737,6 +694,71 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     ]
 
 
+def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
+    answered : Sample,
+    fp       : FakeProcess,
+    locks    : Callable[..., None],
+    tree     : Tree
+):
+    """
+    Asserts that a build constraint resolves through the scratch project
+    even where `uv.lock` resolves its package, that a task script's pin of
+    a package `uv.lock` resolves nowhere resolves there too, and that a task
+    script's pin of a package `uv.lock` resolves follows `uv.lock`.
+    """
+    answered.edit(
+        "pyproject.toml",
+        new = '["minijinja==2.24.0", "setuptools==84.0.0"]',
+        old = '["setuptools==84.0.0"]'
+    )
+    answered.edit(
+        ".mise/tasks/gha/scoresheet",
+        new = '["minijinja==2.24.0", "rich==13.0.0"]',
+        old = '["minijinja==2.24.0"]'
+    )
+
+    def upgrade(process: FakePopen):
+        """
+        Writes the lockfile `uv lock --upgrade` would, moving `minijinja`.
+        """
+        (target(process) / "uv.lock").write_text(
+            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
+        )
+
+    def resolve(process: FakePopen):
+        """
+        Asserts that the scratch project depends on the build's pins and on
+        the script's pin `uv.lock` resolves nowhere, and writes the lockfile
+        resolving each to a release of its own.
+        """
+        assert loads((target(process) / "pyproject.toml").read_text())["project"][
+            "dependencies"
+        ] == ["hatchling", "minijinja", "rich", "setuptools"]
+
+        (target(process) / "uv.lock").write_text(
+            '[[package]]\nname = "hatchling"\nversion = "1.32.4"\n\n'
+            '[[package]]\nname = "minijinja"\nversion = "3.1.0"\n\n'
+            '[[package]]\nname = "rich"\nversion = "14.0.0"\n\n'
+            '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
+        )
+
+    locks(resolve, upgrade)
+    fp.register(
+        ["mise", "-C", tree.root, "exec", "--", "uv", "audit", fp.any()],
+        occurrences = 4,
+        stdout      = dumps({"vulnerabilities": []})
+    )
+
+    assert [
+        (str(lift.path), lift.name, lift.newest) for lift in UvPins(tree=tree).lifts()
+    ] == [
+        ("uv.lock", "minijinja", "3.0.3"),
+        ("pyproject.toml", "minijinja", "3.1.0"),
+        (".mise/tasks/gha/scoresheet", "minijinja", "3.0.3"),
+        (".mise/tasks/gha/scoresheet", "rich", "14.0.0")
+    ]
+
+
 def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
     fp     : FakeProcess,
     sample : Sample,
@@ -830,6 +852,9 @@ def test_an_action_in_a_repository_folder_reads_that_repository(
     ]
 
 
+NOW = datetime(2026, 10, 24, tzinfo=UTC)
+
+
 def test_an_npm_package_the_window_holds_back_is_held_or_exempted(
     fp     : FakeProcess,
     sample : Sample,
@@ -890,9 +915,6 @@ def test_an_npm_package_the_window_holds_back_is_held_or_exempted(
             value = "5.1.0"
         ),
     )
-
-
-NOW = datetime(2026, 10, 24, tzinfo=UTC)
 
 
 def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
