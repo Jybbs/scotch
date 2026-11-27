@@ -2128,7 +2128,9 @@ def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
         param(".mise/config.toml", "scripts/lint", id="mise-folder"),
         param("sub/mise.toml", "sub/scripts/lint", id="subfolder"),
         param(".config/mise/config.toml", "scripts/lint", id="config-folder"),
-        param(".mise/conf.d/extra.toml", "scripts/lint", id="conf-d-folder")
+        param(".mise/conf.d/extra.toml", "scripts/lint", id="conf-d-folder"),
+        param(".config/mise.toml", "scripts/lint", id="config-file"),
+        param("mise/config.toml", "scripts/lint", id="bare-mise-folder")
     ]
 )
 def test_the_relative_file_of_a_toml_task_is_read_from_its_configs_folder(
@@ -2361,22 +2363,31 @@ def test_only_the_colliding_alias_of_a_list_fails(fp: FakeProcess, sample: Sampl
     )]
 
 
+@mark.parametrize(
+    ("config", "script"),
+    [
+        param("../mise.toml", "scripts/lint", id="config-above"),
+        param("mise.toml", "../scripts/lint", id="file-above")
+    ]
+)
 def test_the_relative_file_of_a_toml_task_above_the_checkout_is_not_read(
+    config : str,
     fp     : FakeProcess,
-    sample : Sample
+    sample : Sample,
+    script : str
 ):
     """
-    Asserts that a TOML task whose config sits in a folder above the
-    checkout, so its relative `file` resolves outside it, has no script
-    read.
+    Asserts that a TOML task whose relative `file` resolves outside the
+    checkout, through a config in a folder above it or a path climbing out
+    of it, has no script read.
     """
     sample.answer(
         fp,
         listed = [{
-            "file"    : "scripts/lint",
+            "file"    : script,
             "name"    : "site:lint",
             "depends" : [],
-            "source"  : str((sample.root.parent / "mise.toml").resolve())
+            "source"  : str((sample.root / config).resolve())
         }]
     )
 
