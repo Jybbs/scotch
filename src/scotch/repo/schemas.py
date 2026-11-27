@@ -1380,8 +1380,8 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
 
     def starts(self, name: str) -> bool:
         """
-        Reads whether a step of the workflow runs the workflow file `name`
-        through `gh workflow run`.
+        Reads whether a step's script holds `gh workflow run` followed
+        directly by the workflow file `name`.
         """
         return any(f"gh workflow run {name}" in step.run for step in self.steps)
 
