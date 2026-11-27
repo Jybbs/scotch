@@ -10,7 +10,11 @@ type Scheme = (typeof SCHEMES)[number]
 
 const SCHEMES = ['dark', 'light'] as const
 
+const LIT_SHARE = 9
+
 const page    = (scheme: Scheme): string => roles.resolve(roles.ROLES.page[scheme])
+const litRow  = (scheme: Scheme): string =>
+  mix(roles.resolve(roles.ROLES.run[scheme]), LIT_SHARE, page(scheme), 'srgb')
 const rolesOf = (kind: Kind) =>
   Object.entries(roles.ROLES).filter(([, role]) => role.kind === kind)
 const grounds = rolesOf('ground')
@@ -30,13 +34,17 @@ describe('the roles hold the contrast WCAG 2.2 sets', () => {
 
   it.each(SCHEMES.flatMap(scheme => (['lit_number', 'start_stored', 'start_submitted'] as const)
     .map(role => ({ role, scheme }))))('sets $role at 4.5:1 or more on the lit row in the $scheme scheme', ({ role, scheme }) => {
-    const lit = mix(roles.resolve(roles.ROLES.run[scheme]), 18, page(scheme), 'srgb')
-    expect(contrast(roles.resolve(roles.ROLES[role][scheme]), lit)).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(roles.resolve(roles.ROLES[role][scheme]), litRow(scheme))).toBeGreaterThanOrEqual(4.5)
   })
 
   it.each(crossed('mark'))('draws the $role mark at 3:1 or more on $ground in the $scheme scheme', ({ paint, under }) => {
     expect(contrast(paint, under)).toBeGreaterThanOrEqual(3)
   })
+
+  it.each(SCHEMES.flatMap(scheme => rolesOf('mark').map(([role, paints]) => ({ paint: roles.resolve(paints[scheme]), role, scheme }))))(
+    'draws the $role mark at 3:1 or more on the lit row in the $scheme scheme', ({ paint, scheme }) => {
+      expect(contrast(paint, litRow(scheme))).toBeGreaterThanOrEqual(3)
+    })
 
   it.each(SECTIONS)('accents the $slug preview card at 3:1 or more on the dark page', ({ color }) => {
     expect(contrast(roles.resolve(color), page('dark'))).toBeGreaterThanOrEqual(3)

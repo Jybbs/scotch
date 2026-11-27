@@ -61,7 +61,7 @@ const ROW = [
   'grid h-(--sc-viewer-pitch) border-b border-[color-mix(in_srgb,var(--sc-rule)_70%,transparent)]',
   'grid-cols-[2.1rem_minmax(0,1fr)_minmax(0,1fr)_var(--sc-viewer-gut)_2.1rem_minmax(0,1fr)_minmax(0,1fr)]',
   'max-sm:grid-cols-[1.7rem_minmax(0,1fr)_minmax(0,1fr)_var(--sc-viewer-gut)_1.7rem_minmax(0,1fr)_minmax(0,1fr)]',
-  'data-at:bg-[color-mix(in_srgb,var(--sc-run)_18%,var(--sc-page))]',
+  'data-at:bg-[color-mix(in_srgb,var(--sc-run)_9%,var(--sc-page))]',
   'data-at:[box-shadow:inset_2px_0_0_var(--sc-ink)]'
 ]
 
