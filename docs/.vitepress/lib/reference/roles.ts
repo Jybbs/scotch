@@ -5,7 +5,7 @@ import type { RoleName } from './palette.ts'
  * the rule and the text, then what a chart and a board draw.
  */
 export const ORDER = [
-  'page', 'side', 'raised', 'tint', 'rule', 'ink', 'quiet', 'run', 'alert', 'submitted', 'stored',
+  'page', 'side', 'raised', 'tint', 'rule', 'ink', 'quiet', 'run', 'alert', 'start_submitted', 'start_stored', 'lit_number', 'submitted', 'stored',
   'data_black', 'data_edge', 'glyph_light', 'glyph_dark'
 ] as const satisfies readonly RoleName[]
 /**

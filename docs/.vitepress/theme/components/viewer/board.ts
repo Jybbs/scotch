@@ -41,7 +41,7 @@ const BOARD = 'block aspect-square h-auto w-full rounded-sm [box-shadow:0_0_0_2p
 const CAPTION = {
   move : 'col-start-2 w-[10ch] text-right font-code text-[0.84rem] leading-(--sc-viewer-caption) '
        + 'font-medium tabular-nums whitespace-nowrap text-ink [&_[data-start]]:text-(--sc-viewer-game) '
-       + 'max-sm:text-[0.7rem]',
+       + '[&_[data-start]>span]:text-(--sc-viewer-word) max-sm:text-[0.7rem]',
   name : 'overflow-hidden font-display text-[length:min(1.2rem,6.4cqi)] leading-(--sc-viewer-caption) '
        + 'font-normal text-ellipsis whitespace-nowrap max-sm:hidden',
   row  : 'grid h-(--sc-viewer-caption) grid-cols-[minmax(0,1fr)_auto] items-center gap-x-[9px] '

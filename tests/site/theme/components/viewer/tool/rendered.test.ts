@@ -18,6 +18,13 @@ const stored = EXAMPLES.match.stored!
 clearAfterEach()
 
 describe('Tool as the build renders it', () => {
+  it('sets each game’s Start word from its own role, in the caption and the root', async () => {
+    const html = await renderToString(createSSRApp(Tool))
+    expect(html).toContain('[--sc-viewer-word:var(--sc-start-stored)]')
+    expect(html).toContain('[--sc-viewer-word:var(--sc-start-submitted)]')
+    expect(html).toContain('[&amp;_[data-start]&gt;span]:text-(--sc-viewer-word)')
+  })
+
   it('draws both boards, the sheets, and the band at the first position the two share', async () => {
     const html = await renderToString(createSSRApp(Tool))
     const host = Object.assign(document.createElement('div'), { innerHTML: html })
