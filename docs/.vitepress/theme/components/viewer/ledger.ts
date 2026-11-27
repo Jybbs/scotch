@@ -52,7 +52,7 @@ const NONE = 'm-0 mt-3.5 max-w-none pl-[calc(50%_+_12px)] font-body text-[0.9rem
  * The number heading one game's half of a row, in the code face's figures.
  */
 const NUMBER = 'px-1 text-right font-code text-[0.7rem]/[calc(var(--sc-viewer-pitch)_-_1px)] font-medium '
-             + 'tabular-nums text-quiet max-sm:px-0.5 max-sm:text-[0.6rem]'
+             + 'tabular-nums text-quiet in-data-at:text-(--sc-lit-number) max-sm:px-0.5 max-sm:text-[0.6rem]'
 /**
  * One row of both games' moves, a number and two moves each side of the
  * gutter, lit in the run's tint where the cursor stands.
@@ -174,7 +174,7 @@ function start(loaded: Loaded, party: Party): VNode[] {
   return [
     h('span', { class: NUMBER, role: 'rowheader' }),
     h('span', {
-      'class'     : 'col-span-2 flex min-w-0 items-center px-1.5 text-[0.8rem] text-(--sc-viewer-game)',
+      'class'     : 'col-span-2 flex min-w-0 items-center px-1.5 text-[0.8rem] text-(--sc-viewer-game) [&_[data-start]>span]:text-(--sc-viewer-word)',
       'data-game' : party,
       'role'      : 'gridcell'
     }, loaded.sideOf(party) ? [startMark()] : [])

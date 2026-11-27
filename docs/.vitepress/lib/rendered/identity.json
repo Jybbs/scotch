@@ -151,6 +151,19 @@
       "kind": "text",
       "light": "dark"
     },
+    "lit_number": {
+      "dark": [
+        "ground",
+        68,
+        "dark"
+      ],
+      "kind": "text",
+      "light": [
+        "dark",
+        72,
+        "ground"
+      ]
+    },
     "page": {
       "dark": "dark",
       "kind": "ground",
@@ -213,6 +226,32 @@
         "white"
       ]
     },
+    "start_stored": {
+      "dark": [
+        "series_3",
+        69,
+        "ground"
+      ],
+      "kind": "text",
+      "light": [
+        "series_3",
+        66,
+        "dark"
+      ]
+    },
+    "start_submitted": {
+      "dark": [
+        "series_2",
+        54,
+        "ground"
+      ],
+      "kind": "text",
+      "light": [
+        "series_2",
+        87,
+        "dark"
+      ]
+    },
     "stored": {
       "dark": "series_3",
       "kind": "mark",
@@ -265,12 +304,15 @@
       "glyph_dark": "The glyph a dark square draws under a page's text.",
       "glyph_light": "The glyph a light square draws under a page's text.",
       "ink": "The text of a page.",
+      "lit_number": "The move number heading the row the cursor stands on.",
       "page": "The ground of a page.",
       "quiet": "The text of a caption or a label.",
       "raised": "The ground of a card standing over a page.",
       "rule": "A line between two parts of a page.",
       "run": "A link, and the positions two games share.",
       "side": "The ground of the sidebar.",
+      "start_stored": "The word Start of the stored game, where the starting position stands.",
+      "start_submitted": "The word Start of the submitted game, where the starting position stands.",
       "stored": "The stored game.",
       "submitted": "The submitted game.",
       "tint": "The ground of a note or a picked row."

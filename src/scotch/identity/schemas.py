@@ -431,6 +431,15 @@ class Roles(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     The text of a page.
     """
 
+    lit_number: Role = Role(
+        dark  = ("ground", 68, "dark"),
+        kind  = "text",
+        light = ("dark", 72, "ground")
+    )
+    """
+    The move number heading the row the cursor stands on.
+    """
+
     page: Role = Role(dark="dark", kind="ground", light="ground")
     """
     The ground of a page.
@@ -475,6 +484,24 @@ class Roles(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     )
     """
     The ground of the sidebar.
+    """
+
+    start_stored: Role = Role(
+        dark  = ("series_3", 69, "ground"),
+        kind  = "text",
+        light = ("series_3", 66, "dark")
+    )
+    """
+    The word Start of the stored game, where the starting position stands.
+    """
+
+    start_submitted: Role = Role(
+        dark  = ("series_2", 54, "ground"),
+        kind  = "text",
+        light = ("series_2", 87, "dark")
+    )
+    """
+    The word Start of the submitted game, where the starting position stands.
     """
 
     stored: Role = Role(dark="series_3", kind="mark", light="series_3")
