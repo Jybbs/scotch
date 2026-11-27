@@ -12,10 +12,10 @@ jobs:
       contents: write
     runs-on: ubuntu-26.04
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install the tools
+        uses: $/.github/actions/provision
         with:
-          persist-credentials: false
+          tools: gh
       - name: Create or refresh the draft release
         id: cut
         env:

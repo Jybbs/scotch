@@ -5,5 +5,12 @@
 {% for job, need in run.needs|items -%}
 | `{{ job }}` | {{ need.result }} |
 {% endfor %}
+{%- if run.tasks %}
+| **Task** | **Result** | **Time** |
+|---|---|---|
+{% for task in run.tasks -%}
+| `{{ task.name }}` | {{ task.status }} | {{ task.time }} |
+{% endfor %}
+{%- endif %}
 {%- block details %}{% endblock %}
 The run checked `{{ run.commit[:7] }}` on `{{ run.branch }}`.

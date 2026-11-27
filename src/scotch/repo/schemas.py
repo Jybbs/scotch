@@ -947,9 +947,11 @@ class Step(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         """
         Lists the mise tasks the step's script runs through `mise
         run`, reading past any flag ahead of the task's name, such as
-        `--skip-deps`.
+        `--skip-deps`, or `--report-file` and its quoted path.
         """
-        return tuple(findall(r"\bmise run (?:--?[\w-]+ )*([\w:-]+)", self.run))
+        return tuple(
+            findall(r"\bmise run (?:--?[\w-]+ (?:\"[^\"]*\" )?)*([\w:-]+)", self.run)
+        )
 
     @property
     def tools(self) -> frozenset[str]:

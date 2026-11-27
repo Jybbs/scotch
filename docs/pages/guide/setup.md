@@ -30,11 +30,18 @@ Each line does what the list below sets out, written from the package's own meta
 
 ## Checking the Clone
 
-`mise doctor project` runs each check the `[doctor.checks]` tables of `.mise/config.toml` declare, printing `PASS` or `FAIL` beside the check's name and condition, and beneath a failing check the step that clears it, then exits with status 1 where any check fails, as [mise's project diagnostics](https://mise.jdx.dev/configuration/project-diagnostics.html) set out. The table below is written from those tables by `mise run docs:render`.
+`mise doctor project` runs each check the `[doctor.checks]` tables of `.mise/config.toml` declare, printing `PASS` or `FAIL` beside the check's name and condition, and beneath a failing check the step that clears it, then exits with status 1 where any check fails, as [mise's project diagnostics](https://mise.jdx.dev/configuration/project-diagnostics.html) set out. The `site-packages` and `tests-link` checks fail until `mise run site:install` installs the site's packages, which only a contributor to the site needs. The table below is written from those tables by `mise run docs:render`.
 
 <!-- checks -->
 | **Check** | **Passes Where** | **Prints Where It Fails** |
 |---|---|---|
+| `bun-lock` | `docs/bun.lock` matches `docs/package.json` | `mise relock` |
+| `cargo-lock` | `rust/Cargo.lock` matches `rust/Cargo.toml` | `mise relock` |
+| `mise-lock` | `.mise/mise.lock` matches `.mise/config.toml` | `mise relock` |
+| `script-locks` | Each task script's lockfile matches the script's inline metadata | `mise relock` |
+| `site-packages` | `docs/node_modules` exists | `mise run site:install` |
+| `tests-link` | `tests/node_modules` links to `docs/node_modules` | `mise run site:install` |
+| `uv-lock` | `uv.lock` matches `pyproject.toml` | `mise relock` |
 | `venv` | `.venv` exists and runs on the Python interpreter mise pins | `mise x -- uv venv --clear .venv && mise x -- uv sync` |
 <!-- /checks -->
 

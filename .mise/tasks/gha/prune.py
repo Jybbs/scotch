@@ -4,8 +4,8 @@
 Deletes each Actions cache entry a newer entry replaced, which the `🧹
 Prune` job of `♟️ Warm` runs once every Kit job and Cargo job has succeeded.
 
-The job runs this script on the runner's own `python3` and the `gh` it
-carries, so it imports the standard library alone.
+The job runs this script on the runner's own `python3`, so it imports the
+standard library alone, and calls the `gh` that `.mise/config.toml` pins.
 """
 
 from dataclasses import dataclass

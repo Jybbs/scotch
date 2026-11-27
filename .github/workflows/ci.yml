@@ -17,7 +17,14 @@ jobs:
       - name: Run the task
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: mise run ${{ matrix.task }}
+        run: mise run --report-file "$RUNNER_TEMP/report.json" ${{ matrix.task }}
+      - name: Attach the task report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: report-check-${{ strategy.job-index }}
+          path: ${{ runner.temp }}/report.json
+          retention-days: 1
       - name: Read the coverage report's folder
         id: report
         if: ${{ !cancelled() && matrix.task == 'py:coverage' }}
@@ -44,7 +51,7 @@ jobs:
         include:
           - name: 🩺 Advisories
             task: lock:audit
-            tools: bun cargo-deny jq python rust uv
+            tools: bun cargo-deny gh jq python rust uv
           - name: 🔐 Lockfiles
             task: lock:check
             tools: bun cargo-deny jq python rust uv
@@ -55,7 +62,7 @@ jobs:
           - name: ☂️ Coverage
             shared-key: scotch-python
             task: py:coverage
-            tools: jq python rust uv
+            tools: coreutils jq python rust uv
           - name: 📋 Audit
             shared-key: scotch-python
             task: repo:audit
@@ -82,10 +89,16 @@ jobs:
         uses: $/.github/actions/provision
         with:
           tools: python uv
+      - name: Download the task reports
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          path: ${{ runner.temp }}/reports
+          pattern: report-*
       - name: Write the summary
         env:
           COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           NEEDS: ${{ toJSON(needs) }}
+          REPORTS: ${{ runner.temp }}/reports
         run: mise run gha:scoresheet
     timeout-minutes: 5
 name: ♟️ CI

@@ -390,13 +390,14 @@ def test_a_step_reads_the_tasks_tools_and_summary_its_inputs_and_script_name():
         {
             "run": (
                 "mise run lock:check && mise run --skip-deps py:test\n"
+                'mise run --report-file "$RUNNER_TEMP/report.json" site:press\n'
                 'echo x >> "$GITHUB_STEP_SUMMARY"'
             ),
             "with": {"save": "true", "tools": "uv python"}
         }
     )
 
-    assert step.tasks == ("lock:check", "py:test")
+    assert step.tasks == ("lock:check", "py:test", "site:press")
     assert step.tools == frozenset({"python", "uv"})
     assert step.caches == {Cache.TOOLS: "python uv"}
     assert step.saves
