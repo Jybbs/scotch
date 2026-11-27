@@ -47,9 +47,12 @@ def test_a_task_a_config_above_the_root_declares_keeps_no_source(
     sample : Sample
 ):
     """
-    Asserts that a task whose source lies outside the checkout's root, from
-    a config in a directory above it, lists with no file and no source.
+    Asserts that a task whose file or source lies outside the checkout's
+    root, from a config or a task folder in a directory above it, lists with
+    no file and no source.
     """
+    script = sample.root.resolve().parent / ".mise" / "tasks" / "up"
+
     fp.register(
         ["mise", "tasks", "ls", "--json", "--local"],
         stdout = dumps(
@@ -61,13 +64,22 @@ def test_a_task_a_config_above_the_root_declares_keeps_no_source(
                     "depends" : [],
                     "run"     : ["echo up"],
                     "source"  : str(sample.root.resolve().parent / "mise.toml")
+                },
+                {
+                    "name"    : "up:script",
+                    "aliases" : [],
+                    "file"    : str(script),
+                    "depends" : [],
+                    "source"  : str(script)
                 }
             ]
         )
     )
-    (task,) = Task.listed(sample.root)
 
-    assert (task.file, task.source) == (None, None)
+    assert [(task.file, task.source) for task in Task.listed(sample.root)] == [
+        (None, None),
+        (None, None)
+    ]
 
 
 def test_the_checks_leave_out_a_task_another_task_of_the_leg_depends_on(
