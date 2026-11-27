@@ -10,6 +10,7 @@ render docs` writes from the declarations.
 from collections.abc import Iterator
 from cyclopts        import App
 from functools       import cached_property
+from itertools       import chain
 from pathlib         import Path
 from pydantic        import BaseModel, InstanceOf
 from subprocess      import run
@@ -327,10 +328,20 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
 
         return next((action for action in self.actions if action.path == path), None)
 
-    def lines(self) -> Iterator[tuple[Path, int, str]]:
+    def declaring(self, task: Task | None) -> Path:
+        """
+        Finds the file declaring `task`, the file mise names as its source,
+        or `.mise/config.toml` where mise names none or lists no such task.
+        """
+        return (task and task.source) or self.mise.path
+
+    def lines(self) -> Iterator[tuple[Path, int | None, str]]:
         """
         Yields each line of every task file and every wrapper beside the
-        file holding it and its number, counted from one.
+        file holding it and its number, counted from one, then each line of
+        every command a task declared in TOML runs beside the file declaring
+        the task and the number of the first line there holding it, `None`
+        where the file holds it only through an escape.
         """
         for path in (*(task.file for task in self.tasks if task.file), *self.wrappers):
             for line, text in enumerate(
@@ -338,6 +349,26 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
                 start = 1
             ):
                 yield path, line, text
+
+        for task in self.tasks:
+            if task.source and (
+                commands := [command for command in task.run if isinstance(
+                    command,
+                    str
+                )]
+            ):
+                declared = task.source.read_text(encoding="utf-8").splitlines()
+
+                for text in chain.from_iterable(map(str.splitlines, commands)):
+                    line = next(
+                        (line for line, held in enumerate(
+                            declared,
+                            start = 1
+                        ) if text in held),
+                        None
+                    )
+
+                    yield task.source, line, text
 
     def summarizes(self, step: Step) -> bool:
         """
