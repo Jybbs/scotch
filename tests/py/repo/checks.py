@@ -2122,6 +2122,49 @@ def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
     assert scan(CommandCheck, sample) == findings
 
 
+@mark.parametrize(
+    ("config", "script"),
+    [
+        param(".mise/config.toml", "scripts/lint", id="mise-folder"),
+        param("sub/mise.toml", "sub/scripts/lint", id="subfolder"),
+        param(".config/mise/config.toml", "scripts/lint", id="config-folder")
+    ]
+)
+def test_the_relative_file_of_a_toml_task_is_read_from_its_configs_folder(
+    config : str,
+    fp     : FakeProcess,
+    sample : Sample,
+    script : str
+):
+    """
+    Asserts that a TOML task whose `file` is a relative path, as mise prints
+    it, has the script `mise run` starts for it read, the folder holding
+    its config, less a `.mise` or `.config/mise` folder, being where the
+    path starts, so a `bunx` in it is a finding.
+    """
+    file = sample.root / script
+    file.parent.mkdir(parents=True, exist_ok=True)
+    file.write_text("#!/usr/bin/env -S bash -euo pipefail\nbunx vitest\n")
+    sample.answer(
+        fp,
+        listed = [{
+            "depends" : [],
+            "file"    : "scripts/lint",
+            "name"    : "site:lint",
+            "source"  : str((sample.root / config).resolve())
+        }]
+    )
+
+    assert scan(CommandCheck, sample) == [
+        (
+            Path(script),
+            2,
+            "`bunx` and `bun x` can run a copy of a tool from outside "
+            "`docs/node_modules`"
+        )
+    ]
+
+
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
     fp     : FakeProcess,
     sample : Sample
