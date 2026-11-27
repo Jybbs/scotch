@@ -255,28 +255,34 @@ def test_the_summary_lists_each_task_the_rows_reported(
 ):
     """
     Asserts that the summary lists each task of every `report.json` under
-    the folder `REPORTS` names with its status and its time, a dash where
-    the task never started, and lists none where the variable is unset.
+    the folder `REPORTS` names in the order of the folders, with its status
+    and its time, a dash where the task never started, skipping a folder
+    holding no report, and lists none where the variable is unset.
     """
-    (tmp_path / "report-check-0").mkdir()
-    (tmp_path / "report-check-0" / "report.json").write_text(
-        dumps(
-            {
-                "tasks": [
-                    {"duration_ms": 1300, "name": "py:check", "status": "failed"},
-                    {"duration_ms": None, "name": "py:test", "status": "not_run"}
-                ]
-            }
-        )
-    )
-    needs  = {"check": {"result": "failure", "outputs": {}}}
-    run    = task.Run.from_environ(
+    for folder, tasks in {
+        "report-check-0": [
+            {"duration_ms": 1300, "name": "py:check", "status": "failed"},
+            {"duration_ms": None, "name": "py:test", "status": "not_run"}
+        ],
+
+        "report-check-1":
+            [{"duration_ms": 20500, "name": "rs:test", "status": "passed"}]
+    }.items():
+        (tmp_path / folder).mkdir()
+        (tmp_path / folder / "report.json").write_text(dumps({"tasks": tasks}))
+
+    (tmp_path / "report-check-2").mkdir()
+
+    needs = {"check": {"result": "failure", "outputs": {}}}
+    run   = task.Run.from_environ(
         {**variables("ci", needs=needs), "REPORTS": str(tmp_path)}
     )
-    bare   = task.Run.from_environ(variables("ci", needs=needs))
+    bare = task.Run.from_environ(variables("ci", needs=needs))
 
+    assert [each.name for each in run.tasks] == ["py:check", "py:test", "rs:test"]
     assert "| `py:check` | failed | 1.3s |" in run.render()
     assert "| `py:test` | not_run | - |" in run.render()
+    assert "| `rs:test` | passed | 20.5s |" in run.render()
     assert "**Task**" not in bare.render()
 
 

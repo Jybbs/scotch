@@ -107,14 +107,14 @@ class Run:
     Each job the gate waited on, keyed by its id.
     """
 
-    tasks: tuple[Task, ...] = ()
-    """
-    Each task the rows ran, in the order of their report files.
-    """
-
     workflow: str
     """
     The stem of the workflow's file, such as `ci`, which names its template.
+    """
+
+    tasks: tuple[Task, ...] = ()
+    """
+    Each task the rows ran, in the order of their report files.
     """
 
     templates: Path = Path(".github") / "scripts" / "summaries"
@@ -142,10 +142,11 @@ class Run:
     def from_environ(cls, variables: Mapping[str, str]) -> Self:
         """
         Reads the run out of the variables the runner sets and the ones the
-        gate's step passes, `NEEDS`, on a pull request or a `♟️ Deploy`
-        run `COMMIT`, and, where the rows attached reports, `REPORTS`, the
-        folder holding each one as `<row>/report.json`, where `GITHUB_HEAD_REF` names a pull request's head
-        branch and is empty on any other event.
+        gate's step passes, `NEEDS` and, on a pull request or a `♟️ Deploy`
+        run, `COMMIT`, where `GITHUB_HEAD_REF` names a pull request's
+        head branch and is empty on any other event. Where the rows
+        attached reports, `REPORTS` names the folder holding each one as
+        `<row>/report.json`.
         """
         return cls(
             branch = variables.get("GITHUB_HEAD_REF") or variables["GITHUB_REF_NAME"],
@@ -155,11 +156,9 @@ class Run:
             ).items()},
             tasks = tuple(
                 Task(**{key: task[key] for key in ("duration_ms", "name", "status")})
-                for report in sorted(
-                    Path(variables.get("REPORTS", "/nonexistent")).glob("*/report.json")
-                )
+                for report in sorted(Path(reports).glob("*/report.json"))
                 for task in loads(report.read_text())["tasks"]
-            ),
+            ) if (reports := variables.get("REPORTS")) else (),
             workflow = Path(variables["GITHUB_WORKFLOW_REF"].partition("@")[0]).stem
         )
 

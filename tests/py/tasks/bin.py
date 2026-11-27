@@ -35,26 +35,33 @@ def pytest_generate_tests(metafunc: Metafunc):
 
 def test_a_wrapper_runs_its_program_from_its_project_venv(
     stand_in : Callable[[str], StandIn],
+    tmp_path : Path,
     wrapper  : Wrapper
 ):
     """
     Asserts that a wrapper called from a subfolder runs `uv run` under
     `--exact --locked` against the project holding it, on the program of
     its own name in that project's `.venv`, passing every argument through
-    whole, `prose` running under `--locked --no-install-project` instead,
-    since it never imports `scotch` and leaves a built package installed.
+    whole, `prose` first syncing the environment inexactly without the
+    project, since it never imports `scotch`, which leaves a built package
+    installed, and then running under `--no-sync`.
     """
-    uv = stand_in("uv")
+    calls = tmp_path / "calls.log"
+    uv    = stand_in("uv", f'echo "$*" >> "{calls}"')
+    flags = ["--no-sync"] if wrapper.path.name == "prose" else ["--exact", "--locked"]
 
     assert uv.run(wrapper, "two words", "--flag").returncode == 0
-    flags = (
-        ["--locked", "--no-install-project"]
-        if wrapper.path.name == "prose"
-        else ["--exact", "--locked"]
-    )
-    count = len(flags) + 1
+    *first, last = calls.read_text().splitlines()
 
-    assert uv.arguments[:count + 1] == ["run", *flags, "--project"]
-    assert Path(uv.arguments[count + 1]).resolve() == wrapper.project
-    assert Path(uv.arguments[count + 2]).resolve() == wrapper.program
-    assert uv.arguments[count + 3:] == ["two words", "--flag"]
+    assert last.startswith("run ")
+    assert len(first) == (wrapper.path.name == "prose")
+    assert all(
+        line.startswith("sync --inexact --locked --no-install-project --project ")
+        for line in first
+    )
+    *head, project, program = uv.arguments[:len(flags) + 4]
+
+    assert head == ["run", *flags, "--project"]
+    assert Path(project).resolve() == wrapper.project
+    assert Path(program).resolve() == wrapper.program
+    assert uv.arguments[len(flags) + 4:] == ["two words", "--flag"]

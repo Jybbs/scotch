@@ -223,9 +223,9 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
     uv      : str
 ):
     """
-    Asserts that the check exits one, stopping after the call that found the
-    drift and leaving `.mise/mise.lock`'s bytes and mode as they stood,
-    wherever:
+    Asserts that the check exits one, stopping after the call that found
+    the drift and leaving `.mise/mise.lock`'s bytes and mode as they
+    stood, wherever:
 
     - `uv.lock`, a task script's lockfile, or `rust/Cargo.lock` would
       change
