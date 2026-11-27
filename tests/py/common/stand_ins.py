@@ -213,8 +213,7 @@ class Affected(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
 class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     A scratch checkout holding `.mise/mise.lock`, beside the stand-ins the
-    `lock` tasks run against and the directory the snapshot of `lock:check`
-    lands in.
+    `lock` tasks run against.
     """
 
     launcher: Launcher
@@ -230,8 +229,7 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
 
     root: Path
     """
-    The directory holding the checkout, the stand-ins, and the scratch
-    directory.
+    The directory holding the checkout and the stand-ins.
     """
 
     mode: int = 0o644
@@ -260,34 +258,24 @@ class Scratch(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
         return self.root / "checkout" / ".mise" / "mise.lock"
 
     @property
-    def pristine(self) -> tuple[str, int, tuple[str, ...]]:
+    def pristine(self) -> tuple[str, int]:
         """
-        Pairs the lockfile's starting text and permission bits with an
-        empty scratch directory, the residue a `lock:check` run is held to
-        whatever its verdict.
+        Pairs the lockfile's starting text and permission bits, the residue
+        a `lock:check` run is held to whatever its verdict.
         """
-        return self.text, self.mode, ()
+        return self.text, self.mode
 
     @property
-    def residue(self) -> tuple[str, int, tuple[str, ...]]:
+    def residue(self) -> tuple[str, int]:
         """
         Reads the text and the permission bits of the checkout's
-        `.mise/mise.lock` beside the name of each file the scratch directory
-        still holds, which a run leaves at `pristine` wherever it keeps the
-        lockfile whole and cleans its snapshot away.
+        `.mise/mise.lock`, which a run leaves at `pristine` wherever it
+        keeps the lockfile whole.
         """
         return (
             self.lockfile.read_text(),
-            S_IMODE(self.lockfile.stat().st_mode),
-            tuple(path.name for path in self.scratch.iterdir())
+            S_IMODE(self.lockfile.stat().st_mode)
         )
-
-    @property
-    def scratch(self) -> Path:
-        """
-        Locates the directory the stand-in `mktemp` creates the snapshot in.
-        """
-        return self.root / "tmp"
 
     @property
     def script(self) -> Path:

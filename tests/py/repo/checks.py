@@ -1439,6 +1439,18 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
             [(".mise/bin/pytest", "--exact --locked", "--locked --exact")],
             [(".mise/bin/pytest", None, "The wrapper's bytes differ from `prose`'s")],
             id = "wrapper-bytes"
+        ),
+        param(
+            WrapperCheck,
+            [(
+                ".mise/bin/pytest",
+                "exec uv run --exact --locked",
+                "uv sync --inexact --locked --no-install-project "
+                '--project "$root" || exit\n'
+                "exec uv run --no-sync"
+            )],
+            [],
+            id = "wrapper-inexact-sync"
         )
     ]
 )

@@ -12,8 +12,8 @@ cannot publish its older commit over the newer one, unless a `♟️ Store` push
 run on that newer commit starts its own deploy, in which case the dispatch
 builds nothing.
 
-The job runs this script on the runner's own `python3` and the `gh` it
-carries, so it imports the standard library alone.
+The job runs this script on the runner's own `python3`, so it imports the
+standard library alone, and calls the `gh` that `.mise/config.toml` pins.
 """
 
 from collections.abc import Mapping

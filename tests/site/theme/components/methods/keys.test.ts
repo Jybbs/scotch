@@ -38,6 +38,10 @@ const showing = (wrapper: Wrapper, text: string): boolean => wrapper.findAll('[c
   .findLast(layer => layer.text().includes(text))?.classes().includes('invisible') !== true
 
 describe('Keys as drawn', () => {
+  it('draws the rule above the key after at two pixels', () => {
+    expect(still().find('hr').classes()).toEqual(expect.arrayContaining(['border-t-2!']))
+  })
+
   it('opens on the line\'s first move where the drawings hold still', () => {
     expect(status(still())).toBe('Ply 1 · 1. d4')
   })

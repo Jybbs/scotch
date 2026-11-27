@@ -34,11 +34,11 @@ jobs:
       pull-requests: read
     runs-on: ubuntu-26.04
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install the tools
+        uses: $/.github/actions/provision
         with:
-          persist-credentials: false
           ref: ${{ needs.order.outputs.commit }}
+          tools: gh
       - name: Read the total the merged pull request attached
         id: reuse
         env:
@@ -51,7 +51,7 @@ jobs:
         with:
           ref: ${{ needs.order.outputs.commit }}
           shared-key: scotch-python
-          tools: jq python rust uv
+          tools: coreutils jq python rust uv
       - name: Run the suite under coverage
         if: ${{ steps.reuse.outputs.found != 'true' }}
         run: mise run py:coverage
@@ -101,10 +101,10 @@ jobs:
       contents: read
     runs-on: ubuntu-26.04
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install the tools
+        uses: $/.github/actions/provision
         with:
-          persist-credentials: false
+          tools: gh
       - name: Decide which commit the run builds and whether it builds one
         env:
           COMMIT: ${{ inputs.ref || github.sha }}

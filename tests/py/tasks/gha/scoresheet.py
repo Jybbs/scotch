@@ -17,6 +17,30 @@ from types            import ModuleType
 pytestmark = mark.usefixtures("from_root")
 
 
+def test_a_single_report_at_the_top_of_the_folder_is_read(
+    task     : ModuleType,
+    tmp_path : Path
+):
+    """
+    Asserts that the summary lists the tasks of one `report.json` written
+    straight into the folder `REPORTS` names, where the download of a single
+    artifact leaves no folder of its own.
+    """
+    (tmp_path / "report.json").write_text(
+        dumps(
+            {"tasks": [{"duration_ms": 900, "name": "lock:check", "status": "passed"}]}
+        )
+    )
+    run = task.Run.from_environ(
+        {
+            **variables("ci", needs={"check": {"result": "success", "outputs": {}}}),
+            "REPORTS": str(tmp_path)
+        }
+    )
+
+    assert "| `lock:check` | passed | 0.9s |" in run.render()
+
+
 def test_the_run_reads_the_variables_the_gate_sets(task: ModuleType):
     """
     Asserts that the run reads the pull request's head branch, falling back
@@ -41,24 +65,6 @@ def test_the_run_reads_the_variables_the_gate_sets(task: ModuleType):
     assert task.Run.from_environ(
         variables("ci", head="", needs=needs)
     ).branch == "main"
-
-
-def test_the_summary_is_appended_after_what_the_file_holds(
-    task     : ModuleType,
-    tmp_path : Path
-):
-    """
-    Asserts that the summary is appended to the file the runner collects it
-    from, after whatever the file already holds.
-    """
-    summary = tmp_path / "summary.md"
-    summary.write_text("earlier\n")
-    run = task.Run.from_environ(
-        variables("warm", needs={"kit": {"result": "success", "outputs": {}}})
-    )
-    run.write(summary)
-
-    assert summary.read_text() == "earlier\n" + run.render()
 
 
 @mark.parametrize(
@@ -247,6 +253,61 @@ def test_the_summary_renders_from_the_workflows_template(
     its file, or from `base.md.j2` where none is, as its snapshot holds it.
     """
     assert task.Run.from_environ(variables(workflow, needs=needs)).render() == snapshot
+
+
+def test_the_summary_is_appended_after_what_the_file_holds(
+    task     : ModuleType,
+    tmp_path : Path
+):
+    """
+    Asserts that the summary is appended to the file the runner collects it
+    from, after whatever the file already holds.
+    """
+    summary = tmp_path / "summary.md"
+    summary.write_text("earlier\n")
+    run = task.Run.from_environ(
+        variables("warm", needs={"kit": {"result": "success", "outputs": {}}})
+    )
+    run.write(summary)
+
+    assert summary.read_text() == "earlier\n" + run.render()
+
+
+def test_the_summary_lists_each_task_the_rows_reported(
+    task     : ModuleType,
+    tmp_path : Path
+):
+    """
+    Asserts that the summary lists each task of every `report.json` under
+    the folder `REPORTS` names in the order of the folders, with its status
+    and its time, a dash where the task never started, skipping a folder
+    holding no report, and lists none where the variable is unset.
+    """
+    for folder, tasks in {
+        "report-check-0": [
+            {"duration_ms": 1300, "name": "py:check", "status": "failed"},
+            {"duration_ms": None, "name": "py:test", "status": "not_run"}
+        ],
+
+        "report-check-1":
+            [{"duration_ms": 20500, "name": "rs:test", "status": "passed"}]
+    }.items():
+        (tmp_path / folder).mkdir()
+        (tmp_path / folder / "report.json").write_text(dumps({"tasks": tasks}))
+
+    (tmp_path / "report-check-2").mkdir()
+
+    needs = {"check": {"result": "failure", "outputs": {}}}
+    run   = task.Run.from_environ(
+        {**variables("ci", needs=needs), "REPORTS": str(tmp_path)}
+    )
+    bare = task.Run.from_environ(variables("ci", needs=needs))
+
+    assert [each.name for each in run.tasks] == ["py:check", "py:test", "rs:test"]
+    assert "| `py:check` | failed | 1.3s |" in run.render()
+    assert "| `py:test` | not_run | - |" in run.render()
+    assert "| `rs:test` | passed | 20.5s |" in run.render()
+    assert "**Task**" not in bare.render()
 
 
 def variables(

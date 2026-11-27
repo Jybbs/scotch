@@ -64,6 +64,18 @@ describe('Ledger as drawn', () => {
     expect(wrapper.find('[data-at]').element).toBe(wrapper.findAll('[role="row"]')[rowAt(meet, 0) + 1]!.element)
   })
 
+  it('lights the row the cursor stands on in 9% of the run’s color over the page', () => {
+    expect(mounted().wrapper.find('[data-at]').classes())
+      .toContain('data-at:bg-[color-mix(in_srgb,var(--sc-run)_9%,var(--sc-page))]')
+  })
+
+  it('draws the lit row’s number and each start word in their own roles', () => {
+    const { wrapper } = mounted()
+    expect(wrapper.find('[data-at] [role="rowheader"]').classes()).toContain('in-data-at:text-(--sc-lit-number)')
+    expect(wrapper.find('[role="row"]').findAll('[role="gridcell"][data-game]').map(half => half.classes()))
+      .toEqual([expect.arrayContaining(['[&_[data-start]>span]:text-(--sc-viewer-word)']), expect.arrayContaining(['[&_[data-start]>span]:text-(--sc-viewer-word)'])])
+  })
+
   it('opens on a row setting the start mark in each game’s half', () => {
     const start = mounted().wrapper.find('[role="row"]')
     expect(start.findAll('[role="gridcell"][data-game]')
