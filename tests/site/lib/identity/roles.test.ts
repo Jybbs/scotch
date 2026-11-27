@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { contrast }   from '../../../../docs/.vitepress/lib/identity/colors.ts'
+import { contrast, mix } from '../../../../docs/.vitepress/lib/identity/colors.ts'
 import * as roles     from '../../../../docs/.vitepress/lib/identity/roles.ts'
 import { propertyOf } from '../../../../docs/.vitepress/lib/identity/tokens.ts'
 import { SECTIONS }   from '../../../../docs/.vitepress/lib/site/sections.ts'
@@ -26,6 +26,12 @@ describe('the roles hold the contrast WCAG 2.2 sets', () => {
 
   it.each(['lit_number', 'start_stored', 'start_submitted'])('sets the word role %s as text', role => {
     expect(roles.ROLES[role as keyof typeof roles.ROLES]?.kind).toBe('text')
+  })
+
+  it.each(SCHEMES.flatMap(scheme => (['lit_number', 'start_stored', 'start_submitted'] as const)
+    .map(role => ({ role, scheme }))))('sets $role at 4.5:1 or more on the lit row in the $scheme scheme', ({ role, scheme }) => {
+    const lit = mix(roles.resolve(roles.ROLES.run[scheme]), 18, page(scheme), 'srgb')
+    expect(contrast(roles.resolve(roles.ROLES[role][scheme]), lit)).toBeGreaterThanOrEqual(4.5)
   })
 
   it.each(crossed('mark'))('draws the $role mark at 3:1 or more on $ground in the $scheme scheme', ({ paint, under }) => {
