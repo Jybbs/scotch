@@ -20,7 +20,9 @@ const ROOT = [
   'outline-none [--sc-viewer-caption:26px] [--sc-viewer-pitch:33px]',
   '[--sc-viewer-shade:light-dark(color-mix(in_srgb,var(--sc-dark)_35%,transparent),color-mix(in_srgb,var(--sc-dark)_70%,transparent))]',
   '[&_[data-game=stored]]:[--sc-viewer-game:var(--sc-stored)]',
+  '[&_[data-game=stored]]:[--sc-viewer-word:var(--sc-start-stored)]',
   '[&_[data-game=submitted]]:[--sc-viewer-game:var(--sc-submitted)]',
+  '[&_[data-game=submitted]]:[--sc-viewer-word:var(--sc-start-submitted)]',
   'max-sm:mt-4 max-sm:w-[calc(100%_-_32px)] max-sm:gap-3.5'
 ]
 /**

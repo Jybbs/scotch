@@ -13,7 +13,8 @@ from itertools       import product
 from json            import loads as from_json
 from os              import environ
 from pathlib         import Path
-from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, TypeAdapter, ValidationError
+from pydantic        import AliasPath, AwareDatetime, BaseModel, BeforeValidator, Field, JsonValue, TypeAdapter
+from pydantic        import ValidationError
 from re              import MULTILINE, Match, findall, fullmatch, search, split, sub
 from shlex           import split as words
 from subprocess      import run
@@ -226,7 +227,7 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
 
     file: Path | None
     """
-    The task's file, `None` for a task declared inline in a config.
+    The task's file, `None` for a task declared in TOML.
     """
 
     name: str
@@ -242,6 +243,19 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     description: str = ""
     """
     The sentence `mise tasks ls` prints beside the task.
+    """
+
+    run: tuple[str | dict[str, JsonValue], ...] = ()
+    """
+    What a task declared in TOML runs, each entry a command or a table
+    naming the tasks it runs in its place, empty for a script.
+    """
+
+    source: Path | None = None
+    """
+    The file declaring the task, its file for a script and the TOML file
+    holding its table for a task declared in TOML, `None` where mise names
+    none.
     """
 
     @property
@@ -268,8 +282,10 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         Runs `mise tasks ls`, listing the tasks the repository under `root`
         declares and leaving out the global ones.
 
-        mise prints each task's file as an absolute path with every symlink
-        resolved, so each one is joined back onto `root`.
+        mise prints each task's file and source as absolute paths with every
+        symlink resolved, so each one is joined back onto `root`, whereas
+        one outside `root`, from a config in a directory above it, reads
+        as `None`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
@@ -280,10 +296,16 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         )
         return tuple(
             task.model_copy(
-                update = {"file": root / task.file.relative_to(root.resolve())}
+                update = {
+                    field: (
+                        root / path.relative_to(root.resolve())
+                        if path.is_relative_to(root.resolve())
+                        else None
+                    )
+                    for field in ("file", "source")
+                    if (path := getattr(task, field))
+                }
             )
-            if task.file
-            else task
             for task in TypeAdapter(tuple[cls, ...]).validate_json(listing.stdout)
         )
 

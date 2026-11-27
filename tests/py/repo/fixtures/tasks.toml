@@ -2,41 +2,50 @@
 depends = []
 file    = ".mise/tasks/gha/scoresheet"
 name    = "gha:scoresheet"
+source  = ".mise/tasks/gha/scoresheet"
 
 [[tasks]]
 aliases = ["lockfile"]
 depends = []
 file    = ".mise/tasks/lock/check"
 name    = "lock:check"
+source  = ".mise/tasks/lock/check"
 
 [[tasks]]
 depends = []
 file    = ".mise/tasks/py/coverage"
 name    = "py:coverage"
+source  = ".mise/tasks/py/coverage"
 
 [[tasks]]
 depends = []
 file    = ".mise/tasks/py/test"
 name    = "py:test"
+source  = ".mise/tasks/py/test"
 
 [[tasks]]
 depends = ["lock:check", "py:coverage", "site:links", "site:press"]
 file    = ".mise/tasks/repo/ci"
 name    = "repo:ci"
+source  = ".mise/tasks/repo/ci"
 
 [[tasks]]
 depends = []
 name    = "repo:inline"
+source  = ".mise/config.toml"
 
 [[tasks]]
 depends = []
 file    = ".mise/tasks/site/install"
 name    = "site:install"
+source  = ".mise/tasks/site/install"
 
 [[tasks]]
 depends = ["site:install", "site:press"]
 name    = "site:links"
+source  = ".mise/tasks/site.toml"
 
 [[tasks]]
 depends = ["site:install"]
 name    = "site:press"
+source  = ".mise/tasks/site.toml"

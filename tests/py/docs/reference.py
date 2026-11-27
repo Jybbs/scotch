@@ -484,6 +484,8 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
     contributor's heading, each row holding the task's aliases and its
     description, a pipe in which is escaped so it stays inside its cell.
     """
+    config = str(reference.root.resolve() / ".mise" / "config.toml")
+
     fp.register(
         ["mise", "tasks", "ls", "--json", "--local"],
         stdout = dumps(
@@ -492,6 +494,7 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "description" : "Tests.",
                     "file"        : None,
                     "name"        : "py:test",
+                    "source"      : config,
                     "aliases"     : [],
                     "depends"     : []
                 },
@@ -499,6 +502,7 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "description" : "A | B.",
                     "file"        : None,
                     "name"        : "repo:ci",
+                    "source"      : config,
                     "aliases"     : ["ci"],
                     "depends"     : []
                 },
@@ -506,6 +510,7 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "description" : "Checks.",
                     "file"        : None,
                     "name"        : "py:check",
+                    "source"      : config,
                     "aliases"     : ["a", "b"],
                     "depends"     : []
                 },
@@ -513,6 +518,7 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "description" : "Fetches.",
                     "file"        : None,
                     "name"        : "data:fetch",
+                    "source"      : config,
                     "aliases"     : [],
                     "depends"     : []
                 },
@@ -520,6 +526,7 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "description" : "Publishes.",
                     "file"        : None,
                     "name"        : "data:publish",
+                    "source"      : config,
                     "aliases"     : [],
                     "depends"     : []
                 },
@@ -527,6 +534,7 @@ def test_the_tasks_table_sets_each_group_under_its_heading(
                     "description" : "Indexes.",
                     "file"        : None,
                     "name"        : "data:index",
+                    "source"      : config,
                     "aliases"     : [],
                     "depends"     : []
                 }

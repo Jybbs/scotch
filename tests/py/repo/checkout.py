@@ -5,6 +5,7 @@ render docs` writing.
 """
 
 from common.sample import Sample
+from json          import dumps
 from pathlib       import Path
 from pytest        import MonkeyPatch
 from pytest_subprocess.fake_process import FakeProcess
@@ -12,7 +13,7 @@ from pytest_subprocess.fake_process import FakeProcess
 from scotch.cli            import app
 from scotch.docs.inventory import Outputs
 from scotch.repo.checkout  import Checkout
-from scotch.repo.schemas   import Cache, Step
+from scotch.repo.schemas   import Cache, Step, Task
 
 
 def test_a_step_finds_the_action_its_self_repository_path_names(sample: Sample):
@@ -39,6 +40,46 @@ def test_a_step_summarizes_through_its_script_or_a_task_it_runs(answered: Sample
     assert checkout.summarizes(gate)
     assert checkout.summarizes(Step(run='echo >> "$GITHUB_STEP_SUMMARY"'))
     assert not any(checkout.summarizes(step) for step in row.instances)
+
+
+def test_a_task_a_config_above_the_root_declares_keeps_no_source(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a task whose file or source lies outside the checkout's
+    root, from a config or a task folder in a directory above it, lists with
+    no file and no source.
+    """
+    script = sample.root.resolve().parent / ".mise" / "tasks" / "up"
+
+    fp.register(
+        ["mise", "tasks", "ls", "--json", "--local"],
+        stdout = dumps(
+            [
+                {
+                    "file"    : None,
+                    "name"    : "up:task",
+                    "aliases" : [],
+                    "depends" : [],
+                    "run"     : ["echo up"],
+                    "source"  : str(sample.root.resolve().parent / "mise.toml")
+                },
+                {
+                    "name"    : "up:script",
+                    "aliases" : [],
+                    "file"    : str(script),
+                    "depends" : [],
+                    "source"  : str(script)
+                }
+            ]
+        )
+    )
+
+    assert [(task.file, task.source) for task in Task.listed(sample.root)] == [
+        (None, None),
+        (None, None)
+    ]
 
 
 def test_the_checks_leave_out_a_task_another_task_of_the_leg_depends_on(
@@ -124,9 +165,10 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
     monkeypatch : MonkeyPatch
 ):
     """
-    Asserts that each task's file, which mise prints resolved and absolute,
-    joins back onto the checkout's root, a relative root included, and that
-    a task declared inline keeps no file.
+    Asserts that each task's file and source, which mise prints resolved and
+    absolute, join back onto the checkout's root, a relative root included,
+    and that a task declared in TOML keeps no file and takes the TOML file
+    declaring it as its source.
     """
     monkeypatch.chdir(answered.root)
     tasks = {task.name: task for task in Checkout(app=app, root=Path()).tasks}
@@ -136,6 +178,8 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
         "lock:check", "py:coverage", "site:links", "site:press"
     )
     assert tasks["repo:inline"].file is None
+    assert tasks["repo:inline"].source == Path(".mise") / "config.toml"
+    assert tasks["site:links"].source == Path(".mise") / "tasks" / "site.toml"
     assert fp.calls[0] == ["mise", "tasks", "ls", "--json", "--local"]
 
 
