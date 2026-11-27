@@ -1,4 +1,4 @@
 #!/usr/bin/env -S bash -euo pipefail
-#MISE description = "Download each file sources.toml declares into its provider's folder under .cache/data/downloads"
+#MISE description = "Download each file sources.toml declares into a folder named for its host under .cache/data/downloads"
 
 scotch fetch games

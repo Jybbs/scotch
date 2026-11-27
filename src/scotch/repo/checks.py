@@ -958,9 +958,9 @@ class StopCheck(Check):
     """
     Fails where the messages `src/scotch/docs/stops.toml` declares, which
     the commands page lists, differ from the ones the files it covers print,
-    meaning a message no such file holds, or one a Python file among them
-    raises through `SystemExit` or `ValueError` that the registry leaves
-    out.
+    meaning a message no such file holds, unless its stop is `external`, or
+    one a Python file among them raises through `SystemExit` or `ValueError`
+    that the registry leaves out.
     """
 
     def scan(self) -> Iterator[Finding]:
@@ -996,7 +996,7 @@ class StopCheck(Check):
                     )
 
         for stop in stops.stops:
-            if stop.template not in held:
+            if not stop.external and stop.template not in held:
                 yield Finding(
                     line    = None,
                     message = f"`{stop.message}` is held by no file `modules` names",

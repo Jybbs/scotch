@@ -7,7 +7,7 @@ Every task the repository declares sits below beside its alias and its descripti
 
 | **Task** | **Alias** | **Description** |
 |---|---|---|
-| `data:fetch` |  | Download each file sources.toml declares into its provider's folder under .cache/data/downloads |
+| `data:fetch` |  | Download each file sources.toml declares into a folder named for its host under .cache/data/downloads |
 | `data:index` |  | Build the index under .cache/data/index from the files data:fetch downloaded |
 
 ## Tasks a Contributor Runs

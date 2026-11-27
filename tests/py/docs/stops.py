@@ -59,6 +59,22 @@ def test_a_command_exiting_on_no_message_takes_no_table():
     )
 
 
+def test_a_stop_dumps_without_its_external_flag():
+    """
+    Asserts that a stop's dump leaves out `external`, which the rendered
+    refusals the site reads carry no field for.
+    """
+    stop = Stop(
+        clears   = "",
+        commands = (),
+        external = True,
+        message  = "",
+        when     = ""
+    )
+
+    assert "external" not in stop.model_dump()
+
+
 def test_a_table_holding_a_name_keeps_the_messages_naming_it():
     """
     Asserts that a table given a name keeps only the messages of its command

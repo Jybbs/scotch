@@ -7,20 +7,23 @@ warning each prints where the fetched files changed since the index was
 built.
 """
 
-from base64           import urlsafe_b64decode
-from collections.abc  import Callable
-from common.app       import invoke
-from common.games     import line
-from common.sources   import declare
-from errno            import EACCES, EISDIR, ENOENT
+from base64              import urlsafe_b64decode
+from collections.abc     import Callable
+from common.app          import invoke
+from common.games        import line
+from common.sources      import declare
+from cyclopts.exceptions import ValidationError
+from errno               import EACCES, EISDIR, ENOENT
 from io               import BytesIO, StringIO
 from os               import strerror
 from pathlib          import Path
-from pytest           import CaptureFixture, MonkeyPatch, mark, param
+from pytest           import CaptureFixture, MonkeyPatch, mark, param, raises
 from syrupy.assertion import SnapshotAssertion
 from types            import SimpleNamespace
 from zlib             import decompress
 
+from scotch.cli             import app
+from scotch.docs.stops      import Stops
 from scotch.games.schemas   import Game, Origin
 from scotch.index.schemas   import Export
 from scotch.index.tables    import PositionIndex
@@ -406,6 +409,24 @@ def test_link_of_a_game_sharing_no_position_opens_the_submitted_game_alone(
 
     assert printed[0] == "No stored game shares a position with this game"
     assert "/viewer#match=" in printed[1]
+
+
+@mark.usefixtures("indexed")
+def test_games_against_a_missing_file_stops_on_the_message_the_registry_declares(
+    tmp_path: Path
+):
+    """
+    Asserts that `scotch match games` against a path holding no file stops
+    on the message Cyclopts raises before the command runs, as `stops.toml`
+    declares it.
+    """
+    path = tmp_path / "missing.pgn"
+    stop = next(stop for stop in Stops.read().printed("match games") if stop.external)
+
+    with raises(ValidationError) as error:
+        app(["match", "games", str(path)], exit_on_error=False, print_error=False)
+
+    assert str(error.value) == stop.message.replace("<pgn>", str(path))
 
 
 @mark.usefixtures("indexed")

@@ -1264,6 +1264,17 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
         ),
         param(
             StopCheck,
+            [("src/scotch/docs/stops.toml", "external = true\n", "")],
+            [(
+                "src/scotch/docs/stops.toml",
+                None,
+                '`Invalid value "<pgn>" for PGN. "<pgn>" does not exist.` is held'
+                " by no file `modules` names"
+            )],
+            id = "library-message-declared-internal"
+        ),
+        param(
+            StopCheck,
             [("rust/src/boards.rs", "names no position", "holds no position")],
             [(
                 "src/scotch/docs/stops.toml", None,
@@ -2263,6 +2274,54 @@ def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
     assert scan(CommandCheck, sample) == findings
 
 
+@mark.parametrize(
+    ("config", "script"),
+    [
+        param("mise.toml", "scripts/lint", id="root-config"),
+        param(
+            ".config/mise/mise.toml",
+            ".config/mise/scripts/lint",
+            id = "config-folder"
+        ),
+        param(".mise/conf.d/extra.toml", "scripts/lint", id="conf-d-folder"),
+        param("tasks/included.toml", "scripts/lint", id="included-file")
+    ]
+)
+def test_the_relative_file_of_a_toml_task_is_read_from_the_dir_mise_prints(
+    config : str,
+    fp     : FakeProcess,
+    sample : Sample,
+    script : str
+):
+    """
+    Asserts that a TOML task whose `file` is a relative path, as mise
+    prints it, has the script read from the `dir` mise prints for the task,
+    whichever config declares it, so a `bunx` in the script is a finding.
+    """
+    file = sample.root / script
+    file.parent.mkdir(exist_ok=True, parents=True)
+    file.write_text("#!/usr/bin/env -S bash -euo pipefail\nbunx vitest\n")
+    sample.answer(
+        fp,
+        listed = [{
+            "dir"     : str(file.parent.parent.resolve()),
+            "file"    : "scripts/lint",
+            "name"    : "site:lint",
+            "depends" : [],
+            "source"  : str((sample.root / config).resolve())
+        }]
+    )
+
+    assert scan(CommandCheck, sample) == [
+        (
+            Path(script),
+            2,
+            "`bunx` and `bun x` can run a copy of a tool from outside "
+            "`docs/node_modules`"
+        )
+    ]
+
+
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
     fp     : FakeProcess,
     sample : Sample
@@ -2321,33 +2380,6 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
             Level.WARNING, "`global:lint`: Description is empty"
         )
     ]
-
-
-@mark.parametrize(
-    "alias",
-    [
-        param("lockfile", id = "free"),
-        param("list", id = "subcommand-alias"),
-        param("--no-timing", id = "flag-alias"),
-        param("quoted", id = "help-text"),
-        param("banner", id = "banner-line"),
-        param("[TASK]", id = "help-argument"),
-        param("--dir", id = "help-flag-alias")
-    ]
-)
-def test_a_task_alias_no_mise_command_takes_passes(
-    alias  : str,
-    fp     : FakeProcess,
-    sample : Sample
-):
-    """
-    Asserts that an alias only a subcommand, a flag, the text of a help
-    string, or a line of `mise --help` outside its `Commands:` section
-    carries draws no finding.
-    """
-    sample.answer(fp, aliases={"py:test": (alias,)})
-
-    assert scan(AliasCheck, sample) == []
 
 
 def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
@@ -2419,6 +2451,33 @@ def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
     ]
 
 
+@mark.parametrize(
+    "alias",
+    [
+        param("lockfile", id = "free"),
+        param("list", id = "subcommand-alias"),
+        param("--no-timing", id = "flag-alias"),
+        param("quoted", id = "help-text"),
+        param("banner", id = "banner-line"),
+        param("[TASK]", id = "help-argument"),
+        param("--dir", id = "help-flag-alias")
+    ]
+)
+def test_a_task_alias_no_mise_command_takes_passes(
+    alias  : str,
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that an alias only a subcommand, a flag, the text of a help
+    string, or a line of `mise --help` outside its `Commands:` section
+    carries draws no finding.
+    """
+    sample.answer(fp, aliases={"py:test": (alias,)})
+
+    assert scan(AliasCheck, sample) == []
+
+
 def test_markers_sharing_a_line_each_fail(fp: FakeProcess, sample: Sample):
     """
     Asserts that a line carrying both a lint comment and a compiler
@@ -2456,3 +2515,58 @@ def test_only_the_colliding_alias_of_a_list_fails(fp: FakeProcess, sample: Sampl
         Path(".mise/tasks/py/test"),
         2, "`mise cfg` runs mise's own `cfg` command rather than `py:test`"
     )]
+
+
+def test_the_relative_file_of_a_toml_task_naming_no_file_under_its_dir_is_not_read(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a TOML task whose relative `file` names no file under the
+    `dir` mise prints, as where the task sets its own `dir`, has no script
+    read rather than failing the scan.
+    """
+    sample.answer(
+        fp,
+        listed = [{
+            "dir"     : str((sample.root / "docs").resolve()),
+            "file"    : "scripts/lint",
+            "name"    : "site:lint",
+            "depends" : [],
+            "source"  : str((sample.root / "mise.toml").resolve())
+        }]
+    )
+
+    assert scan(CommandCheck, sample) == []
+
+
+@mark.parametrize(
+    ("config", "script"),
+    [
+        param("../mise.toml", "scripts/lint", id="dir-above"),
+        param("mise.toml", "../scripts/lint", id="file-above")
+    ]
+)
+def test_the_relative_file_of_a_toml_task_above_the_checkout_is_not_read(
+    config : str,
+    fp     : FakeProcess,
+    sample : Sample,
+    script : str
+):
+    """
+    Asserts that a TOML task whose relative `file` resolves outside the
+    checkout, through a dir above it or a path climbing out of it, has no
+    script read.
+    """
+    sample.answer(
+        fp,
+        listed = [{
+            "dir"     : str((sample.root / config).parent.resolve()),
+            "file"    : script,
+            "name"    : "site:lint",
+            "depends" : [],
+            "source"  : str((sample.root / config).resolve())
+        }]
+    )
+
+    assert scan(CommandCheck, sample) == []

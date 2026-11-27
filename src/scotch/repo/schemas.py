@@ -227,7 +227,7 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
 
     file: Path | None
     """
-    The task's file, `None` for a task declared in TOML.
+    The task's file, `None` for a task declared in TOML without one.
     """
 
     name: str
@@ -247,8 +247,9 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
 
     dir: Path | None = None
     """
-    The directory the task runs in, which its `sources` patterns are
-    relative to, `None` where it lies outside the checkout.
+    The folder mise runs the task from, which its `sources` patterns are
+    relative to, `None` where mise names none or it lies outside the
+    checkout.
     """
 
     run: tuple[str | dict[str, JsonValue], ...] = ()
@@ -294,10 +295,15 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         Runs `mise tasks ls`, listing the tasks the repository under `root`
         declares and leaving out the global ones.
 
-        mise prints each task's directory, file, and source as absolute
-        paths with every symlink resolved, so each one is joined back onto
-        `root`, whereas one outside `root`, from a config in a directory
-        above it, reads as `None`.
+        mise prints each task's directory, a script's file, and each task's
+        source as absolute paths with every symlink resolved, but a TOML
+        task's `file` as the config writes it. A relative one is read from
+        the `dir` mise prints for the task, which holds for a config in
+        `.config/mise` or one `[task_config] includes` pulls in, and then
+        each is joined back onto `root`, whereas one outside `root` reads
+        as `None`. A task setting its own `dir` has that folder read in
+        place of the one mise starts its script from, so its relative file
+        may name a different script, or none, which reads as `None`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
@@ -306,16 +312,33 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
             cwd            = root,
             text           = True
         )
+        base = root.resolve()
+
+        def inside(path: Path | None) -> Path | None:
+            """
+            Joins a path under the resolved root back onto `root`, reading
+            as `None` where it falls outside.
+            """
+            return (
+                root / path.relative_to(base)
+                if path and path.is_relative_to(base)
+                else None
+            )
+
+        def script(task: Self) -> Path | None:
+            """
+            Reads the script a task's relative `file` names under the `dir`
+            mise prints, `None` where no file stands there.
+            """
+            path = task.file and ((task.dir or base) / task.file).resolve()
+            return path if path and path.is_file() else None
+
         return tuple(
             task.model_copy(
                 update = {
-                    field: (
-                        root / path.relative_to(root.resolve())
-                        if path.is_relative_to(root.resolve())
-                        else None
-                    )
-                    for field in ("dir", "file", "source")
-                    if (path := getattr(task, field))
+                    "dir"    : inside(task.dir),
+                    "file"   : inside(script(task)),
+                    "source" : inside(task.source)
                 }
             )
             for task in TypeAdapter(tuple[cls, ...]).validate_json(listing.stdout)
