@@ -348,7 +348,7 @@ class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
         file   = root / self.path
         lines  = file.read_text(encoding="utf-8").splitlines(keepends=True)
-        prefix = "# " if file.suffix == ".py" else ""
+        prefix = "# " if "# /// script\n" in lines else ""
 
         if self.kind is Exemption.BUN:
             key, anchor = "minimumReleaseAgeExcludes", "minimumReleaseAge"
@@ -368,7 +368,7 @@ class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
             members = sorted(((existing or {}) | {self.name: self.value}).items())
             return "{ " + ", ".join(
-                f"{name if fullmatch(r'[\\w-]+', name) else dumps(name)} = {dumps(value)}"
+                f"{name if fullmatch(r'[\w-]+', name) else dumps(name)} = {dumps(value)}"
                 for name, value in members
             ) + " }"
 

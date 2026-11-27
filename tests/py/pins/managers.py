@@ -1065,7 +1065,7 @@ def test_a_package_inside_the_window_clearing_no_advisory_stays_where_it_stands(
     the instant the window ends beside the release's upload.
     """
     locks(
-        lambda process: (target(process) / "uv.lock").write_text(""),
+        lambda process: (target(process) / "uv.lock").write_text("package = []\n"),
         lambda process: (target(process) / "uv.lock").write_text(
             '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
             'sdist = { upload-time = "2026-10-23T08:00:00Z" }\n'
