@@ -102,75 +102,75 @@ url = "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.21.0/carg
 url_api = "https://api.github.com/repos/EmbarkStudios/cargo-deny/releases/assets/755173869"
 
 [[tools.coreutils]]
-version = "0.8.0"
+version = "0.12.0"
 backend = "aqua:uutils/coreutils"
-specifiers = ["0.8.0"]
+specifiers = ["0.12.0"]
 
 [tools.coreutils."platforms.linux-arm64"]
-checksum = "sha256:358c03e93535a19c2119ccbde14080e3cbfbf4ca913cbc359cd01fe52d91d808"
+checksum = "sha256:8ded600eb3f6099d9f085d0e1ba8a5c002b8df1929d7f6c86d9cd03355ac3c5f"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-aarch64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390280124"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/568983326"
 
 [tools.coreutils."platforms.linux-arm64-musl"]
-checksum = "sha256:e592200ef784deecc5ac2328b0617422c89f62b9bb841eb114528ed938ccb725"
+checksum = "sha256:614a0224ea49f85020cfc30ca980599965fa8501131f9588db4fa41c125a7805"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390290053"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569012618"
 
 [tools.coreutils."platforms.linux-x64"]
-checksum = "sha256:ea8f0a4f6815c1da0df539c88b4776b976983c0139879662de03bc4010bd0504"
+checksum = "sha256:e08bd526f3c14717b145dfed4dbff5545848ca67a9b940be7ff7de5afea32786"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390289878"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569034668"
 
 [tools.coreutils."platforms.linux-x64-baseline"]
-checksum = "sha256:ea8f0a4f6815c1da0df539c88b4776b976983c0139879662de03bc4010bd0504"
+checksum = "sha256:e08bd526f3c14717b145dfed4dbff5545848ca67a9b940be7ff7de5afea32786"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390289878"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569034668"
 
 [tools.coreutils."platforms.linux-x64-musl"]
-checksum = "sha256:b8977997a49b677169f7ce65bfc2ad658d4943c4f02f0493b1a802137202b0bf"
+checksum = "sha256:9b555b01457279bcc3e46753f0ef324fd3d02a0535111200a4632d1297263b54"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390293390"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569012931"
 
 [tools.coreutils."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:b8977997a49b677169f7ce65bfc2ad658d4943c4f02f0493b1a802137202b0bf"
+checksum = "sha256:9b555b01457279bcc3e46753f0ef324fd3d02a0535111200a4632d1297263b54"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390293390"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569012931"
 
 [tools.coreutils."platforms.macos-arm64"]
-checksum = "sha256:add95b420f9f1b69a0a7cb7b2672648fc72cf1294384344791e8e064bdc5e8c2"
+checksum = "sha256:7caea447564405b3eb50cce2a89d314df07d1b7a67090dc4cc7c82eba7014052"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390293854"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569200817"
 
 [tools.coreutils."platforms.macos-x64"]
-checksum = "sha256:8ac6299b298eb3ba995973b42aece162578e19f9243425a5945d9c4bd8135b0a"
+checksum = "sha256:a845b274f91c23b779f097e15045f4bf7cbcf99d6e62e6878d9db816e6887586"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390295243"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569181402"
 
 [tools.coreutils."platforms.macos-x64-baseline"]
-checksum = "sha256:8ac6299b298eb3ba995973b42aece162578e19f9243425a5945d9c4bd8135b0a"
+checksum = "sha256:a845b274f91c23b779f097e15045f4bf7cbcf99d6e62e6878d9db816e6887586"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390295243"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569181402"
 
 [tools.coreutils."platforms.windows-x64"]
-checksum = "sha256:0d56aba36367a612e1c7c98c593e5dca070ca4fe42f6200e89ee244e9b78a279"
+checksum = "sha256:45d6760c136ef42cdba1e2dbb492b0858be98099d6c7fb3e300a3adcfbc54cfe"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-pc-windows-gnu.zip"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390291395"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569041058"
 
 [tools.coreutils."platforms.windows-x64-baseline"]
-checksum = "sha256:0d56aba36367a612e1c7c98c593e5dca070ca4fe42f6200e89ee244e9b78a279"
+checksum = "sha256:45d6760c136ef42cdba1e2dbb492b0858be98099d6c7fb3e300a3adcfbc54cfe"
 checksum_source = "mise-versions"
-url = "https://github.com/uutils/coreutils/releases/download/0.8.0/coreutils-0.8.0-x86_64-pc-windows-gnu.zip"
-url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/390291395"
+url = "https://github.com/uutils/coreutils/releases/download/0.12.0/coreutils-0.12.0-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/569041058"
 
 [[tools.gh]]
 version = "2.104.0"
