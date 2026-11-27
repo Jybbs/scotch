@@ -328,6 +328,13 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
 
         return next((action for action in self.actions if action.path == path), None)
 
+    def declaring(self, task: Task | None) -> Path:
+        """
+        Finds the file declaring `task`, the file mise names as its source,
+        or `.mise/config.toml` where mise names none or lists no such task.
+        """
+        return (task and task.source) or self.mise.path
+
     def lines(self) -> Iterator[tuple[Path, int | None, str]]:
         """
         Yields each line of every task file and every wrapper beside the
@@ -344,19 +351,20 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
                 yield path, line, text
 
         for task in self.tasks:
-            commands = [command for command in task.run if isinstance(command, str)]
-
-            if task.source and commands:
-                declared = dict(
-                    enumerate(
-                        task.source.read_text(encoding="utf-8").splitlines(),
-                        start = 1
-                    )
-                )
+            if task.source and (
+                commands := [command for command in task.run if isinstance(
+                    command,
+                    str
+                )]
+            ):
+                declared = task.source.read_text(encoding="utf-8").splitlines()
 
                 for text in chain.from_iterable(map(str.splitlines, commands)):
                     line = next(
-                        (line for line, held in declared.items() if text in held),
+                        (line for line, held in enumerate(
+                            declared,
+                            start = 1
+                        ) if text in held),
                         None
                     )
 

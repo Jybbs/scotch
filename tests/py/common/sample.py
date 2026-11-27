@@ -59,12 +59,12 @@ class Sample(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         issues  : Sequence[Mapping[str, str]] = ()
     ):
         """
-        Registers the answers mise and git give the checkout, listing the
-        tasks `tests/py/repo/fixtures/tasks.toml` declares with each file
-        and source joined onto the copy and resolved as mise prints them,
-        each task `aliases` names taking the aliases it gives. The answers
-        also report `issues` from `mise tasks validate`, print
-        `tests/py/repo/fixtures/usage.kdl` from `mise usage` and
+        Registers the answers mise and git give the checkout, listing
+        the tasks `tests/py/repo/fixtures/tasks.toml` declares with each
+        file and source joined onto the copy and resolved as mise prints
+        them, each task `aliases` names taking the aliases it gives.
+        The answers also report `issues` from `mise tasks validate`,
+        print `tests/py/repo/fixtures/usage.kdl` from `mise usage` and
         `tests/py/repo/fixtures/help.txt` from `mise --help`, and list every
         file the copy holds from `git ls-files`.
         """

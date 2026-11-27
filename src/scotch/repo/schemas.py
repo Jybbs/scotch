@@ -227,7 +227,7 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
 
     file: Path | None
     """
-    The task's file, `None` for a task declared inline in a config.
+    The task's file, `None` for a task declared in TOML.
     """
 
     name: str

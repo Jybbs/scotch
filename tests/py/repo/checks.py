@@ -1920,6 +1920,27 @@ def test_an_alias_in_a_multi_line_list_is_a_finding_at_its_line(
     )]
 
 
+def test_an_alias_of_a_task_an_included_file_declares_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias of a task an included TOML file declares
+    draws a finding at the line of that file declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/site.toml",
+        new = '["site:press"]\nalias   = "audit"',
+        old = '["site:press"]'
+    )
+    sample.answer(fp, aliases={"site:press": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/site.toml"),
+        6, "`mise audit` runs mise's own `audit` command rather than `site:press`"
+    )]
+
+
 def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
     fp     : FakeProcess,
     sample : Sample
@@ -1959,27 +1980,6 @@ def test_an_alias_of_an_inline_task_is_a_finding_at_the_config(
     assert scan(AliasCheck, sample) == [(
         Path(".mise/config.toml"),
         None, "`mise audit` runs mise's own `audit` command rather than `repo:inline`"
-    )]
-
-
-def test_an_alias_of_a_task_an_included_file_declares_is_a_finding_at_its_line(
-    fp     : FakeProcess,
-    sample : Sample
-):
-    """
-    Asserts that a colliding alias of a task an included TOML file declares
-    draws a finding at the line of that file declaring it.
-    """
-    sample.edit(
-        ".mise/tasks/site.toml",
-        new = '["site:press"]\nalias   = "audit"',
-        old = '["site:press"]'
-    )
-    sample.answer(fp, aliases={"site:press": ("audit",)})
-
-    assert scan(AliasCheck, sample) == [(
-        Path(".mise/tasks/site.toml"),
-        6, "`mise audit` runs mise's own `audit` command rather than `site:press`"
     )]
 
 
@@ -2049,6 +2049,28 @@ def test_a_dependency_no_row_runs_is_a_finding_at_the_file_declaring_repo_ci(
             id = "bunx-in-run"
         ),
         param(
+            'run     = "vitepress build docs"',
+            'run     = """\nvitepress build docs\nbunx lychee docs\n"""',
+            [(
+                Path(".mise/tasks/site.toml"),
+                9,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-on-a-later-line-of-run"
+        ),
+        param(
+            'run     = "vitepress build docs"',
+            'run     = "bun\\u0078 vitepress build docs"',
+            [(
+                Path(".mise/tasks/site.toml"),
+                None,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-through-an-escape"
+        ),
+        param(
             'depends = ["site:install"]\nrun     = "vitepress build docs"',
             'depends     = ["site:install"]\n'
             'description = "Build the site through bunx vitepress"\n'
@@ -2067,8 +2089,9 @@ def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
 ):
     """
     Asserts that a refused command in the `run` of a task an included TOML
-    file declares is a finding at the line of that file holding it, a table
-    in `run` naming a task being passed over, and that a command the task's
+    file declares is a finding at the line of that file holding it, or
+    at no line where the file holds it only through an escape, a table in
+    `run` naming a task being passed over, and that a command the task's
     description names is none.
     """
     sample.edit(".mise/tasks/site.toml", new=new, old=old)
@@ -2084,7 +2107,8 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
     """
     Asserts that each problem `mise tasks validate` reports becomes a
     finding at the file declaring the task, its script or the TOML file
-    `mise tasks ls` names as its source, keeping the severity mise reports.
+    `mise tasks ls` names as its source, or at `.mise/config.toml` for a
+    task the listing leaves out, keeping the severity mise reports.
     """
     sample.answer(
         fp,
@@ -2104,6 +2128,11 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
                 "message"  : "Description is empty",
                 "severity" : "warning",
                 "task"     : "site:links"
+            },
+            {
+                "message"  : "Description is empty",
+                "severity" : "warning",
+                "task"     : "global:lint"
             }
         )
     )
@@ -2123,6 +2152,10 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
         (
             Path(".mise/tasks/site.toml"),
             Level.WARNING, "`site:links`: Description is empty"
+        ),
+        (
+            Path(".mise/config.toml"),
+            Level.WARNING, "`global:lint`: Description is empty"
         )
     ]
 

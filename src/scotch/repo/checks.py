@@ -103,7 +103,7 @@ class AliasCheck(Check):
         commands = self.checkout.usage.commands
 
         for task in self.checkout.tasks:
-            path = task.source or self.checkout.mise.path
+            path = self.checkout.declaring(task)
             text = path.read_text(encoding="utf-8")
 
             for alias in filter(commands.__contains__, task.aliases):
@@ -718,7 +718,7 @@ class RowCheck(Check):
                     f"`repo:ci` depends on `{task}`, "
                     "which no pull-request row runs"
                 ),
-                path = ci.source or self.checkout.mise.path
+                path = self.checkout.declaring(ci)
             )
 
 
@@ -1089,12 +1089,10 @@ class TaskCheck(Check):
         reports.
         """
         for issue in self.checkout.validation.issues:
-            task = self.checkout.task(issue.task)
-
             yield Finding(
                 level   = issue.severity,
                 message = f"`{issue.task}`: {issue.sentence}",
-                path    = (task and task.source) or self.checkout.mise.path
+                path    = self.checkout.declaring(self.checkout.task(issue.task))
             )
 
 
