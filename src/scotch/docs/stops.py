@@ -9,10 +9,10 @@ from collections.abc         import Iterator
 from importlib.resources     import files
 from importlib.resources.abc import Traversable
 from pathlib                 import Path
-from pydantic                import BaseModel
+from pydantic                import BaseModel, Field
 from re      import sub
 from tomllib import loads
-from typing  import ClassVar, Self
+from typing  import Annotated, ClassVar, Self
 
 from scotch.docs.tallies import coded, markdown
 
@@ -47,6 +47,12 @@ class Stop(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     """
     The check a file fails to print the message, named in a few words, where
     the Guide's sentence on the games a match refuses names it.
+    """
+
+    external: Annotated[bool, Field(exclude=True)] = False
+    """
+    Whether a library prints the message before the command runs, so no file
+    `Stops.modules` lists holds it.
     """
 
     phrase: str | None = None

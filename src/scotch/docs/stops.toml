@@ -24,6 +24,13 @@ message  = "Unknown option: <token>"
 when     = "A word of the position opens on a hyphen and names no option"
 
 [[stops]]
+clears   = "Name a file that exists"
+commands = ["match games"]
+external = true
+message  = "Invalid value \"<pgn>\" for PGN. \"<pgn>\" does not exist."
+when     = "The file does not exist, which Cyclopts reports before the command runs"
+
+[[stops]]
 check    = "Opens"
 clears   = "Name a file that exists and that the user running the command can read"
 commands = ["match game", "match games"]
@@ -124,10 +131,10 @@ message  = "These files changed on disk since their fetch, which `scotch fetch g
 when     = "A fetched file no longer holds the bytes the manifest records"
 
 [[stops]]
-clears   = "Run the command again once the host answers, or raise `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S`"
+clears   = "Run the command again once the host answers, or raise `SCOTCH_RETRIES` or `SCOTCH_TIMEOUT_S`, or, where the error opens on the system's `[Errno <n>]`, free space on the disk or make the downloads folder writable"
 commands = ["fetch games"]
 message  = "Could not fetch <address>: <error>"
-when     = "The server answers with an error status, a request fails once every retry has, or the connection breaks while the file downloads"
+when     = "The server answers with an error status, a request fails once every retry has, the connection breaks while the file downloads, or the file cannot be written"
 
 [[stops]]
 clears   = "Pass the key an entry's `@` line opens on, or add the entry"

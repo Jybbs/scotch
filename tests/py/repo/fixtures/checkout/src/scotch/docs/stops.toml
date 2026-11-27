@@ -23,3 +23,10 @@ clears   = "Pass another word"
 commands = ["run game"]
 message  = "names no move: '<word>'"
 when     = "A word names no move"
+
+[[stops]]
+clears   = "Name a file that exists"
+commands = ["run game"]
+external = true
+message  = "Invalid value \"<pgn>\" for PGN. \"<pgn>\" does not exist."
+when     = "The file does not exist"
