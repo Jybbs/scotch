@@ -33,7 +33,7 @@ timeout     = "5s"
 [doctor.checks.tests-link]
 description = "`tests/node_modules` links to `docs/node_modules`"
 hint        = "mise run site:install"
-run         = 'test -L tests/node_modules && test "$(cd tests/node_modules && pwd -P)" = "$(cd docs/node_modules && pwd -P)"'
+run         = 'test -L tests/node_modules && test -d docs/node_modules && test "$(cd tests/node_modules && pwd -P)" = "$(cd docs/node_modules && pwd -P)"'
 timeout     = "5s"
 
 [doctor.checks.uv-lock]

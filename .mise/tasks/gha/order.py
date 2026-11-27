@@ -13,7 +13,7 @@ run on that newer commit starts its own deploy, in which case the dispatch
 builds nothing.
 
 The job runs this script on the runner's own `python3`, so it imports the
-standard library alone, and on the `gh` that `.mise/config.toml` pins.
+standard library alone, and calls the `gh` that `.mise/config.toml` pins.
 """
 
 from collections.abc import Mapping

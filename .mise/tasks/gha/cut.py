@@ -8,7 +8,7 @@ writes the path it took to the job's outputs, which the gate's summary
 reads.
 
 The job runs this script on the runner's own `python3`, so it imports the
-standard library alone, and on the `gh` that `.mise/config.toml` pins.
+standard library alone, and calls the `gh` that `.mise/config.toml` pins.
 """
 
 from dataclasses import dataclass, replace

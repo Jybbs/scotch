@@ -4,8 +4,9 @@ Pins the facts `.mise/config.toml` declares for mise itself:
 - The setting that compares task sources by their contents rather than by
   their timestamps
 - The condition the `tests-link` check of `mise doctor project` passes on,
-  run in a scratch folder with the link in place and with a real folder
-  standing where the link belongs
+  run in a scratch folder with the link in place, with it pointing
+  elsewhere or at nothing, and with a real folder standing where the link
+  belongs
 - The command each lockfile check runs, and the status it exits with,
   against a stand-in for that command's program
 """
@@ -68,6 +69,27 @@ def test_the_tests_link_check_passes_only_on_the_link(
     assert run(["sh", "-c", command], check=False, cwd=tmp_path).returncode == status
 
 
+def test_the_script_locks_check_stops_on_the_first_failing_script(
+    pytestconfig : Config,
+    stand_in     : Callable[..., StandIn],
+    tmp_path     : Path
+):
+    """
+    Asserts that the `script-locks` check exits one where the first of two
+    task scripts fails its lock check, though the second would pass.
+    """
+    (tasks := tmp_path / ".mise" / "tasks").mkdir(parents=True)
+
+    for name in ("one.py", "two.py"):
+        (tasks / name).write_text("# /// script\n# ///\n")
+
+    command = config(pytestconfig.rootpath)["doctor"]["checks"]["script-locks"]["run"]
+    failed  = tmp_path / "failed"
+    uv      = stand_in("uv", f'[ -e "{failed}" ] || {{ : > "{failed}"; exit 1; }}')
+
+    assert uv.start(["sh", "-c", command], tmp_path).returncode == 1
+
+
 @mark.parametrize("status", [0, 1])
 @mark.parametrize(
     ("check", "program", "arguments"),
@@ -121,3 +143,18 @@ def test_a_lockfile_check_exits_with_its_command(
 
     assert program.start(["sh", "-c", command], tmp_path).returncode == status
     assert program.arguments == arguments
+
+
+def test_the_tests_link_check_fails_on_a_dangling_link(
+    pytestconfig : Config,
+    tmp_path     : Path
+):
+    """
+    Asserts that the `tests-link` check exits one where `tests/node_modules`
+    links to a `docs/node_modules` that does not exist.
+    """
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "node_modules").symlink_to("../docs/node_modules")
+    command = config(pytestconfig.rootpath)["doctor"]["checks"]["tests-link"]["run"]
+
+    assert run(["sh", "-c", command], check=False, cwd=tmp_path).returncode == 1
