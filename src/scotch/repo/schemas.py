@@ -8,6 +8,7 @@ the mise tasks, the commands mise runs, and the task scripts, beside the
 """
 
 from collections.abc import Callable, Iterable, Mapping
+from datetime        import timedelta
 from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
@@ -174,9 +175,24 @@ class Script(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=Tr
     The requirements the script runs with.
     """
 
+    pardons: dict[str, str | bool] = Field(
+        {},
+        validation_alias = AliasPath("tool", "uv", "exclude-newer-package")
+    )
+    """
+    The release age each package named here is held to in place of the
+    window, `False` exempting every release of the package.
+    """
+
     python: str = Field("", alias="requires-python")
     """
     The specifier the script's `requires-python` declares.
+    """
+
+    window: str = Field("", validation_alias=AliasPath("tool", "uv", "exclude-newer"))
+    """
+    The age a release has to reach before the script's lockfile resolves it,
+    written as `[tool.uv].exclude-newer` writes it.
     """
 
     @property
@@ -446,6 +462,56 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         return cls.parsed(manual, spec)
 
 
+class Bunfig(ConfigFile):
+    """
+    The `[install]` table of the `bunfig.toml` beside the site's manifest,
+    which holds the site's lockfile to releases that have aged.
+    """
+
+    age: int = Field(
+        0,
+        validation_alias = AliasPath("install", "minimumReleaseAge")
+    )
+    """
+    The seconds a release has to age before `bun` resolves it, `0` where the
+    file sets none.
+    """
+
+    excludes: tuple[str, ...] = Field(
+        (),
+        validation_alias = AliasPath("install", "minimumReleaseAgeExcludes")
+    )
+    """
+    The packages `bun` resolves whatever their release's age, each written as
+    a name with `@` and the one version it exempts.
+    """
+
+
+class CargoConfig(ConfigFile):
+    """
+    A `.cargo/config.toml`, read for the settings that hold the crate's
+    lockfile to releases that have aged.
+    """
+
+    age: str | None = Field(
+        None,
+        validation_alias = AliasPath("registry", "global-min-publish-age")
+    )
+    """
+    The age a release has to reach before Cargo resolves it, or `None` where
+    the file sets none.
+    """
+
+    policy: str | None = Field(
+        None,
+        validation_alias = AliasPath("resolver", "incompatible-publish-age")
+    )
+    """
+    Whether Cargo `deny`s or `allow`s a release younger than the age, or
+    `None` where the file sets none.
+    """
+
+
 class Crate(ConfigFile):
     """
     The fields of the crate's `Cargo.toml` the checks compare against the
@@ -682,13 +748,33 @@ class Package(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
         Returns:
             The instant, or `None` where the lockfile records no upload.
         """
-        return min(
-            (
-                file.uploaded
-                for file in (self.sdist, *self.wheels)
-                if file and file.uploaded
-            ),
-            default = None
+        return min(self.uploads, default=None)
+
+    @property
+    def settled(self) -> AwareDatetime | None:
+        """
+        Reads the instant after the last upload of any file the lockfile
+        records for the version, which `exclude-newer-package` takes to
+        admit the version and none uploaded later.
+
+        Returns:
+            The instant, rounded up to a whole second, or `None` where the
+            lockfile records no upload.
+        """
+        last = max(self.uploads, default=None)
+
+        return last and last.replace(microsecond=0) + timedelta(seconds=1)
+
+    @property
+    def uploads(self) -> tuple[AwareDatetime, ...]:
+        """
+        Lists the instant each file the lockfile records for the version was
+        uploaded.
+        """
+        return tuple(
+            file.uploaded
+            for file in (self.sdist, *self.wheels)
+            if file and file.uploaded
         )
 
 
@@ -758,6 +844,16 @@ class Pyproject(ConfigFile):
     The license files `[project].license-files` names.
     """
 
+    pardons: dict[str, str | bool] = Field(
+        {},
+        validation_alias = AliasPath("tool", "uv", "exclude-newer-package")
+    )
+    """
+    The release age `[tool.uv].exclude-newer-package` holds each package it
+    names to in place of the window, `False` exempting every release of the
+    package.
+    """
+
     python: str = Field(validation_alias=AliasPath("project", "requires-python"))
     """
     The specifier `[project].requires-python` declares.
@@ -778,6 +874,16 @@ class Pyproject(ConfigFile):
     The specifier `[tool.uv].required-version` holds uv to.
     """
 
+    window: str = Field(
+        "",
+        validation_alias = AliasPath("tool", "uv", "exclude-newer")
+    )
+    """
+    The age a release has to reach before `uv.lock` resolves it, written as
+    `[tool.uv].exclude-newer` writes it, which the window of the other
+    resolvers restates.
+    """
+
     @property
     def build_requirements(self) -> tuple[str, ...]:
         """
@@ -794,6 +900,14 @@ class Pyproject(ConfigFile):
         domain the repository's About box links.
         """
         return urlsplit(self.homepage).netloc
+
+    @property
+    def hold(self) -> timedelta:
+        """
+        Reads the window as a duration, `0` where `[tool.uv].exclude-newer`
+        names no count of days.
+        """
+        return timedelta(days=days(self.window) or 0)
 
     @property
     def loose(self) -> tuple[str, ...]:
@@ -1363,6 +1477,17 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         relative = {path.relative_to(root) for path in {*paths, self.path}}
 
         return sorted(path for path in relative if not self.fires("push", path))
+
+
+def days(window: str) -> int | None:
+    """
+    Reads the count of days a window spelled `3 days` names, the form uv and
+    Cargo both read.
+
+    Returns:
+        The count, or `None` where `window` is any other spelling.
+    """
+    return int(found[1]) if (found := fullmatch(r"(\d+) days?", window)) else None
 
 
 def exact(version: str) -> Match[str] | None:

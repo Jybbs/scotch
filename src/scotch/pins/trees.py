@@ -16,7 +16,7 @@ from subprocess      import CompletedProcess, STDOUT, run
 from tempfile        import TemporaryDirectory
 from typing          import Self, TextIO
 
-from scotch.pins.schemas  import Failure, Lift
+from scotch.pins.schemas  import Exemption, Failure, Lift
 from scotch.repo.checkout import Checkout
 
 
@@ -256,7 +256,9 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         2. Locks and installs the tools `.mise/config.toml` then pins, so
            each command after runs on the lifted uv and Bun
         3. Relocks `uv.lock` through `uv lock`, upgrading each package a
-           lift names
+           lift names, then relocks each crate a lift names that the window
+           holds, which `cargo update` takes to the lift's version with the
+           release age policy set to `allow` for that command alone
         4. Runs `lock:sync`, which relocks `uv.lock`, each task script's
            lockfile, and `docs/bun.lock` against the rewritten manifests
         5. Upgrades each version `docs/bun.lock` resolves within the range
@@ -282,11 +284,25 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             if lift.upgraded
         ]
 
+        exempted = [
+            (
+                "exec", "--", "cargo", "update",
+                "--manifest-path", str(pardon.path),
+                "--package", pardon.name,
+                "--precise", pardon.value,
+                "--config", 'resolver.incompatible-publish-age="allow"'
+            )
+            for lift in lifts
+            for pardon in lift.pardons
+            if pardon.kind is Exemption.CARGO
+        ]
+
         return self.steps(
             handle,
             ("lock",),
             ("install",),
             ("exec", "--", "uv", "lock", "--no-locked", *upgrades),
+            *exempted,
             ("run", "lock:sync"),
             ("exec", "--", "bun", "update", "--cwd=docs", "--lockfile-only"),
             ("run", "docs:render"),

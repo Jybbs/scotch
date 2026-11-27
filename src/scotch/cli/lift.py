@@ -50,9 +50,14 @@ def pins(
     Prints one Markdown table of every pin the repository at the project's
     root declares that lags its newest release, naming the file declaring
     it, its current and newest versions, the newest release's age in days,
-    whether the lift is major, and the advisories it clears. The lift
-    of `node` stops inside the major of the newest `@types/node`, since
-    `repo:audit` holds the two to one major.
+    whether the lift is major, and the advisories it clears. A pin whose
+    newest release is younger than the window `[tool.uv].exclude-newer`
+    records stays where it stands, `--try` and `--write` leaving it so,
+    and its row names the time the window ends in `Clears`, unless the
+    release clears an advisory, which lifts the pin at once through an
+    exemption of that package and version alone. The lift of `node` stops
+    inside the major of the newest `@types/node`, since `repo:audit` holds
+    the two to one major.
 
     Under `--try`, writes every lift the table lists but those of the pins
     `--hold` names and of each pin `repo:audit` holds to one of them, such
@@ -96,11 +101,11 @@ def pins(
         held  = report.without(hold)
         patch = None
 
-        if not held.lifts or not (trial or write):
+        if not held.writable or not (trial or write):
             return 0
 
         if trial:
-            patch = tree.attempt(held.rows, tree.logs / "trial.log", checked=True)
+            patch = tree.attempt(held.writable, tree.logs / "trial.log", checked=True)
 
             if isinstance(patch, Failure):
                 patch = settled(patch, held, tree)
@@ -111,7 +116,7 @@ def pins(
         if write:
             if patch is None and isinstance(
                 patch := tree.attempt(
-                    held.rows,
+                    held.writable,
                     tree.logs / "write.log",
                     checked = False
                 ),
@@ -171,7 +176,7 @@ def settled(failure: Failure, report: Report, tree: Tree) -> bytes:
     for index, name in enumerate(leads := report.leads):
         rest    = {*failing, *leads[index + 1:]}
         outcome = tree.attempt(
-            report.without(rest).rows,
+            report.without(rest).writable,
             tree.logs / f"lift-{name.replace('/', '-')}.log",
             checked = True
         ) if rest else failure

@@ -7,28 +7,32 @@ yielding a `Lift` for each pin that lags it.
 
 from abc             import ABC, abstractmethod
 from collections.abc import Collection, Iterable, Iterator
-from json            import dumps
+from datetime        import UTC, datetime, timedelta
+from json            import dumps, loads
 from pathlib         import Path
-from pydantic        import AwareDatetime, BaseModel, ConfigDict, JsonValue, TypeAdapter
+from pydantic        import AwareDatetime, BaseModel, ConfigDict, Field, JsonValue, TypeAdapter
 from re              import escape, findall, search
-from shutil          import copy2
+from shutil          import copy2, copytree
 from tempfile        import TemporaryDirectory
 
 from scotch.pins.schemas import (
     Advisory,
     Bulletin,
+    CargoAdvisory,
     Edit,
     Exact,
+    Exemption,
     Lift,
     Listing,
     Outdated,
+    Pardon,
     Published,
     Spelling,
     UvAudit,
     release
 )
 from scotch.pins.trees   import Tree
-from scotch.repo.schemas import Lock, minor, normalized, pinned
+from scotch.repo.schemas import Lock, Package, minor, normalized, pinned
 
 
 class Pins(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -41,6 +45,19 @@ class Pins(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstrings
     """
     The tree declaring the pins.
     """
+
+    now: AwareDatetime = Field(default_factory=lambda: datetime.now(UTC))
+    """
+    The instant a release's age is counted up to, against the window the
+    resolvers hold a new release for.
+    """
+
+    @property
+    def window(self) -> timedelta:
+        """
+        Reads the window `[tool.uv].exclude-newer` records.
+        """
+        return self.tree.checkout.pyproject.hold
 
     @abstractmethod
     def lifts(self) -> Iterator[Lift]:
@@ -129,13 +146,16 @@ class BunPins(Pins):
     Every npm package the repository pins, meaning each package and override
     of the site's `docs/package.json` and the Wrangler version a workflow
     passes its action, whose newest releases `bun outdated` and `bun info`
-    report and whose cleared advisories `bun audit` reports.
+    report, the `*` it marks beside a latest release the window holds
+    back sending the lift to `bun info` for the true latest, and whose
+    cleared advisories `bun audit` reports.
     """
 
     @property
     def folder(self) -> Path:
         """
-        Locates the site's folder, the one holding the manifest `bun` reads.
+        Locates the site's folder, the one holding the manifest and the
+        `bunfig.toml` `bun` reads.
         """
         return self.tree.checkout.site.path.parent
 
@@ -245,12 +265,13 @@ class BunPins(Pins):
         newest releases clear.
         """
         site  = self.tree.checkout.site
-        found = dict(
-            findall(
-                r"(?m)^\| (\S+)(?: \(\w+\))? +\| \S+ +\| \S+ +\| (\S+) +\|$",
+        found = {
+            name: self.info("version", name) if starred else latest
+            for name, latest, starred in findall(
+                r"(?m)^\| (\S+)(?: \(\w+\))? +\| \S+ +\| \S+ +\| (\S+)( \*)? +\|$",
                 self.tree.tool("bun", "outdated", f"--cwd={self.folder}").stdout
             )
-        )
+        }
         path  = self.tree.relative(site.path)
         lifts = [
             self.lift(
@@ -276,7 +297,18 @@ class BunPins(Pins):
         cleared = self.cleared(lifts)
 
         for lift in lifts:
-            yield lift.clearing(cleared)
+            yield lift.clearing(cleared).holding(
+                self.now,
+                (
+                    Pardon(
+                        kind  = Exemption.BUN,
+                        name  = lift.name,
+                        path  = self.tree.relative(self.folder / "bunfig.toml"),
+                        value = lift.newest
+                    ),
+                ),
+                self.window
+            )
 
         for path, step in self.tree.checkout.steps:
             newest = step.wrangler and self.info("version", "wrangler")
@@ -295,17 +327,84 @@ class BunPins(Pins):
 class CargoPins(Pins):
     """
     The crates the crate's `Cargo.toml` requires, whose newest releases
-    `cargo search` reports, leaving out `wasm-bindgen`, which lifts with the
-    command line `.mise/config.toml` pins.
+    `cargo search` reports and whose publication the sparse index at
+    `index.crates.io` dates, leaving out `wasm-bindgen`, which lifts with
+    the command line `.mise/config.toml` pins, and whose cleared advisories
+    `cargo-deny` reports for each release inside the window.
     """
+
+    def audit(self, folder: Path) -> frozenset[Advisory]:
+        """
+        Runs `cargo-deny check advisories` over the crate in `folder`, which
+        exits 1 where it reports any advisory and prints each diagnostic to
+        its standard error as one JSON object a line.
+
+        Raises:
+            subprocess.CalledProcessError: Where the audit exits with any
+                                           other nonzero status.
+        """
+        audit = self.tree.tool(
+            "cargo-deny",
+            "--manifest-path",
+            folder / "Cargo.toml",
+            "--format",
+            "json",
+            "check",
+            "advisories",
+            check = False
+        )
+
+        if audit.returncode not in (0, 1):
+            audit.check_returncode()
+
+        return frozenset(
+            CargoAdvisory.model_validate(entry).advisory
+            for line in audit.stderr.splitlines()
+            if (entry := loads(line))["type"] == "diagnostic"
+            and entry["fields"]["severity"] == "error"
+            and "advisory" in entry["fields"]
+        )
+
+    def cleared(self, lifts: Collection[Lift]) -> frozenset[Advisory]:
+        """
+        Collects the advisories `cargo-deny` reports against the crate's
+        lockfile that it no longer reports once `lifts` are written into a
+        copy of the crate and that copy is relocked with Cargo allowing a
+        release inside the window.
+        """
+        if not lifts:
+            return frozenset()
+
+        crate = self.tree.checkout.crate
+
+        with TemporaryDirectory(prefix="scotch-lift-") as scratch:
+            copy = Path(scratch) / self.tree.relative(crate.path.parent)
+            copytree(crate.path.parent, copy)
+
+            for lift in lifts:
+                lift.write(Path(scratch))
+
+            self.tree.tool(
+                "cargo",
+                "update",
+                "--manifest-path",
+                copy / "Cargo.toml",
+                "--workspace",
+                "--config",
+                'resolver.incompatible-publish-age="allow"'
+            )
+
+            return self.audit(crate.path.parent) - self.audit(copy)
 
     def lifts(self) -> Iterator[Lift]:
         """
         Yields a lift for each required crate whose newest release differs
-        from the version its requirement names.
+        from the version its requirement names, each carrying the
+        advisories its newest release clears where the window holds it.
         """
         crate = self.tree.checkout.crate
         path  = self.tree.relative(crate.path)
+        found = []
 
         for name, requirement in sorted(crate.requirements.items()):
             if name == "wasm-bindgen":
@@ -318,20 +417,76 @@ class CargoPins(Pins):
             )
 
             if newest and newest["version"] != current:
-                yield Lift(
-                    current = current,
-                    edits   = (
-                        Edit(
-                            name     = name,
-                            path     = path,
-                            spelling = Spelling.ASSIGNMENT,
-                            version  = newest["version"]
+                found.append(
+                    Lift(
+                        current = current,
+                        edits   = (
+                            Edit(
+                                name     = name,
+                                path     = path,
+                                spelling = Spelling.ASSIGNMENT,
+                                version  = newest["version"]
+                            ),
                         ),
-                    ),
-                    name   = name,
-                    newest = newest["version"],
-                    path   = path
+                        name     = name,
+                        newest   = newest["version"],
+                        path     = path,
+                        released = self.published(name, newest["version"])
+                    )
                 )
+
+        cleared = self.cleared(
+            [
+                lift
+                for lift in found
+                if lift.released and lift.released + self.window > self.now
+            ]
+        )
+
+        for lift in found:
+            yield lift.clearing(cleared).holding(
+                self.now,
+                (
+                    Pardon(
+                        kind  = Exemption.CARGO,
+                        name  = lift.name,
+                        path  = lift.path,
+                        value = lift.newest
+                    ),
+                ),
+                self.window
+            )
+
+    def published(self, name: str, version: str) -> AwareDatetime | None:
+        """
+        Reads the instant the sparse index records `version` of the crate
+        `name` names as published, the `pubtime` Cargo holds a release to the
+        window by.
+
+        Returns:
+            The instant, or `None` where the index records none.
+        """
+        folder = {1: "1", 2: "2", 3: f"3/{name[0]}"}.get(
+            len(name),
+            f"{name[:2]}/{name[2:4]}"
+        )
+        entries = map(
+            loads,
+            self.tree.read(
+                "curl",
+                "--fail",
+                "--silent",
+                f"https://index.crates.io/{folder}/{name.lower()}"
+            ).stdout.splitlines()
+        )
+        return next(
+            (
+                TypeAdapter(AwareDatetime).validate_python(entry["pubtime"])
+                for entry in entries
+                if entry["vers"] == version and entry.get("pubtime")
+            ),
+            None
+        )
 
 
 class MisePins(Pins):
@@ -513,8 +668,9 @@ class UvPins(Pins):
     resolves, each requirement a task script pins inline, and the build
     requirement and the build constraints of `pyproject.toml`, whose
     newest releases `uv lock --upgrade` over a copy of the manifest and its
-    lockfile, and `uv lock` over a scratch project depending on each exact
-    pin's package, resolve, and whose cleared advisories `uv audit` reports.
+    lockfile, with the window lifted, and `uv lock` over a scratch project
+    depending on each exact pin's package, resolve, and whose cleared
+    advisories `uv audit` reports.
     """
 
     @property
@@ -591,7 +747,12 @@ class UvPins(Pins):
             for path in (checkout.pyproject.path, checkout.lock.path):
                 copy2(path, upgraded / path.name)
 
-            locked, newest = checkout.lock, self.lock(upgraded, "--upgrade")
+            locked, newest = checkout.lock, self.lock(
+                upgraded,
+                "--upgrade",
+                "--exclude-newer",
+                self.now.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            )
             pins           = self.exact
             resolved       = self.resolve(
                 {pin.name for pin in pins if not pin.follows},
@@ -614,13 +775,21 @@ class UvPins(Pins):
                         path     = self.tree.relative(locked.path),
                         released = lifted.released,
                         upgraded = True
-                    ).clearing(cleared)
+                    ).clearing(cleared).holding(
+                        self.now,
+                        self.pardons(lifted, self.tree.relative(checkout.pyproject.path)),
+                        self.window
+                    )
 
             for pin in pins:
                 lifted = (newest if pin.follows else resolved).package(pin.name)
 
                 if lifted and lifted.version != pin.version:
-                    yield pin.lift(lifted).clearing(cleared)
+                    yield pin.lift(lifted).clearing(cleared).holding(
+                        self.now,
+                        self.pardons(lifted, pin.path),
+                        self.window
+                    )
 
     def lock(self, project: Path, *flags: str) -> Lock:
         """
@@ -641,6 +810,23 @@ class UvPins(Pins):
             *flags
         )
         return Lock.read(project / "uv.lock")
+
+    def pardons(self, package: Package, *paths: Path) -> tuple[Pardon, ...]:
+        """
+        Lists the exemption admitting the release `package` resolves to, one
+        for each file of `paths` whose lockfile has to resolve it, none where
+        the lockfile that resolved it records no upload.
+        """
+        return tuple(
+            Pardon(
+                kind  = Exemption.UV,
+                name  = package.name,
+                path  = path,
+                value = package.settled.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            )
+            for path in paths
+            if package.settled
+        )
 
     def resolve(self, names: Iterable[str], project: Path) -> Lock:
         """

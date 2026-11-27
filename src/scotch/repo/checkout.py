@@ -12,7 +12,7 @@ from cyclopts        import App
 from functools       import cached_property
 from itertools       import chain
 from pathlib         import Path
-from pydantic        import BaseModel, InstanceOf
+from pydantic        import AwareDatetime, BaseModel, InstanceOf, TypeAdapter
 from subprocess      import run
 
 from scotch.docs.inventory import Outputs
@@ -27,6 +27,8 @@ from scotch.repo.registries import (
 )
 from scotch.repo.schemas    import (
     Action,
+    Bunfig,
+    CargoConfig,
     Crate,
     License,
     Lock,
@@ -67,6 +69,16 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         return tuple(
             map(Action.read, sorted(self.root.glob(".github/actions/*/action.yml")))
         )
+
+    @cached_property
+    def bunfig(self) -> Bunfig | None:
+        """
+        Reads the `bunfig.toml` beside the site's manifest, or `None` where
+        the site has none.
+        """
+        path = self.site.path.with_name("bunfig.toml")
+
+        return Bunfig.read(path) if path.is_file() else None
 
     @cached_property
     def changelog(self) -> Changelog:
@@ -328,6 +340,44 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
 
         return next((action for action in self.actions if action.path == path), None)
 
+    def cargo(self, directory: Path) -> CargoConfig:
+        """
+        Merges each `.cargo/config.toml` Cargo reads when it starts in
+        `directory`, the one in `directory` and in each folder above it up
+        to the root, each setting taking the value of the deepest file that
+        sets it.
+
+        Returns:
+            The merged settings, at the path of the file setting the age,
+            or of the root's file where none does.
+        """
+        files = [
+            CargoConfig.read(path)
+            for folder in (directory, *directory.parents)
+            if folder.is_relative_to(self.root)
+            and (path := folder / ".cargo" / "config.toml").is_file()
+        ]
+        return CargoConfig.model_validate(
+            {
+                "path": next(
+                    (file.path for file in files if file.age),
+                    self.root / ".cargo" / "config.toml"
+                ),
+                "registry": {
+                    "global-min-publish-age": next(
+                        (file.age for file in files if file.age),
+                        None
+                    )
+                },
+                "resolver": {
+                    "incompatible-publish-age": next(
+                        (file.policy for file in files if file.policy),
+                        None
+                    )
+                }
+            }
+        )
+
     def declaring(self, task: Task | None) -> Path:
         """
         Finds the file declaring `task`, the file mise names as its source,
@@ -369,6 +419,28 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
                     )
 
                     yield task.source, line, text
+
+    def published(self, package: str, version: str) -> AwareDatetime | None:
+        """
+        Reads the instant `bun info` reports `version` of the npm package
+        `package` was published.
+
+        Returns:
+            The instant, or `None` where the package has no such version.
+        """
+        report = run(
+            [
+                "mise", "exec", "--", "bun", "info",
+                f"--cwd={self.site.path.parent}", package, "time", "--json"
+            ],
+            capture_output = True,
+            check          = True,
+            cwd            = self.root,
+            text           = True
+        )
+        return TypeAdapter(dict[str, AwareDatetime]).validate_json(report.stdout).get(
+            version
+        )
 
     def summarizes(self, step: Step) -> bool:
         """

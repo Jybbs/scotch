@@ -20,6 +20,7 @@ from ast             import (
     walk
 )
 from collections.abc    import Iterator
+from datetime           import UTC, datetime, timedelta
 from functools          import cached_property
 from importlib.metadata import metadata
 from io                 import StringIO
@@ -27,7 +28,7 @@ from itertools          import combinations
 from math               import dist
 from more_itertools     import duplicates_everseen, unique_everseen
 from pathlib            import Path
-from pydantic           import BaseModel, ValidationError
+from pydantic           import AwareDatetime, BaseModel, Field, TypeAdapter, ValidationError
 from re                 import escape, findall, finditer, search, sub
 from statistics         import mode
 from tokenize           import COMMENT, generate_tokens
@@ -36,7 +37,7 @@ from typing             import ClassVar
 from scotch.docs.project  import addresses
 from scotch.docs.stops    import Stops
 from scotch.repo.checkout import Checkout
-from scotch.repo.schemas  import Cache, Finding, exact
+from scotch.repo.schemas  import Cache, Finding, days, exact
 
 
 class Check(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -651,6 +652,155 @@ class PinCheck(Check):
                         ),
                         path = path
                     )
+
+
+class ReleaseAgeCheck(Check):
+    """
+    Fails where a resolver's hold on new releases differs from the window
+    `[tool.uv].exclude-newer` records, which is `N days` for an `N` of at
+    least three, or where an exemption from it has outlived its window.
+
+    The floor of three days is the shortest window the repository holds, long
+    enough for a registry or the authors to withdraw a compromised release
+    before a lockfile resolves it. The window restates itself in each task
+    script's `exclude-newer`, in the `minimumReleaseAge` of the site's
+    `bunfig.toml`, and in the `global-min-publish-age` Cargo reads when it
+    starts in the root and in the crate's folder, where none of them lets
+    Cargo `allow` a release younger than the window.
+    """
+
+    floor: ClassVar[int] = 3
+    """
+    The fewest days the window holds a release for.
+    """
+
+    now: AwareDatetime = Field(default_factory=lambda: datetime.now(UTC))
+    """
+    The instant an exemption's age is counted up to.
+    """
+
+    def exemptions(self, window: timedelta) -> Iterator[Finding]:
+        """
+        Yields a finding for each uv exemption that exempts every release
+        of a package, is no instant, or names an instant a window has passed
+        since, and for each Bun exemption that names no one exact version or
+        names a release published a window ago or more.
+        """
+        checkout = self.checkout
+
+        for path, pardons in (
+            (checkout.pyproject.path, checkout.pyproject.pardons),
+            *((script.path, script.pardons) for script in checkout.scripts)
+        ):
+            for name, until in pardons.items():
+                try:
+                    instant = TypeAdapter(AwareDatetime).validate_python(until)
+                except ValidationError:
+                    yield Finding(
+                        message = (
+                            f"`{name}` is exempt through `{until}`, which is not an "
+                            "RFC 3339 instant and exempts every release"
+                        ),
+                        path = path
+                    )
+                    continue
+
+                if self.now - instant >= window:
+                    yield Finding(
+                        message = (
+                            f"`{name}` is exempt through `{until}`, which a window "
+                            "has passed since"
+                        ),
+                        path = path
+                    )
+
+        if checkout.bunfig:
+            for entry in checkout.bunfig.excludes:
+                name, _, version = entry.rpartition("@")
+
+                if not name or not exact(version):
+                    yield Finding(
+                        message = f"`{entry}` exempts more than one exact version",
+                        path    = checkout.bunfig.path
+                    )
+                elif (
+                    published := checkout.published(name, version)
+                ) and self.now - published >= window:
+                    yield Finding(
+                        message = (
+                            f"`{entry}` is exempt where its release has aged past "
+                            "the window"
+                        ),
+                        path = checkout.bunfig.path
+                    )
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding for each resolver whose setting differs from the
+        window, or whose setting is missing, at the file holding it.
+        """
+        checkout, pyproject = self.checkout, self.checkout.pyproject
+        window              = days(pyproject.window)
+
+        if window is None or window < self.floor:
+            yield Finding(
+                message = (
+                    f"`[tool.uv].exclude-newer` is `{pyproject.window}` where the "
+                    f"window is `N days` for an `N` of at least {self.floor}"
+                ),
+                path = pyproject.path
+            )
+            return
+
+        for script in checkout.scripts:
+            if script.window != pyproject.window:
+                yield Finding(
+                    message = (
+                        f"`exclude-newer` is `{script.window}` "
+                        f"where `pyproject.toml` sets `{pyproject.window}`"
+                    ),
+                    path = script.path
+                )
+
+        if (bunfig := checkout.bunfig) is None:
+            yield Finding(
+                message = "The site's `bunfig.toml` is missing, so Bun holds no release",
+                path    = checkout.site.path.with_name("bunfig.toml")
+            )
+        elif bunfig.age != window * 86400:
+            yield Finding(
+                message = (
+                    f"`minimumReleaseAge` is `{bunfig.age}` where the window is "
+                    f"`{window * 86400}` seconds"
+                ),
+                path = bunfig.path
+            )
+
+        for directory in (checkout.root, checkout.crate.path.parent):
+            cargo = checkout.cargo(directory)
+            where = directory.relative_to(checkout.root)
+
+            if cargo.age != pyproject.window:
+                yield Finding(
+                    message = (
+                        f"`registry.global-min-publish-age` is `{cargo.age}` when "
+                        f"Cargo starts in `{where}`, where the window is "
+                        f"`{pyproject.window}`"
+                    ),
+                    path = cargo.path
+                )
+
+            if cargo.policy == "allow":
+                yield Finding(
+                    message = (
+                        "`resolver.incompatible-publish-age` is `allow` when Cargo "
+                        f"starts in `{where}`, which lets a release inside the "
+                        "window resolve"
+                    ),
+                    path = cargo.path
+                )
+
+        yield from self.exemptions(timedelta(days=window))
 
 
 class RenderCheck(Check):

@@ -3,6 +3,9 @@
 # /// script
 # dependencies = ["minijinja==3.1.0"]
 # requires-python = ">=3.15"
+#
+# [tool.uv]
+# exclude-newer = "3 days"
 # ///
 """
 Writes the summary of the workflow run the `🖋️ Scoresheet` gate ends, from

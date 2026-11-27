@@ -512,3 +512,35 @@ def test_the_command_prints_the_table_of_every_lagging_pin(
     assert invoke("lift", "pins") == 0
     assert capsys.readouterr().out == snapshot
     assert (attempts, applied) == ([], [])
+
+
+def test_a_pin_the_window_holds_is_listed_and_neither_tried_nor_written(
+    capsys  : CaptureFixture[str],
+    lagging : Lagging
+):
+    """
+    Asserts that a pin whose newest release is younger than the window takes
+    a row naming the instant the window ends and is left out of every attempt,
+    a lone one leaving `--try` and `--write` nothing to run.
+    """
+    young = Lift(
+        current  = "1.0.0",
+        held     = datetime(2026, 10, 25, 12, 30, tzinfo=UTC),
+        name     = "polars",
+        newest   = "1.1.0",
+        path     = "uv.lock",
+        released = datetime(2026, 10, 22, 12, 30, tzinfo=UTC)
+    )
+    attempts, applied = lagging([young])
+
+    assert invoke("lift", "pins", "--try", "--write") == 0
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        "| `polars` | `uv.lock` | `1.0.0` | `1.1.0` | 1 |  |  | "
+        "2026-10-25 12:30 UTC |"
+    )
+    assert (attempts, applied) == ([], [])
+
+    attempts, applied = lagging([young, *lagging_three()[1:2]])
+
+    assert invoke("lift", "pins", "--write") == 0
+    assert (attempts, applied) == ([(("pluggy",), "write.log", False)], [b"pluggy"])

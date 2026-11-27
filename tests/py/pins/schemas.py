@@ -6,7 +6,7 @@ pin builds, the table a `Report` prints, and the advisory each audit's own
 record reads as.
 """
 
-from datetime         import UTC, date, datetime
+from datetime         import UTC, date, datetime, timedelta
 from pathlib          import Path
 from pytest           import mark, param, raises
 from re               import finditer
@@ -17,7 +17,9 @@ from scotch.pins.schemas import (
     Bulletin,
     Edit,
     Exact,
+    Exemption,
     Lift,
+    Pardon,
     Report,
     Spelling,
     UvAdvisory,
@@ -382,7 +384,8 @@ def test_the_table_lists_each_lift_by_file_then_name(snapshot: SnapshotAssertion
     """
     Asserts that the table holds a row per lift ordered by the file
     declaring it and then by name, naming its age up to today, marking a
-    major lift, and linking each advisory it clears.
+    major lift, linking each advisory it clears, and naming the time the
+    window ends for a pin it holds where it stands.
     """
     report = Report(
         lifts = (
@@ -403,6 +406,13 @@ def test_the_table_lists_each_lift_by_file_then_name(snapshot: SnapshotAssertion
                     package = "certifi"
                 ),),
                 path = Path("uv.lock")
+            ),
+            lift(
+                held     = datetime(2026, 10, 25, 12, 30, tzinfo=UTC),
+                name     = "polars",
+                newest   = "1.5.0",
+                path     = Path("uv.lock"),
+                released = datetime(2026, 10, 22, tzinfo=UTC)
             ),
             lift(
                 current = "1.4.3",
@@ -522,3 +532,189 @@ def test_an_assignment_reaches_a_quoted_key_and_an_inline_table(
     ).apply(tmp_path)
 
     assert (tmp_path / "config.toml").read_text() == after
+
+
+def test_a_release_the_window_holds_leaves_the_pin_where_it_stands():
+    """
+    Asserts that a lift whose newest release is younger than the window and
+    clears no advisory loses its edits and its upgrade and names the instant
+    the window ends, whereas a release the window has passed leaves the lift
+    as it stands.
+    """
+    edit   = Edit(
+        name     = "polars",
+        path     = Path("pyproject.toml"),
+        spelling = Spelling.REQUIREMENT,
+        version  = "1.5.0"
+    )
+    window = timedelta(days=3)
+    young  = lift(
+        edits    = (edit,),
+        name     = "polars",
+        released = datetime(2026, 10, 22, tzinfo=UTC),
+        upgraded = True
+    )
+
+    held = young.holding(datetime(2026, 10, 24, tzinfo=UTC), (), window)
+
+    assert (held.edits, held.held, held.upgraded) == (
+        (),
+        datetime(2026, 10, 25, tzinfo=UTC),
+        False
+    )
+    assert young.holding(datetime(2026, 10, 25, tzinfo=UTC), (), window) == young
+    assert lift("polars").holding(datetime(2026, 10, 24, tzinfo=UTC), (), window) == (
+        lift("polars")
+    )
+
+
+def test_a_release_the_window_holds_lifts_through_its_exemption_where_it_clears_an_advisory():
+    """
+    Asserts that a lift whose newest release is younger than the window and
+    clears an advisory keeps its edits and takes the exemptions it is given,
+    naming no instant the window ends.
+    """
+    pardon = Pardon(
+        kind  = Exemption.BUN,
+        name  = "polars",
+        path  = Path("docs/bunfig.toml"),
+        value = "1.5.0"
+    )
+    lifted = lift(
+        advisories = (Advisory(id="GHSA-x", link="https://x", package="polars"),),
+        name       = "polars",
+        released   = datetime(2026, 10, 22, tzinfo=UTC)
+    ).holding(datetime(2026, 10, 24, tzinfo=UTC), (pardon,), timedelta(days=3))
+
+    assert (lifted.pardons, lifted.held) == ((pardon,), None)
+
+
+def test_a_report_leaves_each_held_pin_out_of_what_it_writes_and_tries():
+    """
+    Asserts that `writable` and `leads` list no pin the window holds where
+    it stands, while `rows` and the table list it.
+    """
+    report = Report(
+        lifts = (
+            lift("held", held=datetime(2026, 10, 25, tzinfo=UTC)),
+            lift("free")
+        )
+    )
+
+    assert [lift.name for lift in report.rows] == ["free", "held"]
+    assert [lift.name for lift in report.writable] == ["free"]
+    assert report.leads == ("free",)
+
+
+@mark.parametrize(
+    ("kind", "path", "before", "pardon", "after"),
+    [
+        param(
+            Exemption.UV,
+            "pyproject.toml",
+            '[tool.uv]\nexclude-newer = "3 days"\nrequired-version = "==0.13.9"\n',
+            ("polars", "2026-10-22T09:00:01Z"),
+            '[tool.uv]\n'
+            'exclude-newer         = "3 days"\n'
+            'exclude-newer-package = { polars = "2026-10-22T09:00:01Z" }\n'
+            'required-version      = "==0.13.9"\n',
+            id = "uv-first"
+        ),
+        param(
+            Exemption.UV,
+            "pyproject.toml",
+            '[tool.uv]\n'
+            'exclude-newer         = "3 days"\n'
+            'exclude-newer-package = { polars = "2026-10-22T09:00:01Z" }\n',
+            ("certifi", "2026-10-23T00:00:01Z"),
+            '[tool.uv]\n'
+            'exclude-newer         = "3 days"\n'
+            'exclude-newer-package = { certifi = "2026-10-23T00:00:01Z", '
+            'polars = "2026-10-22T09:00:01Z" }\n',
+            id = "uv-merged"
+        ),
+        param(
+            Exemption.UV,
+            ".mise/tasks/gha/scoresheet",
+            '# /// script\n# requires-python = ">=3.14"\n#\n# [tool.uv]\n'
+            '# exclude-newer = "3 days"\n# ///\nprint(1)\n',
+            ("minijinja", "2026-10-22T09:00:01Z"),
+            '# /// script\n# requires-python = ">=3.14"\n#\n# [tool.uv]\n'
+            '# exclude-newer         = "3 days"\n'
+            '# exclude-newer-package = { minijinja = "2026-10-22T09:00:01Z" }\n'
+            '# ///\nprint(1)\n',
+            id = "uv-script"
+        ),
+        param(
+            Exemption.BUN,
+            "docs/bunfig.toml",
+            "[install]\nminimumReleaseAge = 259200\n",
+            ("vitest", "5.1.0"),
+            "[install]\n"
+            "minimumReleaseAge         = 259200\n"
+            'minimumReleaseAgeExcludes = ["vitest@5.1.0"]\n',
+            id = "bun-first"
+        ),
+        param(
+            Exemption.BUN,
+            "docs/bunfig.toml",
+            "[install]\n"
+            "minimumReleaseAge         = 259200\n"
+            'minimumReleaseAgeExcludes = ["vitest@5.1.0"]\n',
+            ("@types/node", "26.7.0"),
+            "[install]\n"
+            "minimumReleaseAge         = 259200\n"
+            'minimumReleaseAgeExcludes = ["@types/node@26.7.0", "vitest@5.1.0"]\n',
+            id = "bun-merged"
+        ),
+        param(
+            Exemption.CARGO,
+            "rust/Cargo.toml",
+            "[dependencies]\nshakmaty = \"0.30.2\"\n",
+            ("shakmaty", "0.31.0"),
+            "[dependencies]\nshakmaty = \"0.30.2\"\n",
+            id = "cargo-writes-no-file"
+        )
+    ]
+)
+def test_a_pardon_writes_its_exemption_beside_the_key_it_sorts_behind(
+    after  : str,
+    before : str,
+    kind   : Exemption,
+    pardon : tuple[str, str],
+    path   : str,
+    tmp_path : Path
+):
+    """
+    Asserts that each resolver's exemption lands in its own file, merged with
+    the exemptions the file holds, on the line behind the key the window
+    sets, with the table's keys realigned on `=` in a task script's comment
+    block as in a TOML file, and that Cargo's leaves its manifest as it
+    stands.
+    """
+    (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / path).write_text(before)
+    name, value = pardon
+
+    Pardon(kind=kind, name=name, path=Path(path), value=value).apply(tmp_path)
+
+    assert (tmp_path / path).read_text() == after
+
+
+def test_a_package_settles_the_second_after_its_last_upload():
+    """
+    Asserts that the instant a package settles at is the second after the
+    latest upload of any file it records, rounded up from the fraction, and
+    that a package recording no upload settles at none.
+    """
+    package = Package.model_validate(
+        {
+            "name"    : "polars",
+            "sdist"   : {"upload-time": "2026-10-22T09:00:00.250Z"},
+            "version" : "1.5.0",
+            "wheels"  : [{"upload-time": "2026-10-22T09:00:03.900Z"}]
+        }
+    )
+
+    assert package.settled == datetime(2026, 10, 22, 9, 0, 4, tzinfo=UTC)
+    assert Package(name="polars").settled is None
