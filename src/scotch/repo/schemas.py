@@ -300,10 +300,10 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         task's `file` as the config writes it. A relative one is read from
         the `dir` mise prints for the task, which holds for a config in
         `.config/mise` or one `[task_config] includes` pulls in, and then
-        each is joined back onto `root`, whereas one outside `root` reads
-        as `None`. A task setting its own `dir` has that folder read in
-        place of the one mise starts its script from, so its relative file
-        may name a different script, or none, which reads as `None`.
+        each is joined back onto `root`, whereas one outside `root` reads as
+        `None`. A task setting its own `dir` has that folder read in place
+        of the one mise starts its script from, so its relative file may
+        name a different script, or none, which reads as `None`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
