@@ -2129,7 +2129,7 @@ def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
         param(
             ".config/mise/mise.toml",
             ".config/mise/scripts/lint",
-            id="config-folder"
+            id = "config-folder"
         ),
         param(".mise/conf.d/extra.toml", "scripts/lint", id="conf-d-folder"),
         param("tasks/included.toml", "scripts/lint", id="included-file")
