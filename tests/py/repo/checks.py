@@ -5,6 +5,7 @@ once a file in the sample checkout departs from the rule the check holds.
 
 from collections.abc import Iterable
 from common.sample   import Sample
+from json            import dumps
 from pathlib         import Path
 from pytest          import MonkeyPatch, mark, param
 from pytest_subprocess.fake_process import FakeProcess
@@ -1931,6 +1932,27 @@ def test_an_alias_in_a_multi_line_list_is_a_finding_at_its_line(
     )]
 
 
+def test_an_alias_of_a_task_an_included_file_declares_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias of a task an included TOML file declares
+    draws a finding at the line of that file declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/site.toml",
+        new = '["site:press"]\nalias   = "audit"',
+        old = '["site:press"]'
+    )
+    sample.answer(fp, aliases={"site:press": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/site.toml"),
+        6, "`mise audit` runs mise's own `audit` command rather than `site:press`"
+    )]
+
+
 def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
     fp     : FakeProcess,
     sample : Sample
@@ -1944,16 +1966,16 @@ def test_an_alias_of_an_inline_task_is_a_finding_at_its_line_of_the_config(
         ".mise/config.toml",
         new = (
             'uv     = "0.12.13"\n\n'
-            '[tasks."repo:inline"]\nalias = "audits"\nrun   = "true"\n\n'
-            '[tasks."site:links"]\nalias = "audit"\nrun   = "true"'
+            '[tasks."repo:audits"]\nalias = "audits"\nrun   = "true"\n\n'
+            '[tasks."repo:inline"]\nalias = "audit"\nrun   = "true"'
         ),
         old = 'uv     = "0.12.13"'
     )
-    sample.answer(fp, aliases={"repo:inline": ("audits",), "site:links": ("audit",)})
+    sample.answer(fp, aliases={"repo:inline": ("audit",)})
 
     assert scan(AliasCheck, sample) == [(
         Path(".mise/config.toml"),
-        14, "`mise audit` runs mise's own `audit` command rather than `site:links`"
+        14, "`mise audit` runs mise's own `audit` command rather than `repo:inline`"
     )]
 
 
@@ -1973,14 +1995,154 @@ def test_an_alias_of_an_inline_task_is_a_finding_at_the_config(
     )]
 
 
+@mark.parametrize(
+    ("source", "path"),
+    [
+        param(".mise/tasks/repo.toml", ".mise/tasks/repo.toml", id="included"),
+        param(None, ".mise/config.toml", id="unnamed")
+    ]
+)
+def test_a_dependency_no_row_runs_is_a_finding_at_the_file_declaring_repo_ci(
+    fp     : FakeProcess,
+    path   : str,
+    sample : Sample,
+    source : str | None
+):
+    """
+    Asserts that where `repo:ci` is declared in TOML, a dependency no
+    pull-request row runs is a finding at the file mise names as the task's
+    source, or at `.mise/config.toml` where mise names none, the listing
+    keeping the `site:links` whose dependency on `site:install` takes that
+    row's setup out of the checks.
+    """
+    fp.register(
+        ["mise", "tasks", "ls", "--json", "--local"],
+        stdout = dumps(
+            [
+                {
+                    "file"    : None,
+                    "name"    : "repo:ci",
+                    "depends" : [
+                        "lock:check", "py:coverage", "repo:extra",
+                        "site:links", "site:press"
+                    ],
+                    "source"  : source and str(sample.root.resolve() / source)
+                },
+                {
+                    "file"    : None,
+                    "name"    : "site:links",
+                    "depends" : ["site:install", "site:press"]
+                }
+            ]
+        )
+    )
+    sample.answer(fp)
+
+    assert scan(RowCheck, sample) == [
+        (
+            Path(path),
+            None, "`repo:ci` depends on `repo:extra`, which no pull-request row runs"
+        )
+    ]
+
+
+@mark.parametrize(
+    ("old", "new", "findings"),
+    [
+        param(
+            'run     = "vitepress build docs"',
+            'run     = [{ task = "site:install" }, "bunx vitepress build docs"]',
+            [(
+                Path(".mise/tasks/site.toml"),
+                7,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-in-run"
+        ),
+        param(
+            'run     = "vitepress build docs"',
+            'run     = """\nvitepress build docs\nbunx lychee docs\n"""',
+            [(
+                Path(".mise/tasks/site.toml"),
+                9,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-on-a-later-line-of-run"
+        ),
+        param(
+            'run     = "vitepress build docs"',
+            'run     = ["bunx vitepress build docs", "lychee docs"]',
+            [(
+                Path(".mise/tasks/site.toml"),
+                7,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-in-an-earlier-string-of-run"
+        ),
+        param(
+            'run     = "vitepress build docs"',
+            'run     = ["vitepress build docs", "bunx lychee docs"]',
+            [(
+                Path(".mise/tasks/site.toml"),
+                7,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-in-a-later-string-of-run"
+        ),
+        param(
+            'run     = "vitepress build docs"',
+            'run     = "bun\\u0078 vitepress build docs"',
+            [(
+                Path(".mise/tasks/site.toml"),
+                None,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-through-an-escape"
+        ),
+        param(
+            'depends = ["site:install"]\nrun     = "vitepress build docs"',
+            'depends     = ["site:install"]\n'
+            'description = "Build the site through bunx vitepress"\n'
+            'run         = "vitepress build docs"',
+            [],
+            id = "bunx-in-description"
+        )
+    ]
+)
+def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
+    findings : list[tuple[Path, int, str]],
+    fp       : FakeProcess,
+    new      : str,
+    old      : str,
+    sample   : Sample
+):
+    """
+    Asserts that a refused command in the `run` of a task an included TOML
+    file declares is a finding at the line of that file holding it, or
+    at no line where the file holds it only through an escape, a table in
+    `run` naming a task being passed over, and that a command the task's
+    description names is none.
+    """
+    sample.edit(".mise/tasks/site.toml", new=new, old=old)
+    sample.answer(fp)
+
+    assert scan(CommandCheck, sample) == findings
+
+
 def test_each_problem_mise_reports_is_a_finding_at_its_task(
     fp     : FakeProcess,
     sample : Sample
 ):
     """
     Asserts that each problem `mise tasks validate` reports becomes a
-    finding at the task's file, or at `.mise/config.toml` for a task with
-    none, keeping the severity mise reports.
+    finding at the file declaring the task, its script or the TOML file
+    `mise tasks ls` names as its source, or at `.mise/config.toml` for a
+    task the listing leaves out, keeping the severity mise reports.
     """
     sample.answer(
         fp,
@@ -1995,6 +2157,16 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
                 "message"  : "Description is empty",
                 "severity" : "warning",
                 "task"     : "repo:inline"
+            },
+            {
+                "message"  : "Description is empty",
+                "severity" : "warning",
+                "task"     : "site:links"
+            },
+            {
+                "message"  : "Description is empty",
+                "severity" : "warning",
+                "task"     : "global:lint"
             }
         )
     )
@@ -2010,6 +2182,14 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
         (
             Path(".mise/config.toml"),
             Level.WARNING, "`repo:inline`: Description is empty"
+        ),
+        (
+            Path(".mise/tasks/site.toml"),
+            Level.WARNING, "`site:links`: Description is empty"
+        ),
+        (
+            Path(".mise/config.toml"),
+            Level.WARNING, "`global:lint`: Description is empty"
         )
     ]
 

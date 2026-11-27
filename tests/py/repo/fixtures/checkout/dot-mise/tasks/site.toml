@@ -1,0 +1,7 @@
+["site:links"]
+depends = ["site:install", "site:press"]
+run     = "lychee docs/.vitepress/dist"
+
+["site:press"]
+depends = ["site:install"]
+run     = "vitepress build docs"

@@ -97,13 +97,13 @@ class AliasCheck(Check):
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding at the line of the task's file declaring each such
-        alias, or at `.mise/config.toml` for a task declared inline.
+        Yields a finding at the line of the file declaring each such alias,
+        or at `.mise/config.toml` where mise names none.
         """
         commands = self.checkout.usage.commands
 
         for task in self.checkout.tasks:
-            path = task.file or self.checkout.mise.path
+            path = self.checkout.declaring(task)
             text = path.read_text(encoding="utf-8")
 
             for alias in filter(commands.__contains__, task.aliases):
@@ -697,7 +697,8 @@ class RowCheck(Check):
     def scan(self) -> Iterator[Finding]:
         """
         Yields a finding at the workflow for each row task `repo:ci` leaves
-        out, and at `repo:ci` for each dependency no row runs.
+        out, and at the file declaring `repo:ci`, or at `.mise/config.toml`
+        where mise names none, for each dependency no row runs.
         """
         rows    = {(workflow.path, task) for workflow, _, task in self.checkout.checks}
         ci      = self.checkout.task("repo:ci")
@@ -719,7 +720,7 @@ class RowCheck(Check):
                     f"`repo:ci` depends on `{task}`, "
                     "which no pull-request row runs"
                 ),
-                path = ci.file
+                path = self.checkout.declaring(ci)
             )
 
 
@@ -1085,16 +1086,15 @@ class TaskCheck(Check):
 
     def scan(self) -> Iterator[Finding]:
         """
-        Yields a finding at the task's file, or at `.mise/config.toml` for a
-        task declared inline, for each problem mise reports.
+        Yields a finding at the file declaring the task, or at
+        `.mise/config.toml` where mise names none, for each problem mise
+        reports.
         """
         for issue in self.checkout.validation.issues:
-            task = self.checkout.task(issue.task)
-
             yield Finding(
                 level   = issue.severity,
                 message = f"`{issue.task}`: {issue.sentence}",
-                path    = task.file if task and task.file else self.checkout.mise.path
+                path    = self.checkout.declaring(self.checkout.task(issue.task))
             )
 
 
