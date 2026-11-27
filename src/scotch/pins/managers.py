@@ -751,7 +751,7 @@ class UvPins(Pins):
                 upgraded,
                 "--upgrade",
                 "--exclude-newer",
-                self.now.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+                instant(self.now)
             )
             pins     = self.exact
             resolved = self.resolve(
@@ -825,7 +825,7 @@ class UvPins(Pins):
                 kind  = Exemption.UV,
                 name  = package.name,
                 path  = path,
-                value = package.settled.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+                value = instant(package.settled)
             )
             for path in paths
             if package.settled
@@ -849,3 +849,11 @@ class UvPins(Pins):
             encoding = "utf-8"
         )
         return self.lock(project)
+
+
+def instant(moment: datetime) -> str:
+    """
+    Writes `moment` as the whole-second UTC instant uv reads,
+    `2026-10-22T09:00:01Z`.
+    """
+    return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

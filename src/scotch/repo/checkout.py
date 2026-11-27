@@ -357,18 +357,12 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
             if folder.is_relative_to(self.root)
             and (path := folder / ".cargo" / "config.toml").is_file()
         ]
+        aged = next((file for file in files if file.age), None)
+
         return CargoConfig.model_validate(
             {
-                "path"     : next(
-                    (file.path for file in files if file.age),
-                    self.root / ".cargo" / "config.toml"
-                ),
-                "registry" : {
-                    "global-min-publish-age": next(
-                        (file.age for file in files if file.age),
-                        None
-                    )
-                },
+                "path": aged.path if aged else self.root / ".cargo" / "config.toml",
+                "registry" : {"global-min-publish-age": aged and aged.age},
                 "resolver" : {
                     "incompatible-publish-age": next(
                         (file.policy for file in files if file.policy),
