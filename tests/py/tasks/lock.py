@@ -20,9 +20,9 @@ Pins what the `lock` tasks do against stand-ins for the commands they run:
 - The `scotch` command `lock:lift` hands its arguments to
 
 Each case runs a task through its own shebang inside a scratch checkout,
-with stand-in `bun`, `cargo`, `cargo-deny`, `gh`, `mise`, `mktemp`,
-`scotch`, and `uv` executables first on `PATH`, so every file the task
-writes lands in a directory the case owns.
+with stand-in `bun`, `cargo`, `cargo-deny`, `gh`, `mise`, `scotch`, and
+`uv` executables first on `PATH`, so every file the task writes lands in a
+directory the case owns.
 """
 
 from common.stand_ins import Scratch

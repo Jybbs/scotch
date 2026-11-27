@@ -98,23 +98,14 @@ def scratch(
 ) -> Scratch:
     """
     Writes a checkout whose `.mise/mise.lock` holds `Scratch.text` at
-    `Scratch.mode`, beside a stand-in `mktemp` that creates the snapshot
-    inside `Scratch.scratch` at mode `0o600`, the mode `mktemp` itself
-    creates a file at. It then puts the stand-ins first on `PATH` and names
-    the worktree in `MISE_PROJECT_ROOT`, as `mise run` sets it.
+    `Scratch.mode`. It then puts the stand-ins first on `PATH` and names the
+    worktree in `MISE_PROJECT_ROOT`, as `mise run` sets it.
     """
     scratch = Scratch(launcher=launcher, project=pytestconfig.rootpath, root=tmp_path)
     scratch.lockfile.parent.mkdir(parents=True)
     scratch.lockfile.write_text(scratch.text)
     scratch.lockfile.chmod(scratch.mode)
-    scratch.scratch.mkdir()
     scratch.stand_ins.mkdir()
-    snapshot = scratch.scratch / "snapshot"
-    launcher.link(
-        scratch.stand_ins,
-        "mktemp",
-        f': > "{snapshot}"\nchmod 600 "{snapshot}"\necho "{snapshot}"\n'
-    )
     monkeypatch.setenv("MISE_PROJECT_ROOT", str(scratch.project))
     for name, value in launcher.environment(scratch.stand_ins).items():
         monkeypatch.setenv(name, value)

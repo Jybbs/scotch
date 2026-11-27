@@ -148,7 +148,9 @@ class CommandCheck(Check):
     Fails on a command in a task or a wrapper that departs from how the
     repository runs its tools, meaning:
 
-    - A `uv run` that does not open its arguments on `--exact --locked`
+    - A `uv run` that opens its arguments on neither `--exact --locked`
+      nor `--no-sync`, the form of a wrapper that syncs the environment
+      without removing a package a contributor installed
     - A `bun install`, or its alias `bun i`, carrying neither
       `--frozen-lockfile` nor `--lockfile-only`, which could rewrite
       `docs/bun.lock` instead of installing from it
@@ -162,7 +164,7 @@ class CommandCheck(Check):
             "`docs/node_modules`"
         ),
 
-        r"\buv run\b(?! --exact --locked(?:\s|$))":
+        r"\buv run\b(?! (?:--exact --locked|--no-sync)(?:\s|$))":
             "`uv run` does not open its arguments on `--exact --locked`",
 
         r"^(?!.*--(?:frozen-lockfile|lockfile-only)\b).*\bbun (?:install|i)\b":
@@ -1168,7 +1170,8 @@ class WrapperCheck(Check):
     """
     Fails on a wrapper under `.mise/bin` that is a symlink, which git checks
     out as a plain file holding the link's target wherever `core.symlinks`
-    is off, or whose bytes differ from the first wrapper's.
+    is off, or whose bytes differ from the first wrapper's, bar the one form
+    that syncs the environment inexactly before running with `--no-sync`.
     """
 
     def scan(self) -> Iterator[Finding]:
@@ -1176,6 +1179,13 @@ class WrapperCheck(Check):
         Yields a finding for each such wrapper.
         """
         wrappers = self.checkout.wrappers
+        first    = wrappers[0].read_bytes()
+        inexact  = first.replace(
+            b"exec uv run --exact --locked",
+            b"uv sync --inexact --locked --no-install-project "
+            b'--project "$root" || exit\n'
+            b"exec uv run --no-sync"
+        )
 
         for wrapper in wrappers:
             if wrapper.is_symlink():
@@ -1183,7 +1193,7 @@ class WrapperCheck(Check):
                     message = "The wrapper is a symlink rather than a copy",
                     path    = wrapper
                 )
-            elif wrapper.read_bytes() != wrappers[0].read_bytes():
+            elif wrapper.read_bytes() not in (first, inexact):
                 yield Finding(
                     message = f"The wrapper's bytes differ from `{wrappers[0].name}`'s",
                     path    = wrapper

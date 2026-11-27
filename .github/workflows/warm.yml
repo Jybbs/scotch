@@ -16,7 +16,9 @@ jobs:
       matrix:
         tools:
           - bun github:wasm-bindgen/wasm-bindgen lychee node rust
+          - bun cargo-deny gh jq python rust uv
           - bun cargo-deny jq python rust uv
+          - gh
           - jq python rust uv
           - python rust
           - python uv
