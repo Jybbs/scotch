@@ -26,6 +26,7 @@ from io                 import StringIO
 from itertools          import combinations
 from math               import dist
 from more_itertools     import duplicates_everseen, unique_everseen
+from os.path            import normpath
 from pathlib            import Path
 from pydantic           import BaseModel, ValidationError
 from re                 import escape, findall, finditer, search, sub
@@ -286,7 +287,11 @@ class DeployCheck(Check):
                     for pattern in task.sources
                     for path in tracked
                     if path.full_match(
-                        (task.dir.relative_to(root) if task.dir else Path()) / pattern
+                        normpath(
+                            (task.dir.relative_to(
+                                root
+                            ) if task.dir else Path()) / pattern
+                        )
                     )
                 ),
                 *(path.relative_to(root) for path in self.checkout.toolchain),

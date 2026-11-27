@@ -168,10 +168,11 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
     monkeypatch : MonkeyPatch
 ):
     """
-    Asserts that each task's file and source, which mise prints resolved and
-    absolute, join back onto the checkout's root, a relative root included,
-    and that a task declared in TOML keeps no file and takes the TOML file
-    declaring it as its source.
+    Asserts that each task's directory, file, and source, which mise prints
+    resolved and absolute, join back onto the checkout's root, a relative
+    root included, and that its `sources` patterns pass through, and that a
+    task declared in TOML keeps no file and takes the TOML file declaring it
+    as its source.
     """
     monkeypatch.chdir(answered.root)
     tasks = {task.name: task for task in Checkout(app=app, root=Path()).tasks}
@@ -179,6 +180,10 @@ def test_the_tasks_join_each_file_mise_prints_onto_the_root(
     assert tasks["repo:ci"].file == Path(".mise") / "tasks" / "repo" / "ci"
     assert tasks["repo:ci"].depends == (
         "lock:check", "py:coverage", "site:links", "site:press"
+    )
+    assert tasks["rs:wasm"].dir == Path("rust")
+    assert tasks["rs:wasm"].sources == (
+        "../.mise/tasks/py/test", "Cargo.toml", "src/**/*.rs"
     )
     assert tasks["repo:inline"].file is None
     assert tasks["repo:inline"].source == Path(".mise") / "config.toml"

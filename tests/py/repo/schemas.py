@@ -597,6 +597,29 @@ def test_a_trigger_never_fires_on_a_path_its_ignore_matches(fires: bool, path: s
     assert trigger.fires(Path(path)) is fires
 
 
+@mark.parametrize(
+    ("trigger", "unmatched"),
+    [
+        param({"paths": ["src/**", "docs/**"]}, ("docs/**",), id="plain"),
+        param({"paths": ["!src/**", "!docs/**"]}, ("!docs/**",), id="negated"),
+        param({"paths-ignore": ["src/**", "docs/**"]}, ("docs/**",), id="ignored"),
+        param({}, (), id="no-filter")
+    ]
+)
+def test_a_trigger_lists_each_pattern_matching_no_tracked_file(
+    trigger   : dict[str, list[str]],
+    unmatched : tuple[str, ...]
+):
+    """
+    Asserts that a trigger lists each pattern of `paths` and `paths-ignore`
+    as written where no tracked file matches it once a leading `!` is taken
+    off.
+    """
+    tracked = [Path("src/scotch/cli/run.py")]
+
+    assert Trigger.model_validate(trigger).unmatched(tracked) == unmatched
+
+
 def test_a_workflow_lists_each_job_its_gate_leaves_out(sample: Sample):
     """
     Asserts that a workflow lists each job its gate does not wait for, and
@@ -691,6 +714,17 @@ def test_a_workflow_reads_its_triggers_jobs_and_gate(sample: Sample):
     assert workflow.saved == frozenset()
     assert len(workflow.steps) == 5
     assert len(workflow.instances) == 8
+
+
+def test_a_workflow_starts_the_workflow_file_a_step_runs_by_name(sample: Sample):
+    """
+    Asserts that a workflow starts the workflow file its `gh workflow run`
+    step names and no other.
+    """
+    store = Workflow.read(sample.root / ".github" / "workflows" / "store.yml")
+
+    assert store.starts("deploy.yml") is True
+    assert store.starts("site.yml") is False
 
 
 def test_an_action_reads_its_inputs_steps_and_anchors(sample: Sample):

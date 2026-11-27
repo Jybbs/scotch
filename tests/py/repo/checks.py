@@ -524,6 +524,17 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
         ),
         param(
             DeployCheck,
+            [(".github/workflows/deploy.yml", "      - .mise/tasks/py/test\n", "")],
+            [(
+                ".github/workflows/deploy.yml",
+                None,
+                "No `push` filter starting `deploy.yml` matches "
+                "`.mise/tasks/py/test`, which its jobs build from"
+            )],
+            id = "source-reaching-above-the-task-directory"
+        ),
+        param(
+            DeployCheck,
             [
                 (
                     ".github/workflows/deploy.yml",

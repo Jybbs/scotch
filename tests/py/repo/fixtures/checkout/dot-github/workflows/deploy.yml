@@ -24,6 +24,7 @@ on:
     paths:
       - .github/workflows/deploy.yml
       - .mise/tasks/py/coverage
+      - .mise/tasks/py/test
       - .mise/tasks/rs/wasm
       - .mise/tasks/site.toml
       - .mise/tasks/site/**

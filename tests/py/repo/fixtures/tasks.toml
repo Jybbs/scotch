@@ -40,7 +40,7 @@ dir     = "rust"
 file    = ".mise/tasks/rs/wasm"
 name    = "rs:wasm"
 source  = ".mise/tasks/rs/wasm"
-sources = ["Cargo.toml", "src/**/*.rs"]
+sources = ["../.mise/tasks/py/test", "Cargo.toml", "src/**/*.rs"]
 
 [[tasks]]
 depends = []
