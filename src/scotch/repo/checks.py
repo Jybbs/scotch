@@ -263,23 +263,20 @@ class DeployCheck(Check):
                 *(
                     workflow
                     for workflow in self.checkout.workflows
-                    if any(
-                        f"gh workflow run {deploy.path.name}" in step.run
-                        for step in workflow.steps
-                    )
+                    if workflow.starts(deploy.path.name)
                 )
             ]
             steps   = [step for job in deploy.rows for step in job.instances]
             reached = {name for step in steps for name in step.tasks}
 
             while grown := {
-                name
-                for task in reached if task in named
-                for name in named[task].depends
+                dependency
+                for name in reached if name in named
+                for dependency in named[name].depends
             } - reached:
                 reached |= grown
 
-            tasks = [named[name] for name in sorted(reached) if name in named]
+            tasks = [named[name] for name in reached if name in named]
             built = {
                 *(self.checkout.declaring(task).relative_to(root) for task in tasks),
                 *(Path(command) for step in steps for command in step.commands),
@@ -292,14 +289,8 @@ class DeployCheck(Check):
                         (task.dir.relative_to(root) if task.dir else Path()) / pattern
                     )
                 ),
-                *(
-                    action.path.relative_to(root)
-                    for action in self.checkout.actions
-                    if action.provisions
-                ),
-                *(wrapper.relative_to(root) for wrapper in self.checkout.wrappers),
-                self.checkout.mise.lockfile.relative_to(root),
-                self.checkout.mise.path.relative_to(root)
+                *(path.relative_to(root) for path in self.checkout.toolchain),
+                *(wrapper.relative_to(root) for wrapper in self.checkout.wrappers)
             } & tracked
 
             for path in sorted(built):
@@ -313,19 +304,12 @@ class DeployCheck(Check):
                     )
 
             for workflow in starters:
-                push = workflow.triggers.get("push", Trigger())
-
-                for glob in (*push.paths, *push.paths_ignore):
-                    if not any(
-                        path.full_match(glob.removeprefix("!")) for path in tracked
-                    ):
-                        yield Finding(
-                            message = (
-                                f"The `push` filter's `{glob}` matches no "
-                                "tracked file"
-                            ),
-                            path = workflow.path
-                        )
+                for glob in workflow.triggers.get("push", Trigger()).unmatched(tracked):
+                    yield Finding(
+                        message =
+                            f"The `push` filter's `{glob}` matches no tracked file",
+                        path = workflow.path
+                    )
 
 
 class DraftCheck(Check):
@@ -410,14 +394,8 @@ class FilterCheck(Check):
         gated  = [workflow for workflow in self.checkout.requested if workflow.gate]
         crate  = self.checkout.crate.path.parent.relative_to(root)
         shared = {
-            *(
-                action.path.relative_to(root)
-                for action in self.checkout.actions
-                if action.provisions
-            ),
-            *(path for path in self.checkout.tracked if path.is_relative_to(crate)),
-            self.checkout.mise.lockfile.relative_to(root),
-            self.checkout.mise.path.relative_to(root)
+            *(path.relative_to(root) for path in self.checkout.toolchain),
+            *(path for path in self.checkout.tracked if path.is_relative_to(crate))
         }
 
         for path in self.checkout.tracked:
@@ -1242,12 +1220,8 @@ class WarmCheck(Check):
         crate  = self.checkout.crate
         root   = self.checkout.root
         inputs = {
-            Cache.CARGO : {crate.lockfile, crate.path},
-            Cache.TOOLS : {
-                *(action.path for action in self.checkout.actions if action.provisions),
-                self.checkout.mise.lockfile,
-                self.checkout.mise.path
-            }
+            Cache.TOOLS : self.checkout.toolchain,
+            Cache.CARGO : {crate.lockfile, crate.path}
         }
 
         for workflow in self.checkout.workflows:

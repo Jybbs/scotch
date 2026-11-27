@@ -366,6 +366,18 @@ class Trigger(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
             not self.paths or not last.startswith("!")
         )
 
+    def unmatched(self, tracked: Iterable[Path]) -> tuple[str, ...]:
+        """
+        Lists each pattern of `paths` and `paths-ignore`, as written, that
+        matches none of the `tracked` files once any `!` opening it is taken
+        off.
+        """
+        return tuple(
+            glob
+            for glob in (*self.paths, *self.paths_ignore)
+            if not any(path.full_match(glob.removeprefix("!")) for path in tracked)
+        )
+
 
 class Upload(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
     """
@@ -1365,6 +1377,13 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
                 "triggers": workflow[True]
             }
         )
+
+    def starts(self, name: str) -> bool:
+        """
+        Reads whether a step of the workflow runs the workflow file `name`
+        through `gh workflow run`.
+        """
+        return any(f"gh workflow run {name}" in step.run for step in self.steps)
 
     def unfiltered(self, paths: Iterable[Path], root: Path) -> list[Path]:
         """
