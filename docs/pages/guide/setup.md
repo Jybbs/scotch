@@ -35,6 +35,11 @@ Each line does what the list below sets out, written from the package's own meta
 <!-- checks -->
 | **Check** | **Passes Where** | **Prints Where It Fails** |
 |---|---|---|
+| `bun-lock` | `docs/bun.lock` matches `docs/package.json` | `mise relock` |
+| `cargo-lock` | `rust/Cargo.lock` matches `rust/Cargo.toml` | `mise relock` |
+| `site-packages` | `docs/node_modules` holds the packages `docs/bun.lock` names | `mise run site:install` |
+| `tests-link` | `tests/node_modules` links to `docs/node_modules` | `mise run site:install` |
+| `uv-lock` | `uv.lock` matches `pyproject.toml` | `mise relock` |
 | `venv` | `.venv` exists and runs on the Python interpreter mise pins | `mise x -- uv venv --clear .venv && mise x -- uv sync` |
 <!-- /checks -->
 

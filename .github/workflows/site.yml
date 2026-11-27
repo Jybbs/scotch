@@ -13,7 +13,14 @@ jobs:
           shared-key: scotch-wasm
           tools: bun github:wasm-bindgen/wasm-bindgen lychee node rust
       - name: Build the site
-        run: mise run site:press
+        run: mise run --report-file "$RUNNER_TEMP/report.json" site:press
+      - name: Attach the task report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: report-press
+          path: ${{ runner.temp }}/report.json
+          retention-days: 1
       - name: Attach the site
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
@@ -40,7 +47,14 @@ jobs:
       - name: Install the site's packages
         run: mise run site:install
       - name: Check the site's links
-        run: mise run --skip-deps site:links
+        run: mise run --report-file "$RUNNER_TEMP/report.json" --skip-deps site:links
+      - name: Attach the task report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: report-links
+          path: ${{ runner.temp }}/report.json
+          retention-days: 1
     timeout-minutes: 15
   check:
     if: ${{ !github.event.pull_request.draft }}
@@ -55,7 +69,14 @@ jobs:
           shared-key: ${{ matrix.shared-key }}
           tools: ${{ matrix.tools }}
       - name: Run the task
-        run: mise run ${{ matrix.task }}
+        run: mise run --report-file "$RUNNER_TEMP/report.json" ${{ matrix.task }}
+      - name: Attach the task report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: report-check-${{ strategy.job-index }}
+          path: ${{ runner.temp }}/report.json
+          retention-days: 1
       - name: Read the coverage report's folder
         id: report
         if: ${{ !cancelled() && matrix.task == 'site:coverage' }}
@@ -106,10 +127,16 @@ jobs:
         uses: $/.github/actions/provision
         with:
           tools: python uv
+      - name: Download the task reports
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          path: ${{ runner.temp }}/reports
+          pattern: report-*
       - name: Write the summary
         env:
           COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           NEEDS: ${{ toJSON(needs) }}
+          REPORTS: ${{ runner.temp }}/reports
         run: mise run gha:scoresheet
     timeout-minutes: 5
 name: ♟️ Site

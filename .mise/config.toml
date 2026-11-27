@@ -1,5 +1,35 @@
 min_version = "2026.11.12"
 
+[doctor.checks.bun-lock]
+description = "`docs/bun.lock` matches `docs/package.json`"
+hint        = "mise relock"
+run         = "bun install --cwd docs --dry-run --frozen-lockfile --no-summary"
+timeout     = "30s"
+
+[doctor.checks.cargo-lock]
+description = "`rust/Cargo.lock` matches `rust/Cargo.toml`"
+hint        = "mise relock"
+run         = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml >/dev/null"
+timeout     = "30s"
+
+[doctor.checks.site-packages]
+description = "`docs/node_modules` holds the packages `docs/bun.lock` names"
+hint        = "mise run site:install"
+run         = "test -d docs/node_modules"
+timeout     = "5s"
+
+[doctor.checks.tests-link]
+description = "`tests/node_modules` links to `docs/node_modules`"
+hint        = "mise run site:install"
+run         = 'test -d tests/node_modules && test "$(cd tests/node_modules && pwd -P)" = "$(cd docs/node_modules && pwd -P)"'
+timeout     = "5s"
+
+[doctor.checks.uv-lock]
+description = "`uv.lock` matches `pyproject.toml`"
+hint        = "mise relock"
+run         = "uv lock --check"
+timeout     = "30s"
+
 [doctor.checks.venv]
 description = "`.venv` exists and runs on the Python interpreter mise pins"
 hint        = "mise x -- uv venv --clear .venv && mise x -- uv sync"
@@ -23,12 +53,16 @@ UV_LOCKED                 = "1"
 [settings]
 auto_install = false
 
+[settings.task]
+source_freshness_hash_contents = true
+
 [tool_config]
 locked = true
 
 [tools]
 bun                                = "1.4.4"
 cargo-deny                         = { os = ["linux", "macos/arm64", "windows"], version = "0.21.0" }
+coreutils                          = "0.13.0"
 gh                                 = "2.104.0"
 "github:wasm-bindgen/wasm-bindgen" = "0.2.130"
 jq                                 = "1.8.2"

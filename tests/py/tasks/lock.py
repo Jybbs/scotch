@@ -2,7 +2,7 @@
 Pins what the `lock` tasks do against stand-ins for the commands they run:
 
 - The verdict `lock:check` reaches for each answer `uv lock --check`,
-  `mise lock`, the locked install's dry run, and the site's frozen
+  `mise lock --check`, the locked install's dry run, and the site's frozen
   install's dry run give it, `.mise/mise.lock` keeping its bytes and its
   mode whatever the verdict
 - The commands `lock:check`, `lock:audit`, and `lock:sync` run for each
@@ -123,38 +123,17 @@ def vulnerability(*fixed: str, aliases: tuple[str, ...] = ()) -> dict[str, objec
 
 def test_a_lockfile_matching_its_manifest_passes(scratch: Scratch):
     """
-    Asserts that the check exits zero where `uv lock --check` and
-    the crate's locked `cargo metadata` pass, `mise lock` leaves
-    `.mise/mise.lock` as it stood, and both dry runs pass, running all five
-    in turn and leaving the lockfile's bytes and mode as they stood and no
-    snapshot behind.
+    Asserts that the check exits zero where `uv lock --check`, the crate's
+    locked `cargo metadata`, `mise lock --check`, and both dry runs pass,
+    running all five in turn and leaving the lockfile's bytes and mode as
+    they stood.
     """
     assert scratch.run().returncode == 0
     assert scratch.calls == [
         "uv lock --check", CARGO,
-        "mise lock", "mise install --dry-run --force --locked",
+        "mise lock --check", "mise install --dry-run --force --locked",
         "bun install --cwd docs --dry-run --frozen-lockfile --no-summary"
     ]
-    assert scratch.residue == scratch.pristine
-
-
-@mark.parametrize(
-    "mise",
-    [
-        param("echo drifted > .mise/mise.lock", id="rewritten"),
-        param("echo partial > .mise/mise.lock; exit 1", id="written-then-failed")
-    ]
-)
-def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
-    mise    : str,
-    scratch : Scratch
-):
-    """
-    Asserts that the check exits one where `mise lock` changes
-    `.mise/mise.lock`, whether `mise lock` exits zero or not, and puts the
-    lockfile's bytes and its mode back, leaving no snapshot behind.
-    """
-    assert scratch.run(mise=mise).returncode == 1
     assert scratch.residue == scratch.pristine
 
 
@@ -198,11 +177,11 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
             False,
             "exit 0",
             "exit 0",
-            "echo 'mise WARN  failed to resolve python for windows-x64' >&2",
+            "echo 'python 3.15.2 has no locked entry' >&2; exit 1",
             "exit 0",
-            ["uv lock --check", CARGO, "mise lock"],
-            "failed to resolve python for windows-x64",
-            id = "tool-unresolved"
+            ["uv lock --check", CARGO, "mise lock --check"],
+            "python 3.15.2 has no locked entry",
+            id = "lockfile-drifting"
         ),
         param(
             False,
@@ -212,7 +191,7 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
             "exit 0",
             [
                 "uv lock --check", CARGO,
-                "mise lock", "mise install --dry-run --force --locked"
+                "mise lock --check", "mise install --dry-run --force --locked"
             ],
             "",
             id = "tool-missing-from-the-locked-install"
@@ -225,7 +204,7 @@ def test_a_lockfile_mise_lock_changes_fails_and_is_restored(
             "exit 0",
             [
                 "uv lock --check", CARGO,
-                "mise lock", "mise install --dry-run --force --locked",
+                "mise lock --check", "mise install --dry-run --force --locked",
                 "bun install --cwd docs --dry-run --frozen-lockfile --no-summary"
             ],
             "",
@@ -245,13 +224,13 @@ def test_a_lockfile_drifting_from_its_source_fails_and_stays_as_it_stood(
 ):
     """
     Asserts that the check exits one, stopping after the call that found the
-    drift and leaving `.mise/mise.lock`'s bytes and mode as they stood and
-    no snapshot behind, wherever:
+    drift and leaving `.mise/mise.lock`'s bytes and mode as they stood,
+    wherever:
 
     - `uv.lock`, a task script's lockfile, or `rust/Cargo.lock` would
       change
-    - `mise lock` reports a tool it failed to resolve while exiting zero,
-      the report reaching standard error
+    - `mise lock --check` finds `.mise/mise.lock` drifting, its report
+      reaching standard error
     - The locked install's dry run finds no entry for a tool on this
       platform
     - The site's frozen install's dry run finds `docs/bun.lock` would change

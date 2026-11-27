@@ -249,6 +249,37 @@ def test_the_summary_renders_from_the_workflows_template(
     assert task.Run.from_environ(variables(workflow, needs=needs)).render() == snapshot
 
 
+def test_the_summary_lists_each_task_the_rows_reported(
+    task     : ModuleType,
+    tmp_path : Path
+):
+    """
+    Asserts that the summary lists each task of every `report.json` under
+    the folder `REPORTS` names with its status and its time, a dash where
+    the task never started, and lists none where the variable is unset.
+    """
+    (tmp_path / "report-check-0").mkdir()
+    (tmp_path / "report-check-0" / "report.json").write_text(
+        dumps(
+            {
+                "tasks": [
+                    {"duration_ms": 1300, "name": "py:check", "status": "failed"},
+                    {"duration_ms": None, "name": "py:test", "status": "not_run"}
+                ]
+            }
+        )
+    )
+    needs  = {"check": {"result": "failure", "outputs": {}}}
+    run    = task.Run.from_environ(
+        {**variables("ci", needs=needs), "REPORTS": str(tmp_path)}
+    )
+    bare   = task.Run.from_environ(variables("ci", needs=needs))
+
+    assert "| `py:check` | failed | 1.3s |" in run.render()
+    assert "| `py:test` | not_run | - |" in run.render()
+    assert "**Task**" not in bare.render()
+
+
 def variables(
     workflow : str,
     *,

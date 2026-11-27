@@ -101,6 +101,59 @@ checksum = "sha256:8c445ef95217269d3cee234b18e2f543f8f1653f4a9801d9439df24bfcef4
 url = "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.21.0/cargo-deny-0.21.0-x86_64-pc-windows-msvc.tar.gz"
 url_api = "https://api.github.com/repos/EmbarkStudios/cargo-deny/releases/assets/755173869"
 
+[[tools.coreutils]]
+version = "0.13.0"
+backend = "aqua:uutils/coreutils"
+specifiers = ["0.13.0"]
+
+[tools.coreutils."platforms.linux-arm64"]
+checksum = "sha256:7253662e9f661d3dab28cfb50883d488a253e920828a697d13abf96e8c42efb8"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/769612940"
+
+[tools.coreutils."platforms.linux-arm64-musl"]
+checksum = "sha256:cc92024aa19c6e2b874d9017ca27ca370428aabef5e856200d1164cecee3dbc3"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/770114792"
+
+[tools.coreutils."platforms.linux-x64"]
+checksum = "sha256:0970b93a3a5ef6a6eba13ab04b4015308bb32da01c7fa2d000f340eed2d7b394"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/770154200"
+
+[tools.coreutils."platforms.linux-x64-baseline"]
+checksum = "sha256:0970b93a3a5ef6a6eba13ab04b4015308bb32da01c7fa2d000f340eed2d7b394"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/770154200"
+
+[tools.coreutils."platforms.linux-x64-musl"]
+checksum = "sha256:2f457e5cc3d29bf7b75de5bb2ef60dd6276d1df8b90694bd52b5ec818c738fa6"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/770111183"
+
+[tools.coreutils."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:2f457e5cc3d29bf7b75de5bb2ef60dd6276d1df8b90694bd52b5ec818c738fa6"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/770111183"
+
+[tools.coreutils."platforms.windows-x64"]
+checksum = "sha256:a91c36e1abc911d47a835877f58bac9ac5ad00f01a1fb076d1012a2f39b4c8d0"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/770141204"
+
+[tools.coreutils."platforms.windows-x64-baseline"]
+checksum = "sha256:a91c36e1abc911d47a835877f58bac9ac5ad00f01a1fb076d1012a2f39b4c8d0"
+checksum_source = "mise-versions"
+url = "https://github.com/uutils/coreutils/releases/download/0.13.0/coreutils-0.13.0-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/uutils/coreutils/releases/assets/770141204"
+
 [[tools.gh]]
 version = "2.104.0"
 backend = "aqua:cli/cli"

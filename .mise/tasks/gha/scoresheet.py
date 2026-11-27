@@ -52,6 +52,37 @@ class Need:
 
 
 @dataclass(frozen=True, kw_only=True)
+class Task:
+    """
+    One task a row ran, as `mise run --report-file` records it.
+    """
+
+    duration_ms: int | None
+    """
+    The task's time in milliseconds, `None` where it never started.
+    """
+
+    name: str
+    """
+    The task's name, such as `py:check`.
+    """
+
+    status: str
+    """
+    The task's status, one of `passed`, `failed`, `cancelled`, `skipped`,
+    `cached`, or `not_run`.
+    """
+
+    @property
+    def time(self) -> str:
+        """
+        Reads the task's time in seconds to one decimal, or a dash where it
+        never started.
+        """
+        return "-" if self.duration_ms is None else f"{self.duration_ms / 1000:.1f}s"
+
+
+@dataclass(frozen=True, kw_only=True)
 class Run:
     """
     The workflow run the gate ends.
@@ -74,6 +105,11 @@ class Run:
     needs: Mapping[str, Need]
     """
     Each job the gate waited on, keyed by its id.
+    """
+
+    tasks: tuple[Task, ...] = ()
+    """
+    Each task the rows ran, in the order of their report files.
     """
 
     workflow: str
@@ -106,8 +142,9 @@ class Run:
     def from_environ(cls, variables: Mapping[str, str]) -> Self:
         """
         Reads the run out of the variables the runner sets and the ones the
-        gate's step passes, `NEEDS` and, on a pull request or a `♟️ Deploy`
-        run, `COMMIT`, where `GITHUB_HEAD_REF` names a pull request's head
+        gate's step passes, `NEEDS`, on a pull request or a `♟️ Deploy`
+        run `COMMIT`, and, where the rows attached reports, `REPORTS`, the
+        folder holding each one as `<row>/report.json`, where `GITHUB_HEAD_REF` names a pull request's head
         branch and is empty on any other event.
         """
         return cls(
@@ -116,6 +153,13 @@ class Run:
             needs  = {job: Need(**need) for job, need in loads(
                 variables["NEEDS"]
             ).items()},
+            tasks = tuple(
+                Task(**{key: task[key] for key in ("duration_ms", "name", "status")})
+                for report in sorted(
+                    Path(variables.get("REPORTS", "/nonexistent")).glob("*/report.json")
+                )
+                for task in loads(report.read_text())["tasks"]
+            ),
             workflow = Path(variables["GITHUB_WORKFLOW_REF"].partition("@")[0]).stem
         )
 

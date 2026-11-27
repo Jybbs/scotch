@@ -37,6 +37,10 @@ jobs:
       actions: write
     runs-on: ubuntu-26.04
     steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: gh
       - name: Publish the site that reads the store
         env:
           GH_REPO: ${{ github.repository }}

@@ -41,12 +41,20 @@ def test_a_wrapper_runs_its_program_from_its_project_venv(
     Asserts that a wrapper called from a subfolder runs `uv run` under
     `--exact --locked` against the project holding it, on the program of
     its own name in that project's `.venv`, passing every argument through
-    whole.
+    whole, `prose` running under `--locked --no-install-project` instead,
+    since it never imports `scotch` and leaves a built package installed.
     """
     uv = stand_in("uv")
 
     assert uv.run(wrapper, "two words", "--flag").returncode == 0
-    assert uv.arguments[:4] == ["run", "--exact", "--locked", "--project"]
-    assert Path(uv.arguments[4]).resolve() == wrapper.project
-    assert Path(uv.arguments[5]).resolve() == wrapper.program
-    assert uv.arguments[6:] == ["two words", "--flag"]
+    flags = (
+        ["--locked", "--no-install-project"]
+        if wrapper.path.name == "prose"
+        else ["--exact", "--locked"]
+    )
+    count = len(flags) + 1
+
+    assert uv.arguments[:count + 1] == ["run", *flags, "--project"]
+    assert Path(uv.arguments[count + 1]).resolve() == wrapper.project
+    assert Path(uv.arguments[count + 2]).resolve() == wrapper.program
+    assert uv.arguments[count + 3:] == ["two words", "--flag"]
