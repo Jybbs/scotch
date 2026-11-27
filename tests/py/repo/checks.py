@@ -2127,7 +2127,8 @@ def test_a_command_the_run_of_a_toml_task_holds_is_a_finding_at_its_line(
     [
         param(".mise/config.toml", "scripts/lint", id="mise-folder"),
         param("sub/mise.toml", "sub/scripts/lint", id="subfolder"),
-        param(".config/mise/config.toml", "scripts/lint", id="config-folder")
+        param(".config/mise/config.toml", "scripts/lint", id="config-folder"),
+        param(".mise/conf.d/extra.toml", "scripts/lint", id="conf-d-folder")
     ]
 )
 def test_the_relative_file_of_a_toml_task_is_read_from_its_configs_folder(
@@ -2138,9 +2139,9 @@ def test_the_relative_file_of_a_toml_task_is_read_from_its_configs_folder(
 ):
     """
     Asserts that a TOML task whose `file` is a relative path, as mise prints
-    it, has the script `mise run` starts for it read, the folder holding its
-    config, less a `.mise` or `.config/mise` folder, being where the path
-    starts, so a `bunx` in it is a finding.
+    it, has the script `mise run` starts read, since the path starts at the
+    folder holding its config less a `.mise` or `.config/mise` folder, so a
+    `bunx` in the script is a finding.
     """
     file = sample.root / script
     file.parent.mkdir(exist_ok=True, parents=True)
@@ -2225,33 +2226,6 @@ def test_each_problem_mise_reports_is_a_finding_at_its_task(
     ]
 
 
-@mark.parametrize(
-    "alias",
-    [
-        param("lockfile", id = "free"),
-        param("list", id = "subcommand-alias"),
-        param("--no-timing", id = "flag-alias"),
-        param("quoted", id = "help-text"),
-        param("banner", id = "banner-line"),
-        param("[TASK]", id = "help-argument"),
-        param("--dir", id = "help-flag-alias")
-    ]
-)
-def test_a_task_alias_no_mise_command_takes_passes(
-    alias  : str,
-    fp     : FakeProcess,
-    sample : Sample
-):
-    """
-    Asserts that an alias only a subcommand, a flag, the text of a help
-    string, or a line of `mise --help` outside its `Commands:` section
-    carries draws no finding.
-    """
-    sample.answer(fp, aliases={"py:test": (alias,)})
-
-    assert scan(AliasCheck, sample) == []
-
-
 def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
     monkeypatch : MonkeyPatch,
     references  : References,
@@ -2321,6 +2295,33 @@ def test_each_rendered_file_that_drifted_is_a_finding_at_its_place(
     ]
 
 
+@mark.parametrize(
+    "alias",
+    [
+        param("lockfile", id = "free"),
+        param("list", id = "subcommand-alias"),
+        param("--no-timing", id = "flag-alias"),
+        param("quoted", id = "help-text"),
+        param("banner", id = "banner-line"),
+        param("[TASK]", id = "help-argument"),
+        param("--dir", id = "help-flag-alias")
+    ]
+)
+def test_a_task_alias_no_mise_command_takes_passes(
+    alias  : str,
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that an alias only a subcommand, a flag, the text of a help
+    string, or a line of `mise --help` outside its `Commands:` section
+    carries draws no finding.
+    """
+    sample.answer(fp, aliases={"py:test": (alias,)})
+
+    assert scan(AliasCheck, sample) == []
+
+
 def test_markers_sharing_a_line_each_fail(fp: FakeProcess, sample: Sample):
     """
     Asserts that a line carrying both a lint comment and a compiler
@@ -2358,3 +2359,25 @@ def test_only_the_colliding_alias_of_a_list_fails(fp: FakeProcess, sample: Sampl
         Path(".mise/tasks/py/test"),
         2, "`mise cfg` runs mise's own `cfg` command rather than `py:test`"
     )]
+
+
+def test_the_relative_file_of_a_toml_task_above_the_checkout_is_not_read(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a TOML task whose config sits in a folder above the
+    checkout, so its relative `file` resolves outside it, has no script
+    read.
+    """
+    sample.answer(
+        fp,
+        listed = [{
+            "file"    : "scripts/lint",
+            "name"    : "site:lint",
+            "depends" : [],
+            "source"  : str((sample.root.parent / "mise.toml").resolve())
+        }]
+    )
+
+    assert scan(CommandCheck, sample) == []

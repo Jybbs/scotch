@@ -301,6 +301,10 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         base = root.resolve()
 
         def inside(path: Path | None) -> Path | None:
+            """
+            Joins a path under the resolved root back onto `root`, reading
+            as `None` where it falls outside.
+            """
             return (
                 root / path.relative_to(base)
                 if path and path.is_relative_to(base)
@@ -308,6 +312,10 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
             )
 
         def home(task: Self) -> Path:
+            """
+            Reads the folder `mise run` starts a relative `file` from, the
+            one holding the task's config.
+            """
             return Path(
                 sub(
                     r"/(?:\.config(?:/mise)?|\.mise|mise)(?:/conf\.d)?$",
