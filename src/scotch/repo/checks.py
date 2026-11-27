@@ -657,21 +657,20 @@ class PinCheck(Check):
 class ReleaseAgeCheck(Check):
     """
     Fails where a resolver's hold on new releases differs from the window
-    `[tool.uv].exclude-newer` records, which is `N days` for an `N` of at
-    least three, or where an exemption from it has outlived its window.
+    `[tool.uv].exclude-newer` records, which is `3 days`, or where an
+    exemption from it has outlived its window.
 
-    The floor of three days is the shortest window the repository holds, long
-    enough for a registry or the authors to withdraw a compromised release
-    before a lockfile resolves it. The window restates itself in each task
-    script's `exclude-newer`, in the `minimumReleaseAge` of the site's
-    `bunfig.toml`, and in the `global-min-publish-age` Cargo reads when it
-    starts in the root and in the crate's folder, where none of them lets
-    Cargo `allow` a release younger than the window.
+    Three days is long enough for a registry or the authors to withdraw a
+    compromised release before a lockfile resolves it. The window restates
+    itself in each task script's `exclude-newer`, in the `minimumReleaseAge`
+    of the site's `bunfig.toml`, and in the `global-min-publish-age` Cargo
+    reads when it starts in the root and in the crate's folder, where none
+    of them lets Cargo `allow` a release younger than the window.
     """
 
-    floor: ClassVar[int] = 3
+    span: ClassVar[int] = 3
     """
-    The fewest days the window holds a release for.
+    The days the window holds a release for.
     """
 
     now: AwareDatetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -742,11 +741,11 @@ class ReleaseAgeCheck(Check):
         checkout, pyproject = self.checkout, self.checkout.pyproject
         window              = days(pyproject.window)
 
-        if window is None or window < self.floor:
+        if window != self.span:
             yield Finding(
                 message = (
                     f"`[tool.uv].exclude-newer` is `{pyproject.window}` where the "
-                    f"window is `N days` for an `N` of at least {self.floor}"
+                    f"window is `{self.span} days`"
                 ),
                 path = pyproject.path
             )
@@ -764,8 +763,11 @@ class ReleaseAgeCheck(Check):
 
         if (bunfig := checkout.bunfig) is None:
             yield Finding(
-                message = "The site's `bunfig.toml` is missing, so Bun holds no release",
-                path    = checkout.site.path.with_name("bunfig.toml")
+                message = (
+                    "The site's `bunfig.toml` is missing, "
+                    "so Bun holds no release"
+                ),
+                path = checkout.site.path.with_name("bunfig.toml")
             )
         elif bunfig.age != window * 86400:
             yield Finding(

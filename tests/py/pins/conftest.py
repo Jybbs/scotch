@@ -27,8 +27,8 @@ def locks(fp: FakeProcess, tree: Tree) -> Callable[..., None]:
     """
     Answers each `uv lock` a lift of the Python packages runs in a scratch
     project through the function it returns, the one upgrading `uv.lock`
-    past the window with `upgrade` and the one resolving the pins no lockfile
-    holds with `resolve`.
+    past the window with `upgrade` and the one resolving the pins no
+    lockfile holds with `resolve`.
     """
     lock = [
         "mise", "-C", tree.root, "exec", "--",

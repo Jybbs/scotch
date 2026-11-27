@@ -13,10 +13,10 @@ from json            import dumps, loads as from_json
 from pathlib         import Path
 from pydantic        import ValidationError
 from pytest          import mark, param, raises
-from subprocess      import CalledProcessError
 from pytest_subprocess.fake_popen   import FakePopen
 from pytest_subprocess.fake_process import FakeProcess
-from tomllib import loads
+from subprocess import CalledProcessError
+from tomllib    import loads
 
 from scotch.pins.managers import ActionPins, BunPins, CargoPins, MisePins, UvPins
 from scotch.pins.schemas  import Advisory, Edit, Exemption, Lift, Pardon, Spelling
@@ -129,6 +129,24 @@ def test_node_stops_inside_the_major_of_the_newest_types(
     assert list(NodeTypesCheck(checkout=sample.checkout).scan()) == []
 
 
+def test_a_cargo_deny_exit_other_than_one_raises(fp: FakeProcess, tree: Tree):
+    """
+    Asserts that `cargo-deny` exiting with a status other than 0 and 1
+    raises the error of the command.
+    """
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--", "cargo-deny", "--manifest-path",
+            tree.root / "rust" / "Cargo.toml",
+            "--format", "json", "check", "advisories"
+        ],
+        returncode = 2
+    )
+
+    with raises(CalledProcessError):
+        CargoPins(tree=tree).audit(tree.root / "rust")
+
+
 def test_a_crate_at_its_newest_release_lifts_nothing(
     fp     : FakeProcess,
     sample : Sample,
@@ -153,71 +171,6 @@ def test_a_crate_at_its_newest_release_lifts_nothing(
     )
 
     assert list(CargoPins(tree=tree).lifts()) == []
-
-
-def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
-    answered : Sample,
-    fp       : FakeProcess,
-    locks    : Callable[..., None],
-    tree     : Tree
-):
-    """
-    Asserts that a build constraint resolves through the scratch project
-    even where `uv.lock` resolves its package, that a task script's pin of
-    a package `uv.lock` resolves nowhere resolves there too, and that a task
-    script's pin of a package `uv.lock` resolves follows `uv.lock`.
-    """
-    answered.edit(
-        "pyproject.toml",
-        new = '["minijinja==2.24.0", "setuptools==84.0.0"]',
-        old = '["setuptools==84.0.0"]'
-    )
-    answered.edit(
-        ".mise/tasks/gha/scoresheet",
-        new = '["minijinja==2.24.0", "rich==13.0.0"]',
-        old = '["minijinja==2.24.0"]'
-    )
-
-    def upgrade(process: FakePopen):
-        """
-        Writes the lockfile `uv lock --upgrade` would, moving `minijinja`.
-        """
-        (target(process) / "uv.lock").write_text(
-            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
-        )
-
-    def resolve(process: FakePopen):
-        """
-        Asserts that the scratch project depends on the build's pins and on
-        the script's pin `uv.lock` resolves nowhere, and writes the lockfile
-        resolving each to a release of its own.
-        """
-        assert loads((target(process) / "pyproject.toml").read_text())["project"][
-            "dependencies"
-        ] == ["hatchling", "minijinja", "rich", "setuptools"]
-
-        (target(process) / "uv.lock").write_text(
-            '[[package]]\nname = "hatchling"\nversion = "1.32.4"\n\n'
-            '[[package]]\nname = "minijinja"\nversion = "3.1.0"\n\n'
-            '[[package]]\nname = "rich"\nversion = "14.0.0"\n\n'
-            '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
-        )
-
-    locks(resolve, upgrade)
-    fp.register(
-        ["mise", "-C", tree.root, "exec", "--", "uv", "audit", fp.any()],
-        occurrences = 4,
-        stdout      = dumps({"vulnerabilities": []})
-    )
-
-    assert [
-        (str(lift.path), lift.name, lift.newest) for lift in UvPins(tree=tree).lifts()
-    ] == [
-        ("uv.lock", "minijinja", "3.0.3"),
-        ("pyproject.toml", "minijinja", "3.1.0"),
-        (".mise/tasks/gha/scoresheet", "minijinja", "3.0.3"),
-        (".mise/tasks/gha/scoresheet", "rich", "14.0.0")
-    ]
 
 
 @mark.parametrize(
@@ -267,97 +220,246 @@ def test_the_floor_lifts_to_the_newest_release_of_mise(
     assert list(MisePins(tree=tree).lifts()) == ([floor] if lifted else [])
 
 
-def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
+def test_a_crate_inside_the_window_is_held_or_lifted_through_its_exemption(
     fp     : FakeProcess,
     sample : Sample,
     tree   : Tree
 ):
     """
-    Asserts that where `bun outdated` reports no package and the site holds
-    no override and no step passes a Wrangler version, nothing lifts and no
-    copy of the site is relocked or audited.
+    Asserts that a crate whose newest release the index dates less than the
+    window before now stays where it stands and names the instant the window
+    ends, unless `cargo-deny` reports an advisory against the lockfile that
+    a copy relocked on the release no longer reports, which lifts the crate
+    carrying an exemption that names its version, and that the sparse index
+    path of a crate name shortens as Cargo shortens it.
     """
+    sample.edit(
+        "rust/Cargo.toml",
+        new = 'shakmaty = "0.30.2"\nzoo = "1.0.0"\n',
+        old = 'shakmaty = "0.30.2"\n'
+    )
+    tool = ["mise", "-C", tree.root, "exec", "--"]
+
+    for name, newest in {"shakmaty": "0.31.0", "zoo": "1.1.0"}.items():
+        fp.register(
+            [*tool, "cargo", "search", name, "--limit", "1"],
+            stdout = f'{name} = "{newest}"    # A crate\n'
+        )
+
+    for index, name, newest in (
+        ("sh/ak", "shakmaty", "0.31.0"),
+        ("3/z", "zoo", "1.1.0")
+    ):
+        fp.register(
+            ["curl", "--fail", "--silent", f"https://index.crates.io/{index}/{name}"],
+            stdout = dumps({"pubtime": "2026-10-23T00:00:00Z", "vers": newest}) + "\n"
+        )
+
+    def audit(*ids: str) -> str:
+        """
+        Writes what `cargo-deny` prints to its standard error, a log line, a
+        warning, and one error for each of `ids`.
+        """
+        return "\n".join(
+            dumps(line)
+            for line in (
+                {"type": "log", "fields": {"message": "log"}},
+                {
+                    "type"   : "diagnostic",
+                    "fields" : {
+                        "severity" : "warning",
+                        "advisory" : {"id": "RUSTSEC-warn", "url": "https://warn"},
+                        "graphs"   : [{"Krate": {"name": "zoo", "version": "1.0.0"}}]
+                    }
+                },
+                *(
+                    {
+                        "type"   : "diagnostic",
+                        "fields" : {
+                            "severity" : "error",
+                            "advisory" : {
+                                "id"  : identifier,
+                                "url" : f"https://{identifier}"
+                            },
+                            "graphs": [{"Krate": {"name": "zoo", "version": "1.0.0"}}]
+                        }
+                    }
+                    for identifier in ids
+                )
+            )
+        )
+
+    deny = [
+        *tool,
+        "cargo-deny", "--manifest-path",
+        fp.any(max=1, min=1),
+        "--format", "json", "check", "advisories"
+    ]
+    fp.register(
+        [*deny],
+        occurrences = 1,
+        stderr      = audit("RUSTSEC-zoo"),
+        returncode  = 1
+    )
+    fp.register([*deny], stderr=audit())
     fp.register(
         [
-            "mise", "-C", tree.root, "exec", "--", "bun", "outdated",
-            f"--cwd={tree.root / 'docs'}"
-        ],
-        stdout = "| Package | Current | Update | Latest |\n"
+            *tool,
+            "cargo", "update", "--manifest-path",
+            fp.any(max=1, min=1),
+            "--workspace", "--config", 'resolver.incompatible-publish-age="allow"'
+        ]
     )
 
-    assert list(BunPins(tree=tree).lifts()) == []
-    assert len(fp.calls) == 1
+    lifts = list(CargoPins(now=NOW, tree=tree).lifts())
+
+    assert [lift.name for lift in lifts] == ["shakmaty", "zoo"]
+    assert (lifts[0].held, lifts[0].edits, lifts[0].pardons) == (
+        datetime(2026, 10, 26, tzinfo=UTC),
+        (),
+        ()
+    )
+    assert (lifts[1].held, len(lifts[1].edits), lifts[1].advisories) == (
+        None, 1,
+        (
+            Advisory(
+                id      = "RUSTSEC-zoo",
+                link    = "https://RUSTSEC-zoo",
+                package = "zoo"
+            ),
+        )
+    )
+    assert lifts[1].pardons == (
+        Pardon(
+            kind  = Exemption.CARGO,
+            name  = "zoo",
+            path  = Path("rust/Cargo.toml"),
+            value = "1.1.0"
+        ),
+    )
 
 
-def test_a_tool_other_than_node_lifts_past_a_major_reading_no_types(
-    outdated : Callable[..., None],
-    releases : Callable[..., None],
-    sample   : Sample,
+def test_a_package_inside_the_window_clearing_no_advisory_stays_where_it_stands(
+    answered : Sample,
+    fp       : FakeProcess,
+    locks    : Callable[..., None],
     tree     : Tree
 ):
     """
-    Asserts that a tool other than `node` lifts to its newest release
-    past a major where the site pins `@types/node`, reading no release of
-    `@types/node`.
+    Asserts that a newest release younger than the window that clears no
+    advisory yields a lift with no edit, no upgrade, and no exemption,
+    naming the instant the window ends beside the release's upload.
     """
-    outdated(uv=("0.12.13", "1.0.0"))
-    releases("uv", {"version": "1.0.0"})
+    locks(
+        lambda process: (target(process) / "uv.lock").write_text("package = []\n"),
+        lambda process: (target(process) / "uv.lock").write_text(
+            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
+            'sdist = { upload-time = "2026-10-23T08:00:00Z" }\n'
+        )
+    )
+    fp.register(
+        ["mise", "-C", tree.root, "exec", "--", "uv", "audit", fp.any()],
+        occurrences = 4,
+        stdout      = dumps({"vulnerabilities": []})
+    )
 
-    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
-        ("uv", "1.0.0")
-    ]
+    package, script = UvPins(now=NOW, tree=tree).lifts()
+
+    assert (package.held, package.pardons, package.upgraded, package.edits) == (
+        datetime(2026, 10, 26, 8, tzinfo=UTC),
+        (),
+        False,
+        ()
+    )
+    assert (script.held, script.pardons, script.edits) == (
+        datetime(2026, 10, 26, 8, tzinfo=UTC),
+        (),
+        ()
+    )
 
 
-def test_an_action_in_a_repository_folder_reads_that_repository(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
+def test_a_package_inside_the_window_is_held_or_exempted_by_its_clearing_an_advisory(
+    answered : Sample,
+    fp       : FakeProcess,
+    locks    : Callable[..., None],
+    tree     : Tree
 ):
     """
-    Asserts that an action a step names by a folder inside its repository
-    lifts to the commit the latest release of that repository names, the
-    rewrite finding the pin beside the action's full name.
+    Asserts that `uv lock --upgrade` runs with the window lifted to now,
+    that a newest release younger than the window leaves the pin where it
+    stands and names the instant the window ends, and that one clearing
+    an advisory lifts carrying an exemption admitting the release and none
+    uploaded after it, written into `pyproject.toml`, and into the script's
+    file for a pin the script declares.
     """
-    (sample.root / ".github" / "workflows" / "scan.yml").write_text(
-        "jobs:\n  scan:\n    runs-on: ubuntu-26.04\n    steps:\n"
-        "      - name: Scan\n"
-        f"        uses: github/codeql-action/init@{'1' * 40}\n"
-        "name: Scan\non:\n  push:\n"
-    )
-    pinned = {
-        "actions/checkout"     : ("v7.0.1", "3d3c42e5aac5ba805825da76410c181273ba90b1"),
-        "github/codeql-action" : ("v4.1.0", "2" * 40),
-        "jdx/mise-action"      : ("v5.0.1", "7a4e45a543138629540c9a1616d08632b893e492")
-    }
+    stamps = []
 
-    for repository, (tag, commit) in pinned.items():
-        fp.register(
-            ["gh", "api", f"repos/{repository}/releases/latest"],
-            stdout = dumps({"published_at": "2026-10-01T00:00:00Z", "tag_name": tag})
-        )
-        fp.register(
-            ["git", "ls-remote", "--tags", f"https://github.com/{repository}"],
-            stdout = f"{commit}\trefs/tags/{tag}\n"
+    def upgrade(process: FakePopen):
+        """
+        Notes the instant the lock lifts the window to, and writes a
+        lockfile moving `minijinja` to a release uploaded in the window.
+        """
+        stamps.append(process.args[process.args.index("--exclude-newer") + 1])
+        (target(process) / "uv.lock").write_text(
+            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
+            'sdist = { upload-time = "2026-10-23T08:00:00.500Z" }\n\n'
+            '[[package]]\nname = "sample"\nsource = { editable = "." }\n'
         )
 
-    assert [
-        (str(lift.path), lift.name, lift.current, lift.newest, lift.edits)
-        for lift in ActionPins(tree=tree).lifts()
-    ] == [
-        (
-            ".github/workflows/scan.yml", "github/codeql-action/init",
-            "1" * 40,
-            "v4.1.0",
-            (
-                Edit(
-                    name     = "github/codeql-action/init",
-                    path     = Path(".github/workflows/scan.yml"),
-                    spelling = Spelling.REF,
-                    version  = "2" * 40
-                ),
-            )
+    def resolve(process: FakePopen):
+        """
+        Writes the lockfile of the scratch project, its pins unmoved.
+        """
+        (target(process) / "uv.lock").write_text(
+            '[[package]]\nname = "hatchling"\nversion = "1.32.4"\n\n'
+            '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
         )
+
+    locks(resolve, upgrade)
+    audit = [
+        "mise", "-C", tree.root, "exec",
+        "--", "uv", "audit", "--frozen",
+        "--output-format", "json", "--preview-features", "audit-command,json-output"
     ]
+    fp.register(
+        [*audit, "--project", tree.root],
+        returncode = 1,
+        stdout     = dumps(
+            {"vulnerabilities": [{"id": "GHSA-m", "dependency": {"name": "minijinja"}}]}
+        )
+    )
+    fp.register(
+        [*audit, "--script", fp.any(max=1, min=1)],
+        stdout = dumps({"vulnerabilities": []})
+    )
+    fp.register(
+        [*audit, "--project", fp.any(max=1, min=1)],
+        occurrences = 2,
+        stdout      = dumps({"vulnerabilities": []})
+    )
+
+    package, script = list(UvPins(now=NOW, tree=tree).lifts())
+
+    assert stamps == ["2026-10-24T00:00:00Z"]
+    assert (package.name, package.path, package.upgraded) == (
+        "minijinja",
+        Path("uv.lock"),
+        True
+    )
+    assert package.pardons == (
+        Pardon(
+            kind  = Exemption.UV,
+            name  = "minijinja",
+            path  = Path("pyproject.toml"),
+            value = "2026-10-23T08:00:01Z"
+        ),
+    )
+    assert (package.held, script.path, script.held) == (
+        None,
+        Path(".mise/tasks/gha/scoresheet"),
+        None
+    )
+    assert script.pardons[0].path == Path(".mise/tasks/gha/scoresheet")
 
 
 @mark.parametrize(
@@ -437,21 +539,68 @@ def test_the_actions_lift_to_the_commit_of_their_latest_release(
     )
 
 
-def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
-    outdated : Callable[..., None],
-    releases : Callable[..., None],
-    sample   : Sample,
+def test_a_pin_follows_uv_lock_only_from_a_script_and_only_where_it_resolves(
+    answered : Sample,
+    fp       : FakeProcess,
+    locks    : Callable[..., None],
     tree     : Tree
 ):
     """
-    Asserts that `node` lifts to its newest release, past any major, where
-    the site pins no `@types/node`, reading no release of `@types/node`.
+    Asserts that a build constraint resolves through the scratch project
+    even where `uv.lock` resolves its package, that a task script's pin of
+    a package `uv.lock` resolves nowhere resolves there too, and that a task
+    script's pin of a package `uv.lock` resolves follows `uv.lock`.
     """
-    sample.edit("docs/package.json", new="", old='"@types/node"         : "26.6.5",')
-    crossing(outdated, releases)
+    answered.edit(
+        "pyproject.toml",
+        new = '["minijinja==2.24.0", "setuptools==84.0.0"]',
+        old = '["setuptools==84.0.0"]'
+    )
+    answered.edit(
+        ".mise/tasks/gha/scoresheet",
+        new = '["minijinja==2.24.0", "rich==13.0.0"]',
+        old = '["minijinja==2.24.0"]'
+    )
 
-    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
-        ("node", "28.1.0")
+    def upgrade(process: FakePopen):
+        """
+        Writes the lockfile `uv lock --upgrade` would, moving `minijinja`.
+        """
+        (target(process) / "uv.lock").write_text(
+            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
+        )
+
+    def resolve(process: FakePopen):
+        """
+        Asserts that the scratch project depends on the build's pins and on
+        the script's pin `uv.lock` resolves nowhere, and writes the lockfile
+        resolving each to a release of its own.
+        """
+        assert loads((target(process) / "pyproject.toml").read_text())["project"][
+            "dependencies"
+        ] == ["hatchling", "minijinja", "rich", "setuptools"]
+
+        (target(process) / "uv.lock").write_text(
+            '[[package]]\nname = "hatchling"\nversion = "1.32.4"\n\n'
+            '[[package]]\nname = "minijinja"\nversion = "3.1.0"\n\n'
+            '[[package]]\nname = "rich"\nversion = "14.0.0"\n\n'
+            '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
+        )
+
+    locks(resolve, upgrade)
+    fp.register(
+        ["mise", "-C", tree.root, "exec", "--", "uv", "audit", fp.any()],
+        occurrences = 4,
+        stdout      = dumps({"vulnerabilities": []})
+    )
+
+    assert [
+        (str(lift.path), lift.name, lift.newest) for lift in UvPins(tree=tree).lifts()
+    ] == [
+        ("uv.lock", "minijinja", "3.0.3"),
+        ("pyproject.toml", "minijinja", "3.1.0"),
+        (".mise/tasks/gha/scoresheet", "minijinja", "3.0.3"),
+        (".mise/tasks/gha/scoresheet", "rich", "14.0.0")
     ]
 
 
@@ -588,6 +737,182 @@ def test_the_python_packages_lift_through_uv_with_the_advisories_they_clear(
     ]
 
 
+def test_a_site_lagging_nowhere_relocks_and_audits_nothing(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that where `bun outdated` reports no package and the site holds
+    no override and no step passes a Wrangler version, nothing lifts and no
+    copy of the site is relocked or audited.
+    """
+    fp.register(
+        [
+            "mise", "-C", tree.root, "exec", "--", "bun", "outdated",
+            f"--cwd={tree.root / 'docs'}"
+        ],
+        stdout = "| Package | Current | Update | Latest |\n"
+    )
+
+    assert list(BunPins(tree=tree).lifts()) == []
+    assert len(fp.calls) == 1
+
+
+def test_a_tool_other_than_node_lifts_past_a_major_reading_no_types(
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
+    sample   : Sample,
+    tree     : Tree
+):
+    """
+    Asserts that a tool other than `node` lifts to its newest release
+    past a major where the site pins `@types/node`, reading no release of
+    `@types/node`.
+    """
+    outdated(uv=("0.12.13", "1.0.0"))
+    releases("uv", {"version": "1.0.0"})
+
+    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
+        ("uv", "1.0.0")
+    ]
+
+
+def test_an_action_in_a_repository_folder_reads_that_repository(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that an action a step names by a folder inside its repository
+    lifts to the commit the latest release of that repository names, the
+    rewrite finding the pin beside the action's full name.
+    """
+    (sample.root / ".github" / "workflows" / "scan.yml").write_text(
+        "jobs:\n  scan:\n    runs-on: ubuntu-26.04\n    steps:\n"
+        "      - name: Scan\n"
+        f"        uses: github/codeql-action/init@{'1' * 40}\n"
+        "name: Scan\non:\n  push:\n"
+    )
+    pinned = {
+        "actions/checkout"     : ("v7.0.1", "3d3c42e5aac5ba805825da76410c181273ba90b1"),
+        "github/codeql-action" : ("v4.1.0", "2" * 40),
+        "jdx/mise-action"      : ("v5.0.1", "7a4e45a543138629540c9a1616d08632b893e492")
+    }
+
+    for repository, (tag, commit) in pinned.items():
+        fp.register(
+            ["gh", "api", f"repos/{repository}/releases/latest"],
+            stdout = dumps({"published_at": "2026-10-01T00:00:00Z", "tag_name": tag})
+        )
+        fp.register(
+            ["git", "ls-remote", "--tags", f"https://github.com/{repository}"],
+            stdout = f"{commit}\trefs/tags/{tag}\n"
+        )
+
+    assert [
+        (str(lift.path), lift.name, lift.current, lift.newest, lift.edits)
+        for lift in ActionPins(tree=tree).lifts()
+    ] == [
+        (
+            ".github/workflows/scan.yml", "github/codeql-action/init",
+            "1" * 40,
+            "v4.1.0",
+            (
+                Edit(
+                    name     = "github/codeql-action/init",
+                    path     = Path(".github/workflows/scan.yml"),
+                    spelling = Spelling.REF,
+                    version  = "2" * 40
+                ),
+            )
+        )
+    ]
+
+
+def test_an_npm_package_the_window_holds_back_is_held_or_exempted(
+    fp     : FakeProcess,
+    sample : Sample,
+    tree   : Tree
+):
+    """
+    Asserts that a latest release `bun outdated` marks with `*`, which the
+    window holds back, reads the true latest from `bun info`, and that a
+    release younger than the window stays where it stands unless it clears
+    an advisory, which lifts carrying an exemption naming that version in
+    the site's `bunfig.toml`.
+    """
+    (tree.root / "docs" / "bun.lock").write_text("{}")
+    tool = ["mise", "-C", tree.root, "exec", "--", "bun"]
+    docs = f"--cwd={tree.root / 'docs'}"
+    fp.register(
+        [*tool, "outdated", docs],
+        stdout = (
+            "| Package                   | Current | Update | Latest  |\n"
+            "|---------------------------|---------|--------|---------|\n"
+            "| @vitest/coverage-v8 (dev) | 5.0.5   | 5.0.5  | 5.0.9 * |\n"
+            "| vitest (dev)              | 5.0.5   | 5.0.5  | 5.0.9 * |\n"
+        )
+    )
+
+    for name in ("@vitest/coverage-v8", "vitest"):
+        fp.register(
+            [*tool, "info", docs, name, "version", "--json"],
+            stdout = dumps("5.1.0")
+        )
+        fp.register(
+            [*tool, "info", docs, name, "time", "--json"],
+            stdout = dumps({"5.1.0": "2026-10-23T00:00:00Z"})
+        )
+
+    fp.register([*tool, "install", fp.any(max=1, min=1), "--lockfile-only"])
+    fp.register(
+        [*tool, "audit", docs, "--json"],
+        returncode = 1,
+        stdout = dumps({"vitest": [{"url": "https://github.com/advisories/GHSA-v"}]})
+    )
+    fp.register([*tool, "audit", fp.any(max=1, min=1), "--json"], stdout="{}")
+
+    held, pardoned = BunPins(now=NOW, tree=tree).lifts()
+
+    assert (held.name, held.newest, held.held, held.edits, held.pardons) == (
+        "@vitest/coverage-v8", "5.1.0",
+        datetime(2026, 10, 26, tzinfo=UTC),
+        (),
+        ()
+    )
+    assert (pardoned.name, pardoned.held, len(pardoned.edits)) == ("vitest", None, 1)
+    assert pardoned.pardons == (
+        Pardon(
+            kind  = Exemption.BUN,
+            name  = "vitest",
+            path  = Path("docs/bunfig.toml"),
+            value = "5.1.0"
+        ),
+    )
+
+
+NOW = datetime(2026, 10, 24, tzinfo=UTC)
+
+
+def test_node_lifts_to_its_newest_release_where_the_site_pins_no_types(
+    outdated : Callable[..., None],
+    releases : Callable[..., None],
+    sample   : Sample,
+    tree     : Tree
+):
+    """
+    Asserts that `node` lifts to its newest release, past any major, where
+    the site pins no `@types/node`, reading no release of `@types/node`.
+    """
+    sample.edit("docs/package.json", new="", old='"@types/node"         : "26.6.5",')
+    crossing(outdated, releases)
+
+    assert [(lift.name, lift.newest) for lift in MisePins(tree=tree).lifts()] == [
+        ("node", "28.1.0")
+    ]
+
+
 def test_the_crates_lift_to_the_newest_release_cargo_search_reports(
     fp     : FakeProcess,
     sample : Sample,
@@ -613,17 +938,17 @@ def test_the_crates_lift_to_the_newest_release_cargo_search_reports(
     )
     fp.register(
         ["curl", "--fail", "--silent", "https://index.crates.io/sh/ak/shakmaty"],
-        stdout = (
+        stdout =
             dumps({"pubtime": "2026-10-20T00:00:00Z", "vers": "0.30.2"}) + "\n"
             + dumps({"pubtime": "2026-10-21T00:00:00Z", "vers": "0.31.0"}) + "\n"
-        )
     )
 
     [lift] = CargoPins(tree=tree).lifts()
     lift.write(tree.root)
 
     assert (lift.name, lift.current, lift.newest, lift.released) == (
-        "shakmaty", "0.30.2", "0.31.0", datetime(2026, 10, 21, tzinfo=UTC)
+        "shakmaty", "0.30.2", "0.31.0",
+        datetime(2026, 10, 21, tzinfo=UTC)
     )
     assert 'shakmaty = "0.31.0"' in (tree.root / "rust" / "Cargo.toml").read_text()
 
@@ -832,319 +1157,3 @@ def test_wasm_bindgen_lifts_with_the_requirement_the_crate_restates(
 
     assert list(PinCheck(checkout=sample.checkout).scan()) == []
     assert 'version = "=0.2.131"' in (tree.root / "rust" / "Cargo.toml").read_text()
-
-
-NOW = datetime(2026, 10, 24, tzinfo=UTC)
-
-
-def test_a_crate_inside_the_window_is_held_or_lifted_through_its_exemption(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
-):
-    """
-    Asserts that a crate whose newest release the index dates less than the
-    window before now stays where it stands and names the instant the window
-    ends, unless `cargo-deny` reports an advisory against the lockfile that a
-    copy relocked on the release no longer reports, which lifts the crate
-    carrying an exemption that names its version, and that the sparse index
-    path of a crate name shortens as Cargo shortens it.
-    """
-    sample.edit(
-        "rust/Cargo.toml",
-        new = 'shakmaty = "0.30.2"\nzoo = "1.0.0"\n',
-        old = 'shakmaty = "0.30.2"\n'
-    )
-    tool = ["mise", "-C", tree.root, "exec", "--"]
-
-    for name, newest in {"shakmaty": "0.31.0", "zoo": "1.1.0"}.items():
-        fp.register(
-            [*tool, "cargo", "search", name, "--limit", "1"],
-            stdout = f'{name} = "{newest}"    # A crate\n'
-        )
-
-    for index, name, newest in (
-        ("sh/ak", "shakmaty", "0.31.0"),
-        ("3/z", "zoo", "1.1.0")
-    ):
-        fp.register(
-            ["curl", "--fail", "--silent", f"https://index.crates.io/{index}/{name}"],
-            stdout = dumps({"pubtime": "2026-10-23T00:00:00Z", "vers": newest}) + "\n"
-        )
-
-    def audit(*ids: str) -> str:
-        """
-        Writes what `cargo-deny` prints to its standard error, a log line, a
-        warning, and one error for each of `ids`.
-        """
-        return "\n".join(
-            dumps(line)
-            for line in (
-                {"fields": {"message": "log"}, "type": "log"},
-                {
-                    "fields": {
-                        "advisory" : {"id": "RUSTSEC-warn", "url": "https://warn"},
-                        "graphs"   : [{"Krate": {"name": "zoo", "version": "1.0.0"}}],
-                        "severity" : "warning"
-                    },
-                    "type": "diagnostic"
-                },
-                *(
-                    {
-                        "fields": {
-                            "advisory" : {"id": identifier, "url": f"https://{identifier}"},
-                            "graphs"   : [{"Krate": {"name": "zoo", "version": "1.0.0"}}],
-                            "severity" : "error"
-                        },
-                        "type": "diagnostic"
-                    }
-                    for identifier in ids
-                )
-            )
-        )
-
-    deny = [
-        *tool, "cargo-deny", "--manifest-path", fp.any(max=1, min=1),
-        "--format", "json", "check", "advisories"
-    ]
-    fp.register(
-        [*deny],
-        returncode = 1,
-        stderr     = audit("RUSTSEC-zoo"),
-        occurrences = 1
-    )
-    fp.register([*deny], stderr=audit())
-    fp.register(
-        [
-            *tool, "cargo", "update", "--manifest-path", fp.any(max=1, min=1),
-            "--workspace", "--config", 'resolver.incompatible-publish-age="allow"'
-        ]
-    )
-
-    lifts = list(CargoPins(now=NOW, tree=tree).lifts())
-
-    assert [lift.name for lift in lifts] == ["shakmaty", "zoo"]
-    assert (lifts[0].held, lifts[0].edits, lifts[0].pardons) == (
-        datetime(2026, 10, 26, tzinfo=UTC),
-        (),
-        ()
-    )
-    assert (lifts[1].held, len(lifts[1].edits), lifts[1].advisories) == (
-        None,
-        1,
-        (
-            Advisory(
-                id      = "RUSTSEC-zoo",
-                link    = "https://RUSTSEC-zoo",
-                package = "zoo"
-            ),
-        )
-    )
-    assert lifts[1].pardons == (
-        Pardon(
-            kind  = Exemption.CARGO,
-            name  = "zoo",
-            path  = Path("rust/Cargo.toml"),
-            value = "1.1.0"
-        ),
-    )
-
-
-def test_a_cargo_deny_exit_other_than_one_raises(
-    fp   : FakeProcess,
-    tree : Tree
-):
-    """
-    Asserts that `cargo-deny` exiting with a status other than 0 and 1 raises
-    the error of the command.
-    """
-    fp.register(
-        [
-            "mise", "-C", tree.root, "exec", "--", "cargo-deny",
-            "--manifest-path", tree.root / "rust" / "Cargo.toml",
-            "--format", "json", "check", "advisories"
-        ],
-        returncode = 2
-    )
-
-    with raises(CalledProcessError):
-        CargoPins(tree=tree).audit(tree.root / "rust")
-
-
-def test_a_package_inside_the_window_is_held_or_exempted_by_its_clearing_an_advisory(
-    answered : Sample,
-    fp       : FakeProcess,
-    locks    : Callable[..., None],
-    tree     : Tree
-):
-    """
-    Asserts that `uv lock --upgrade` runs with the window lifted to now, that
-    a newest release younger than the window leaves the pin where it stands
-    and names the instant the window ends, and that one clearing an advisory
-    lifts carrying an exemption admitting the release and none uploaded after
-    it, written into `pyproject.toml`, and into the script's file for a pin
-    the script declares.
-    """
-    stamps = []
-
-    def upgrade(process: FakePopen):
-        """
-        Notes the instant the lock lifts the window to, and writes a lockfile
-        moving `minijinja` to a release uploaded in the window.
-        """
-        stamps.append(process.args[process.args.index("--exclude-newer") + 1])
-        (target(process) / "uv.lock").write_text(
-            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
-            'sdist = { upload-time = "2026-10-23T08:00:00.500Z" }\n\n'
-            '[[package]]\nname = "sample"\nsource = { editable = "." }\n'
-        )
-
-    def resolve(process: FakePopen):
-        """
-        Writes the lockfile of the scratch project, its pins unmoved.
-        """
-        (target(process) / "uv.lock").write_text(
-            '[[package]]\nname = "hatchling"\nversion = "1.32.4"\n\n'
-            '[[package]]\nname = "setuptools"\nversion = "84.0.0"\n'
-        )
-
-    locks(resolve, upgrade)
-    audit = [
-        "mise", "-C", tree.root, "exec",
-        "--", "uv", "audit", "--frozen",
-        "--output-format", "json", "--preview-features", "audit-command,json-output"
-    ]
-    fp.register(
-        [*audit, "--project", tree.root],
-        returncode = 1,
-        stdout     = dumps(
-            {
-                "vulnerabilities": [
-                    {"id": "GHSA-m", "dependency": {"name": "minijinja"}}
-                ]
-            }
-        )
-    )
-    fp.register([*audit, "--script", fp.any(max=1, min=1)], stdout=dumps({"vulnerabilities": []}))
-    fp.register(
-        [*audit, "--project", fp.any(max=1, min=1)],
-        occurrences = 2,
-        stdout      = dumps({"vulnerabilities": []})
-    )
-
-    lifts = list(UvPins(now=NOW, tree=tree).lifts())
-    package, script = lifts
-
-    assert stamps == ["2026-10-24T00:00:00Z"]
-    assert (package.name, package.path, package.upgraded) == (
-        "minijinja", Path("uv.lock"), True
-    )
-    assert package.pardons == (
-        Pardon(
-            kind  = Exemption.UV,
-            name  = "minijinja",
-            path  = Path("pyproject.toml"),
-            value = "2026-10-23T08:00:01Z"
-        ),
-    )
-    assert (package.held, script.path, script.held) == (
-        None, Path(".mise/tasks/gha/scoresheet"), None
-    )
-    assert script.pardons[0].path == Path(".mise/tasks/gha/scoresheet")
-
-
-def test_a_package_inside_the_window_clearing_no_advisory_stays_where_it_stands(
-    answered : Sample,
-    fp       : FakeProcess,
-    locks    : Callable[..., None],
-    tree     : Tree
-):
-    """
-    Asserts that a newest release younger than the window that clears no
-    advisory yields a lift with no edit, no upgrade, and no exemption, naming
-    the instant the window ends beside the release's upload.
-    """
-    locks(
-        lambda process: (target(process) / "uv.lock").write_text("package = []\n"),
-        lambda process: (target(process) / "uv.lock").write_text(
-            '[[package]]\nname = "minijinja"\nversion = "3.0.3"\n'
-            'sdist = { upload-time = "2026-10-23T08:00:00Z" }\n'
-        )
-    )
-    fp.register(
-        ["mise", "-C", tree.root, "exec", "--", "uv", "audit", fp.any()],
-        occurrences = 4,
-        stdout      = dumps({"vulnerabilities": []})
-    )
-
-    package, script = UvPins(now=NOW, tree=tree).lifts()
-
-    assert (package.held, package.pardons, package.upgraded, package.edits) == (
-        datetime(2026, 10, 26, 8, tzinfo=UTC), (), False, ()
-    )
-    assert (script.held, script.pardons, script.edits) == (
-        datetime(2026, 10, 26, 8, tzinfo=UTC), (), ()
-    )
-
-
-def test_an_npm_package_the_window_holds_back_is_held_or_exempted(
-    fp     : FakeProcess,
-    sample : Sample,
-    tree   : Tree
-):
-    """
-    Asserts that a latest release `bun outdated` marks with `*`, which the
-    window holds back, reads the true latest from `bun info`, and that a
-    release younger than the window stays where it stands unless it clears
-    an advisory, which lifts carrying an exemption naming that version in the
-    site's `bunfig.toml`.
-    """
-    (tree.root / "docs" / "bun.lock").write_text("{}")
-    tool = ["mise", "-C", tree.root, "exec", "--", "bun"]
-    docs = f"--cwd={tree.root / 'docs'}"
-    fp.register(
-        [*tool, "outdated", docs],
-        stdout = (
-            "| Package                   | Current | Update | Latest  |\n"
-            "|---------------------------|---------|--------|---------|\n"
-            "| @vitest/coverage-v8 (dev) | 5.0.5   | 5.0.5  | 5.0.9 * |\n"
-            "| vitest (dev)              | 5.0.5   | 5.0.5  | 5.0.9 * |\n"
-        )
-    )
-
-    for name in ("@vitest/coverage-v8", "vitest"):
-        fp.register(
-            [*tool, "info", docs, name, "version", "--json"],
-            stdout = dumps("5.1.0")
-        )
-        fp.register(
-            [*tool, "info", docs, name, "time", "--json"],
-            stdout = dumps({"5.1.0": "2026-10-23T00:00:00Z"})
-        )
-
-    fp.register([*tool, "install", fp.any(max=1, min=1), "--lockfile-only"])
-    fp.register(
-        [*tool, "audit", docs, "--json"],
-        returncode = 1,
-        stdout     = dumps({"vitest": [{"url": "https://github.com/advisories/GHSA-v"}]})
-    )
-    fp.register([*tool, "audit", fp.any(max=1, min=1), "--json"], stdout="{}")
-
-    held, pardoned = BunPins(now=NOW, tree=tree).lifts()
-
-    assert (held.name, held.newest, held.held, held.edits, held.pardons) == (
-        "@vitest/coverage-v8",
-        "5.1.0",
-        datetime(2026, 10, 26, tzinfo=UTC),
-        (),
-        ()
-    )
-    assert (pardoned.name, pardoned.held, len(pardoned.edits)) == ("vitest", None, 1)
-    assert pardoned.pardons == (
-        Pardon(
-            kind  = Exemption.BUN,
-            name  = "vitest",
-            path  = Path("docs/bunfig.toml"),
-            value = "5.1.0"
-        ),
-    )

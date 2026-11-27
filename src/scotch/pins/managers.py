@@ -146,9 +146,9 @@ class BunPins(Pins):
     Every npm package the repository pins, meaning each package and override
     of the site's `docs/package.json` and the Wrangler version a workflow
     passes its action, whose newest releases `bun outdated` and `bun info`
-    report, the `*` it marks beside a latest release the window holds
-    back sending the lift to `bun info` for the true latest, and whose
-    cleared advisories `bun audit` reports.
+    report, the `*` it marks beside a latest release the window holds back
+    sending the lift to `bun info` for the true latest, and whose cleared
+    advisories `bun audit` reports.
     """
 
     @property
@@ -361,7 +361,7 @@ class CargoPins(Pins):
             CargoAdvisory.model_validate(entry).advisory
             for line in audit.stderr.splitlines()
             if (entry := loads(line))["type"] == "diagnostic"
-            and entry["fields"]["severity"] == "error"
+            and entry["fields"]["severity"]   == "error"
             and "advisory" in entry["fields"]
         )
 
@@ -399,8 +399,8 @@ class CargoPins(Pins):
     def lifts(self) -> Iterator[Lift]:
         """
         Yields a lift for each required crate whose newest release differs
-        from the version its requirement names, each carrying the
-        advisories its newest release clears where the window holds it.
+        from the version its requirement names, each carrying the advisories
+        its newest release clears where the window holds it.
         """
         crate = self.tree.checkout.crate
         path  = self.tree.relative(crate.path)
@@ -460,8 +460,8 @@ class CargoPins(Pins):
     def published(self, name: str, version: str) -> AwareDatetime | None:
         """
         Reads the instant the sparse index records `version` of the crate
-        `name` names as published, the `pubtime` Cargo holds a release to the
-        window by.
+        `name` names as published, the `pubtime` Cargo holds a release to
+        the window by.
 
         Returns:
             The instant, or `None` where the index records none.
@@ -753,8 +753,8 @@ class UvPins(Pins):
                 "--exclude-newer",
                 self.now.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
             )
-            pins           = self.exact
-            resolved       = self.resolve(
+            pins     = self.exact
+            resolved = self.resolve(
                 {pin.name for pin in pins if not pin.follows},
                 required
             )
@@ -777,7 +777,10 @@ class UvPins(Pins):
                         upgraded = True
                     ).clearing(cleared).holding(
                         self.now,
-                        self.pardons(lifted, self.tree.relative(checkout.pyproject.path)),
+                        self.pardons(
+                            lifted,
+                            self.tree.relative(checkout.pyproject.path)
+                        ),
                         self.window
                     )
 
@@ -813,9 +816,9 @@ class UvPins(Pins):
 
     def pardons(self, package: Package, *paths: Path) -> tuple[Pardon, ...]:
         """
-        Lists the exemption admitting the release `package` resolves to, one
-        for each file of `paths` whose lockfile has to resolve it, none where
-        the lockfile that resolved it records no upload.
+        Lists the exemption admitting the release `package` resolves to,
+        one for each file of `paths` whose lockfile has to resolve it, none
+        where the lockfile that resolved it records no upload.
         """
         return tuple(
             Pardon(

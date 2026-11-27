@@ -114,20 +114,25 @@ def test_a_bulletin_reads_as_the_advisory_its_address_names():
     )
 
 
-def test_a_lift_carries_the_advisories_concerning_its_package_in_order():
+def test_a_held_release_lifts_through_an_exemption_clearing_an_advisory():
     """
-    Asserts that a lift keeps each advisory naming its package, ordered by
-    identifier, and leaves out every advisory naming another.
+    Asserts that a lift whose newest release is younger than the window and
+    clears an advisory keeps its edits and takes the exemptions it is given,
+    naming no instant the window ends.
     """
-    advisories = [
-        Advisory(id="GHSA-b", link="https://b", package="polars"),
-        Advisory(id="GHSA-c", link="https://c", package="pydantic"),
-        Advisory(id="GHSA-a", link="https://a", package="polars")
-    ]
+    pardon = Pardon(
+        kind  = Exemption.BUN,
+        name  = "polars",
+        path  = Path("docs/bunfig.toml"),
+        value = "1.5.0"
+    )
+    lifted = lift(
+        advisories = (Advisory(id="GHSA-x", link="https://x", package="polars"),),
+        name       = "polars",
+        released   = datetime(2026, 10, 22, tzinfo=UTC)
+    ).holding(datetime(2026, 10, 24, tzinfo=UTC), (pardon,), timedelta(days=3))
 
-    assert [
-        advisory.id for advisory in lift("polars").clearing(advisories).advisories
-    ] == ["GHSA-a", "GHSA-b"]
+    assert (lifted.pardons, lifted.held) == ((pardon,), None)
 
 
 @mark.parametrize(
@@ -184,6 +189,22 @@ def test_release_reads_the_first_run_of_dotted_numbers(
     assert release(version) == numbers
 
 
+def test_a_lift_carries_the_advisories_concerning_its_package_in_order():
+    """
+    Asserts that a lift keeps each advisory naming its package, ordered by
+    identifier, and leaves out every advisory naming another.
+    """
+    advisories = [
+        Advisory(id="GHSA-b", link="https://b", package="polars"),
+        Advisory(id="GHSA-c", link="https://c", package="pydantic"),
+        Advisory(id="GHSA-a", link="https://a", package="polars")
+    ]
+
+    assert [
+        advisory.id for advisory in lift("polars").clearing(advisories).advisories
+    ] == ["GHSA-a", "GHSA-b"]
+
+
 def test_a_lift_counts_its_age_in_days_up_to_today():
     """
     Asserts that a dated lift counts the whole days from the newest
@@ -193,43 +214,6 @@ def test_a_lift_counts_its_age_in_days_up_to_today():
 
     assert dated.age(date(2026, 10, 23)) == 22
     assert lift("pin").age(date(2026, 10, 23)) is None
-
-
-def test_a_report_names_its_pins_and_holds_every_lift_of_a_held_name():
-    """
-    Asserts that a report names each pin once, lists each lift's name once
-    in the table's order, and leaves out every lift of a name it is told to
-    hold, whichever file declares it.
-    """
-    report = Report(
-        lifts = (
-            lift(
-                current = "2.24.0",
-                name    = "minijinja",
-                newest  = "3.0.3",
-                path    = Path("uv.lock")
-            ),
-            lift(
-                current = "2.24.0",
-                name    = "minijinja",
-                newest  = "3.0.3",
-                path    = Path(".mise/tasks/gha/scoresheet.py")
-            ),
-            lift(
-                current = "1.44.2",
-                name    = "polars",
-                newest  = "2.0.0",
-                path    = Path("uv.lock")
-            ),
-            lift("pluggy", "1.6.0", "1.7.0")
-        )
-    )
-
-    assert report.names == {"minijinja", "pluggy", "polars"}
-    assert report.leads == ("minijinja", "pluggy", "polars")
-    assert [
-        (str(held.path), held.name) for held in report.without({"minijinja"}).rows
-    ] == [("pyproject.toml", "pluggy"), ("uv.lock", "polars")]
 
 
 @mark.parametrize(
@@ -285,72 +269,74 @@ def test_a_hold_naming_one_pin_of_a_coupled_pair_holds_both(
     assert tuple(held.name for held in report.without({hold}).rows) == left
 
 
-def test_an_edit_raises_where_the_file_spells_no_version_beside_its_name(
-    tmp_path: Path
-):
+def test_a_package_settles_the_second_after_its_last_upload():
     """
-    Asserts that an edit finding no version beside its name raises
-    `ValueError` naming the file and the name, rather than writing nothing
-    unseen.
+    Asserts that the instant a package settles at is the second after the
+    latest upload of any file it records, rounded up from the fraction, and
+    that a package recording no upload settles at none.
     """
-    (tmp_path / "package.json").write_text('{"vite": "8.3.4"}')
+    package = Package.model_validate(
+        {
+            "name"    : "polars",
+            "version" : "1.5.0",
+            "sdist"   : {"upload-time": "2026-10-22T09:00:00.250Z"},
+            "wheels"  : [{"upload-time": "2026-10-22T09:00:03.900Z"}]
+        }
+    )
 
-    with raises(ValueError, match="package.json spells no version beside vitest"):
-        Edit(
-            name     = "vitest",
-            path     = Path("package.json"),
-            spelling = Spelling.MEMBER,
-            version  = "5.1.0"
-        ).apply(tmp_path)
+    assert package.settled == datetime(2026, 10, 22, 9, 0, 4, tzinfo=UTC)
+    assert Package(name="polars").settled is None
 
 
-def test_an_empty_report_says_every_pin_stands_at_its_newest_release():
+def test_a_release_the_window_holds_leaves_the_pin_where_it_stands():
     """
-    Asserts that a report listing no lift prints one line saying so in place
-    of an empty table.
+    Asserts that a lift whose newest release is younger than the window and
+    clears no advisory loses its edits and its upgrade and names the instant
+    the window ends, whereas a release the window has passed leaves the lift
+    as it stands.
     """
-    assert Report(lifts=()).table(date(2026, 10, 23)) == (
-        "Every pin stands at its newest release"
+    edit = Edit(
+        name     = "polars",
+        path     = Path("pyproject.toml"),
+        spelling = Spelling.REQUIREMENT,
+        version  = "1.5.0"
+    )
+    window = timedelta(days=3)
+    young  = lift(
+        edits    = (edit,),
+        name     = "polars",
+        released = datetime(2026, 10, 22, tzinfo=UTC),
+        upgraded = True
+    )
+
+    held = young.holding(datetime(2026, 10, 24, tzinfo=UTC), (), window)
+
+    assert (held.edits, held.held, held.upgraded) == (
+        (),
+        datetime(2026, 10, 25, tzinfo=UTC),
+        False
+    )
+    assert young.holding(datetime(2026, 10, 25, tzinfo=UTC), (), window) == young
+    assert lift("polars").holding(datetime(2026, 10, 24, tzinfo=UTC), (), window) == (
+        lift("polars")
     )
 
 
-def test_an_exact_pin_lifts_to_the_release_a_package_resolves():
+def test_a_report_leaves_each_held_pin_out_of_what_it_writes_and_tries():
     """
-    Asserts that an exact pin lifts under the name PEP 503 normalizes it
-    to, dated by the resolved package's earliest upload, and rewrites the
-    version beside the name as the file spells it.
+    Asserts that `writable` and `leads` list no pin the window holds where
+    it stands, while `rows` and the table list it.
     """
-    path = Path(".mise/tasks/gha/scoresheet.py")
-    pin  = Exact(
-        follows = True,
-        path    = path,
-        spelled = "MiniJinja",
-        version = "2.24.0"
-    )
-
-    assert pin.lift(
-        Package.model_validate(
-            {
-                "name"    : "minijinja",
-                "version" : "3.0.3",
-                "sdist"   : {"upload-time": "2026-10-23T08:00:00Z"}
-            }
+    report = Report(
+        lifts = (
+            lift("held", held=datetime(2026, 10, 25, tzinfo=UTC)),
+            lift("free")
         )
-    ) == Lift(
-        current = "2.24.0",
-        edits   = (
-            Edit(
-                name     = "MiniJinja",
-                path     = path,
-                spelling = Spelling.REQUIREMENT,
-                version  = "3.0.3"
-            ),
-        ),
-        name     = "minijinja",
-        newest   = "3.0.3",
-        path     = path,
-        released = datetime(2026, 10, 23, 8, tzinfo=UTC)
     )
+
+    assert [lift.name for lift in report.rows] == ["free", "held"]
+    assert [lift.name for lift in report.writable] == ["free"]
+    assert report.leads == ("free",)
 
 
 @mark.parametrize(
@@ -380,50 +366,41 @@ def test_an_advisory_from_uv_links_to_its_address_or_to_osv(
     assert advisory.cell == f"[PYSEC-2026-215]({expected})"
 
 
-def test_the_table_lists_each_lift_by_file_then_name(snapshot: SnapshotAssertion):
+def test_a_report_names_its_pins_and_holds_every_lift_of_a_held_name():
     """
-    Asserts that the table holds a row per lift ordered by the file
-    declaring it and then by name, naming its age up to today, marking a
-    major lift, linking each advisory it clears, and naming the time the
-    window ends for a pin it holds where it stands.
+    Asserts that a report names each pin once, lists each lift's name once
+    in the table's order, and leaves out every lift of a name it is told to
+    hold, whichever file declares it.
     """
     report = Report(
         lifts = (
             lift(
-                current  = "0.12.13",
-                name     = "uv",
-                newest   = "0.13.5",
-                path     = Path(".mise/config.toml"),
-                released = datetime(2026, 10, 20, tzinfo=UTC)
+                current = "2.24.0",
+                name    = "minijinja",
+                newest  = "3.0.3",
+                path    = Path("uv.lock")
             ),
             lift(
-                current    = "2026.10.19",
-                name       = "certifi",
-                newest     = "2026.10.23",
-                advisories = (Advisory(
-                    id      = "GHSA-x",
-                    link    = "https://x",
-                    package = "certifi"
-                ),),
-                path = Path("uv.lock")
+                current = "2.24.0",
+                name    = "minijinja",
+                newest  = "3.0.3",
+                path    = Path(".mise/tasks/gha/scoresheet.py")
             ),
             lift(
-                held     = datetime(2026, 10, 25, 12, 30, tzinfo=UTC),
-                name     = "polars",
-                newest   = "1.5.0",
-                path     = Path("uv.lock"),
-                released = datetime(2026, 10, 22, tzinfo=UTC)
+                current = "1.44.2",
+                name    = "polars",
+                newest  = "2.0.0",
+                path    = Path("uv.lock")
             ),
-            lift(
-                current = "1.4.3",
-                name    = "bun",
-                newest  = "1.4.4",
-                path    = Path(".mise/config.toml")
-            )
+            lift("pluggy", "1.6.0", "1.7.0")
         )
     )
 
-    assert report.table(date(2026, 10, 23)) == snapshot
+    assert report.names == {"minijinja", "pluggy", "polars"}
+    assert report.leads == ("minijinja", "pluggy", "polars")
+    assert [
+        (str(held.path), held.name) for held in report.without({"minijinja"}).rows
+    ] == [("pyproject.toml", "pluggy"), ("uv.lock", "polars")]
 
 
 @mark.parametrize(
@@ -534,76 +511,72 @@ def test_an_assignment_reaches_a_quoted_key_and_an_inline_table(
     assert (tmp_path / "config.toml").read_text() == after
 
 
-def test_a_release_the_window_holds_leaves_the_pin_where_it_stands():
+def test_an_edit_raises_where_the_file_spells_no_version_beside_its_name(
+    tmp_path: Path
+):
     """
-    Asserts that a lift whose newest release is younger than the window and
-    clears no advisory loses its edits and its upgrade and names the instant
-    the window ends, whereas a release the window has passed leaves the lift
-    as it stands.
+    Asserts that an edit finding no version beside its name raises
+    `ValueError` naming the file and the name, rather than writing nothing
+    unseen.
     """
-    edit   = Edit(
-        name     = "polars",
-        path     = Path("pyproject.toml"),
-        spelling = Spelling.REQUIREMENT,
-        version  = "1.5.0"
-    )
-    window = timedelta(days=3)
-    young  = lift(
-        edits    = (edit,),
-        name     = "polars",
-        released = datetime(2026, 10, 22, tzinfo=UTC),
-        upgraded = True
-    )
+    (tmp_path / "package.json").write_text('{"vite": "8.3.4"}')
 
-    held = young.holding(datetime(2026, 10, 24, tzinfo=UTC), (), window)
+    with raises(ValueError, match="package.json spells no version beside vitest"):
+        Edit(
+            name     = "vitest",
+            path     = Path("package.json"),
+            spelling = Spelling.MEMBER,
+            version  = "5.1.0"
+        ).apply(tmp_path)
 
-    assert (held.edits, held.held, held.upgraded) == (
-        (),
-        datetime(2026, 10, 25, tzinfo=UTC),
-        False
-    )
-    assert young.holding(datetime(2026, 10, 25, tzinfo=UTC), (), window) == young
-    assert lift("polars").holding(datetime(2026, 10, 24, tzinfo=UTC), (), window) == (
-        lift("polars")
+
+def test_an_empty_report_says_every_pin_stands_at_its_newest_release():
+    """
+    Asserts that a report listing no lift prints one line saying so in place
+    of an empty table.
+    """
+    assert Report(lifts=()).table(date(2026, 10, 23)) == (
+        "Every pin stands at its newest release"
     )
 
 
-def test_a_release_the_window_holds_lifts_through_its_exemption_where_it_clears_an_advisory():
+def test_an_exact_pin_lifts_to_the_release_a_package_resolves():
     """
-    Asserts that a lift whose newest release is younger than the window and
-    clears an advisory keeps its edits and takes the exemptions it is given,
-    naming no instant the window ends.
+    Asserts that an exact pin lifts under the name PEP 503 normalizes it
+    to, dated by the resolved package's earliest upload, and rewrites the
+    version beside the name as the file spells it.
     """
-    pardon = Pardon(
-        kind  = Exemption.BUN,
-        name  = "polars",
-        path  = Path("docs/bunfig.toml"),
-        value = "1.5.0"
+    path = Path(".mise/tasks/gha/scoresheet.py")
+    pin  = Exact(
+        follows = True,
+        path    = path,
+        spelled = "MiniJinja",
+        version = "2.24.0"
     )
-    lifted = lift(
-        advisories = (Advisory(id="GHSA-x", link="https://x", package="polars"),),
-        name       = "polars",
-        released   = datetime(2026, 10, 22, tzinfo=UTC)
-    ).holding(datetime(2026, 10, 24, tzinfo=UTC), (pardon,), timedelta(days=3))
 
-    assert (lifted.pardons, lifted.held) == ((pardon,), None)
-
-
-def test_a_report_leaves_each_held_pin_out_of_what_it_writes_and_tries():
-    """
-    Asserts that `writable` and `leads` list no pin the window holds where
-    it stands, while `rows` and the table list it.
-    """
-    report = Report(
-        lifts = (
-            lift("held", held=datetime(2026, 10, 25, tzinfo=UTC)),
-            lift("free")
+    assert pin.lift(
+        Package.model_validate(
+            {
+                "name"    : "minijinja",
+                "version" : "3.0.3",
+                "sdist"   : {"upload-time": "2026-10-23T08:00:00Z"}
+            }
         )
+    ) == Lift(
+        current = "2.24.0",
+        edits   = (
+            Edit(
+                name     = "MiniJinja",
+                path     = path,
+                spelling = Spelling.REQUIREMENT,
+                version  = "3.0.3"
+            ),
+        ),
+        name     = "minijinja",
+        newest   = "3.0.3",
+        path     = path,
+        released = datetime(2026, 10, 23, 8, tzinfo=UTC)
     )
-
-    assert [lift.name for lift in report.rows] == ["free", "held"]
-    assert [lift.name for lift in report.writable] == ["free"]
-    assert report.leads == ("free",)
 
 
 @mark.parametrize(
@@ -614,7 +587,7 @@ def test_a_report_leaves_each_held_pin_out_of_what_it_writes_and_tries():
             "pyproject.toml",
             '[tool.uv]\nexclude-newer = "3 days"\nrequired-version = "==0.13.9"\n',
             ("polars", "2026-10-22T09:00:01Z"),
-            '[tool.uv]\n'
+            "[tool.uv]\n"
             'exclude-newer         = "3 days"\n'
             'exclude-newer-package = { polars = "2026-10-22T09:00:01Z" }\n'
             'required-version      = "==0.13.9"\n',
@@ -623,11 +596,11 @@ def test_a_report_leaves_each_held_pin_out_of_what_it_writes_and_tries():
         param(
             Exemption.UV,
             "pyproject.toml",
-            '[tool.uv]\n'
+            "[tool.uv]\n"
             'exclude-newer         = "3 days"\n'
             'exclude-newer-package = { polars = "2026-10-22T09:00:01Z" }\n',
             ("certifi", "2026-10-23T00:00:01Z"),
-            '[tool.uv]\n'
+            "[tool.uv]\n"
             'exclude-newer         = "3 days"\n'
             'exclude-newer-package = { certifi = "2026-10-23T00:00:01Z", '
             'polars = "2026-10-22T09:00:01Z" }\n',
@@ -642,7 +615,7 @@ def test_a_report_leaves_each_held_pin_out_of_what_it_writes_and_tries():
             '# /// script\n# requires-python = ">=3.14"\n#\n# [tool.uv]\n'
             '# exclude-newer         = "3 days"\n'
             '# exclude-newer-package = { minijinja = "2026-10-22T09:00:01Z" }\n'
-            '# ///\nprint(1)\n',
+            "# ///\nprint(1)\n",
             id = "uv-script"
         ),
         param(
@@ -670,51 +643,82 @@ def test_a_report_leaves_each_held_pin_out_of_what_it_writes_and_tries():
         param(
             Exemption.CARGO,
             "rust/Cargo.toml",
-            "[dependencies]\nshakmaty = \"0.30.2\"\n",
+            '[dependencies]\nshakmaty = "0.30.2"\n',
             ("shakmaty", "0.31.0"),
-            "[dependencies]\nshakmaty = \"0.30.2\"\n",
+            '[dependencies]\nshakmaty = "0.30.2"\n',
             id = "cargo-writes-no-file"
         )
     ]
 )
 def test_a_pardon_writes_its_exemption_beside_the_key_it_sorts_behind(
-    after  : str,
-    before : str,
-    kind   : Exemption,
-    pardon : tuple[str, str],
-    path   : str,
+    after    : str,
+    before   : str,
+    kind     : Exemption,
+    pardon   : tuple[str, str],
+    path     : str,
     tmp_path : Path
 ):
     """
-    Asserts that each resolver's exemption lands in its own file, merged with
-    the exemptions the file holds, on the line behind the key the window
-    sets, with the table's keys realigned on `=` in a task script's comment
-    block as in a TOML file, and that Cargo's leaves its manifest as it
-    stands.
+    Asserts that each resolver's exemption lands in its own file, merged
+    with the exemptions the file holds, on the line behind the key the
+    window sets, with the table's keys realigned on `=` in a task script's
+    comment block as in a TOML file, and that Cargo's leaves its manifest as
+    it stands.
     """
-    (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / path).parent.mkdir(exist_ok=True, parents=True)
     (tmp_path / path).write_text(before)
-    name, value = pardon
 
-    Pardon(kind=kind, name=name, path=Path(path), value=value).apply(tmp_path)
+    Pardon(
+        kind  = kind,
+        name  = pardon[0],
+        path  = Path(path),
+        value = pardon[1]
+    ).apply(tmp_path)
 
     assert (tmp_path / path).read_text() == after
 
 
-def test_a_package_settles_the_second_after_its_last_upload():
+def test_the_table_lists_each_lift_by_file_then_name(snapshot: SnapshotAssertion):
     """
-    Asserts that the instant a package settles at is the second after the
-    latest upload of any file it records, rounded up from the fraction, and
-    that a package recording no upload settles at none.
+    Asserts that the table holds a row per lift ordered by the file
+    declaring it and then by name, naming its age up to today, marking a
+    major lift, linking each advisory it clears, and naming the time the
+    window ends for a pin it holds where it stands.
     """
-    package = Package.model_validate(
-        {
-            "name"    : "polars",
-            "sdist"   : {"upload-time": "2026-10-22T09:00:00.250Z"},
-            "version" : "1.5.0",
-            "wheels"  : [{"upload-time": "2026-10-22T09:00:03.900Z"}]
-        }
+    report = Report(
+        lifts = (
+            lift(
+                current  = "0.12.13",
+                name     = "uv",
+                newest   = "0.13.5",
+                path     = Path(".mise/config.toml"),
+                released = datetime(2026, 10, 20, tzinfo=UTC)
+            ),
+            lift(
+                current    = "2026.10.19",
+                name       = "certifi",
+                newest     = "2026.10.23",
+                advisories = (Advisory(
+                    id      = "GHSA-x",
+                    link    = "https://x",
+                    package = "certifi"
+                ),),
+                path = Path("uv.lock")
+            ),
+            lift(
+                held     = datetime(2026, 10, 25, 12, 30, tzinfo=UTC),
+                name     = "polars",
+                newest   = "1.5.0",
+                path     = Path("uv.lock"),
+                released = datetime(2026, 10, 22, tzinfo=UTC)
+            ),
+            lift(
+                current = "1.4.3",
+                name    = "bun",
+                newest  = "1.4.4",
+                path    = Path(".mise/config.toml")
+            )
+        )
     )
 
-    assert package.settled == datetime(2026, 10, 22, 9, 0, 4, tzinfo=UTC)
-    assert Package(name="polars").settled is None
+    assert report.table(date(2026, 10, 23)) == snapshot

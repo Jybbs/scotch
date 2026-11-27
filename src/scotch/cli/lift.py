@@ -52,12 +52,12 @@ def pins(
     it, its current and newest versions, the newest release's age in days,
     whether the lift is major, and the advisories it clears. A pin whose
     newest release is younger than the window `[tool.uv].exclude-newer`
-    records stays where it stands, `--try` and `--write` leaving it so,
-    and its row names the time the window ends in `Clears`, unless the
-    release clears an advisory, which lifts the pin at once through an
-    exemption of that package and version alone. The lift of `node` stops
-    inside the major of the newest `@types/node`, since `repo:audit` holds
-    the two to one major.
+    records stays where it stands, `--try` and `--write` leaving it so, and
+    its row names the time the window ends in `Clears`, unless the release
+    clears an advisory, which lifts the pin at once through an exemption
+    of that package and version alone. The lift of `node` stops inside the
+    major of the newest `@types/node`, since `repo:audit` holds the two to
+    one major.
 
     Under `--try`, writes every lift the table lists but those of the pins
     `--hold` names and of each pin `repo:audit` holds to one of them, such

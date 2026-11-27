@@ -154,7 +154,7 @@ def test_a_lift_runs_each_step_in_turn_until_one_fails(
     )
 
 
-def test_a_lift_relocks_a_crate_the_window_holds_before_the_sync_and_writes_each_other_exemption(
+def test_a_lift_relocks_a_held_crate_before_the_sync_and_writes_each_other_exemption(
     fp       : FakeProcess,
     tmp_path : Path,
     tree     : Tree
@@ -204,7 +204,9 @@ def test_a_lift_relocks_a_crate_the_window_holds_before_the_sync_and_writes_each
     steps = called(fp)
 
     assert steps[3] == [
-        "mise", "-C", str(tree.root), "exec", "--", "cargo", "update",
+        "mise", "-C",
+        str(tree.root),
+        "exec", "--", "cargo", "update",
         "--manifest-path", "rust/Cargo.toml", "--package", "shakmaty",
         "--precise", "0.31.0", "--config", 'resolver.incompatible-publish-age="allow"'
     ]

@@ -768,8 +768,8 @@ class Package(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
     @property
     def uploads(self) -> tuple[AwareDatetime, ...]:
         """
-        Lists the instant each file the lockfile records for the version was
-        uploaded.
+        Lists the instant each file the lockfile records for the version
+        was uploaded.
         """
         return tuple(
             file.uploaded

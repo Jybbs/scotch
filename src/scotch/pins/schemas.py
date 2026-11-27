@@ -54,34 +54,15 @@ class Advisory(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         return f"[{self.id}]({self.link})"
 
 
-class CargoAdvisory(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+class Exemption(StrEnum):
     """
-    One diagnostic `cargo-deny --format json check advisories` prints for an
-    advisory against a crate a lockfile resolves.
-    """
-
-    id: str = Field(validation_alias=AliasPath("fields", "advisory", "id"))
-    """
-    The identifier the advisory database names the advisory by.
+    The resolvers that admit one release inside the window, each through the
+    exemption its own documentation gives.
     """
 
-    link: str = Field(validation_alias=AliasPath("fields", "advisory", "url"))
-    """
-    The address the advisory is published at.
-    """
-
-    package: str = Field(validation_alias=AliasPath("fields", "graphs", 0, "Krate", "name"))
-    """
-    The first crate of the dependency graph the diagnostic names, the one the
-    advisory concerns.
-    """
-
-    @property
-    def advisory(self) -> Advisory:
-        """
-        Reads the advisory.
-        """
-        return Advisory(id=self.id, link=self.link, package=self.package)
+    BUN   = auto()
+    CARGO = auto()
+    UV    = auto()
 
 
 class Failure(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -230,6 +211,40 @@ class Bulletin(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         return Advisory(id=self.url.rpartition("/")[2], link=self.url, package=package)
 
 
+class CargoAdvisory(
+    BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
+):
+    """
+    One diagnostic `cargo-deny --format json check advisories` prints for an
+    advisory against a crate a lockfile resolves.
+    """
+
+    id: str = Field(validation_alias=AliasPath("fields", "advisory", "id"))
+    """
+    The identifier the advisory database names the advisory by.
+    """
+
+    link: str = Field(validation_alias=AliasPath("fields", "advisory", "url"))
+    """
+    The address the advisory is published at.
+    """
+
+    package: str = Field(
+        validation_alias = AliasPath("fields", "graphs", 0, "Krate", "name")
+    )
+    """
+    The first crate of the dependency graph the diagnostic names, the one the
+    advisory concerns.
+    """
+
+    @property
+    def advisory(self) -> Advisory:
+        """
+        Reads the advisory.
+        """
+        return Advisory(id=self.id, link=self.link, package=self.package)
+
+
 class Edit(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     One rewrite of a version a file pins, which replaces each version the
@@ -287,17 +302,6 @@ class Edit(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
         file.write_text(written, encoding="utf-8")
 
 
-class Exemption(StrEnum):
-    """
-    The resolvers that admit one release inside the window, each through the
-    exemption its own documentation gives.
-    """
-
-    BUN   = auto()
-    CARGO = auto()
-    UV    = auto()
-
-
 class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     The exemption admitting the one release of a package a resolver holds
@@ -331,9 +335,9 @@ class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
     def apply(self, root: Path):
         """
-        Writes the exemption into the file at `path` under `root`, merging it
-        with the exemptions the file holds, or does nothing for Cargo, whose
-        relock takes the exemption as an argument.
+        Writes the exemption into the file at `path` under `root`, merging
+        it with the exemptions the file holds, or does nothing for Cargo,
+        whose relock takes the exemption as an argument.
 
         The key goes on the line after its anchor, the key it sorts behind,
         and the table's keys realign on `=`, in the comment block of a task
@@ -368,7 +372,8 @@ class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
             members = sorted(((existing or {}) | {self.name: self.value}).items())
             return "{ " + ", ".join(
-                f"{name if fullmatch(r'[\w-]+', name) else dumps(name)} = {dumps(value)}"
+                f"{name if fullmatch(r'[\w-]+', name) else dumps(name)} "
+                f"= {dumps(value)}"
                 for name, value in members
             ) + " }"
 
@@ -389,14 +394,14 @@ class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
             ) + 1
             lines.insert(at, f"{prefix}{key} = {literal(None)}\n")
         else:
-            held     = sub(rf"^{prefix}{escape(key)}\s*=\s*", "", lines[at]).rstrip()
+            held      = sub(rf"^{prefix}{escape(key)}\s*=\s*", "", lines[at]).rstrip()
             lines[at] = f"{prefix}{key} = {literal(held)}\n"
 
         start = max(
             (index for index in range(at) if lines[index].startswith(f"{prefix}[")),
             default = 0
         )
-        end   = next(
+        end = next(
             (
                 index
                 for index in range(at + 1, len(lines))
@@ -405,7 +410,7 @@ class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
             ),
             len(lines)
         )
-        keys  = {
+        keys = {
             index: found
             for index in range(start, end)
             if (found := fullmatch(rf"{prefix}([\w-]+)\s*=\s*(.*)\n?", lines[index]))
@@ -562,7 +567,9 @@ class Lift(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             "" if age is None else str(age),
             "yes" if self.major else "",
             ", ".join(advisory.cell for advisory in self.advisories),
-            self.held.astimezone(UTC).strftime("%Y-%m-%d %H:%M UTC") if self.held else ""
+            self.held.astimezone(UTC).strftime(
+                "%Y-%m-%d %H:%M UTC"
+            ) if self.held else ""
         )
 
     def clearing(self, advisories: Iterable[Advisory]) -> Self:
@@ -577,7 +584,12 @@ class Lift(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             update = {"advisories": tuple(sorted(concerning, key=attrgetter("id")))}
         )
 
-    def holding(self, now: AwareDatetime, pardons: tuple[Pardon, ...], window: timedelta) -> Self:
+    def holding(
+        self,
+        now     : AwareDatetime,
+        pardons : tuple[Pardon, ...],
+        window  : timedelta
+    ) -> Self:
         """
         Applies the window to a lift whose newest release was published less
         than `window` before `now`, leaving a lift to an older release as it
@@ -592,7 +604,7 @@ class Lift(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             return self.model_copy(update={"pardons": pardons})
 
         return self.model_copy(
-            update = {"edits": (), "held": ends, "upgraded": False}
+            update = {"held": ends, "upgraded": False, "edits": ()}
         )
 
     def write(self, root: Path):
@@ -730,14 +742,8 @@ class Report(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
 
         return markdown(
             (
-                "Pin",
-                "File",
-                "Current",
-                "Newest",
-                "Age in Days",
-                "Major",
-                "Advisories",
-                "Clears"
+                "Pin", "File", "Current", "Newest",
+                "Age in Days", "Major", "Advisories", "Clears"
             ),
             (lift.cells(today) for lift in self.rows),
             right = False

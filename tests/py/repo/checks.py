@@ -826,10 +826,10 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
                     "pyproject.toml",
                     None,
                     "`[tool.uv].exclude-newer` is `2 days` where the window is "
-                    "`N days` for an `N` of at least 3"
+                    "`3 days`"
                 )
             ],
-            id = "release-age-below-the-floor"
+            id = "release-age-other-than-three-days"
         ),
         param(
             ReleaseAgeCheck,
@@ -839,7 +839,7 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
                     "pyproject.toml",
                     None,
                     "`[tool.uv].exclude-newer` is `1 week` where the window is "
-                    "`N days` for an `N` of at least 3"
+                    "`3 days`"
                 )
             ],
             id = "release-age-spelled-other-than-days"
@@ -849,8 +849,7 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
             [(".mise/tasks/gha/scoresheet", '"3 days"', '"7 days"')],
             [
                 (
-                    ".mise/tasks/gha/scoresheet",
-                    None,
+                    ".mise/tasks/gha/scoresheet", None,
                     "`exclude-newer` is `7 days` where `pyproject.toml` sets `3 days`"
                 )
             ],
@@ -891,8 +890,7 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
         param(
             ReleaseAgeCheck,
             [(
-                ".cargo/config.toml",
-                '"3 days"\n',
+                ".cargo/config.toml", '"3 days"\n',
                 '"3 days"\n\n[resolver]\nincompatible-publish-age = "allow"\n'
             )],
             [
@@ -961,14 +959,12 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
         param(
             ReleaseAgeCheck,
             [(
-                "docs/bunfig.toml",
-                "259200\n",
+                "docs/bunfig.toml", "259200\n",
                 '259200\nminimumReleaseAgeExcludes = ["vitest"]\n'
             )],
             [
                 (
-                    "docs/bunfig.toml",
-                    None,
+                    "docs/bunfig.toml", None,
                     "`vitest` exempts more than one exact version"
                 )
             ],
@@ -1631,22 +1627,6 @@ def test_a_departure_draws_the_checks_findings(
     ) for path, line, message in findings]
 
 
-def test_a_site_with_no_bunfig_is_a_finding_at_where_it_belongs(answered: Sample):
-    """
-    Asserts that a site holding no `bunfig.toml` draws one finding at the
-    file's place beside `package.json`, since Bun then holds no release.
-    """
-    (answered.root / "docs" / "bunfig.toml").rename(answered.root / "docs" / "bunfig.junk")
-
-    assert scan(ReleaseAgeCheck, answered) == [
-        (
-            Path("docs/bunfig.toml"),
-            None,
-            "The site's `bunfig.toml` is missing, so Bun holds no release"
-        )
-    ]
-
-
 def test_a_config_in_the_crates_folder_overrides_the_age_of_the_root(answered: Sample):
     """
     Asserts that a `.cargo/config.toml` in the crate's folder carrying a
@@ -1654,7 +1634,9 @@ def test_a_config_in_the_crates_folder_overrides_the_age_of_the_root(answered: S
     since the deepest file sets the age Cargo reads there.
     """
     (folder := answered.root / "rust" / ".cargo").mkdir()
-    (folder / "config.toml").write_text('[registry]\nglobal-min-publish-age = "1 days"\n')
+    (folder / "config.toml").write_text(
+        '[registry]\nglobal-min-publish-age = "1 days"\n'
+    )
 
     assert scan(ReleaseAgeCheck, answered) == [
         (
@@ -1664,6 +1646,27 @@ def test_a_config_in_the_crates_folder_overrides_the_age_of_the_root(answered: S
             "`rust`, where the window is `3 days`"
         )
     ]
+
+
+def test_a_literal_string_alias_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias written as a TOML literal string draws a
+    finding at the line declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = "#MISE alias = 'audit'\nuv run",
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
 
 
 @mark.parametrize(
@@ -1696,7 +1699,8 @@ def test_a_bun_exemption_is_a_finding_once_its_release_has_aged(
     fp.register(
         [
             "mise", "exec", "--", "bun", "info",
-            f"--cwd={answered.root / 'docs'}", "vitest", "time", "--json"
+            f"--cwd={answered.root / 'docs'}",
+            "vitest", "time", "--json"
         ],
         stdout = dumps({"5.0.5": published} if published else {})
     )
@@ -1754,27 +1758,6 @@ def test_each_listed_directive_fails(
     ] == [(2, directive)]
 
 
-def test_a_literal_string_alias_is_a_finding_at_its_line(
-    fp     : FakeProcess,
-    sample : Sample
-):
-    """
-    Asserts that a colliding alias written as a TOML literal string draws a
-    finding at the line declaring it.
-    """
-    sample.edit(
-        ".mise/tasks/py/test",
-        new = "#MISE alias = 'audit'\nuv run",
-        old = "uv run"
-    )
-    sample.answer(fp, aliases={"py:test": ("audit",)})
-
-    assert scan(AliasCheck, sample) == [(
-        Path(".mise/tasks/py/test"),
-        2, "`mise audit` runs mise's own `audit` command rather than `py:test`"
-    )]
-
-
 def test_a_name_quoted_before_the_alias_leaves_the_finding_at_the_alias(
     fp     : FakeProcess,
     sample : Sample
@@ -1794,6 +1777,23 @@ def test_a_name_quoted_before_the_alias_leaves_the_finding_at_the_alias(
         Path(".mise/tasks/py/test"),
         3, "`mise audit` runs mise's own `audit` command rather than `py:test`"
     )]
+
+
+def test_a_site_with_no_bunfig_is_a_finding_at_where_it_belongs(answered: Sample):
+    """
+    Asserts that a site holding no `bunfig.toml` draws one finding at the
+    file's place beside `package.json`, since Bun then holds no release.
+    """
+    (
+        answered.root / "docs" / "bunfig.toml"
+    ).rename(answered.root / "docs" / "bunfig.junk")
+
+    assert scan(ReleaseAgeCheck, answered) == [
+        (
+            Path("docs/bunfig.toml"),
+            None, "The site's `bunfig.toml` is missing, so Bun holds no release"
+        )
+    ]
 
 
 def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(

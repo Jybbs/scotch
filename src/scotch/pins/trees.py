@@ -286,11 +286,10 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
 
         exempted = [
             (
-                "exec", "--", "cargo", "update",
-                "--manifest-path", str(pardon.path),
-                "--package", pardon.name,
-                "--precise", pardon.value,
-                "--config", 'resolver.incompatible-publish-age="allow"'
+                "exec", "--", "cargo", "update", "--manifest-path",
+                str(pardon.path),
+                "--package", pardon.name, "--precise",
+                pardon.value, "--config", 'resolver.incompatible-publish-age="allow"'
             )
             for lift in lifts
             for pardon in lift.pardons

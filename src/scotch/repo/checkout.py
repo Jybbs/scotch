@@ -359,17 +359,17 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         ]
         return CargoConfig.model_validate(
             {
-                "path": next(
+                "path"     : next(
                     (file.path for file in files if file.age),
                     self.root / ".cargo" / "config.toml"
                 ),
-                "registry": {
+                "registry" : {
                     "global-min-publish-age": next(
                         (file.age for file in files if file.age),
                         None
                     )
                 },
-                "resolver": {
+                "resolver" : {
                     "incompatible-publish-age": next(
                         (file.policy for file in files if file.policy),
                         None
@@ -431,7 +431,8 @@ class Checkout(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         report = run(
             [
                 "mise", "exec", "--", "bun", "info",
-                f"--cwd={self.site.path.parent}", package, "time", "--json"
+                f"--cwd={self.site.path.parent}",
+                package, "time", "--json"
             ],
             capture_output = True,
             check          = True,
