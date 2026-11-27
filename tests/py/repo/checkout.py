@@ -143,7 +143,9 @@ def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
 
     assert [path.relative_to(root) for path, _ in checkout.steps] == [
         *[Path("workflows/ci.yml")] * 5,
+        *[Path("workflows/deploy.yml")] * 4,
         *[Path("workflows/site.yml")] * 9,
+        *[Path("workflows/store.yml")] * 2,
         *[Path("workflows/warm.yml")] * 4,
         Path("actions/provision/action.yml")
     ]
@@ -151,6 +153,7 @@ def test_the_steps_pair_with_the_file_declaring_them(sample: Sample):
         ("ci.yml", {Cache.TOOLS: "python uv"}),
         ("ci.yml", {Cache.CARGO: "scotch-python", Cache.TOOLS: "python uv"}),
         ("ci.yml", {Cache.TOOLS: "python uv"}),
+        ("deploy.yml", {Cache.TOOLS: "python uv"}),
         ("site.yml", {Cache.TOOLS: "python uv"}),
         ("site.yml", {Cache.TOOLS: "python uv"}),
         ("site.yml", {Cache.TOOLS: "python uv"}),

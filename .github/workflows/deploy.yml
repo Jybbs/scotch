@@ -146,6 +146,7 @@ on:
       - .mise/tasks/gha/reuse.py
       - .mise/tasks/gha/total
       - .mise/tasks/py/coverage
+      - .mise/tasks/rs/wasm
       - .mise/tasks/site/**
       - docs/**
       - src/**

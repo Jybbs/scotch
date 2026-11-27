@@ -1,0 +1,24 @@
+jobs:
+  deploy:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Start the deploy
+        run: gh workflow run deploy.yml --ref main
+  scoresheet:
+    if: ${{ always() }}
+    name: 🖋️ Scoresheet
+    needs: deploy
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Write the summary
+        run: mise run gha:scoresheet
+name: Store
+on:
+  push:
+    paths:
+      - .github/actions/provision/action.yml
+      - .github/workflows/store.yml
+      - .mise/bin/**
+      - .mise/config.toml
+      - rust/**
+  workflow_dispatch:

@@ -22,6 +22,7 @@ from scotch.repo.checks  import (
     Check,
     CommandCheck,
     ContributingCheck,
+    DeployCheck,
     DraftCheck,
     ExactPinCheck,
     FilterCheck,
@@ -493,6 +494,119 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
             [],
             id = "checks-table-row-outside-pull-requests"
         ),
+        param(
+            DeployCheck,
+            [],
+            [],
+            id = "filters-covering-every-input"
+        ),
+        param(
+            DeployCheck,
+            [(".github/workflows/deploy.yml", "      - .mise/tasks/rs/wasm\n", "")],
+            [(
+                ".github/workflows/deploy.yml",
+                None,
+                "No `push` filter starting `deploy.yml` matches "
+                "`.mise/tasks/rs/wasm`, which its jobs build from"
+            )],
+            id = "task-file-of-a-dependency"
+        ),
+        param(
+            DeployCheck,
+            [(".github/workflows/deploy.yml", "      - .mise/tasks/py/coverage\n", "")],
+            [(
+                ".github/workflows/deploy.yml",
+                None,
+                "No `push` filter starting `deploy.yml` matches "
+                "`.mise/tasks/py/coverage`, which its jobs build from"
+            )],
+            id = "task-file-a-step-runs"
+        ),
+        param(
+            DeployCheck,
+            [
+                (
+                    ".github/workflows/deploy.yml",
+                    "      - .mise/tasks/site.toml\n      - .mise/tasks/site/**\n",
+                    ""
+                ),
+                (
+                    ".github/workflows/store.yml",
+                    "      - .github/workflows/store.yml\n",
+                    "      - .github/workflows/store.yml\n      - .mise/tasks/site/**\n"
+                )
+            ],
+            [(
+                ".github/workflows/deploy.yml",
+                None,
+                "No `push` filter starting `deploy.yml` matches "
+                "`.mise/tasks/site.toml`, which its jobs build from"
+            )],
+            id = "filter-of-the-starting-workflow"
+        ),
+        param(
+            DeployCheck,
+            [(".github/workflows/store.yml", "      - rust/**\n", "")],
+            [
+                (
+                    ".github/workflows/deploy.yml", None,
+                    "No `push` filter starting `deploy.yml` matches "
+                    f"`rust/{path}`, which its jobs build from"
+                )
+                for path in ("Cargo.toml", "src/boards.rs")
+            ],
+            id = "sources-of-a-task"
+        ),
+        param(
+            DeployCheck,
+            [(".github/workflows/store.yml", "      - .mise/bin/**\n", "")],
+            [
+                (
+                    ".github/workflows/deploy.yml", None,
+                    "No `push` filter starting `deploy.yml` matches "
+                    f"`.mise/bin/{name}`, which its jobs build from"
+                )
+                for name in ("prose", "pytest")
+            ],
+            id = "wrappers"
+        ),
+        *[
+            param(
+                DeployCheck,
+                [(".github/workflows/store.yml", f"      - {path}\n", "")],
+                [(
+                    ".github/workflows/deploy.yml", None,
+                    "No `push` filter starting `deploy.yml` matches "
+                    f"`{path}`, which its jobs build from"
+                )],
+                id = f"{kind}-of-the-tools"
+            )
+            for kind, path in (
+                ("action", ".github/actions/provision/action.yml"),
+                ("config", ".mise/config.toml")
+            )
+        ],
+        *[
+            param(
+                DeployCheck,
+                [(
+                    f".github/workflows/{workflow}.yml",
+                    "  workflow_dispatch:\n",
+                    f"      - {line}\n  workflow_dispatch:\n"
+                )],
+                [(
+                    f".github/workflows/{workflow}.yml",
+                    None,
+                    f"The `push` filter's `{glob}` matches no tracked file"
+                )],
+                id = f"{kind}-glob-in-{workflow}"
+            )
+            for workflow in ("deploy", "store")
+            for kind, line, glob in (
+                ("negated", "'!src/gone.py'", "!src/gone.py"),
+                ("plain", "docs/gone/**", "docs/gone/**")
+            )
+        ],
         param(
             InputCheck,
             [
@@ -1184,6 +1298,10 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
                 (
                     ".github/workflows/ci.yml", None,
                     "`check` writes the step summary, which only the gate writes"
+                ),
+                (
+                    ".github/workflows/deploy.yml", None,
+                    "`press` writes the step summary, which only the gate writes"
                 ),
                 (
                     ".github/actions/provision/action.yml", None,
@@ -2105,8 +2223,8 @@ def test_a_dependency_no_row_runs_is_a_finding_at_the_file_declaring_repo_ci(
             id = "bunx-through-an-escape"
         ),
         param(
-            'depends = ["site:install"]\nrun     = "vitepress build docs"',
-            'depends     = ["site:install"]\n'
+            'depends = ["rs:wasm", "site:install"]\nrun     = "vitepress build docs"',
+            'depends     = ["rs:wasm", "site:install"]\n'
             'description = "Build the site through bunx vitepress"\n'
             'run         = "vitepress build docs"',
             [],

@@ -36,7 +36,7 @@ from typing             import ClassVar
 from scotch.docs.project  import addresses
 from scotch.docs.stops    import Stops
 from scotch.repo.checkout import Checkout
-from scotch.repo.schemas  import Cache, Finding, exact
+from scotch.repo.schemas  import Cache, Finding, Trigger, exact
 
 
 class Check(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -228,6 +228,104 @@ class ContributingCheck(Check):
                 ),
                 path = contributing.path
             )
+
+
+class DeployCheck(Check):
+    """
+    Fails where the `push` filters of `deploy.yml` and of each workflow
+    starting it through `gh workflow run` leave a tracked file the jobs of
+    `deploy.yml` build from firing none of them, or hold a glob matching no
+    tracked file, a negated one included, those files being:
+
+    - Each task file a job other than the gate runs, and each task file
+      in the chain of tasks its `depends` reaches
+    - Each file the `sources` of those tasks match
+    - The provisioning action's manifest, the wrappers, and the mise config
+      and lockfile, through which every job installs and runs its tools
+    """
+
+    def scan(self) -> Iterator[Finding]:
+        """
+        Yields a finding at `deploy.yml` for each such file, and at the
+        workflow declaring it for each such glob.
+        """
+        root    = self.checkout.root
+        tracked = set(self.checkout.tracked)
+        named   = {task.name: task for task in self.checkout.tasks}
+
+        for deploy in (
+            workflow
+            for workflow in self.checkout.workflows
+            if workflow.path.name == "deploy.yml"
+        ):
+            starters = [
+                deploy,
+                *(
+                    workflow
+                    for workflow in self.checkout.workflows
+                    if any(
+                        f"gh workflow run {deploy.path.name}" in step.run
+                        for step in workflow.steps
+                    )
+                )
+            ]
+            steps   = [step for job in deploy.rows for step in job.instances]
+            reached = {name for step in steps for name in step.tasks}
+
+            while grown := {
+                name
+                for task in reached if task in named
+                for name in named[task].depends
+            } - reached:
+                reached |= grown
+
+            tasks = [named[name] for name in sorted(reached) if name in named]
+            built = {
+                *(self.checkout.declaring(task).relative_to(root) for task in tasks),
+                *(Path(command) for step in steps for command in step.commands),
+                *(
+                    path
+                    for task in tasks
+                    for pattern in task.sources
+                    for path in tracked
+                    if path.full_match(
+                        (task.dir.relative_to(root) if task.dir else Path()) / pattern
+                    )
+                ),
+                *(
+                    action.path.relative_to(root)
+                    for action in self.checkout.actions
+                    if action.provisions
+                ),
+                *(wrapper.relative_to(root) for wrapper in self.checkout.wrappers),
+                self.checkout.mise.lockfile.relative_to(root),
+                self.checkout.mise.path.relative_to(root)
+            } & tracked
+
+            for path in sorted(built):
+                if not any(workflow.fires("push", path) for workflow in starters):
+                    yield Finding(
+                        message = (
+                            f"No `push` filter starting `{deploy.path.name}` "
+                            f"matches `{path}`, which its jobs build from"
+                        ),
+                        path = deploy.path
+                    )
+
+            for workflow in starters:
+                push = workflow.triggers.get("push", Trigger())
+
+                for glob in (*push.paths, *push.paths_ignore):
+                    if not any(
+                        path.full_match(glob.removeprefix("!")) for path in tracked
+                    ):
+                        yield Finding(
+                            message = (
+                                f"The `push` filter's `{glob}` matches no "
+                                "tracked file"
+                            ),
+                            path = workflow.path
+                        )
 
 
 class DraftCheck(Check):

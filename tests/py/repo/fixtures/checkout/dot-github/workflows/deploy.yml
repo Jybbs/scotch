@@ -1,0 +1,30 @@
+jobs:
+  press:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Install the tools
+        uses: $/.github/actions/provision
+        with:
+          tools: python uv
+      - name: Build the site
+        run: mise run site:press
+      - name: Run the suite
+        run: .mise/tasks/py/coverage
+  scoresheet:
+    if: ${{ always() }}
+    name: 🖋️ Scoresheet
+    needs: press
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Write the summary
+        run: mise run gha:scoresheet
+name: Deploy
+on:
+  push:
+    paths:
+      - .github/workflows/deploy.yml
+      - .mise/tasks/py/coverage
+      - .mise/tasks/rs/wasm
+      - .mise/tasks/site.toml
+      - .mise/tasks/site/**
+  workflow_dispatch:

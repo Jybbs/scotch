@@ -245,6 +245,12 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     The sentence `mise tasks ls` prints beside the task.
     """
 
+    dir: Path | None = None
+    """
+    The directory the task runs in, which its `sources` patterns are
+    relative to, `None` where it lies outside the checkout.
+    """
+
     run: tuple[str | dict[str, JsonValue], ...] = ()
     """
     What a task declared in TOML runs, each entry a command or a table
@@ -256,6 +262,12 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
     The file declaring the task, its file for a script and the TOML file
     holding its table for a task declared in TOML, `None` where mise names
     none.
+    """
+
+    sources: tuple[str, ...] = ()
+    """
+    The patterns naming the files whose change reruns the task, relative to
+    `dir`.
     """
 
     @property
@@ -282,10 +294,10 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         Runs `mise tasks ls`, listing the tasks the repository under `root`
         declares and leaving out the global ones.
 
-        mise prints each task's file and source as absolute paths with every
-        symlink resolved, so each one is joined back onto `root`, whereas
-        one outside `root`, from a config in a directory above it, reads
-        as `None`.
+        mise prints each task's directory, file, and source as absolute
+        paths with every symlink resolved, so each one is joined back onto
+        `root`, whereas one outside `root`, from a config in a directory
+        above it, reads as `None`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
@@ -302,7 +314,7 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
                         if path.is_relative_to(root.resolve())
                         else None
                     )
-                    for field in ("file", "source")
+                    for field in ("dir", "file", "source")
                     if (path := getattr(task, field))
                 }
             )
