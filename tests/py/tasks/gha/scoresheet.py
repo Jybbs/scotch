@@ -17,6 +17,30 @@ from types            import ModuleType
 pytestmark = mark.usefixtures("from_root")
 
 
+def test_a_single_report_at_the_top_of_the_folder_is_read(
+    task     : ModuleType,
+    tmp_path : Path
+):
+    """
+    Asserts that the summary lists the tasks of one `report.json` written
+    straight into the folder `REPORTS` names, where the download of a single
+    artifact leaves no folder of its own.
+    """
+    (tmp_path / "report.json").write_text(
+        dumps(
+            {"tasks": [{"duration_ms": 900, "name": "lock:check", "status": "passed"}]}
+        )
+    )
+    run = task.Run.from_environ(
+        {
+            **variables("ci", needs={"check": {"result": "success", "outputs": {}}}),
+            "REPORTS": str(tmp_path)
+        }
+    )
+
+    assert "| `lock:check` | passed | 0.9s |" in run.render()
+
+
 def test_the_run_reads_the_variables_the_gate_sets(task: ModuleType):
     """
     Asserts that the run reads the pull request's head branch, falling back
@@ -41,24 +65,6 @@ def test_the_run_reads_the_variables_the_gate_sets(task: ModuleType):
     assert task.Run.from_environ(
         variables("ci", head="", needs=needs)
     ).branch == "main"
-
-
-def test_the_summary_is_appended_after_what_the_file_holds(
-    task     : ModuleType,
-    tmp_path : Path
-):
-    """
-    Asserts that the summary is appended to the file the runner collects it
-    from, after whatever the file already holds.
-    """
-    summary = tmp_path / "summary.md"
-    summary.write_text("earlier\n")
-    run = task.Run.from_environ(
-        variables("warm", needs={"kit": {"result": "success", "outputs": {}}})
-    )
-    run.write(summary)
-
-    assert summary.read_text() == "earlier\n" + run.render()
 
 
 @mark.parametrize(
@@ -247,6 +253,24 @@ def test_the_summary_renders_from_the_workflows_template(
     its file, or from `base.md.j2` where none is, as its snapshot holds it.
     """
     assert task.Run.from_environ(variables(workflow, needs=needs)).render() == snapshot
+
+
+def test_the_summary_is_appended_after_what_the_file_holds(
+    task     : ModuleType,
+    tmp_path : Path
+):
+    """
+    Asserts that the summary is appended to the file the runner collects it
+    from, after whatever the file already holds.
+    """
+    summary = tmp_path / "summary.md"
+    summary.write_text("earlier\n")
+    run = task.Run.from_environ(
+        variables("warm", needs={"kit": {"result": "success", "outputs": {}}})
+    )
+    run.write(summary)
+
+    assert summary.read_text() == "earlier\n" + run.render()
 
 
 def test_the_summary_lists_each_task_the_rows_reported(

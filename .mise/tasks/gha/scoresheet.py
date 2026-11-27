@@ -146,7 +146,8 @@ class Run:
         run, `COMMIT`, where `GITHUB_HEAD_REF` names a pull request's
         head branch and is empty on any other event. Where the rows
         attached reports, `REPORTS` names the folder holding each one as
-        `<row>/report.json`.
+        `<row>/report.json`, or as `report.json` itself where only one row
+        attached one.
         """
         return cls(
             branch = variables.get("GITHUB_HEAD_REF") or variables["GITHUB_REF_NAME"],
@@ -156,7 +157,7 @@ class Run:
             ).items()},
             tasks = tuple(
                 Task(**{key: task[key] for key in ("duration_ms", "name", "status")})
-                for report in sorted(Path(reports).glob("*/report.json"))
+                for report in sorted(Path(reports).rglob("report.json"))
                 for task in loads(report.read_text())["tasks"]
             ) if (reports := variables.get("REPORTS")) else (),
             workflow = Path(variables["GITHUB_WORKFLOW_REF"].partition("@")[0]).stem

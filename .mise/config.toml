@@ -12,8 +12,20 @@ hint        = "mise relock"
 run         = "cargo metadata --format-version 1 --locked --manifest-path rust/Cargo.toml >/dev/null"
 timeout     = "30s"
 
+[doctor.checks.mise-lock]
+description = "`.mise/mise.lock` matches `.mise/config.toml`"
+hint        = "mise relock"
+run         = "mise lock --check"
+timeout     = "30s"
+
+[doctor.checks.script-locks]
+description = "Each task script's lockfile matches the script's inline metadata"
+hint        = "mise relock"
+run         = 'for script in $(grep -lrsx "# /// script" .mise/tasks); do uv lock --check --script "$script" || exit; done'
+timeout     = "30s"
+
 [doctor.checks.site-packages]
-description = "`docs/node_modules` holds the packages `docs/bun.lock` names"
+description = "`docs/node_modules` exists"
 hint        = "mise run site:install"
 run         = "test -d docs/node_modules"
 timeout     = "5s"
@@ -21,7 +33,7 @@ timeout     = "5s"
 [doctor.checks.tests-link]
 description = "`tests/node_modules` links to `docs/node_modules`"
 hint        = "mise run site:install"
-run         = 'test -d tests/node_modules && test "$(cd tests/node_modules && pwd -P)" = "$(cd docs/node_modules && pwd -P)"'
+run         = 'test -L tests/node_modules && test "$(cd tests/node_modules && pwd -P)" = "$(cd docs/node_modules && pwd -P)"'
 timeout     = "5s"
 
 [doctor.checks.uv-lock]

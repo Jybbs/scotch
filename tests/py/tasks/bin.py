@@ -12,7 +12,7 @@ on a line of its own.
 from collections.abc  import Callable
 from common.stand_ins import StandIn, Wrapper
 from pathlib          import Path
-from pytest           import Metafunc, param
+from pytest           import Config, Metafunc, param
 
 from scotch.cli           import app
 from scotch.repo.checkout import Checkout
@@ -65,3 +65,20 @@ def test_a_wrapper_runs_its_program_from_its_project_venv(
     assert Path(project).resolve() == wrapper.project
     assert Path(program).resolve() == wrapper.program
     assert uv.arguments[len(flags) + 4:] == ["two words", "--flag"]
+
+
+def test_prose_stops_where_the_environment_sync_fails(
+    pytestconfig : Config,
+    stand_in     : Callable[..., StandIn],
+    tmp_path     : Path
+):
+    """
+    Asserts that the `prose` wrapper exits with the sync's status and
+    never runs the formatter where `uv sync` fails, so no run reads a stale
+    environment.
+    """
+    calls = tmp_path / "calls.log"
+    prose = Wrapper(path=pytestconfig.rootpath / ".mise" / "bin" / "prose")
+
+    assert stand_in("uv", f'echo "$1" >> "{calls}"; exit 3').run(prose).returncode == 3
+    assert calls.read_text().splitlines() == ["sync"]
