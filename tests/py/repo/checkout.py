@@ -5,6 +5,7 @@ render docs` writing.
 """
 
 from common.sample import Sample
+from json          import dumps
 from pathlib       import Path
 from pytest        import MonkeyPatch
 from pytest_subprocess.fake_process import FakeProcess
@@ -12,7 +13,7 @@ from pytest_subprocess.fake_process import FakeProcess
 from scotch.cli            import app
 from scotch.docs.inventory import Outputs
 from scotch.repo.checkout  import Checkout
-from scotch.repo.schemas   import Cache, Step
+from scotch.repo.schemas   import Cache, Step, Task
 
 
 def test_a_step_finds_the_action_its_self_repository_path_names(sample: Sample):
@@ -39,6 +40,34 @@ def test_a_step_summarizes_through_its_script_or_a_task_it_runs(answered: Sample
     assert checkout.summarizes(gate)
     assert checkout.summarizes(Step(run='echo >> "$GITHUB_STEP_SUMMARY"'))
     assert not any(checkout.summarizes(step) for step in row.instances)
+
+
+def test_a_task_a_config_above_the_root_declares_keeps_no_source(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a task whose source lies outside the checkout's root, from
+    a config in a directory above it, lists with no file and no source.
+    """
+    fp.register(
+        ["mise", "tasks", "ls", "--json", "--local"],
+        stdout = dumps(
+            [
+                {
+                    "file"    : None,
+                    "name"    : "up:task",
+                    "aliases" : [],
+                    "depends" : [],
+                    "run"     : ["echo up"],
+                    "source"  : str(sample.root.resolve().parent / "mise.toml")
+                }
+            ]
+        )
+    )
+    (task,) = Task.listed(sample.root)
+
+    assert (task.file, task.source) == (None, None)
 
 
 def test_the_checks_leave_out_a_task_another_task_of_the_leg_depends_on(

@@ -283,7 +283,9 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         declares and leaving out the global ones.
 
         mise prints each task's file and source as absolute paths with every
-        symlink resolved, so each one is joined back onto `root`.
+        symlink resolved, so each one is joined back onto `root`, whereas
+        one outside `root`, from a config in a directory above it, reads
+        as `None`.
         """
         listing = run(
             ["mise", "tasks", "ls", "--json", "--local"],
@@ -295,7 +297,11 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         return tuple(
             task.model_copy(
                 update = {
-                    field: root / path.relative_to(root.resolve())
+                    field: (
+                        root / path.relative_to(root.resolve())
+                        if path.is_relative_to(root.resolve())
+                        else None
+                    )
                     for field in ("file", "source")
                     if (path := getattr(task, field))
                 }

@@ -2061,6 +2061,17 @@ def test_a_dependency_no_row_runs_is_a_finding_at_the_file_declaring_repo_ci(
         ),
         param(
             'run     = "vitepress build docs"',
+            'run     = ["vitepress build docs", "bunx lychee docs"]',
+            [(
+                Path(".mise/tasks/site.toml"),
+                7,
+                "`bunx` and `bun x` can run a copy of a tool from outside "
+                "`docs/node_modules`"
+            )],
+            id = "bunx-in-a-later-string-of-run"
+        ),
+        param(
+            'run     = "vitepress build docs"',
             'run     = "bun\\u0078 vitepress build docs"',
             [(
                 Path(".mise/tasks/site.toml"),
