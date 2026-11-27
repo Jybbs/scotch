@@ -915,7 +915,7 @@ class StopCheck(Check):
                     )
 
         for stop in stops.stops:
-            if stop.template not in held:
+            if not stop.external and stop.template not in held:
                 yield Finding(
                     line    = None,
                     message = f"`{stop.message}` is held by no file `modules` names",

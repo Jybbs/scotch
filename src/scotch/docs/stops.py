@@ -49,6 +49,12 @@ class Stop(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     the Guide's sentence on the games a match refuses names it.
     """
 
+    external: bool = False
+    """
+    Whether a library prints the message before the command runs, so no file
+    `Stops.modules` lists holds it.
+    """
+
     phrase: str | None = None
     """
     The phrase finishing *"A match refuses a file that"* for the message,
