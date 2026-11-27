@@ -92,7 +92,7 @@ function sum(keyed: Keyed, ply: number, moving: boolean): VNode {
       row(named('The key before', 'text-quiet', ''), cells(before, index => ply > 0 && before[index] !== after[index]), 'before'),
       stacked(shown - 1, plies.map(at => turns(keyed, at, at === shown, moving)))
     ]),
-    h('hr', { class: 'm-0! border-rule sm:ml-[14.25rem]' }),
+    h('hr', { class: 'm-0! border-rule border-t-2! sm:ml-[14.25rem]' }),
     row(named(ply ? 'The key after' : 'The key of the start', 'text-run', '='),
       reels(after, ply ? before : undefined, moving), 'after')
   ])
