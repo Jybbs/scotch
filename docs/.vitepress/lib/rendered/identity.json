@@ -258,7 +258,11 @@
       "light": "series_3"
     },
     "submitted": {
-      "dark": "series_2",
+      "dark": [
+        "series_2",
+        89,
+        "ground"
+      ],
       "kind": "mark",
       "light": "series_2"
     },
@@ -271,7 +275,7 @@
       "kind": "ground",
       "light": [
         "ground",
-        88,
+        91,
         "primary"
       ]
     }

@@ -509,7 +509,11 @@ class Roles(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     The stored game.
     """
 
-    submitted: Role = Role(dark="series_2", kind="mark", light="series_2")
+    submitted: Role = Role(
+        dark  = ("series_2", 89, "ground"),
+        kind  = "mark",
+        light = "series_2"
+    )
     """
     The submitted game.
     """
@@ -517,7 +521,7 @@ class Roles(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
     tint: Role = Role(
         dark  = ("dark", 88, "light"),
         kind  = "ground",
-        light = ("ground", 88, "primary")
+        light = ("ground", 91, "primary")
     )
     """
     The ground of a note or a picked row.
