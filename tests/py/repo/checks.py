@@ -2138,19 +2138,19 @@ def test_the_relative_file_of_a_toml_task_is_read_from_its_configs_folder(
 ):
     """
     Asserts that a TOML task whose `file` is a relative path, as mise prints
-    it, has the script `mise run` starts for it read, the folder holding
-    its config, less a `.mise` or `.config/mise` folder, being where the
-    path starts, so a `bunx` in it is a finding.
+    it, has the script `mise run` starts for it read, the folder holding its
+    config, less a `.mise` or `.config/mise` folder, being where the path
+    starts, so a `bunx` in it is a finding.
     """
     file = sample.root / script
-    file.parent.mkdir(parents=True, exist_ok=True)
+    file.parent.mkdir(exist_ok=True, parents=True)
     file.write_text("#!/usr/bin/env -S bash -euo pipefail\nbunx vitest\n")
     sample.answer(
         fp,
         listed = [{
-            "depends" : [],
             "file"    : "scripts/lint",
             "name"    : "site:lint",
+            "depends" : [],
             "source"  : str((sample.root / config).resolve())
         }]
     )

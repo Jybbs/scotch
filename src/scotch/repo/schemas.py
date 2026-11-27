@@ -282,10 +282,10 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         Runs `mise tasks ls`, listing the tasks the repository under `root`
         declares and leaving out the global ones.
 
-        mise prints a script's file and each task's source as absolute paths
-        with every symlink resolved, but a TOML task's `file` as the config
-        writes it. `mise run` starts a relative one from the directory
-        holding the config, stepping out of `.mise`, `.config`,
+        mise prints a script's file and each task's source as absolute
+        paths with every symlink resolved, but a TOML task's `file` as
+        the config writes it. `mise run` starts a relative one from the
+        directory holding the config, stepping out of `.mise`, `.config`,
         `.config/mise`, or `mise` and a `conf.d` inside it, so each file and
         source is resolved from there and joined back onto `root`, whereas
         one outside `root`, from a config in a directory above it, reads
@@ -301,24 +301,25 @@ class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
         base = root.resolve()
 
         def inside(path: Path | None) -> Path | None:
-            return root / path.relative_to(base) if (
-                path and path.is_relative_to(base)
-            ) else None
+            return (
+                root / path.relative_to(base)
+                if path and path.is_relative_to(base)
+                else None
+            )
+
+        def home(task: Self) -> Path:
+            return Path(
+                sub(
+                    r"/(?:\.config(?:/mise)?|\.mise|mise)(?:/conf\.d)?$",
+                    "",
+                    str(task.source.parent)
+                )
+            ) if task.source else base
 
         return tuple(
             task.model_copy(
                 update = {
-                    "file"   : inside(
-                        task.file and (
-                            Path(
-                                sub(
-                                    r"/(?:\.config(?:/mise)?|\.mise|mise)(?:/conf\.d)?$",
-                                    "",
-                                    str(task.source.parent)
-                                )
-                            ) if task.source else base
-                        ).joinpath(task.file).resolve()
-                    ),
+                    "file"   : inside(task.file and (home(task) / task.file).resolve()),
                     "source" : inside(task.source)
                 }
             )
