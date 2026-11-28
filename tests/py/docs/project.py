@@ -18,7 +18,8 @@ def test_badges_link_each_logo_from_the_readme_beside_a_value_in_walnut(
 ):
     """
     Pins the three badges for a README under `.github/`, each logo reached
-    by a path up to the repository's `docs/assets/` and each value filled in Walnut.
+    by a path up to the repository's `docs/assets/` and each value filled
+    in Walnut.
     """
     assert project.badges(Path(".github/README.md")).splitlines() == [
         "[![Python](../docs/assets/badges/python.svg)"

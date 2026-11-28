@@ -1,3 +1,4 @@
+import fs                from 'node:fs'
 import path              from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -25,5 +26,13 @@ describe('the paths under the repository', () => {
   test('fails where no directory above the module holds a manifest', () => {
     const module = 'file:///no/such/place/module.ts'
     expect(() => paths.repoRoot(module)).toThrow(`no repository root above ${module}`)
+  })
+
+  test('copies the favicon under docs/assets into the root of the built site', ({ repo }) => {
+    repo.write('docs/assets/favicon.svg', '<svg/>')
+    const out = path.join(repo.root, 'out')
+    fs.mkdirSync(out)
+    paths.copyFavicon(out, repo.metaUrl)
+    expect(fs.readFileSync(path.join(out, 'favicon.svg'), 'utf8')).toBe('<svg/>')
   })
 })

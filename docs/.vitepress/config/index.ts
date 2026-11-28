@@ -7,7 +7,6 @@ import { buildNav, buildSidebar } from '../lib/config/navigation.ts'
 import { pageData }               from '../lib/config/page-data.ts'
 import { sitePlugins }            from '../lib/config/plugins.ts'
 import { markdownRules }          from '../lib/markdown/rules.ts'
-import { copyFavicon }            from '../lib/site/favicon.ts'
 import * as manifest              from '../lib/site/manifest.ts'
 import * as paths                 from '../lib/site/paths.ts'
 
@@ -18,7 +17,7 @@ const providers = manifest.providersOf(import.meta.url)
 
 export default defineConfig<chrome.SiteTheme>({
   buildEnd          : async built => {
-    copyFavicon(built.outDir, import.meta.url)
+    paths.copyFavicon(built.outDir, import.meta.url)
     await writeCards(built, import.meta.url)
   },
   cacheDir          : paths.cacheDir(import.meta.url, 'vitepress'),
