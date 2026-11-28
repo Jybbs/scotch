@@ -16,7 +16,10 @@ const facts     = manifest.projectFacts(import.meta.url)
 const providers = manifest.providersOf(import.meta.url)
 
 export default defineConfig<chrome.SiteTheme>({
-  buildEnd          : async built => { await writeCards(built, import.meta.url) },
+  buildEnd          : async built => {
+    paths.copyFavicon(built.outDir, import.meta.url)
+    await writeCards(built, import.meta.url)
+  },
   cacheDir          : paths.cacheDir(import.meta.url, 'vitepress'),
   cleanUrls         : true,
   description       : facts.description,

@@ -149,6 +149,8 @@ on:
       - .mise/tasks/rs/wasm
       - .mise/tasks/site/**
       - docs/**
+      - '!docs/assets/badges/**'
+      - '!docs/assets/readme/**'
       - src/**
       - '!src/scotch/cli/fetch.py'
       - '!src/scotch/cli/index.py'

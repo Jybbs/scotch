@@ -488,7 +488,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
         ("light", "#4f4e4e")
     ):
         with subtests.test(color=hexed, scheme=scheme):
-            assert (root / ".github/assets" / f"lockup-{scheme}.svg").read_text().count(
+            assert (root / "docs/assets" / f"lockup-{scheme}.svg").read_text().count(
                 hexed
             ) == 1
 
@@ -501,7 +501,7 @@ def test_every_declared_output_renders_and_then_holds_its_rendering(
     assert loads(
         (root / "docs/.vitepress/lib/rendered/ratings.json").read_text()
     ) == {"ceiling": readers.CEILING}
-    assert (root / "docs/public/favicon.svg").read_text() == (
+    assert (root / "docs/assets/favicon.svg").read_text() == (
         '<svg viewBox="0 0 1 1"><style>path{fill:#764017}'
         "@media (prefers-color-scheme:dark){path{fill:#e3c3a3}}</style>"
         '<path d="M0 0M0 0M0 0M0 0M0 0"/></svg>'
@@ -548,9 +548,9 @@ def test_shipped_declares_the_files_written_from_declarations(
         (Document, "docs/.vitepress/lib/rendered/pieces.json"),
         (Document, "docs/.vitepress/lib/rendered/ratings.json"),
         (Document, "docs/.vitepress/lib/rendered/terms.json"),
-        (Document, "docs/public/favicon.svg"),
-        (Document, ".github/assets/lockup-dark.svg"),
-        (Document, ".github/assets/lockup-light.svg"),
+        (Document, "docs/assets/favicon.svg"),
+        (Document, "docs/assets/lockup-dark.svg"),
+        (Document, "docs/assets/lockup-light.svg"),
         (Region, ".github/README.md"),
         (Region, ".github/README.md"),
         *[(Region, "docs/pages/guide/setup.md")] * 3,
