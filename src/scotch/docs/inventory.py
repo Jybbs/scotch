@@ -401,14 +401,14 @@ class Outputs(RootModel[list[Output]]):
                     value = lambda: Terms.read().model_dump(mode="json")["terms"]
                 ),
                 Document(
-                    path   = Path("docs/public/favicon.svg"),
+                    path   = Path("docs/assets/favicon.svg"),
                     render = lambda: palette.schemed(
                         (root / "docs/assets/mark.svg").read_text(encoding="utf-8")
                     )
                 ),
                 *(
                     Document(
-                        path   = Path(f".github/assets/lockup-{scheme}.svg"),
+                        path   = Path(f"docs/assets/lockup-{scheme}.svg"),
                         render = lambda scheme=scheme: identity.filled(
                             scheme,
                             (root / "docs/assets/lockup.svg").read_text(

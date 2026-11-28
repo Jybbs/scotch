@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -euo pipefail
 #MISE alias       = "draw"
 #MISE depends     = ["site:install"]
-#MISE description = "Draw the README's preview of the Viewer and its Where to Start cards from the site's own drawings into `.github/assets/readme`"
+#MISE description = "Draw the README's preview of the Viewer and its Where to Start cards from the site's own drawings into `docs/assets/readme`"
 #MISE dir         = "docs"
 
 node --input-type=module --eval "

@@ -9,14 +9,14 @@ import { encodePreview }    from './reel.ts'
 import { sceneOf }          from './scene.ts'
 
 /**
- * Names the folder under `.github/assets/` the README's images are written to.
+ * Names the folder under `docs/assets/` the README's images are written to.
  */
 export function readmeDir(metaUrl: string): string {
-  return path.join(repoRoot(metaUrl), '.github', 'assets', 'readme')
+  return path.join(repoRoot(metaUrl), 'docs', 'assets', 'readme')
 }
 
 /**
- * Writes the README's images under `.github/assets/readme/`: each card of Where
+ * Writes the README's images under `docs/assets/readme/`: each card of Where
  * to Start in each scheme, and the preview in each scheme.
  *
  * Args:

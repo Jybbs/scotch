@@ -146,7 +146,6 @@ on:
       - .github/CONTRIBUTING.md
       - .github/README.md
       - .github/actions/provision/action.yml
-      - .github/assets/**
       - .github/scripts/summaries/**
       - .github/workflows/site.yml
       - .mise/config.toml
