@@ -16,6 +16,7 @@ from shutil          import copy2, copytree
 from tempfile        import TemporaryDirectory
 
 from scotch.pins.schemas import (
+    ALLOW_YOUNG,
     Advisory,
     Bulletin,
     CargoAdvisory,
@@ -391,7 +392,7 @@ class CargoPins(Pins):
                 copy / "Cargo.toml",
                 "--workspace",
                 "--config",
-                'resolver.incompatible-publish-age="allow"'
+                ALLOW_YOUNG
             )
 
             return self.audit(crate.path.parent) - self.audit(copy)

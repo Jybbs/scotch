@@ -14,7 +14,7 @@ The window is three days in each resolver, written in the unit the resolver read
 
 uv records the span in its lockfile and never a date, so `uv lock --check` keeps passing on an unchanged lock as the window moves. Cargo reads its configuration from every directory a task runs it in up to the repository root, so the file at the root covers a task started in `rust/` as well.
 
-`mise run repo:audit` fails where a resolver's setting is missing or disagrees with `pyproject.toml`, and where that window is under three days.
+`mise run repo:audit` fails where `pyproject.toml` sets a window other than three days, and where a resolver's setting is missing or disagrees with it.
 
 ## Lifting a Pin
 

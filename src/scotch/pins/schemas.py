@@ -22,6 +22,8 @@ from scotch.docs.tallies import markdown
 from scotch.repo.checks  import Check
 from scotch.repo.schemas import Package, normalized
 
+ALLOW_YOUNG = 'resolver.incompatible-publish-age="allow"'
+
 
 class Advisory(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """

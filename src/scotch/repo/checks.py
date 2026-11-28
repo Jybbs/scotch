@@ -37,7 +37,7 @@ from typing             import ClassVar
 from scotch.docs.project  import addresses
 from scotch.docs.stops    import Stops
 from scotch.repo.checkout import Checkout
-from scotch.repo.schemas  import Cache, Finding, days, exact
+from scotch.repo.schemas  import Cache, Finding, exact
 
 
 class Check(BaseModel, ABC, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -739,7 +739,7 @@ class ReleaseAgeCheck(Check):
         window, or whose setting is missing, at the file holding it.
         """
         checkout, pyproject = self.checkout, self.checkout.pyproject
-        window              = days(pyproject.window)
+        window              = pyproject.days
 
         if window != self.span:
             yield Finding(
@@ -769,11 +769,11 @@ class ReleaseAgeCheck(Check):
                 ),
                 path = checkout.site.path.with_name("bunfig.toml")
             )
-        elif bunfig.age != window * 86400:
+        elif bunfig.age != (seconds := window * 86400):
             yield Finding(
                 message = (
                     f"`minimumReleaseAge` is `{bunfig.age}` where the window is "
-                    f"`{window * 86400}` seconds"
+                    f"`{seconds}` seconds"
                 ),
                 path = bunfig.path
             )

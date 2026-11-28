@@ -16,7 +16,7 @@ from subprocess      import CompletedProcess, STDOUT, run
 from tempfile        import TemporaryDirectory
 from typing          import Self, TextIO
 
-from scotch.pins.schemas  import Exemption, Failure, Lift
+from scotch.pins.schemas  import ALLOW_YOUNG, Exemption, Failure, Lift
 from scotch.repo.checkout import Checkout
 
 
@@ -289,7 +289,7 @@ class Tree(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
                 "exec", "--", "cargo", "update", "--manifest-path",
                 str(pardon.path),
                 "--package", pardon.name, "--precise",
-                pardon.value, "--config", 'resolver.incompatible-publish-age="allow"'
+                pardon.value, "--config", ALLOW_YOUNG
             )
             for lift in lifts
             for pardon in lift.pardons

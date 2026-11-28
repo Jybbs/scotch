@@ -107,6 +107,50 @@ class Diagnostic(BaseModel, extra="ignore", frozen=True, use_attribute_docstring
     """
 
 
+class Hold(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    The `[tool.uv]` settings that hold a new release out of a lockfile,
+    which the window of the other resolvers restates.
+    """
+
+    pardons: dict[str, str | bool] = Field(
+        {},
+        validation_alias = AliasPath("tool", "uv", "exclude-newer-package")
+    )
+    """
+    The release age `[tool.uv].exclude-newer-package` holds each package it
+    names to in place of the window, `False` exempting every release of the
+    package.
+    """
+
+    window: str = Field(
+        "",
+        validation_alias = AliasPath("tool", "uv", "exclude-newer")
+    )
+    """
+    The age a release has to reach before the lockfile resolves it, written
+    as `[tool.uv].exclude-newer` writes it.
+    """
+
+    @property
+    def days(self) -> int | None:
+        """
+        Reads the count of days a window spelled `3 days` names, the form uv
+        and Cargo both read, or `None` where `window` is any other spelling.
+        """
+        found = fullmatch(r"(\d+) days?", self.window)
+
+        return int(found[1]) if found else None
+
+    @property
+    def hold(self) -> timedelta:
+        """
+        Reads the window as a duration, `0` where `[tool.uv].exclude-newer`
+        names no count of days.
+        """
+        return timedelta(days=self.days or 0)
+
+
 class Level(StrEnum):
     """
     The severity of a finding, each member's value being the workflow
@@ -158,77 +202,6 @@ class License(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             identifier = identifier[1] if identifier else None,
             path       = path
         )
-
-
-class Script(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
-    """
-    The inline metadata a task script declares, per PEP 723.
-    """
-
-    path: Path
-    """
-    The task script.
-    """
-
-    dependencies: tuple[str, ...] = ()
-    """
-    The requirements the script runs with.
-    """
-
-    pardons: dict[str, str | bool] = Field(
-        {},
-        validation_alias = AliasPath("tool", "uv", "exclude-newer-package")
-    )
-    """
-    The release age each package named here is held to in place of the
-    window, `False` exempting every release of the package.
-    """
-
-    python: str = Field("", alias="requires-python")
-    """
-    The specifier the script's `requires-python` declares.
-    """
-
-    window: str = Field("", validation_alias=AliasPath("tool", "uv", "exclude-newer"))
-    """
-    The age a release has to reach before the script's lockfile resolves it,
-    written as `[tool.uv].exclude-newer` writes it.
-    """
-
-    @property
-    def pins(self) -> dict[str, str]:
-        """
-        Maps the normalized name of each requirement pinned with `==` to the
-        version it pins, normalized as PEP 503 normalizes a project name.
-        """
-        return {
-            normalized(pin["name"]): pin["version"]
-            for dependency in self.dependencies
-            if (pin := pinned(dependency))
-        }
-
-    @classmethod
-    def read(cls, path: Path) -> Self | None:
-        """
-        Reads the `script` block of the file at `path` through the
-        expression PEP 723 gives for finding one.
-
-        Returns:
-            The script's metadata, or `None` where the file declares none.
-        """
-        block = search(
-            r"(?m)^# /// script$\s(?P<content>(^#(| .*)$\s)+)^# ///$",
-            path.read_text(encoding="utf-8")
-        )
-
-        if block is None:
-            return None
-
-        content = "".join(
-            line.removeprefix("#").removeprefix(" ")
-            for line in block["content"].splitlines(keepends=True)
-        )
-        return cls.model_validate({**loads(content), "path": path})
 
 
 class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -778,7 +751,7 @@ class Package(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
         )
 
 
-class Pyproject(ConfigFile):
+class Pyproject(ConfigFile, Hold):
     """
     The fields of `pyproject.toml` the checks compare against the files that
     restate them, beside the description, the homepage, and the keywords
@@ -844,16 +817,6 @@ class Pyproject(ConfigFile):
     The license files `[project].license-files` names.
     """
 
-    pardons: dict[str, str | bool] = Field(
-        {},
-        validation_alias = AliasPath("tool", "uv", "exclude-newer-package")
-    )
-    """
-    The release age `[tool.uv].exclude-newer-package` holds each package it
-    names to in place of the window, `False` exempting every release of the
-    package.
-    """
-
     python: str = Field(validation_alias=AliasPath("project", "requires-python"))
     """
     The specifier `[project].requires-python` declares.
@@ -874,16 +837,6 @@ class Pyproject(ConfigFile):
     The specifier `[tool.uv].required-version` holds uv to.
     """
 
-    window: str = Field(
-        "",
-        validation_alias = AliasPath("tool", "uv", "exclude-newer")
-    )
-    """
-    The age a release has to reach before `uv.lock` resolves it, written as
-    `[tool.uv].exclude-newer` writes it, which the window of the other
-    resolvers restates.
-    """
-
     @property
     def build_requirements(self) -> tuple[str, ...]:
         """
@@ -902,14 +855,6 @@ class Pyproject(ConfigFile):
         return urlsplit(self.homepage).netloc
 
     @property
-    def hold(self) -> timedelta:
-        """
-        Reads the window as a duration, `0` where `[tool.uv].exclude-newer`
-        names no count of days.
-        """
-        return timedelta(days=days(self.window) or 0)
-
-    @property
     def loose(self) -> tuple[str, ...]:
         """
         Lists each build requirement and build constraint that is not an
@@ -920,6 +865,62 @@ class Pyproject(ConfigFile):
             for requirement in self.build_requirements
             if not pinned(requirement)
         )
+
+
+class Script(Hold):
+    """
+    The inline metadata a task script declares, per PEP 723.
+    """
+
+    path: Path
+    """
+    The task script.
+    """
+
+    dependencies: tuple[str, ...] = ()
+    """
+    The requirements the script runs with.
+    """
+
+    python: str = Field("", alias="requires-python")
+    """
+    The specifier the script's `requires-python` declares.
+    """
+
+    @property
+    def pins(self) -> dict[str, str]:
+        """
+        Maps the normalized name of each requirement pinned with `==` to the
+        version it pins, normalized as PEP 503 normalizes a project name.
+        """
+        return {
+            normalized(pin["name"]): pin["version"]
+            for dependency in self.dependencies
+            if (pin := pinned(dependency))
+        }
+
+    @classmethod
+    def read(cls, path: Path) -> Self | None:
+        """
+        Reads the `script` block of the file at `path` through the
+        expression PEP 723 gives for finding one.
+
+        Returns:
+            The script's metadata, or `None` where the file declares none.
+        """
+        block = search(
+            r"(?m)^# /// script$\s(?P<content>(^#(| .*)$\s)+)^# ///$",
+            path.read_text(encoding="utf-8")
+        )
+
+        if block is None:
+            return None
+
+        content = "".join(
+            line.removeprefix("#").removeprefix(" ")
+            for line in block["content"].splitlines(keepends=True)
+        )
+        return cls.model_validate({**loads(content), "path": path})
 
 
 class Site(ConfigFile):
@@ -1477,17 +1478,6 @@ class Workflow(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         relative = {path.relative_to(root) for path in {*paths, self.path}}
 
         return sorted(path for path in relative if not self.fires("push", path))
-
-
-def days(window: str) -> int | None:
-    """
-    Reads the count of days a window spelled `3 days` names, the form uv and
-    Cargo both read.
-
-    Returns:
-        The count, or `None` where `window` is any other spelling.
-    """
-    return int(found[1]) if (found := fullmatch(r"(\d+) days?", window)) else None
 
 
 def exact(version: str) -> Match[str] | None:
