@@ -133,6 +133,7 @@ cache-keys                    = [
     { file = "rust/src/**/*.rs" },
     { file = "src/scotch.data/**/*" }
 ]
+exclude-newer                 = "3 days"
 python-downloads              = "never"
 python-preference             = "only-system"
 required-version              = "==0.13.9"

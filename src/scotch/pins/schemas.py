@@ -7,18 +7,22 @@ Markdown table, and the records it reads each manager's answer into.
 """
 
 from collections.abc import Collection, Iterable
-from datetime        import date
+from datetime        import UTC, date, timedelta
 from enum            import StrEnum, auto
+from json            import dumps
 from more_itertools  import unique_everseen
 from operator        import attrgetter
 from pathlib         import Path
 from pydantic        import AliasPath, AwareDatetime, BaseModel, Field
-from re              import Match, escape, fullmatch, search, subn
+from re              import Match, escape, fullmatch, search, sub, subn
+from tomllib         import loads
 from typing          import Self, assert_never
 
 from scotch.docs.tallies import markdown
 from scotch.repo.checks  import Check
 from scotch.repo.schemas import Package, normalized
+
+ALLOW_YOUNG = 'resolver.incompatible-publish-age="allow"'
 
 
 class Advisory(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -50,6 +54,17 @@ class Advisory(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=
         address.
         """
         return f"[{self.id}]({self.link})"
+
+
+class Exemption(StrEnum):
+    """
+    The resolvers that admit one release inside the window, each through the
+    exemption its own documentation gives.
+    """
+
+    BUN   = auto()
+    CARGO = auto()
+    UV    = auto()
 
 
 class Failure(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
@@ -198,6 +213,40 @@ class Bulletin(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=
         return Advisory(id=self.url.rpartition("/")[2], link=self.url, package=package)
 
 
+class CargoAdvisory(
+    BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True
+):
+    """
+    One diagnostic `cargo-deny --format json check advisories` prints for an
+    advisory against a crate a lockfile resolves.
+    """
+
+    id: str = Field(validation_alias=AliasPath("fields", "advisory", "id"))
+    """
+    The identifier the advisory database names the advisory by.
+    """
+
+    link: str = Field(validation_alias=AliasPath("fields", "advisory", "url"))
+    """
+    The address the advisory is published at.
+    """
+
+    package: str = Field(
+        validation_alias = AliasPath("fields", "graphs", 0, "Krate", "name")
+    )
+    """
+    The first crate of the dependency graph the diagnostic names, the one the
+    advisory concerns.
+    """
+
+    @property
+    def advisory(self) -> Advisory:
+        """
+        Reads the advisory.
+        """
+        return Advisory(id=self.id, link=self.link, package=self.package)
+
+
 class Edit(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
     """
     One rewrite of a version a file pins, which replaces each version the
@@ -253,6 +302,127 @@ class Edit(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             raise ValueError(f"{self.path} spells no version beside {self.name}")
 
         file.write_text(written, encoding="utf-8")
+
+
+class Pardon(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True):
+    """
+    The exemption admitting the one release of a package a resolver holds
+    back, which lets a lift that clears an advisory land before the window
+    passes.
+    """
+
+    kind: Exemption
+    """
+    The resolver admitting the release.
+    """
+
+    name: str
+    """
+    The package the exemption admits.
+    """
+
+    path: Path
+    """
+    The file the exemption is written into, relative to the root of the tree
+    it is written into, which for Cargo, whose exemption no file holds, is
+    the crate's manifest.
+    """
+
+    value: str
+    """
+    For `uv`, the instant after the release's last upload, which
+    `exclude-newer-package` reads as admitting the release and none
+    uploaded later, and for `bun` and `cargo`, the release's version.
+    """
+
+    def apply(self, root: Path):
+        """
+        Writes the exemption into the file at `path` under `root`, merging
+        it with the exemptions the file holds, or does nothing for Cargo,
+        whose relock takes the exemption as an argument.
+
+        The key goes on the line after its anchor, the key it sorts behind,
+        and the table's keys realign on `=`, in the comment block of a task
+        script as in a TOML file.
+
+        Raises:
+            ValueError: Where the file's existing exemptions span more than
+                        one line.
+        """
+        if self.kind is Exemption.CARGO:
+            return
+
+        file   = root / self.path
+        lines  = file.read_text(encoding="utf-8").splitlines(keepends=True)
+        prefix = "# " if "# /// script\n" in lines else ""
+
+        if self.kind is Exemption.BUN:
+            key, anchor = "minimumReleaseAgeExcludes", "minimumReleaseAge"
+        else:
+            key, anchor = "exclude-newer-package", "exclude-newer"
+
+        def literal(held: str | None) -> str:
+            """
+            Writes the key's value with this exemption merged into the value
+            `held` spells, `None` where the file holds none.
+            """
+            existing = loads(f"value = {held}")["value"] if held else None
+
+            if self.kind is Exemption.BUN:
+                names = sorted({*(existing or ()), f"{self.name}@{self.value}"})
+                return "[" + ", ".join(map(dumps, names)) + "]"
+
+            members = sorted(((existing or {}) | {self.name: self.value}).items())
+            return "{ " + ", ".join(
+                f"{name if fullmatch(r'[\w-]+', name) else dumps(name)} "
+                f"= {dumps(value)}"
+                for name, value in members
+            ) + " }"
+
+        at = next(
+            (
+                index
+                for index, line in enumerate(lines)
+                if search(rf"^{prefix}{escape(key)}\s*=", line)
+            ),
+            None
+        )
+
+        if at is None:
+            at = next(
+                index
+                for index, line in enumerate(lines)
+                if search(rf"^{prefix}{escape(anchor)}\s*=", line)
+            ) + 1
+            lines.insert(at, f"{prefix}{key} = {literal(None)}\n")
+        else:
+            held      = sub(rf"^{prefix}{escape(key)}\s*=\s*", "", lines[at]).rstrip()
+            lines[at] = f"{prefix}{key} = {literal(held)}\n"
+
+        start = max(
+            (index for index in range(at) if lines[index].startswith(f"{prefix}[")),
+            default = 0
+        )
+        end = next(
+            (
+                index
+                for index in range(at + 1, len(lines))
+                if lines[index].startswith(f"{prefix}[")
+                or lines[index].rstrip() == "# ///"
+            ),
+            len(lines)
+        )
+        keys = {
+            index: found
+            for index in range(start, end)
+            if (found := fullmatch(rf"{prefix}([\w-]+)\s*=\s*(.*)\n?", lines[index]))
+        }
+        width = max(len(found[1]) for found in keys.values())
+
+        for index, found in keys.items():
+            lines[index] = f"{prefix}{found[1]:<{width}} = {found[2]}\n"
+
+        file.write_text("".join(lines), encoding="utf-8")
 
 
 class UvAdvisory(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -330,6 +500,19 @@ class Lift(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
     and into each file restating it.
     """
 
+    held: AwareDatetime | None = None
+    """
+    The instant the window ends for a newest release younger than it, which
+    leaves the pin where it stands, or `None` for a release that has aged or
+    that an exemption admits.
+    """
+
+    pardons: tuple[Pardon, ...] = ()
+    """
+    The exemptions admitting the newest release before the window ends,
+    which a lift clearing an advisory writes beside its edits.
+    """
+
     released: AwareDatetime | None = None
     """
     The instant the newest release was published, or `None` where its
@@ -385,7 +568,10 @@ class Lift(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             f"`{self.newest}`",
             "" if age is None else str(age),
             "yes" if self.major else "",
-            ", ".join(advisory.cell for advisory in self.advisories)
+            ", ".join(advisory.cell for advisory in self.advisories),
+            self.held.astimezone(UTC).strftime(
+                "%Y-%m-%d %H:%M UTC"
+            ) if self.held else ""
         )
 
     def clearing(self, advisories: Iterable[Advisory]) -> Self:
@@ -400,12 +586,39 @@ class Lift(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=True
             update = {"advisories": tuple(sorted(concerning, key=attrgetter("id")))}
         )
 
+    def holding(
+        self,
+        now     : AwareDatetime,
+        pardons : tuple[Pardon, ...],
+        window  : timedelta
+    ) -> Self:
+        """
+        Applies the window to a lift whose newest release was published less
+        than `window` before `now`, leaving a lift to an older release as it
+        stands. Such a lift that clears an advisory takes `pardons`, which
+        admit the release, and any other leaves the pin where it stands,
+        carrying the instant the window ends.
+        """
+        if not self.released or (ends := self.released + window) <= now:
+            return self
+
+        if self.advisories:
+            return self.model_copy(update={"pardons": pardons})
+
+        return self.model_copy(
+            update = {"held": ends, "upgraded": False, "edits": ()}
+        )
+
     def write(self, root: Path):
         """
-        Writes each of the lift's edits into the tree at `root`.
+        Writes each of the lift's edits and each of its exemptions into the
+        tree at `root`.
         """
         for edit in self.edits:
             edit.apply(root)
+
+        for pardon in self.pardons:
+            pardon.apply(root)
 
 
 class UvAudit(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -493,7 +706,9 @@ class Report(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         gives them, once for each set of pins `coupled` holds together, the
         names a failing trial tries in turn.
         """
-        return tuple(unique_everseen((lift.name for lift in self.rows), key=coupled))
+        return tuple(
+            unique_everseen((lift.name for lift in self.writable), key=coupled)
+        )
 
     @property
     def names(self) -> frozenset[str]:
@@ -511,6 +726,14 @@ class Report(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
         """
         return tuple(sorted(self.lifts, key=attrgetter("path", "name")))
 
+    @property
+    def writable(self) -> tuple[Lift, ...]:
+        """
+        Lists the lifts of the table that the window leaves free to write,
+        leaving out each pin it holds where it stands.
+        """
+        return tuple(lift for lift in self.rows if not lift.held)
+
     def table(self, today: date) -> str:
         """
         Writes one Markdown table holding a row for each lift, with each age
@@ -520,7 +743,10 @@ class Report(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tr
             return "Every pin stands at its newest release"
 
         return markdown(
-            ("Pin", "File", "Current", "Newest", "Age in Days", "Major", "Advisories"),
+            (
+                "Pin", "File", "Current", "Newest",
+                "Age in Days", "Major", "Advisories", "Clears"
+            ),
             (lift.cells(today) for lift in self.rows),
             right = False
         )

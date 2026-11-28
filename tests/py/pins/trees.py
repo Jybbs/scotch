@@ -16,7 +16,7 @@ from pytest_subprocess.fake_process import FakeProcess
 from subprocess import CalledProcessError
 from typing     import TextIO
 
-from scotch.pins.schemas import Edit, Failure, Lift, Spelling
+from scotch.pins.schemas import Edit, Exemption, Failure, Lift, Pardon, Spelling
 from scotch.pins.trees   import Tree
 
 
@@ -152,6 +152,68 @@ def test_a_lift_runs_each_step_in_turn_until_one_fails(
     assert (tmp_path / "log").read_text().splitlines()[0] == (
         f"$ mise -C {tree.root} lock"
     )
+
+
+def test_a_lift_relocks_a_held_crate_before_the_sync_and_writes_each_other_exemption(
+    fp       : FakeProcess,
+    tmp_path : Path,
+    tree     : Tree
+):
+    """
+    Asserts that a lift carrying an exemption for a crate relocks that crate
+    to its version through `cargo update`, allowing a release inside the
+    window for that command alone, after the lock of `uv.lock` and before
+    `lock:sync`, and that it writes the exemption of any other resolver into
+    its file.
+    """
+    fp.register([fp.any()], occurrences=20)
+    lifts = [
+        Lift(
+            current = "0.30.2",
+            name    = "shakmaty",
+            newest  = "0.31.0",
+            pardons = (
+                Pardon(
+                    kind  = Exemption.CARGO,
+                    name  = "shakmaty",
+                    path  = Path("rust/Cargo.toml"),
+                    value = "0.31.0"
+                ),
+            ),
+            path = Path("rust/Cargo.toml")
+        ),
+        Lift(
+            current = "5.0.5",
+            name    = "vitest",
+            newest  = "5.1.0",
+            pardons = (
+                Pardon(
+                    kind  = Exemption.BUN,
+                    name  = "vitest",
+                    path  = Path("docs/bunfig.toml"),
+                    value = "5.1.0"
+                ),
+            ),
+            path = Path("docs/package.json")
+        )
+    ]
+
+    with (tmp_path / "log").open("w") as handle:
+        assert tree.lift(handle, lifts) is None
+
+    steps = called(fp)
+
+    assert steps[3] == [
+        "mise", "-C",
+        str(tree.root),
+        "exec", "--", "cargo", "update",
+        "--manifest-path", "rust/Cargo.toml", "--package", "shakmaty",
+        "--precise", "0.31.0", "--config", 'resolver.incompatible-publish-age="allow"'
+    ]
+    assert steps[4] == ["mise", "-C", str(tree.root), "run", "lock:sync"]
+    assert 'minimumReleaseAgeExcludes = ["vitest@5.1.0"]' in (
+        tree.root / "docs" / "bunfig.toml"
+    ).read_text()
 
 
 def test_a_path_inside_the_tree_reads_relative_to_its_root(tree: Tree):

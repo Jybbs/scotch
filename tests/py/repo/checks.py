@@ -33,6 +33,7 @@ from scotch.repo.checks  import (
     LicenseCheck,
     NodeTypesCheck,
     PinCheck,
+    ReleaseAgeCheck,
     RenderCheck,
     RowCheck,
     RulesetCheck,
@@ -943,6 +944,158 @@ def scan(check: type[Check], sample: Sample) -> list[tuple[Path, int | None, str
             id = "wasm-bindgen-unrequired"
         ),
         param(
+            ReleaseAgeCheck,
+            [("pyproject.toml", '"3 days"', '"2 days"')],
+            [
+                (
+                    "pyproject.toml",
+                    None,
+                    "`[tool.uv].exclude-newer` is `2 days` where the window is "
+                    "`3 days`"
+                )
+            ],
+            id = "release-age-other-than-three-days"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [("pyproject.toml", '"3 days"', '"1 week"')],
+            [
+                (
+                    "pyproject.toml",
+                    None,
+                    "`[tool.uv].exclude-newer` is `1 week` where the window is "
+                    "`3 days`"
+                )
+            ],
+            id = "release-age-spelled-other-than-days"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [(".mise/tasks/gha/scoresheet", '"3 days"', '"7 days"')],
+            [
+                (
+                    ".mise/tasks/gha/scoresheet", None,
+                    "`exclude-newer` is `7 days` where `pyproject.toml` sets `3 days`"
+                )
+            ],
+            id = "release-age-script"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [("docs/bunfig.toml", "259200", "86400")],
+            [
+                (
+                    "docs/bunfig.toml",
+                    None,
+                    "`minimumReleaseAge` is `86400` where the window is `259200` "
+                    "seconds"
+                )
+            ],
+            id = "release-age-bun"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [(".cargo/config.toml", '"3 days"', '"1 days"')],
+            [
+                (
+                    ".cargo/config.toml",
+                    None,
+                    "`registry.global-min-publish-age` is `1 days` when Cargo "
+                    "starts in `.`, where the window is `3 days`"
+                ),
+                (
+                    ".cargo/config.toml",
+                    None,
+                    "`registry.global-min-publish-age` is `1 days` when Cargo "
+                    "starts in `rust`, where the window is `3 days`"
+                )
+            ],
+            id = "release-age-cargo"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [(
+                ".cargo/config.toml", '"3 days"\n',
+                '"3 days"\n\n[resolver]\nincompatible-publish-age = "allow"\n'
+            )],
+            [
+                (
+                    ".cargo/config.toml",
+                    None,
+                    "`resolver.incompatible-publish-age` is `allow` when Cargo "
+                    "starts in `.`, which lets a release inside the window resolve"
+                ),
+                (
+                    ".cargo/config.toml",
+                    None,
+                    "`resolver.incompatible-publish-age` is `allow` when Cargo "
+                    "starts in `rust`, which lets a release inside the window resolve"
+                )
+            ],
+            id = "release-age-cargo-allows"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [(
+                "pyproject.toml",
+                'exclude-newer                 = "3 days"\n',
+                'exclude-newer                 = "3 days"\n'
+                'exclude-newer-package         = { sample = "2000-01-01T00:00:00Z" }\n'
+            )],
+            [
+                (
+                    "pyproject.toml",
+                    None,
+                    "`sample` is exempt through `2000-01-01T00:00:00Z`, which a "
+                    "window has passed since"
+                )
+            ],
+            id = "release-age-uv-exemption-aged"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [(
+                "pyproject.toml",
+                'exclude-newer                 = "3 days"\n',
+                'exclude-newer                 = "3 days"\n'
+                'exclude-newer-package         = { sample = "2999-01-01T00:00:00Z" }\n'
+            )],
+            [],
+            id = "release-age-uv-exemption-inside-the-window"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [(
+                "pyproject.toml",
+                'exclude-newer                 = "3 days"\n',
+                'exclude-newer                 = "3 days"\n'
+                "exclude-newer-package         = { sample = false }\n"
+            )],
+            [
+                (
+                    "pyproject.toml",
+                    None,
+                    "`sample` is exempt through `False`, which is not an RFC 3339 "
+                    "instant and exempts every release"
+                )
+            ],
+            id = "release-age-uv-exemption-of-every-release"
+        ),
+        param(
+            ReleaseAgeCheck,
+            [(
+                "docs/bunfig.toml", "259200\n",
+                '259200\nminimumReleaseAgeExcludes = ["vitest"]\n'
+            )],
+            [
+                (
+                    "docs/bunfig.toml", None,
+                    "`vitest` exempts more than one exact version"
+                )
+            ],
+            id = "release-age-bun-exemption-of-every-version"
+        ),
+        param(
             RowCheck,
             [(".github/workflows/ci.yml", "task: py:coverage", "task: py:test")],
             [
@@ -1614,6 +1767,87 @@ def test_a_departure_draws_the_checks_findings(
     ) for path, line, message in findings]
 
 
+def test_a_config_in_the_crates_folder_overrides_the_age_of_the_root(answered: Sample):
+    """
+    Asserts that a `.cargo/config.toml` in the crate's folder carrying a
+    shorter age draws a finding at that file for the crate's folder alone,
+    since the deepest file sets the age Cargo reads there.
+    """
+    (folder := answered.root / "rust" / ".cargo").mkdir()
+    (folder / "config.toml").write_text(
+        '[registry]\nglobal-min-publish-age = "1 days"\n'
+    )
+
+    assert scan(ReleaseAgeCheck, answered) == [
+        (
+            Path("rust/.cargo/config.toml"),
+            None,
+            "`registry.global-min-publish-age` is `1 days` when Cargo starts in "
+            "`rust`, where the window is `3 days`"
+        )
+    ]
+
+
+def test_a_literal_string_alias_is_a_finding_at_its_line(
+    fp     : FakeProcess,
+    sample : Sample
+):
+    """
+    Asserts that a colliding alias written as a TOML literal string draws a
+    finding at the line declaring it.
+    """
+    sample.edit(
+        ".mise/tasks/py/test",
+        new = "#MISE alias = 'audit'\nuv run",
+        old = "uv run"
+    )
+    sample.answer(fp, aliases={"py:test": ("audit",)})
+
+    assert scan(AliasCheck, sample) == [(
+        Path(".mise/tasks/py/test"),
+        2, "`mise audit` runs mise's own `audit` command rather than `py:test`"
+    )]
+
+
+@mark.parametrize(
+    ("published", "findings"),
+    [
+        param(
+            "2000-01-01T00:00:00Z",
+            ["`vitest@5.0.5` is exempt where its release has aged past the window"],
+            id = "aged"
+        ),
+        param("2999-01-01T00:00:00Z", [], id = "inside-the-window"),
+        param(None, [], id = "unpublished")
+    ]
+)
+def test_a_bun_exemption_is_a_finding_once_its_release_has_aged(
+    fp        : FakeProcess,
+    findings  : list[str],
+    published : str | None,
+    answered  : Sample
+):
+    """
+    Asserts that an exemption naming one exact version draws a finding only
+    where `bun info` dates that release a window ago or more.
+    """
+    answered.edit(
+        "docs/bunfig.toml",
+        new = '259200\nminimumReleaseAgeExcludes = ["vitest@5.0.5"]\n',
+        old = "259200\n"
+    )
+    fp.register(
+        [
+            "mise", "exec", "--", "bun", "info",
+            f"--cwd={answered.root / 'docs'}",
+            "vitest", "time", "--json"
+        ],
+        stdout = dumps({"5.0.5": published} if published else {})
+    )
+
+    assert [message for _, _, message in scan(ReleaseAgeCheck, answered)] == findings
+
+
 @mark.parametrize(
     "path",
     [
@@ -1664,27 +1898,6 @@ def test_each_listed_directive_fails(
     ] == [(2, directive)]
 
 
-def test_a_literal_string_alias_is_a_finding_at_its_line(
-    fp     : FakeProcess,
-    sample : Sample
-):
-    """
-    Asserts that a colliding alias written as a TOML literal string draws a
-    finding at the line declaring it.
-    """
-    sample.edit(
-        ".mise/tasks/py/test",
-        new = "#MISE alias = 'audit'\nuv run",
-        old = "uv run"
-    )
-    sample.answer(fp, aliases={"py:test": ("audit",)})
-
-    assert scan(AliasCheck, sample) == [(
-        Path(".mise/tasks/py/test"),
-        2, "`mise audit` runs mise's own `audit` command rather than `py:test`"
-    )]
-
-
 def test_a_name_quoted_before_the_alias_leaves_the_finding_at_the_alias(
     fp     : FakeProcess,
     sample : Sample
@@ -1704,6 +1917,23 @@ def test_a_name_quoted_before_the_alias_leaves_the_finding_at_the_alias(
         Path(".mise/tasks/py/test"),
         3, "`mise audit` runs mise's own `audit` command rather than `py:test`"
     )]
+
+
+def test_a_site_with_no_bunfig_is_a_finding_at_where_it_belongs(answered: Sample):
+    """
+    Asserts that a site holding no `bunfig.toml` draws one finding at the
+    file's place beside `package.json`, since Bun then holds no release.
+    """
+    (
+        answered.root / "docs" / "bunfig.toml"
+    ).rename(answered.root / "docs" / "bunfig.junk")
+
+    assert scan(ReleaseAgeCheck, answered) == [
+        (
+            Path("docs/bunfig.toml"),
+            None, "The site's `bunfig.toml` is missing, so Bun holds no release"
+        )
+    ]
 
 
 def test_a_trailing_comma_in_a_rule_list_names_no_empty_table(

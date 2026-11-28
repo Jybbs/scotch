@@ -5,7 +5,7 @@ describes, and the facts the checks read off those records.
 
 from collections.abc import Callable
 from common.sample   import Sample
-from datetime        import UTC, datetime
+from datetime        import UTC, datetime, timedelta
 from os              import environ
 from pathlib         import Path
 from pydantic        import ValidationError
@@ -153,6 +153,32 @@ def test_a_license_reads_its_identifier_and_holders(
         identifier = identifier,
         path       = path
     )
+
+
+@mark.parametrize(
+    ["window", "days", "hold"],
+    [
+        param("3 days", 3, timedelta(days=3), id = "days"),
+        param("1 day",  1, timedelta(days=1), id = "one-day"),
+        param("1 week", None, timedelta(), id = "another-spelling"),
+        param("",       None, timedelta(), id = "unset")
+    ]
+)
+def test_a_window_reads_as_the_count_of_days_it_names(
+    days   : int | None,
+    hold   : timedelta,
+    window : str
+):
+    """
+    Asserts that `[tool.uv].exclude-newer` reads as a count of days and a
+    duration where it spells `N days`, and as neither where it spells any
+    other window or none, on a task script as on `pyproject.toml`.
+    """
+    script = Script.model_validate(
+        {"path": "task", "tool": {"uv": {"exclude-newer": window}}}
+    )
+
+    assert (script.days, script.hold) == (days, hold)
 
 
 def test_a_help_listing_no_command_stops_the_read():

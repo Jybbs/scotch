@@ -21,4 +21,5 @@ target-version = "3.14"
 
 [tool.uv]
 build-constraint-dependencies = ["setuptools==84.0.0"]
+exclude-newer                 = "3 days"
 required-version              = "==0.12.13"

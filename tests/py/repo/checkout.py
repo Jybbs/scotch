@@ -5,9 +5,10 @@ render docs` writing.
 """
 
 from common.sample import Sample
+from datetime      import UTC, datetime
 from json          import dumps
 from pathlib       import Path
-from pytest        import MonkeyPatch
+from pytest        import MonkeyPatch, mark, param
 from pytest_subprocess.fake_process import FakeProcess
 
 from scotch.cli            import app
@@ -80,6 +81,29 @@ def test_a_task_a_config_above_the_root_declares_keeps_no_source(
         (None, None),
         (None, None)
     ]
+
+
+def test_the_bunfig_is_the_file_beside_the_sites_manifest_where_one_stands(
+    sample: Sample
+):
+    """
+    Asserts that the `bunfig.toml` beside `docs/package.json` loads with its
+    age and its exemptions, and that a site with none reads as `None`.
+    """
+    sample.edit(
+        "docs/bunfig.toml",
+        new = '259200\nminimumReleaseAgeExcludes = ["vitest@5.1.0"]\n',
+        old = "259200\n"
+    )
+
+    assert (sample.checkout.bunfig.age, sample.checkout.bunfig.excludes) == (
+        259200,
+        ("vitest@5.1.0",)
+    )
+
+    (sample.root / "docs" / "bunfig.toml").rename(sample.root / "docs" / "bunfig.junk")
+
+    assert sample.checkout.bunfig is None
 
 
 def test_the_checks_leave_out_a_task_another_task_of_the_leg_depends_on(
@@ -197,3 +221,78 @@ def test_the_wrappers_come_from_the_folder_the_path_entry_names(sample: Sample):
     in `.mise/config.toml` names, in name order.
     """
     assert [wrapper.name for wrapper in sample.checkout.wrappers] == ["prose", "pytest"]
+
+
+@mark.parametrize(
+    ("folder", "age", "policy", "where"),
+    [
+        param(".", "3 days", None, ".cargo/config.toml", id="root"),
+        param("rust", "3 days", None, ".cargo/config.toml", id="inherited"),
+        param(
+            "rust",
+            "1 days",
+            "allow",
+            "rust/.cargo/config.toml",
+            id = "deepest-file-wins"
+        )
+    ]
+)
+def test_cargo_reads_each_setting_from_the_deepest_config_above_its_folder(
+    age    : str,
+    folder : str,
+    policy : str | None,
+    sample : Sample,
+    where  : str
+):
+    """
+    Asserts that the settings Cargo reads when it starts in a folder come
+    from the `.cargo/config.toml` in that folder or the nearest folder above
+    it that sets them, and name the file setting the age.
+    """
+    if where.startswith("rust"):
+        (sample.root / "rust" / ".cargo").mkdir()
+        (sample.root / "rust" / ".cargo" / "config.toml").write_text(
+            '[registry]\nglobal-min-publish-age = "1 days"\n'
+            '[resolver]\nincompatible-publish-age = "allow"\n'
+        )
+
+    config = sample.checkout.cargo(sample.root / folder)
+
+    assert (config.age, config.policy, config.path) == (
+        age, policy,
+        sample.root / where
+    )
+
+
+@mark.parametrize(
+    ("times", "published"),
+    [
+        param(
+            {"5.0.5": "2026-10-20T00:00:00Z"},
+            datetime(2026, 10, 20, tzinfo=UTC),
+            id = "dated"
+        ),
+        param({"5.0.6": "2026-10-20T00:00:00Z"}, None, id="unpublished")
+    ]
+)
+def test_a_release_is_published_where_bun_info_dates_it(
+    fp        : FakeProcess,
+    published : datetime | None,
+    sample    : Sample,
+    times     : dict[str, str]
+):
+    """
+    Asserts that the instant a version of an npm package was published reads
+    from the `time` `bun info` prints for the package, `None` where the
+    package has no such version.
+    """
+    fp.register(
+        [
+            "mise", "exec", "--", "bun", "info",
+            f"--cwd={sample.root / 'docs'}",
+            "vitest", "time", "--json"
+        ],
+        stdout = dumps(times)
+    )
+
+    assert sample.checkout.published("vitest", "5.0.5") == published

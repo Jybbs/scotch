@@ -8,6 +8,7 @@ the mise tasks, the commands mise runs, and the task scripts, beside the
 """
 
 from collections.abc import Callable, Iterable, Mapping
+from datetime        import timedelta
 from enum            import StrEnum, auto
 from itertools       import product
 from json            import loads as from_json
@@ -106,6 +107,50 @@ class Diagnostic(BaseModel, extra="ignore", frozen=True, use_attribute_docstring
     """
 
 
+class Hold(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
+    """
+    The `[tool.uv]` settings that hold a new release out of a lockfile,
+    which the window of the other resolvers restates.
+    """
+
+    pardons: dict[str, str | bool] = Field(
+        {},
+        validation_alias = AliasPath("tool", "uv", "exclude-newer-package")
+    )
+    """
+    The release age `[tool.uv].exclude-newer-package` holds each package it
+    names to in place of the window, `False` exempting every release of the
+    package.
+    """
+
+    window: str = Field(
+        "",
+        validation_alias = AliasPath("tool", "uv", "exclude-newer")
+    )
+    """
+    The age a release has to reach before the lockfile resolves it, written
+    as `[tool.uv].exclude-newer` writes it.
+    """
+
+    @property
+    def days(self) -> int | None:
+        """
+        Reads the count of days a window spelled `3 days` names, the form uv
+        and Cargo both read, or `None` where `window` is any other spelling.
+        """
+        found = fullmatch(r"(\d+) days?", self.window)
+
+        return int(found[1]) if found else None
+
+    @property
+    def hold(self) -> timedelta:
+        """
+        Reads the window as a duration, `0` where `[tool.uv].exclude-newer`
+        names no count of days.
+        """
+        return timedelta(days=self.days or 0)
+
+
 class Level(StrEnum):
     """
     The severity of a finding, each member's value being the workflow
@@ -157,62 +202,6 @@ class License(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=T
             identifier = identifier[1] if identifier else None,
             path       = path
         )
-
-
-class Script(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
-    """
-    The inline metadata a task script declares, per PEP 723.
-    """
-
-    path: Path
-    """
-    The task script.
-    """
-
-    dependencies: tuple[str, ...] = ()
-    """
-    The requirements the script runs with.
-    """
-
-    python: str = Field("", alias="requires-python")
-    """
-    The specifier the script's `requires-python` declares.
-    """
-
-    @property
-    def pins(self) -> dict[str, str]:
-        """
-        Maps the normalized name of each requirement pinned with `==` to the
-        version it pins, normalized as PEP 503 normalizes a project name.
-        """
-        return {
-            normalized(pin["name"]): pin["version"]
-            for dependency in self.dependencies
-            if (pin := pinned(dependency))
-        }
-
-    @classmethod
-    def read(cls, path: Path) -> Self | None:
-        """
-        Reads the `script` block of the file at `path` through the
-        expression PEP 723 gives for finding one.
-
-        Returns:
-            The script's metadata, or `None` where the file declares none.
-        """
-        block = search(
-            r"(?m)^# /// script$\s(?P<content>(^#(| .*)$\s)+)^# ///$",
-            path.read_text(encoding="utf-8")
-        )
-
-        if block is None:
-            return None
-
-        content = "".join(
-            line.removeprefix("#").removeprefix(" ")
-            for line in block["content"].splitlines(keepends=True)
-        )
-        return cls.model_validate({**loads(content), "path": path})
 
 
 class Task(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=True):
@@ -493,6 +482,56 @@ class Usage(BaseModel, extra="forbid", frozen=True, use_attribute_docstrings=Tru
         return cls.parsed(manual, spec)
 
 
+class Bunfig(ConfigFile):
+    """
+    The `[install]` table of the `bunfig.toml` beside the site's manifest,
+    which holds the site's lockfile to releases that have aged.
+    """
+
+    age: int = Field(
+        0,
+        validation_alias = AliasPath("install", "minimumReleaseAge")
+    )
+    """
+    The seconds a release has to age before `bun` resolves it, `0` where the
+    file sets none.
+    """
+
+    excludes: tuple[str, ...] = Field(
+        (),
+        validation_alias = AliasPath("install", "minimumReleaseAgeExcludes")
+    )
+    """
+    The packages `bun` resolves whatever their release's age, each written as
+    a name with `@` and the one version it exempts.
+    """
+
+
+class CargoConfig(ConfigFile):
+    """
+    A `.cargo/config.toml`, read for the settings that hold the crate's
+    lockfile to releases that have aged.
+    """
+
+    age: str | None = Field(
+        None,
+        validation_alias = AliasPath("registry", "global-min-publish-age")
+    )
+    """
+    The age a release has to reach before Cargo resolves it, or `None` where
+    the file sets none.
+    """
+
+    policy: str | None = Field(
+        None,
+        validation_alias = AliasPath("resolver", "incompatible-publish-age")
+    )
+    """
+    Whether Cargo `deny`s or `allow`s a release younger than the age, or
+    `None` where the file sets none.
+    """
+
+
 class Crate(ConfigFile):
     """
     The fields of the crate's `Cargo.toml` the checks compare against the
@@ -729,17 +768,37 @@ class Package(BaseModel, extra="ignore", frozen=True, use_attribute_docstrings=T
         Returns:
             The instant, or `None` where the lockfile records no upload.
         """
-        return min(
-            (
-                file.uploaded
-                for file in (self.sdist, *self.wheels)
-                if file and file.uploaded
-            ),
-            default = None
+        return min(self.uploads, default=None)
+
+    @property
+    def settled(self) -> AwareDatetime | None:
+        """
+        Reads the instant after the last upload of any file the lockfile
+        records for the version, which `exclude-newer-package` takes to
+        admit the version and none uploaded later.
+
+        Returns:
+            The instant, rounded up to a whole second, or `None` where the
+            lockfile records no upload.
+        """
+        last = max(self.uploads, default=None)
+
+        return last and last.replace(microsecond=0) + timedelta(seconds=1)
+
+    @property
+    def uploads(self) -> tuple[AwareDatetime, ...]:
+        """
+        Lists the instant each file the lockfile records for the version
+        was uploaded.
+        """
+        return tuple(
+            file.uploaded
+            for file in (self.sdist, *self.wheels)
+            if file and file.uploaded
         )
 
 
-class Pyproject(ConfigFile):
+class Pyproject(ConfigFile, Hold):
     """
     The fields of `pyproject.toml` the checks compare against the files that
     restate them, beside the description, the homepage, and the keywords
@@ -853,6 +912,62 @@ class Pyproject(ConfigFile):
             for requirement in self.build_requirements
             if not pinned(requirement)
         )
+
+
+class Script(Hold):
+    """
+    The inline metadata a task script declares, per PEP 723.
+    """
+
+    path: Path
+    """
+    The task script.
+    """
+
+    dependencies: tuple[str, ...] = ()
+    """
+    The requirements the script runs with.
+    """
+
+    python: str = Field("", alias="requires-python")
+    """
+    The specifier the script's `requires-python` declares.
+    """
+
+    @property
+    def pins(self) -> dict[str, str]:
+        """
+        Maps the normalized name of each requirement pinned with `==` to the
+        version it pins, normalized as PEP 503 normalizes a project name.
+        """
+        return {
+            normalized(pin["name"]): pin["version"]
+            for dependency in self.dependencies
+            if (pin := pinned(dependency))
+        }
+
+    @classmethod
+    def read(cls, path: Path) -> Self | None:
+        """
+        Reads the `script` block of the file at `path` through the
+        expression PEP 723 gives for finding one.
+
+        Returns:
+            The script's metadata, or `None` where the file declares none.
+        """
+        block = search(
+            r"(?m)^# /// script$\s(?P<content>(^#(| .*)$\s)+)^# ///$",
+            path.read_text(encoding="utf-8")
+        )
+
+        if block is None:
+            return None
+
+        content = "".join(
+            line.removeprefix("#").removeprefix(" ")
+            for line in block["content"].splitlines(keepends=True)
+        )
+        return cls.model_validate({**loads(content), "path": path})
 
 
 class Site(ConfigFile):
